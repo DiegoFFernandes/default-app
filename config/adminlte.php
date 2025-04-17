@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'Portal | '. env('APP_NAME'),
+    'title' => 'Portal | ' . env('APP_NAME'),
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -309,7 +309,7 @@ return [
             'type' => 'fullscreen-widget',
             'topnav_right' => false,
         ],
-        
+
         // // Sidebar items:
         // [
         //     'type' => 'sidebar-menu-search',
@@ -329,7 +329,7 @@ return [
             // 'label' => 4,
             // 'label_color' => 'success',
         ],
-        
+
         // [
         //     'text' => 'profile',
         //     'url' => 'admin/settings',
@@ -351,15 +351,15 @@ return [
                     'url' => '#',
                     'submenu' => [
                         [
-                            'text' => 'Area Comercial',                            
+                            'text' => 'Area Comercial',
                             'route' => 'area-comercial.index'
                         ],
                         [
-                            'text' => 'Região Comercial',                            
+                            'text' => 'Região Comercial',
                             'route' => 'regiao-comercial.index'
                         ]
                     ]
-                    
+
                 ],
                 [
                     'text' => 'Movimentos',
@@ -372,8 +372,12 @@ return [
                         ],
                         [
                             'text' => 'Acompanha Pedidos',
-                            'route' => 'bloqueio-pedidos',                           
+                            'route' => 'bloqueio-pedidos',
                         ],
+                        [
+                            'text' => 'Rel. Cobranca',
+                            'route' => 'rel-cobranca'
+                        ]
                     ],
                 ],
                 // [

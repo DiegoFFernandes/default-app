@@ -70,38 +70,38 @@
 
 @section('js')
     <script id="details-template" type="text/x-handlebars-template">
-    @verbatim
-        <div class="label label-info">{{ PESSOA }}</div>
-        <table class="table row-border" id="pedido-{{ ID }}" style="width:100%">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Sq</th>
-                    <th>Nr Ordem</th>
-                    <th>Serviço</th>
-                    <th>Valor</th>
-                </tr>
-            </thead>
-        </table>
-    @endverbatim
-</script>
+        @verbatim
+            <div class="label label-info">{{ PESSOA }}</div>
+            <table class="table row-border" id="pedido-{{ ID }}" style="width:100%">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Sq</th>
+                        <th>Nr Ordem</th>
+                        <th>Serviço</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+            </table>
+        @endverbatim
+    </script>
     <script id="details-item-pedido" type="text/x-handlebars-template">
-    @verbatim
-        <span class="badge bg-info">{{ NRORDEM }} - {{DSSERVICO}}</span>
-        <table class="table row-border" id="item-pedido-{{ ID }}" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Etapa</th>
-                    <th>Usúario</th>
-                    <th>Entrada</th>
-                    <th>Saida</th>
-                    <th>Detalhes</th>
-                    <th>Retrabalho</th>
-                </tr>
-            </thead>
-        </table>
-    @endverbatim
-</script>
+        @verbatim
+            <span class="badge bg-info">{{ NRORDEM }} - {{DSSERVICO}}</span>
+            <table class="table row-border" id="item-pedido-{{ ID }}" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Etapa</th>
+                        <th>Usúario</th>
+                        <th>Entrada</th>
+                        <th>Saida</th>
+                        <th>Detalhes</th>
+                        <th>Retrabalho</th>
+                    </tr>
+                </thead>
+            </table>
+        @endverbatim
+    </script>
     <script type="text/javascript">
         var template = Handlebars.compile($("#details-template").html());
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
@@ -249,9 +249,9 @@
         $('#pedido-acompanhar tbody').on('click', '.details-control', function() {
             var tr = $(this).closest('tr');
             var row = table.row(tr);
-            console.log(tableId);
+            // console.log(tableId);
             var tableId = 'pedido-' + row.data().ID;
-            
+
             if (row.child.isShown()) {
                 // This row is already open - close it
                 row.child.hide();

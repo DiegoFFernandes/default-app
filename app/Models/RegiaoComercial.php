@@ -117,5 +117,11 @@ class RegiaoComercial extends Model
         $this->connection = 'mysql';
         return RegiaoComercial::select('cd_regiaocomercial')->where('cd_usuario', $cd_usuario)->get();
     }
+    public function RegiaoUsuarioAll(){
+        $this->connection = 'mysql';
+        return RegiaoComercial::select('regiao_comercial.cd_regiaocomercial', DB::raw("substring_index(UPPER(users.name), ' ', 1) as name"))
+            ->join('users', 'users.id', 'regiao_comercial.cd_usuario')           
+            ->get();
+    }
 
 }

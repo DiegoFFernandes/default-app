@@ -41,7 +41,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $title_page = 'Usuários Cadastrados';
+        $title_page = 'Usúarios';
         $uri  = $this->request->route()->uri();
         $user_auth = $this->user_auth;
         // $users     = User::where('id', '<>', 1)->get();
@@ -95,7 +95,6 @@ class UserController extends Controller
 
     public function create()
     {
-
         $create = User::where('email', $this->request->email)->exists();
         if ($create == 1) {
             return  response()->json(["warning" => "Email já existe, favor cadastrar outro!"]);
@@ -104,26 +103,56 @@ class UserController extends Controller
             $this->request['email'] = strtolower($this->request->email);
             $this->request['name'] = mb_convert_case($this->request->name, MB_CASE_TITLE, 'UTF-8');
             $this->request['phone'] = Helper::RemoveSpecialChar($this->request->phone);
+            $this->request['id'] = 0; // zero somente para passar no validate
 
             $user = $this->__validate();
-
             if ($user->fails()) {
-                $error = '<ul>';
-
-                foreach ($user->errors()->all() as $e) {
-                    $error .= '<li>' . $e . '</li>';
-                }
-                $error .= '</ul>';
-
+                $error = self::returnFails($user);
                 return response()->json(['error' => $error]);
             }
-
             $user = $this->user->storeData($user->validated());
 
             return response()->json([
                 'success' => 'Usuário criado com sucesso!'
             ]);
         }
+    }
+    public function update()
+    {
+        // verifica se o usuario existe no banco de dados
+        // $exist = $this->user->userExists($this->request->id);
+        $exist = User::find($this->request->id);        
+        if($exist){
+            if($this->request['password'] == null){
+                $this->request['password'] = $exist->password;
+            }else{
+                $this->request['password'] = Hash::make($this->request['password']);
+            }
+            
+            $this->request['email'] = strtolower($this->request->email);
+            $this->request['name'] = mb_convert_case($this->request->name, MB_CASE_TITLE, 'UTF-8');
+            $this->request['phone'] = Helper::RemoveSpecialChar($this->request->phone);
+        }
+        // return $this->request;
+        $user = $this->__validate();
+        if ($user->fails()) {
+            $error = self::returnFails($user);
+            return response()->json(['error' => $error]);
+        }
+        $user = $this->user->updateData($user->validated());
+
+        return response()->json([
+            'success' => 'Usuário atualizado com sucesso!'
+        ]);
+    }
+    public function returnFails($fails)
+    {
+        $error = '<ul>';
+
+        foreach ($fails->errors()->all() as $e) {
+            $error .= '<li>' . $e . '</li>';
+        }
+        $error .= '</ul>';
     }
 
     public function destroy()
