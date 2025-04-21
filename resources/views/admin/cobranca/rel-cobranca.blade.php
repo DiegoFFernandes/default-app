@@ -19,10 +19,21 @@
             </div>
             <div class="col-md-4 col-sm-4 col-xs-6">
                 <div class="info-box">
-                    <span class="info-box-icon bg-yellow"><i class="far fa-thumbs-down"></i></i></span>
+                    <span class="info-box-icon bg-yellow"><i class="far fa-thumbs-down"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text maior-divida">Maior divida</span>
                         <span class="info-box-number" id="maior-divida">
+
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-4 col-xs-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-yellow"><i class="fas fa-sort-amount-up-alt"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text titulos">Quantidade de Titulos</span>
+                        <span class="info-box-number" id="qtd-titulos">
 
                         </span>
                     </div>
@@ -40,6 +51,7 @@
                                     <tr>
                                         <th>Responsável</th>
                                         <th>Região</th>
+                                        <th>Titulos</th>
                                         <th class="text-center">%</th>
                                         <th>Valor</th>
                                     </tr>
@@ -48,6 +60,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
+                                        <th></th>
                                         <th></th>
                                         <th></th>
                                         <th style="text-align: right"></th>
@@ -60,18 +73,30 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="modal-detalhar" tabindex="-1">
+        <div class="modal modal-default fade" id="modal-detalhar" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
+                        <h5 class="modal-title">Titulos Cliente</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">×</span></button>
-                        <h4 class="modal-title">Cliente</h4>
                     </div>
                     <div class="modal-body" style="overflow-x: auto;">
-                        <div id="table-list-cobranca" class="table-responsive">
+                        <table class="table compact" id="table-list-details" style="font-size: 12px">
+                            <thead>
+                                <tr>
+                                    <th>Emp</th>
+                                    <th>Cliente</th>
+                                    <th>CNPJ</th>
+                                    <th>Vencimento</th>
+                                    <th>Valor</th>
+                                    <th>Observação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
 
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Fechar</button>
@@ -93,6 +118,7 @@
                         <th>Empresa</th>
                         <th>Cliente</th>
                         <th>CNPJ</th>
+                        <th>Titulos</th>
                         <th>Tipo Conta</th>
                         <th>Valor</th>                        
                     </tr>
@@ -122,7 +148,13 @@
                     data: "DS_REGIAOCOMERCIAL",
                     name: "DS_REGIAOCOMERCIAL",
                     visible: true
-                }, {
+                },
+                {
+                    data: "TITULOS",
+                    name: "TITULOS"
+                },
+
+                {
                     data: "percentual",
                     name: "percentual",
 
@@ -133,10 +165,10 @@
                 },
             ],
             columnDefs: [{
-                    targets: 3,
+                    targets: 4,
                     render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                 }, {
-                    targets: 2,
+                    targets: 3,
                     className: "text-center"
                 }
 
@@ -147,7 +179,7 @@
 
                 // Pegando a coluna desejada (ex: coluna 3 = índice 2)
                 var total = api
-                    .column(3, {
+                    .column(4, {
                         page: 'all'
                     }) // ou 'page: all' para total geral
                     .data()
@@ -156,18 +188,20 @@
                     }, 0);
 
                 // Atualiza o footer da coluna
-                $(api.column(3).footer()).html('Total: ' + total.toLocaleString('pt-BR'));
+                $(api.column(4).footer()).html('Total: ' + total.toLocaleString('pt-BR'));
 
                 let maiorValor = 0;
                 let regiaoMaior = '';
+                let qtdTitulos = 0;
 
                 data.forEach(function(item) {
                     let valor = Number(item.VL_SALDO);
+                        qtdTitulos += Number(item.TITULOS);
                     if (valor > maiorValor) {
                         maiorValor = valor;
                         regiaoMaior = item.DS_REGIAOCOMERCIAL;
                     }
-                });
+                });                
                 let percMaior = ((Number(maiorValor) / Number(total)) * 100).toFixed(2);
 
                 $('#soma-geral').text(total.toLocaleString('pt-BR', {
@@ -179,8 +213,12 @@
                     currency: 'BRL'
                 }) + '<small>  ' + percMaior + '%</small>');
                 $('.maior-divida').html('Maior Dívida <b>' + regiaoMaior + '</b>');
+                $('#qtd-titulos').text(qtdTitulos);
 
-            }
+            },
+            order: [
+                [3, 'desc']
+            ]
         });
         $('#table-rel-cobranca tbody').on('click', '.details-control', function() {
             var tr = $(this).closest('tr');
@@ -226,7 +264,7 @@
                 columns: [{
                         name: 'details',
                         data: 'details',
-                    },                    
+                    },
                     {
                         data: 'NM_PESSOA',
                         name: 'NM_PESSOA'
@@ -234,6 +272,9 @@
                     {
                         data: 'NR_CNPJCPF',
                         name: 'NR_CNPJCPF'
+                    }, {
+                        data: 'TITULOS',
+                        name: 'TITULOS'
                     },
                     {
                         data: 'TIPOCONTA',
@@ -245,9 +286,71 @@
                         name: 'VL_SALDO'
                     }
 
+                ],
+                columnDefs: [{
+                    targets: 5,
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                }, ],
+                order: [
+                    [4, 'desc']
                 ]
 
             });
         }
+        $('body').on('click', '.detalhar', function() {
+            $('#modal-detalhar').modal('show');
+            var cd_pessoa = $(this).data('cd_pessoa');
+            $('#table-list-details').DataTable().destroy();
+
+            table_pessoa_details = $('#table-list-details').DataTable({
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
+                },
+                "searching": false,
+                "paging": true,
+                "bInfo": false,
+                processing: false,
+                serverSide: false,
+                ajax: {
+                    method: "GET",
+                    url: " {{ route('get-list-pessoa-cobranca-details') }}",
+                    data: {
+                        _token: $("[name=csrf-token]").attr("content"),
+                        cd_pessoa: cd_pessoa
+                    }
+                },
+                columns: [{
+                        data: 'CD_EMPRESA',
+                        name: 'CD_EMPRESA'
+                    },
+                    {
+                        data: 'NM_PESSOA',
+                        name: 'NM_PESSOA'
+                    },
+                    {
+                        data: 'NR_CNPJCPF',
+                        name: 'NR_CNPJCPF'
+                    },
+                    {
+                        data: 'DT_VENCIMENTO',
+                        name: 'DT_VENCIMENTO',
+                    },
+                    {
+                        data: 'VL_SALDO',
+                        name: 'VL_SALDO'
+                    },
+                    {
+                        data: 'DS_OBSERVACAO',
+                        name: 'DS_OBSERVACAO',
+                        width: '10%'
+                    }
+                ],
+                columnDefs: [{
+                    targets: 4,
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                }]
+
+            });
+        });
     </script>
 @stop

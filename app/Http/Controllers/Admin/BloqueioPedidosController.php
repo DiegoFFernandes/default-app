@@ -40,7 +40,9 @@ class BloqueioPedidosController extends Controller
     {
         $title_page   = 'Acompanhamento de Pedidos';
         $user_auth    = $this->user;
-        $uri         = $this->request->route()->uri();
+        $exploder     = explode('/', $this->request->route()->uri());
+        $regiao = $this->regiao->regiaoAll();
+        $uri = ucfirst($exploder[1]);
 
         if ($this->user->hasRole('gerencia')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
@@ -60,7 +62,7 @@ class BloqueioPedidosController extends Controller
             }
         }
 
-        return view('admin.comercial.bloqueio-pedidos', compact('title_page', 'user_auth', 'uri'));
+        return view('admin.comercial.bloqueio-pedidos', compact('title_page', 'user_auth', 'uri', 'regiao'));
     }
     public function getBloqueioPedido()
     {
@@ -78,7 +80,7 @@ class BloqueioPedidosController extends Controller
             ->addColumn('action', function ($b) {
                 return '<a href="https://api.whatsapp.com/send?phone=+5541985227055&text=
                 Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
-                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-sm">
+                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
                 Avisar Whats</a>';
             })
             ->addColumn('status_cliente', ' ')
@@ -97,6 +99,10 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
+        $regiao = "";
+        if(!empty($this->request->regiao)){
+            $regiao = implode(',', $this->request->regiao);            
+        }
         if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
         } elseif ($this->user->hasRole('gerencia')) {
@@ -106,7 +112,7 @@ class BloqueioPedidosController extends Controller
                 ->implode(',');
         }
 
-        $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao);
+        $pedidos = $this->acompanha->ListPedidoPneu($regiao);
         return DataTables::of($pedidos)
 
             ->addColumn('actions', function ($d) {

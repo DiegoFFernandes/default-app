@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class LiberaOrdemComercial extends Model
+class LiberaOrdemFinanceiro extends Model
 {
     use HasFactory;
 
@@ -20,9 +20,9 @@ class LiberaOrdemComercial extends Model
                     PP.ID PEDIDO,
                     PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
+                    PP.DTBLOQUEIO,
                     PP.IDPEDIDOMOVEL,
-                    CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET ISO8859_1) PESSOA,
-                    --CAST(PP.DSBLOQUEIO AS VARCHAR(8100) CHARACTER SET UTF8) DSBLOQUEIO,
+                    CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET ISO8859_1) PESSOA,                    
                     PP.DSLIBERACAO,
                     CAST(PV.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) VENDEDOR,
                     EP.CD_REGIAOCOMERCIAL,
@@ -47,7 +47,7 @@ class LiberaOrdemComercial extends Model
                 LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = T.CD_TABPRECO)
                 WHERE PP.STPEDIDO IN ('B')
                     AND PP.IDTIPOPEDIDO <> 2
-                    AND PP.TP_BLOQUEIO <> 'F'
+                    AND PP.TP_BLOQUEIO <> 'C'
                     " . (($cd_regiao != "") ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
                     " . (($pedidos != "") ? "and pp.id in ($pedidos)" : "and pp.id = 0") . "
                     --and ipb.iditempedidopneu = 466381                    
@@ -56,7 +56,7 @@ class LiberaOrdemComercial extends Model
                     PP.IDEMPRESA,
                     PP.DTEMISSAO,
                     PESSOA,
-                    --PP.DSBLOQUEIO,
+                    PP.DTBLOQUEIO,
                     PP.DSLIBERACAO,
                     VENDEDOR,
                     EP.CD_REGIAOCOMERCIAL,
@@ -76,6 +76,7 @@ class LiberaOrdemComercial extends Model
                 IPP.ID,
                 PP.STPEDIDO,
                 PP.TP_BLOQUEIO,
+                PP.DSBLOQUEIO,
                 PP.ID PEDIDO,
                 PP.IDEMPRESA EMP,
                 PP.DTEMISSAO,
@@ -95,60 +96,19 @@ class LiberaOrdemComercial extends Model
                 ITP.CD_TABPRECO
             FROM
                 PEDIDOPNEU PP
-            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-                --inner join itempedidopneuborracheiro ipb on (ipb.iditempedidopneu = ipp.id)
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)            
             INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
-            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = 1
-                                    AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
+            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = 1 
+                                AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
             WHERE                
                 PP.STPEDIDO IN ('B') AND
-                PP.TP_BLOQUEIO <> 'F'
+                PP.TP_BLOQUEIO <> ''
                 " . (($id <> 0) ? " and pp.id = '" . $id . "'" : "") . "";
 
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
-    }
-    public function updateValueItempedidoPneu($pneu)
-    {
-        self::updateValueItempedidoPneuBorracheiro($pneu);
-
-        return DB::transaction(function () use ($pneu) {
-
-            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
-
-            $query = "UPDATE ITEMPEDIDOPNEU IPP SET IPP.VLUNITARIO = " . $pneu['VL_VENDA'] . " WHERE IPP.ID = " . $pneu['ID'] . "";
-
-            return DB::connection('firebird')->statement($query);
-        });
-    }
-    public function updateValueItempedidoPneuBorracheiro($pneu)
-    {
-        return DB::transaction(function () use ($pneu) {
-
-            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
-
-            $query = "
-                    SELECT
-                        IIPB.ID,
-                        IIPB.IDITEMPEDIDOPNEU,
-                        IIPB.IDBORRACHEIRO,
-                        IIPB.PC_COMISSAO,
-                        IIPB.VL_COMISSAO,
-                        IIPB.DT_REGISTRO
-                    FROM ITEMPEDIDOPNEUBORRACHEIRO IIPB
-                    WHERE IIPB.IDITEMPEDIDOPNEU = " . $pneu['ID'] . " ";
-
-            $data = DB::connection('firebird')->select($query);
-
-            foreach ($data as $d) {
-                $VL_COMISSAO = ($pneu['VL_VENDA'] * $d->PC_COMISSAO) / 100;
-
-                $query = "UPDATE ITEMPEDIDOPNEUBORRACHEIRO IIPB SET IIPB.VL_COMISSAO = $VL_COMISSAO WHERE IIPB.ID = $d->ID";
-                DB::connection('firebird')->statement($query);
-            }
-        });
     }
 }

@@ -36,9 +36,10 @@ class RelatorioCobrancaController extends Controller
     }
     public function index()
     {
-        $title_page   = 'Titulos em Atraso';
-        // $user_auth    = $this->user;
-        $uri          = $this->request->route()->uri();
+        $title_page   = 'Titulos em Atraso - Área';
+        // $user_auth    = $this->user;        
+        $exploder = explode('/', $this->request->route()->uri());
+        $uri = ucfirst($exploder[1]);
         $empresa = $this->empresa->empresa();
         // $cd_empresa = $this->setEmpresa($this->user->empresa);
         $cd_area = "";
@@ -49,6 +50,11 @@ class RelatorioCobrancaController extends Controller
             'title_page',
             'uri',
         ));
+        // return view('admin.cobranca.teste', compact(
+        //     'empresa',
+        //     'title_page',
+        //     'uri',
+        // ));
     }
     public function getListCobranca()
     {
@@ -57,32 +63,17 @@ class RelatorioCobrancaController extends Controller
             $cd_regiao = "";
             // $regiao = $this->regiao->regiaoAll();
             // $area = $this->area->areaAll();
-        } elseif ($this->user->hasRole('gerente')) {
+        } elseif ($this->user->hasRole('gerencia')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $find = $this->area->findAreaUser($this->user->id);
-            $array = json_decode($find, true);
-            if (empty($array)) {
+            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
+                ->pluck('cd_regiaocomercial')
+                ->implode(',');
+            if (empty($cd_regiao)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
             }
-            $regiao = $this->regiao->regiaoArea($find[0]->cd_areacomercial);
-            $area = "";
-            $cd_area = $find[0]->cd_areacomercial;
-            $cd_regiao = "";
-        } else {
-            $regiaoUsuario = $this->regiao->regiaoPorUsuario($this->user->id);
-            $regiao = "";
-            $area = "";
-            foreach ($regiaoUsuario as $r) {
-                $cd_regiao[] = $r->cd_regiaocomercial;
-            }
-            //verifica se o usuario tem permissão mais ainda nao foi associado região para ele e retorna com mensagem!
-            if (empty($cd_regiao)) {
-                return Redirect::route('home')->with('warning', 'Usuario com permissão mais sem vinculo com região, fale com o Administrador do sistema!');
-            }
-            //serialize a informação vinda do banco e faz o implode dos valores separados por (;)
-            $cd_regiao = implode(",", $cd_regiao);
         }
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_area);
+        // return $cd_regiao;
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao);
         //return $this->calc($clientesInadimplentes, "N");
 
 
@@ -116,10 +107,15 @@ class RelatorioCobrancaController extends Controller
         $data = $this->cobranca->clientesInadiplentes($this->request->id);
         return DataTables::of($data)
             ->addColumn('details', function ($d) {
-                return '<button class="btn btn-success btn-xs mr-4">Detalhar</button> ' . $d->CD_EMPRESA;
+                return '<button class="btn btn-success btn-xs mr-4 detalhar" data-cd_pessoa="' . $d->CD_PESSOA . '">Detalhar</button> ';
             })
             ->rawColumns(['details'])
             ->make(true);
+    }
+    public function getListCobrancaPessoaDetails()
+    {
+        $data = $this->cobranca->clientesInadiplentesDetails($this->request->cd_pessoa);
+        return Datatables::of($data)->make(true);
     }
 
     public function getListCobrancaFiltro()
@@ -261,5 +257,16 @@ class RelatorioCobrancaController extends Controller
         }
         $total_ = number_format($total, 2, ',', '.');
         return "R$ " . $total_;
+    }
+
+    public function testeCobranca()
+    {
+        return $data = $this->cobranca->clientesInadiplentes(13);
+        return DataTables::of($data)
+            ->addColumn('details', function ($d) {
+                return '<button class="btn btn-success btn-xs mr-4 detalhar" data-cd_pessoa="' . $d->CD_PESSOA . '">Detalhar</button> ';
+            })
+            ->rawColumns(['details'])
+            ->make(true);
     }
 }

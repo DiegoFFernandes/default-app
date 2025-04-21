@@ -80,13 +80,13 @@ class AcompanhamentoPneu extends Model
                         PP.DTENTREGA DTENTREGAPED,
                         (
                         CASE PP.STPEDIDO
-                        WHEN 'A' THEN 'ATENDIDO'
-                        WHEN 'C' THEN 'CANCELADO'
-                        WHEN 'T' THEN 'EM PRODUCAO'
-                        WHEN 'N' THEN 'AGUARDANDO'
-                        WHEN 'B' THEN 'BLOQUEADO'
-                        WHEN 'P' THEN 'PRODUCAO PARCIAL'
-                        ELSE PP.STPEDIDO
+                            WHEN 'A' THEN 'ATENDIDO'
+                            WHEN 'C' THEN 'CANCELADO'
+                            WHEN 'T' THEN 'EM PRODUCAO'
+                            WHEN 'N' THEN 'AGUARDANDO'
+                            WHEN 'B' THEN 'BLOQUEADO'
+                            WHEN 'P' THEN 'PRODUCAO PARCIAL'
+                            ELSE PP.STPEDIDO
                         END) STPEDIDO,
                         COUNT(IPP.id) QTDPNEUS
                     FROM PEDIDOPNEU PP

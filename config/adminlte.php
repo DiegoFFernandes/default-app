@@ -323,23 +323,13 @@ return [
         ['header' => 'Navegação'],
         [
             'text' => 'Usuarios',
+            'can' => 'ver-usuarios',
             'route' => 'usuario.index',
             'active' => ['usuario.index'],
             'icon' => 'nav-icon far fa-user',
             // 'label' => 4,
             // 'label_color' => 'success',
         ],
-
-        // [
-        //     'text' => 'profile',
-        //     'url' => 'admin/settings',
-        //     'icon' => 'fas fa-fw fa-user',
-        // ],
-        // [
-        //     'text' => 'change_password',
-        //     'url' => 'admin/settings',
-        //     'icon' => 'fas fa-fw fa-lock',
-        // ],
         [
             'text' => 'Comercial',
             'icon' => 'nav-icon fas fa-map',
@@ -349,6 +339,7 @@ return [
                     'text' => 'Cadastros',
                     'icon' => 'nav-icon fas fa-copy',
                     'url' => '#',
+                    'can' => ['ver-cadastros'],
                     'submenu' => [
                         [
                             'text' => 'Area Comercial',
@@ -380,28 +371,32 @@ return [
                         ]
                     ],
                 ],
-                // [
-                //     'text' => 'level_one',
-                //     'url' => '#',
-                // ],
-            ],
+
+            ]
         ],
-        // ['header' => 'labels'],
-        // [
-        //     'text' => 'important',
-        //     'icon_color' => 'red',
-        //     'url' => '#',
-        // ],
-        // [
-        //     'text' => 'warning',
-        //     'icon_color' => 'yellow',
-        //     'url' => '#',
-        // ],
-        // [
-        //     'text' => 'information',
-        //     'icon_color' => 'cyan',
-        //     'url' => '#',
-        // ],
+        [
+            'text' => 'Financeiro',
+            'icon' => 'nav-icon fas fa-money-bill',
+            'url' => '#',
+            'can' => ['ver-libera-ordem-financeiro'],
+            'submenu' => [
+                [
+                    'text' => 'Libera Ordem Financeiro',
+                    'route' => 'libera-ordem-financeiro.index'
+                ]
+            ]
+        ],
+        [
+            'text' => 'Faturamento',
+            'icon' => 'nav-icon fas fa-file-invoice-dollar',
+            'url' => '#',
+            'submenu' => [
+                [
+                    'text' => 'Produzidos S/ Faturar',
+                    'route' => ''
+                ]
+            ]
+        ],
     ],
 
     /*
