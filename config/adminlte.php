@@ -393,7 +393,7 @@ return [
             'submenu' => [
                 [
                     'text' => 'Produzidos S/ Faturar',
-                    'route' => ''
+                    'route' => 'produzidos-sem-faturar'
                 ]
             ]
         ],

@@ -46,7 +46,7 @@ class LiberaOrdemFinanceiro extends Model
                     AND PP.IDEMPRESA = T.CD_EMPRESA)
                 LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = T.CD_TABPRECO)
                 WHERE PP.STPEDIDO IN ('B')
-                    AND PP.IDTIPOPEDIDO <> 2
+                    --AND PP.IDTIPOPEDIDO <> 2
                     AND PP.TP_BLOQUEIO <> 'C'
                     " . (($cd_regiao != "") ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
                     " . (($pedidos != "") ? "and pp.id in ($pedidos)" : "and pp.id = 0") . "

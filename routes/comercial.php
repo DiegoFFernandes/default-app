@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AreaComercialController;
 use App\Http\Controllers\Admin\BloqueioPedidosController;
 use App\Http\Controllers\Admin\LiberaOrdemComissaoController;
+use App\Http\Controllers\Admin\ProducaoController;
 use App\Http\Controllers\Admin\RegiaoComercialController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,14 @@ Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
         Route::get('get-ordem-bloqueadas-comercial', [LiberaOrdemComissaoController::class, 'getListOrdemBloqueadas'])->name('get-ordens-bloqueadas-comercial');
         Route::get('get-pneus-ordem-bloqueadas-comercial/{id}', [LiberaOrdemComissaoController::class, 'getListPneusOrdemBloqueadas'])->name('get-pneus-ordens-bloqueadas-comercial');
         Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
+               
+      }); 
+});
+
+Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
+    Route::prefix('producao')->group(function () {
+        Route::get('pneus-produzidos-sem-faturar', [ProducaoController::class, 'index'])->name('produzidos-sem-faturar');
+        Route::get('get-pneus-produzidos-sem-faturar', [ProducaoController::class, 'getListPneusProduzidosFaturar'])->name('get-pneus-produzidos-sem-faturar');   
     });
 });
 
