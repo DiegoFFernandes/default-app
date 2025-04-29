@@ -60,7 +60,7 @@
                             <tfoot>
                                 <tr>
                                     <th colspan="5" style="text-align: right;"></th>
-                                    <th colspan="2"></th>
+                                    <th colspan="3"></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -74,19 +74,34 @@
 
 @section('css')
     <style>
-        
+
     </style>
 @stop
 
 @section('js')
+    <script id="details-template" type="text/x-handlebars-template">
+        @verbatim
+            <div class="label label-info">{{ PESSOA }}</div>
+            <table class="table row-border" id="pedido-{{ NR_COLETA }}" style="width:100%">
+                <thead>
+                    <tr>                        
+                        <th>Expedicinado</th>
+                        <th>Nr Ordem</th>
+                        <th>Serviço</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+            </table>
+        @endverbatim
+    </script>
     <script>
         $(document).ready(function() {
-            $('#produzidosTable').DataTable({
+            var template = Handlebars.compile($("#details-template").html());
+            var table = $('#produzidosTable').DataTable({
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                 },
-                "responsive": true,
-                "autoWidth": false,
+                "scrollX": true,
                 "ajax": {
                     "url": "{{ route('get-pneus-produzidos-sem-faturar') }}",
                     "method": "GET",
@@ -115,6 +130,10 @@
                         "data": "DTENTREGA"
                     }
                 ],
+                "columnDefs": [{
+                    "targets": 0,
+                    "className": "text-center",
+                }],
                 footerCallback: function(row, data, start, end, display) {
                     let QtdPneus = 0;
                     let valorTotal = 0;
@@ -139,11 +158,65 @@
                     $('#valorTotal').html('R$ ' + valorTotal.toFixed(2).replace('.', ',').replace(
                         /\B(?=(\d{3})+(?!\d))/g, '.'));
                     $('#expedicionado').html('Sim: ' + expedicionadoSim + ' | Não: ' +
-                    expedicionadoNao);
+                        expedicionadoNao);
 
                 },
 
             });
+
+            $('#produzidosTable').on('click', 'tbody tr', function() {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                // console.log(tableId);
+                var tableId = 'pedido-' + row.data().NR_COLETA;
+
+                if (row.child.isShown()) {
+                    // This row is already open - close it
+                    row.child.hide();
+                    tr.removeClass('shown');
+                    // $(this).removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                } else {
+                    // Open this row
+                    row.child(template(row.data())).show();
+                    initTable(tableId, row.data());
+                    // console.log(row.data());
+                    tr.addClass('shown');
+                    // $(this).removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                    tr.next().find('td').addClass('no-padding');
+                }
+
+            });
+
+            function initTable(tableId, data) {
+                var tableItemOrdem = $('#' + tableId).DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                    },
+                    "ajax": {
+                        "url": "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
+                        "method": "GET",
+                        "data": {
+                            'pedido': data.NR_COLETA,
+                            'nr_embarque': data.NR_EMBARQUE
+                        }
+                    },
+                    "columns": [
+                        {
+                            "data": "EXPEDICIONADO"
+                        },
+                        {
+                            "data": "NRORDEMPRODUCAO"
+                        },
+                        {
+                            "data": "DS_ITEM"
+                        },
+                        {
+                            "data": "VALOR"
+                        }
+                    ]
+                });
+            }
+                       
 
             // Adjust font size for search and length elements
             $('.dataTables_length, .dataTables_filter').css('font-size', '9px');

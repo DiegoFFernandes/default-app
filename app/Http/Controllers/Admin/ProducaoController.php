@@ -39,7 +39,7 @@ class ProducaoController extends Controller
     {
         $title_page   = 'Produzidos - Sem Faturar';
         $user_auth    = $this->user;
-        $exploder     = explode('/',$this->request->route()->uri());
+        $exploder     = explode('/', $this->request->route()->uri());
         $uri = ucfirst($exploder[1]);
 
         $regiao = $this->regiao->regiaoAll();
@@ -56,12 +56,13 @@ class ProducaoController extends Controller
             'list_regiao'
         ));
     }
-    public function getListPneusProduzidosFaturar(){
+    public function getListPneusProduzidosFaturar()
+    {
         $data = $this->producao->getPneusProduzidosFaturar();
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('CD_EMPRESA', function ($row) {
-                return $row->CD_EMPRESA;
+                return '<span class="right badge badge-danger details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $row->CD_EMPRESA;
             })
             ->addColumn('NM_PESSOA', function ($row) {
                 return $row->NM_PESSOA;
@@ -80,5 +81,21 @@ class ProducaoController extends Controller
             })
             ->rawColumns(['CD_EMPRESA', 'NM_PESSOA', 'VALOR', 'PNEUS', 'EXPEDICIONADO', 'DTENTREGA'])
             ->make(true);
+    }
+    public function getListPneusProduzidosFaturarDetails()
+    {
+        $nr_embarque = $this->request->get('nr_embarque');
+        $pedido = $this->request->get('pedido');
+
+       
+        if ($nr_embarque == 'SEM EMBARQUE') {
+            $nr_embarque = 0;
+        }
+
+        $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque);
+
+        return DataTables::of($data)->make(true);
+        
+
     }
 }
