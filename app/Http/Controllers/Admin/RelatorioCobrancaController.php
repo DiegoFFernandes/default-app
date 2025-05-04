@@ -261,12 +261,32 @@ class RelatorioCobrancaController extends Controller
 
     public function testeCobranca()
     {
-        return $data = $this->cobranca->clientesInadiplentes(13);
-        return DataTables::of($data)
-            ->addColumn('details', function ($d) {
-                return '<button class="btn btn-success btn-xs mr-4 detalhar" data-cd_pessoa="' . $d->CD_PESSOA . '">Detalhar</button> ';
-            })
-            ->rawColumns(['details'])
-            ->make(true);
+        $regioes_mysql = $this->regiao->RegiaoUsuarioAll()->keyBy('cd_regiaocomercial');
+
+        if ($this->user->hasRole('admin|diretoria')) {         
+            $cd_regiao = "";
+            // $regiao = $this->regiao->regiaoAll();
+            // $area = $this->area->areaAll();
+        } elseif ($this->user->hasRole('gerencia')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
+                ->pluck('cd_regiaocomercial')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+            }
+        }
+
+        $data = $this->cobranca->clientesInadiplentes($cd_regiao);
+
+        foreach ($data as $item) {
+            foreach ($regioes_mysql as $regiao) {
+                if ($item->CD_REGIAOCOMERCIAL == $regiao->cd_regiaocomercial) {
+                    $item->DS_AREACOMERCIAL = $regiao->name;
+                }
+            }
+        }
+
+        return response()->json($data);
     }
 }

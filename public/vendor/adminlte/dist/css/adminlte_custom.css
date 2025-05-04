@@ -50,3 +50,16 @@ div.dt-length label {
     font-size: 13px;
 }
 
+
+
+@media (max-width: 600px) {
+ .text-sm {
+    font-size: 10px !important;
+  }
+
+
+
+}
+
+
+
