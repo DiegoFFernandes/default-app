@@ -4,6 +4,31 @@
 
 @section('content')
     <div class="content-fluid">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-danger"><i class="fa fa-list-ul"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Total Bloqueado</span>
+                        <span class="info-box-number" id="soma-geral">
+
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-6 col-xs-6">
+                <div class="info-box">
+                    <span class="info-box-icon bg-yellow"><i class="fas fa-sort-amount-up-alt"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text titulos">Quantidade de Pneus</span>
+                        <span class="info-box-number" id="qtd-titulos">
+
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="card">
             <div class="card-body">
                 <table class="table stripe compact table-font-small" style="width:100%" id="table-ordem-block">
@@ -14,7 +39,8 @@
                             <th>Pedido</th>
                             <th>Cliente</th>
                             <th>Qtd</th>
-                            <th>Vendedor</th>                            
+                            <th>Vendedor</th>
+                            <th>Valor</th>
                             <th>Data Bloqueio</th>
                         </tr>
                     </thead>
@@ -27,14 +53,15 @@
                             <th>Cliente</th>
                             <th>Qtd</th>
                             <th>Vendedor</th>
-                            <th>Data Bloqueio</th>                           
+                            <th>Valor</th>
+                            <th>Data Bloqueio</th>
                         </tr>
                     </tfoot>
                 </table>
             </div>
         </div>
     </div>
- 
+
     {{-- Modal de Itens --}}
     <div class="modal modal-default fade" id="modal-table-pedido">
         <div class="modal-dialog modal-lg">
@@ -138,13 +165,53 @@
                     data: 'VENDEDOR',
                     name: 'VENDEDOR',
                     visible: true
-                },               
+                },
+                {
+                    data: 'VL_TOTAL',
+                    name: 'VL_TOTAL',
+                    visible: true
+                },
                 {
                     data: 'DTBLOQUEIO',
                     name: 'DTBLOQUEIO',
                     visible: true
                 }
             ],
+            columnDefs: [{
+                targets: 6,
+                render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+            }],
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
+                let qtdPneus = 0;
+
+                // Pegando a coluna desejada (ex: coluna 3 = índice 2)
+                var total = api
+                    .column(6, {
+                        page: 'all'
+                    }) // ou 'page: all' para total geral
+                    .data()
+                    .reduce(function(a, b) {
+                        return Number(a) + Number(b.toString().replace(/[^\d.-]/g, ''));
+                    }, 0);
+
+                // Atualiza o footer da coluna
+                $(api.column(6).footer()).html('Total: ' + total.toLocaleString('pt-BR'));
+
+                data.forEach(function(item) {
+                    let valor = Number(item.VL_TOTAL);
+                    qtdPneus += Number(item.QTDPNEUS);
+                });
+
+                $('#soma-geral').text(total.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }));
+
+                $('#qtd-titulos').text(qtdPneus); 
+
+            },
+
             order: [2, 'asc']
         });
         $('#table-ordem-block tbody').on('click', '.details-control', function() {
@@ -213,13 +280,13 @@
                     $(tfoot).find('td').removeClass('no-padding');
 
                     let dsbloqueio = '';
-                    data.forEach(function(i){
+                    data.forEach(function(i) {
                         dsbloqueio = i.DSBLOQUEIO;
-                    });    
-                    
+                    });
+
                     $('.bloqueio').html(dsbloqueio).css('font-size', '12px');
                 }
-                
+
             });
         }
 
@@ -235,7 +302,7 @@
                 data: {
                     _token: $("[name=csrf-token]").attr("content"),
                     pedido: $('.nr_pedido').val(),
-                    liberacao: $('.liberacao').val()                   
+                    liberacao: $('.liberacao').val()
                 },
                 beforeSend: function() {
                     $("#loading").removeClass('invisible');

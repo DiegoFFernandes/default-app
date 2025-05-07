@@ -32,7 +32,9 @@ class LiberaOrdemFinanceiro extends Model
                     END TABPRECO,
                     TABPRECO.DS_TABPRECO,
                     TABPRECO.DT_VALIDADE,
-                    COUNT(IPP.id) QTDPNEUS
+                    COUNT(IPP.id) QTDPNEUS,
+                    CAST(SUM(IPP.VLUNITARIO)AS NUMERIC(15,2)) VL_TOTAL
+
                 FROM PEDIDOPNEU PP
                 INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
                 INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
