@@ -2,10 +2,10 @@
     "name": "Atz Pneus",
     "short_name": "Atz",
     "start_url": "/",
-    "background_color": "#6777ef",
+    "background_color": "#FFFFFF",
     "description": "Aplicativo para gerenciamento de pneus",
     "display": "fullscreen",
-    "theme_color": "#ED1B23",
+    "theme_color": "#FFFFFF",
     "icons": [
         {
             "src": "android-chrome-512x512.png",

@@ -18,7 +18,7 @@
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-    {!! LaravelPWA::head() !!}
+
 </head>
 <body>
     <div id="app">
