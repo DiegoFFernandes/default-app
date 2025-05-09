@@ -1,11 +1,11 @@
 {
-    "name": "Laravel Package Tutorial",
-    "short_name": "LPT",
+    "name": "Atz Pneus",
+    "short_name": "Atz",
     "start_url": "/",
     "background_color": "#6777ef",
-    "description": "Tutorial of Laravel Package",
+    "description": "Aplicativo para gerenciamento de pneus",
     "display": "fullscreen",
-    "theme_color": "#6777ef",
+    "theme_color": "#ED1B23",
     "icons": [
         {
             "src": "logo.PNG",
