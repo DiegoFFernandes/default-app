@@ -40,6 +40,31 @@
                 </div>
             </div>
         </div>
+        <div class="card collapsed-card">
+            <div class="card-header">
+                <h3 class="card-title">Filtros</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Pessoa">
+                    </div>
+                    <div class="col-md-4">
+                        <input id="filtro-cnpj" type="text" class="form-control" placeholder="Filtrar por CNPJ">
+                    </div>
+                    <div class="col-md-4">
+                        <input id="filtro-regiao" type="text" class="form-control" placeholder="Filtrar por Região">
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
@@ -74,14 +99,27 @@
                         .reduce((sum, d) => sum + parseFloat(d.TITULOS || 0), 0);
                     return `${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${count} cliente${count > 1 ? 's' : ''}) - ${titulos} títulos`;
 
-
+                    // return `
+                //     <div style="display:inline-block; width:100%;">
+                //         <span style="display:inline-block; width:15%; color: black"><strong>${value}</strong></span>
+                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">${count} cliente${count > 1 ? 's' : ''}</span>
+                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">${titulos} título${titulos > 1 ? 's' : ''}</span>
+                //     </div>
+                //     `;
                 },
                 // Segundo nível: DS_REGIAOCOMERCIAL
                 function(value, count, data, group) {
                     let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
 
                     return `${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${count} cliente${count > 1 ? 's' : ''})`;
-
+                    // return `
+                //     <div style="display:inline-block; width:100%;">
+                //         <span style="display:inline-block; width:15%; color: black;"><strong>${value}</strong></span>
+                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">${count} cliente${count > 1 ? 's' : ''}</span>                            
+                //     </div>
+                //     `;
                 }
             ],
             groupStartOpen: false,
@@ -96,13 +134,11 @@
                     title: "Nome",
                     field: "NM_PESSOA",
                     widthGrow: 2,
-                    headerFilter: "input"
                 },
                 {
                     title: "CNPJ",
                     field: "NR_CNPJCPF",
                     width: 200,
-                    headerFilter: "input"
                 },
                 {
                     title: "Vencimento",
@@ -163,6 +199,22 @@
             },
         });
 
+        // Filtro por nome
+        document.getElementById("filtro-nome").addEventListener("keyup", function() {
+            const valor = this.value.toLowerCase();
+            tabela.setFilter("NM_PESSOA", "like", valor);
+        });
+
+        // Filtro por CNPJ
+        document.getElementById("filtro-cnpj").addEventListener("keyup", function() {
+            const valor = this.value.toLowerCase();
+            tabela.setFilter("NR_CNPJCPF", "like", valor);
+        });
+        // Filtro por Região
+        document.getElementById("filtro-regiao").addEventListener("keyup", function() {
+            const valor = this.value.toLowerCase();
+            tabela.setFilter("DS_REGIAOCOMERCIAL", "like", valor);
+        });
 
         tabela.on("dataFiltered", function(filters, rows) {
             let totalFiltrado = rows.reduce((soma, row) => soma + parseFloat(row.getData().VL_SALDO || 0), 0);

@@ -31,7 +31,7 @@ class BloqueioPedido extends Model
     public function BloqueioPedido($cd_regiao)
     {
         $query = "SELECT (CASE PP.STPEDIDO WHEN 'B' THEN 'BLOQUEADO' WHEN 'N' THEN 'LIBERADO' ELSE 'VERIFICAR' END) STPEDIDO,
-            PP.idempresa, PP.DTEMISSAO DATA, PP.ID AS PEDIDO, PP.IDPEDIDOMOVEL AS MOBILE,
+            PP.idempresa CD_EMPRESA, PP.DTEMISSAO DATA, PP.ID AS PEDIDO, PP.IDPEDIDOMOVEL AS MOBILE,
             cast(PP.IDPESSOA||' - '||PE.NM_PESSOA as varchar(200) character set utf8) CLIENTE,
             --PP.TP_BLOQUEIO AS MOTIVO,
             (CASE PP.TP_BLOQUEIO WHEN 'F' then 'FINANCEIRO' WHEN 'C' then 'COMERCIAL' ELSE 'AMBOS' END) MOTIVO,
@@ -39,8 +39,8 @@ class BloqueioPedido extends Model
             (CASE PE.ST_ATIVA WHEN 'S' THEN 'SIM' WHEN 'N' THEN 'NAO' END) ST_ATIVA,
             (CASE PE.ST_SCPC WHEN 'S' THEN 'SIM' WHEN 'N' THEN 'NAO' END) ST_SCPC,
             cast( PP.IDVENDEDOR||' - '||PV.NM_PESSOA as varchar(200) character set utf8) VENDEDOR,
-            AC.cd_areacomercial
-            --cast(PP.DSBLOQUEIO as varchar(5000) character set utf8) DSBLOQUEIO
+            AC.cd_areacomercial,
+            cast(PP.DSBLOQUEIO as varchar(5000) character set utf8) DSBLOQUEIO
         FROM PEDIDOPNEU PP
         INNER JOIN PESSOA PE ON (PE.CD_PESSOA = PP.IDPESSOA)
         LEFT JOIN ENDERECOPESSOA EP ON (EP.cd_pessoa = PE.cd_pessoa)

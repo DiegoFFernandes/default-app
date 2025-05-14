@@ -1,9 +1,6 @@
 <?php
 
-use App\Http\Controllers\Admin\AreaComercialController;
-use App\Http\Controllers\Admin\BloqueioPedidosController;
 use App\Http\Controllers\Admin\LiberaOrdemFinanceiroController;
-use App\Http\Controllers\Admin\RegiaoComercialController;
 use Illuminate\Support\Facades\Route;
 
 

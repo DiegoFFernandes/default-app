@@ -70,22 +70,25 @@ class BloqueioPedidosController extends Controller
             $cd_regiao = "";
         } elseif ($this->user->hasRole('gerencia')) {
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-            ->pluck('cd_regiaocomercial')
-            ->implode(',');
+                ->pluck('cd_regiaocomercial')
+                ->implode(',');
         }
 
         $bloqueio = $this->bloqueio->BloqueioPedido($cd_regiao);
 
         return DataTables::of($bloqueio)
-            ->addColumn('action', function ($b) {
-                return '<a href="https://api.whatsapp.com/send?phone=+5541985227055&text=
+            ->addColumn('action', function ($b) {                
+                $button = '<a href="https://api.whatsapp.com/send?phone=+5541985227055&text=
                 Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
-                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
-                Avisar Whats</a>';
+                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success">
+                <i class="fab fa-whatsapp"></i></a>';
+                $button .= '<button type="button" class="btn btn-info ml-1" data-toggle="popover" title="Detalhes" 
+                data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';               
+                return $button;
             })
             ->addColumn('status_cliente', ' ')
             ->addColumn('status_scpc', ' ')
-            ->addColumn('status_pedido', ' ')
+            ->addColumn('status_pedido', ' ')            
             ->editColumn('status_cliente', function ($row) {
                 return $row->ST_ATIVA && BloqueioPedido::STATUS_CLIENTE[$row->ST_ATIVA] ? BloqueioPedido::STATUS_CLIENTE[$row->ST_ATIVA] : 'none';
             })
@@ -95,13 +98,14 @@ class BloqueioPedidosController extends Controller
             ->editColumn('status_pedido', function ($row) {
                 return $row->STPEDIDO && BloqueioPedido::STATUS_PEDIDO[$row->STPEDIDO] ? BloqueioPedido::STATUS_PEDIDO[$row->STPEDIDO] : 'none';
             })
+            ->rawColumns(['action'])
             ->make();
     }
     public function getPedidoAcompanhar()
     {
         $regiao = "";
-        if(!empty($this->request->regiao)){
-            $regiao = implode(',', $this->request->regiao);            
+        if (!empty($this->request->regiao)) {
+            $regiao = implode(',', $this->request->regiao);
         }
         if ($this->user->hasRole('admin')) {
             $cd_regiao = "";

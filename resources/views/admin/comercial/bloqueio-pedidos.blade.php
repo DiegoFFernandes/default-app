@@ -122,16 +122,17 @@
                                     style="width:100%; font-size: 12px">
                                     <thead>
                                         <tr>
-                                            <th>Emp</th>
+                                            <th>#</th>
+                                            <th>Cliente</th>                                            
                                             <th>Pedido</th>
                                             <th>Pedido Palm</th>
-                                            <th>Cliente</th>
+                                            <th>Emp</th>
                                             <th>Data</th>
                                             <th>Bloqueio</th>
                                             <th>Ativo</th>
                                             <th>Scpc</th>
                                             <th>Status</th>
-                                            <th>Ações</th>
+
                                         </tr>
                                     </thead>
                                 </table>
@@ -236,9 +237,20 @@
                 scrollX: true,
                 ajax: "{{ route('get-bloqueio-pedidos') }}",
                 columns: [{
-                        data: 'IDEMPRESA',
-                        name: 'IDEMPRESA',
-                        "width": "1%"
+                        data: 'action',
+                        name: 'action',
+                        "width": "1%",
+                    },
+                    {
+                        data: 'CLIENTE',
+                        name: 'CLIENTE',
+                        "width": "5%",
+                    },                    
+                    {
+                        data: 'CD_EMPRESA',
+                        name: 'CD_EMPRESA',
+                        "width": "1%",
+                        visible: true
                     },
                     {
                         data: 'PEDIDO',
@@ -249,10 +261,7 @@
                     {
                         data: 'MOBILE',
                         name: 'MOBILE',
-                    },
-                    {
-                        data: 'CLIENTE',
-                        name: 'CLIENTE',
+                        "width": "1%",
                     },
                     {
                         data: 'DATA',
@@ -273,20 +282,16 @@
                     {
                         data: 'STPEDIDO',
                         name: 'STPEDIDO',
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
                     }
                 ],
                 columnDefs: [{
-                    targets: [4],
+                    targets: [5],
                     render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                 }],
                 createdRow: (row, data, dataIndex, cells) => {
-                    $(cells[6]).css('background-color', data.status_cliente);
-                    $(cells[7]).css('background-color', data.status_scpc);
-                    $(cells[8]).css('background-color', data.status_pedido);
+                    $(cells[7]).css('background-color', data.status_cliente);
+                    $(cells[8]).css('background-color', data.status_scpc);
+                    $(cells[9]).css('background-color', data.status_pedido);
                 }
             });
 
@@ -327,8 +332,8 @@
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
             regiao = $('#cd_regiaocomercial').val();
-            
-            if (regiao.length === 0 ) {
+
+            if (regiao.length === 0) {
                 msgToastr('Selecione pelo menos uma região!', 'warning');
                 return false;
             }
@@ -531,6 +536,14 @@
         }
         $('#icon-filter').click(function() {
             $('#modal-filter').modal('show');
+        });
+        // Ativar popover após cada renderização
+        $('#bloqueio-pedidos').on('draw.dt', function() {
+            $('[data-toggle="popover"]').popover({
+                trigger: 'focus', // ou 'click' se quiser persistente
+                html: true,
+                placement: 'top'
+            });
         });
     </script>
 @stop
