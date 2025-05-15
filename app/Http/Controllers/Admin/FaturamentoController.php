@@ -13,9 +13,9 @@ class FaturamentoController extends Controller
 
 
     public function __construct(
-        Request $request, 
+        Request $request,
         Faturamento $faturamento
-        ) {
+    ) {
         $this->middleware('auth');
         $this->request = $request;
         $this->faturamento = $faturamento;
@@ -35,7 +35,7 @@ class FaturamentoController extends Controller
     {
         $user_auth = $this->user;
         $uri       = $this->request->route()->uri();
-        $title_page = "Análise Faturamento";       
+        $title_page = "Análise Faturista";
 
         return view('admin.faturamento.index', compact(
             'user_auth',
@@ -45,7 +45,7 @@ class FaturamentoController extends Controller
     }
     public function getAnaliseFaturamento()
     {
-        $data = $this->faturamento->listFaturamentoUser();
+        $data = $this->faturamento->listFaturamentoUser($this->request->inicioData, $this->request->fimData);
         return response()->json($data);
     }
 }

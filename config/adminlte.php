@@ -394,6 +394,10 @@ return [
                 [
                     'text' => 'Produzidos S/ Faturar',
                     'route' => 'produzidos-sem-faturar'
+                ],
+                [
+                    'text' => 'Análise Faturista',
+                    'route' => 'analise-faturamento.index'
                 ]
             ]
         ],

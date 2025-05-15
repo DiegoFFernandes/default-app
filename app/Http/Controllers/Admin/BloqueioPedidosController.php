@@ -82,7 +82,7 @@ class BloqueioPedidosController extends Controller
                 Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
                     . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success">
                 <i class="fab fa-whatsapp"></i></a>';
-                $button .= '<button type="button" class="btn btn-info ml-1" data-toggle="popover" title="Detalhes" 
+                $button .= '<button type="button" class="btn btn-info ml-1 popover-lg" data-toggle="popover" title="Detalhes" 
                 data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';               
                 return $button;
             })

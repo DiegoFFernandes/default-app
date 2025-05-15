@@ -75,7 +75,7 @@ div.dt-length label {
     border: none;
     background: #ffffff;
     overflow: hidden;
-    color: #BD2130;
+    
 }
 
 .tabulator-row.tabulator-group {    
@@ -93,6 +93,7 @@ div.dt-length label {
     text-align: left;
     
 }
+
 
 @media (max-width: 600px) {
     .text-sm {

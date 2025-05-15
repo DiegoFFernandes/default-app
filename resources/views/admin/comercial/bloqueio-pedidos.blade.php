@@ -123,7 +123,7 @@
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Cliente</th>                                            
+                                            <th>Cliente</th>
                                             <th>Pedido</th>
                                             <th>Pedido Palm</th>
                                             <th>Emp</th>
@@ -179,6 +179,22 @@
         <!-- /.modal-dialog -->
     </div>
 @stop
+
+@section('css')
+    <style>
+        /* .popover {
+            max-width: none;
+            
+        }
+
+        .popover-lg{
+            max-width: 200px;
+            width: 50%;
+            white-space: normal;
+            
+        } */
+    </style>
+@endsection
 
 @section('js')
     <script id="details-template" type="text/x-handlebars-template">
@@ -245,7 +261,7 @@
                         data: 'CLIENTE',
                         name: 'CLIENTE',
                         "width": "5%",
-                    },                    
+                    },
                     {
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',

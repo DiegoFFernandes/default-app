@@ -11,7 +11,7 @@ class Faturamento extends Model
 {
     use HasFactory;
 
-    public function listFaturamentoUser(){
+    public function listFaturamentoUser($inicioData, $fimData){
         $query = "
                     SELECT
                         N.CD_EMPRESA,
@@ -20,6 +20,7 @@ class Faturamento extends Model
                         N.DT_EMISSAO,
                         N.DT_CANCELAMENTO,
                         N.CD_SERIE,
+                        
                         U.NM_USUARIO USUARIO,
                         UC.NM_USUARIO USUARIOCANC,
                         N.CD_MOTIVO,
@@ -32,9 +33,11 @@ class Faturamento extends Model
                     INNER JOIN USUARIO U ON (U.CD_USUARIO = N.CD_USUARIO)
                     LEFT JOIN USUARIO UC ON (UC.CD_USUARIO = N.CD_USUARIOCANC)
                     INNER JOIN MES_EXTENSO(N.DT_EMISSAO) MES ON (1 = 1)
-                    WHERE N.DT_EMISSAO BETWEEN '01.03.2025' AND '31.03.2025'
-                        AND N.TP_NOTA = 'S'
-                        AND I.CD_MOVIMENTACAO NOT IN (172)
+                    WHERE N.TP_NOTA = 'S'
+                        AND  N.DT_EMISSAO BETWEEN ".($inicioData == 0 ? "DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO DATEADD(0 MONTH TO CURRENT_DATE)) AND CURRENT_DATE" : "'$inicioData' AND '$fimData'") . "
+                        AND N.ST_NOTA NOT IN ('C')
+                        AND I.CD_MOVIMENTACAO NOT IN (172,175,66,14,58,160)
+                        --and U.CD_USUARIO  = '48'
                     GROUP BY N.CD_EMPRESA,
                         N.NR_LANCAMENTO,
                         N.DT_EMISSAO,
@@ -45,7 +48,8 @@ class Faturamento extends Model
                         U.NM_USUARIO,
                         N.CD_USUARIOCANC,
                         UC.NM_USUARIO,
-                        N.CD_MOTIVO";
+                        N.CD_MOTIVO
+                    ORDER BY N.DT_EMISSAO ";
 
         $data = DB::connection('firebird')->select($query);
 
