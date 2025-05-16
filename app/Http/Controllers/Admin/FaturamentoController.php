@@ -35,7 +35,11 @@ class FaturamentoController extends Controller
     {
         $user_auth = $this->user;
         $uri       = $this->request->route()->uri();
+        $uri = explode('/', $uri);
+        $uri = $uri[1];
         $title_page = "Análise Faturista";
+
+
 
         return view('admin.faturamento.index', compact(
             'user_auth',
@@ -45,7 +49,8 @@ class FaturamentoController extends Controller
     }
     public function getAnaliseFaturamento()
     {
-        $data = $this->faturamento->listFaturamentoUser($this->request->inicioData, $this->request->fimData);
+        $data = $this->faturamento->listFaturamentoUser($this->request->inicioData, $this->request->fimData);        
+        
         return response()->json($data);
     }
 }

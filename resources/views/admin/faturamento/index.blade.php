@@ -86,7 +86,9 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="usuario-diario-chart" height="100"></canvas>
+                                <div style="height: auto">
+                                    <canvas id="usuario-diario-chart" height="100"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,6 +110,24 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header border-1">
+                                <h3 class="card-title">Motivos Cancelamentos</h3>
+                                <div class="card-tools">
+                                    <a href="#" class="btn btn-tool btn-sm">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-tool btn-sm">
+                                        <i class="fas fa-bars"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body p-1">
+                                <div id="tabela-cancelamentos"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
@@ -115,11 +135,11 @@
                 <div class="card">
                     <div class="card-header border-0">
                         <div class="d-flex justify-content-between">
-                            <h3 class="card-title">Notas Emitidas</h3>
+                            <h3 class="card-title">Notas Emitidas (Mês)</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div style="height: 300px">
+                        <div style="height: 250px">
                             <canvas id="notas-chart"></canvas>
                         </div>
 
@@ -135,11 +155,11 @@
                 <div class="card">
                     <div class="card-header border-0">
                         <div class="d-flex justify-content-between">
-                            <h3 class="card-title">Usuarios</h3>
+                            <h3 class="card-title">Usuários</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div style="height: 300px">
+                        <div style="height: 250px">
                             <canvas id="usuario-chart"></canvas>
                         </div>
                         <div class="d-flex flex-row justify-content-end">
@@ -153,11 +173,11 @@
                 <div class="card">
                     <div class="card-header border-0">
                         <div class="d-flex justify-content-between">
-                            <h3 class="card-title">Notas Canceladas</h3>
+                            <h3 class="card-title">Notas Canceladas Mês</h3>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div style="height: 300px">
+                        <div style="height: 250px">
                             <canvas id="notas-canceladas-chart"></canvas>
                         </div>
                         <div class="d-flex flex-row justify-content-end">
@@ -179,6 +199,8 @@
         var inicioData = 0;
         var fimData = 0;
         var table = null;
+        var tableCancelados = null;
+
         $('#daterange').daterangepicker({
             autoUpdateInput: false,
         }).attr('readonly', true);
@@ -210,6 +232,7 @@
         let chartUserDay;
         let chartUser;
         let chartNotas;
+        let chartUserCanc;
 
         function CarregaDados(inicioData, fimData) {
             table = new Tabulator("#tabela-faturista", {
@@ -277,17 +300,26 @@
                         title: "Dt Emissão",
                         field: "DT_EMISSAO",
                         hozAlign: "center",
-                        sorter: "date",
-                        formatter: function(cell) {
-                            let data = cell.getValue();
-                            if (!data) return "";
-                            let [ano, mes, dia] = data.split("-");
-                            return `${dia}/${mes}/${ano}`;
-                        }
                     },
                     {
                         title: "Qtd",
                         field: "QTD_ITENS",
+                    }
+                ]
+            });
+            tableCancelados = new Tabulator("#tabela-cancelamentos", {
+                layout: "fitColumns",
+                groupBy: ["DS_MOTIVO"],
+                groupStartOpen: false,
+                dataLoader: true,
+                dataLoaderLoading: "<div class='text-center p-4'><i class='fas fa-spinner fa-spin fa-2x text-danger'></i></div>",
+                columns: [{
+                        title: "Motivo",
+                        field: "DS_MOTIVO",
+                    },
+                    {
+                        title: "Faturista",
+                        field: "USUARIOCANC",
                     }
                 ]
             });
@@ -323,6 +355,8 @@
             let nomeMes = [];
             let qtdNotaMes = {};
             let qtdNotaUser = {};
+            let qtdNotaCancelada = {};
+
             let qtdNota = 0;
             let nomeUser = [];
 
@@ -330,6 +364,9 @@
             dados.forEach(function(item) {
                 const mes = item.DS_MES;
                 const usuario = item.USUARIO;
+                const usuarioCanc = item.USUARIOCANC;
+
+                const stNota = item.ST_NOTA;
 
                 if (!nomeMes.includes(mes)) {
                     nomeMes.push(mes);
@@ -340,32 +377,53 @@
                 if (!qtdNotaUser[usuario]) {
                     qtdNotaUser[usuario] = 0;
                 }
-                qtdNotaMes[mes]++
+                if (!usuarioCanc == "") {
+
+                    if (!qtdNotaCancelada[usuarioCanc]) {
+                        qtdNotaCancelada[usuarioCanc] = 0;
+                    }
+                    qtdNotaCancelada[usuarioCanc]++;
+                }
+
+                qtdNotaMes[mes]++;
                 qtdNotaUser[usuario]++;
             });
 
+
             let qtdPorMes = Object.values(qtdNotaMes);
             let qtdNotaEmitidas = Object.values(qtdNotaMes).reduce((a, b) => a + b, 0);
+            let qtdNotaCanceladas = Object.values(qtdNotaCancelada).reduce((a, b) => a + b, 0);
 
+            // console.log(qtdNotaCanceladas);
             nomeUser = Object.keys(qtdNotaUser);
+            nomeUserCancel = Object.keys(qtdNotaCancelada);
+
             let qtdUser = nomeUser.length;
             let qtdPoruser = Object.values(qtdNotaUser);
+            let qtdPoruserCancel = Object.values(qtdNotaCancelada);
 
 
             // Enviar as informações para os cards
             $('.nr-faturista').html(qtdUser);
             $('.notas-emitidas').html(qtdNotaEmitidas);
-
+            $('.canceladas').html(qtdNotaCanceladas);
 
             //Carregar os gráficos 
             carregaChart(nomeMes, qtdPorMes);
             carregaChartUser(nomeUser, qtdPoruser);
+            carregaChartUserCancel(nomeUserCancel, qtdPoruserCancel);
             carregaChartDiario(dados);
+
+            // Filtra os cancelados
+            let cancelados = dados.filter(item => item.DS_MOTIVO);
+
+            // Atualiza a outra tabela
+            if (tableCancelados) {
+                tableCancelados.setData(cancelados);
+            }
         }
 
         function carregaChartDiario(dados) {
-
-
             const datasUnicas = [...new Set(dados.map(d => d.DT_EMISSAO))].sort();
             const usuariosUnicos = [...new Set(dados.map(d => d.USUARIO))];
             const datasets = usuariosUnicos.map(usuario => {
@@ -481,7 +539,7 @@
                 data: {
                     labels: nomeUser,
                     datasets: [{
-                        label: 'Faturistas',
+                        label: 'Notas Emitidas',
                         data: qtdPoruser,
                         backgroundColor: 'rgba(23, 162, 184, 0.6)',
                         borderColor: 'rgba(21, 134, 152, 1)',
@@ -511,6 +569,61 @@
                         y: { // <--- ALTERADO de yAxes para y
                             beginAtZero: true
                         }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        function carregaChartUserCancel(nomeUser, qtdPoruser) {
+            const ctx = document.getElementById('notas-canceladas-chart').getContext('2d');
+
+            if (chartUserCanc) {
+                chartUserCanc.destroy(); // Destrói o gráfico anterior
+            }
+            chartUserCanc = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: nomeUser,
+                    datasets: [{
+                        label: 'Notas Canceladas',
+                        data: qtdPoruser,
+                        backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                        borderColor: 'rgba(176, 39, 53, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            color: '#DC3545',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            formatter: function(value, context) {
+                                return value;
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { // <--- ALTERADO de yAxes para y
+                            beginAtZero: true
+                        },
+                        x: {
+                            beginAtZero: true,
+                            max: Math.max(...qtdPoruser)+10,
+                            ticks: {
+                                stepSize: 1 // <--- Espaçamento fixo no eixo X
+                            }
+                        },
+                        
                     }
                 },
                 plugins: [ChartDataLabels]
