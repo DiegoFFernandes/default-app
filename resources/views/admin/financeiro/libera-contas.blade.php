@@ -111,6 +111,15 @@
         </div>
     </section>
 @stop
+@section('css')
+    {{-- Add here extra stylesheets --}}
+    <style>
+        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+
+            display: none;
+        }
+    </style>
+@stop
 @section('js')
     <script id="details-item-historico" type="text/x-handlebars-template">
         @verbatim
@@ -132,7 +141,7 @@
 
     <script id="details-centro-resultado" type="text/x-handlebars-template">
         @verbatim
-            <div class="label label-info">{{ DS_TIPOCONTA }}</div>
+            <div class="badge badge-danger">{{ DS_TIPOCONTA }}</div>
             <table class="table row-border" id="conta-{{ NR_LANCAMENTO }}" style="width:80%; font-size:12px" >
                 <thead>
                     <tr>
@@ -147,7 +156,7 @@
 
     <script id="details-vencimento" type="text/x-handlebars-template">
         @verbatim
-           <div class="label label-info">{{ DS_TIPOCONTA }}</div>
+           <div class="badge badge-danger">{{ DS_TIPOCONTA }}</div>
             <table class="table row-border" id="conta-{{ NR_LANCAMENTO }}" style="width:80%; font-size:12px" >
                 <thead>
                     <tr>
@@ -162,7 +171,7 @@
 
     <script id="details-motivo" type="text/x-handlebars-template">
         @verbatim         
-            <div class="label label-info">{{ NM_PESSOA }}</div>
+            <div class="badge badge-danger">{{ NM_PESSOA }}</div>
             <table class="table">
                 <thead>
                     <tr>

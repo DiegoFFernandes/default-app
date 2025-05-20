@@ -15,7 +15,7 @@ Route::middleware(['auth', 'role:admin|cobranca'])->group(function () {
     });
 });
 
-Route::middleware(['auth', 'role:admin|financeiro'])->group(function () {
+Route::middleware(['auth', 'permission:ver-libera-contas'])->group(function () {
     Route::prefix('financeiro')->group(function () {        
         Route::get('libera-contas', [FinanceiroController::class, 'liberaContas'])->name('libera-contas.index');
         Route::get('get-list-contas-bloqueadas', [FinanceiroController::class, 'listContasBloqueadas'])->name('contas-bloqueadas.list');
