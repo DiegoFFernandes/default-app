@@ -70,15 +70,15 @@ div.dt-length label {
 }
 
 .tabulator .tabulator-header .tabulator-col {
-    position: relative;   
+    position: relative;
     flex-direction: column;
     border: none;
     background: #ffffff;
     overflow: hidden;
-    
+
 }
 
-.tabulator-row.tabulator-group {    
+.tabulator-row.tabulator-group {
     border-top: none;
     padding: 5px 5px 5px 10px;
     background: #fbfbfb;
@@ -86,14 +86,56 @@ div.dt-length label {
     font-weight: 700;
     min-width: 100%;
 }
+
 .tabulator {
     position: relative;
-    border: none;    
+    border: none;
     font-size: 14px;
     text-align: left;
-    
+
 }
 
+.btn-table {
+    background: #dddbd8;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+
+}
+
+
+/* Estilo geral para todos os toasts */
+.toast {
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    border-radius: 6px;
+}
+
+/* Estilo individual por tipo */
+.toast-success {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+.toast-info {
+    background-color: #17a2b8 !important;
+    color: #fff !important;
+}
+
+.toast-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.toast-error {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+.nav-tabs .nav-link {
+    color: #000 !important;          /* Cor preta */
+    text-decoration: none !important; /* Remove sublinhado */
+    font-weight: normal;              /* Opcional: suaviza a fonte */
+}
 
 @media (max-width: 600px) {
     .text-sm {

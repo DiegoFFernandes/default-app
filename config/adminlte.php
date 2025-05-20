@@ -378,11 +378,17 @@ return [
             'text' => 'Financeiro',
             'icon' => 'nav-icon fas fa-money-bill',
             'url' => '#',
-            'can' => ['ver-libera-ordem-financeiro'],
+            'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas'],
             'submenu' => [
                 [
                     'text' => 'Libera Ordem Financeiro',
-                    'route' => 'libera-ordem-financeiro.index'
+                    'route' => 'libera-ordem-financeiro.index',
+                    'can' => ['ver-libera-ordem-financeiro'],
+                ],
+                [
+                    'text' => 'Libera Contas',
+                    'route' => 'libera-contas.index',
+                    'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas'],
                 ]
             ]
         ],
