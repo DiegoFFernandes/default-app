@@ -16,10 +16,13 @@ class Faturamento extends Model
                     SELECT
                         N.CD_EMPRESA,
                         N.NR_LANCAMENTO,
+                        N.DT_REGISTRO,
+                        N.NR_NOTAFISCAL,
                         MES.O_DS_MES DS_MES,
                         LPAD(EXTRACT(DAY FROM N.DT_EMISSAO), 2, '0') || '/' || LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, '0') || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO) DT_EMISSAO,
                         N.DT_CANCELAMENTO,
                         N.CD_SERIE,
+                        N.CD_PESSOA||'-'||P.NM_PESSOA NM_PESSOA,
                         N.ST_NOTA,
                         U.NM_USUARIO USUARIO,
                         UC.NM_USUARIO USUARIOCANC,
@@ -33,6 +36,7 @@ class Faturamento extends Model
                     INNER JOIN USUARIO U ON (U.CD_USUARIO = N.CD_USUARIO)
                     LEFT JOIN USUARIO UC ON (UC.CD_USUARIO = N.CD_USUARIOCANC)
                     INNER JOIN MES_EXTENSO(N.DT_EMISSAO) MES ON (1 = 1)
+                    INNER JOIN PESSOA P ON (P.CD_PESSOA = N.CD_PESSOA)
                     LEFT JOIN MOTIVO M ON (M.CD_MOTIVO = N.CD_MOTIVO)
                     WHERE N.TP_NOTA = 'S'
                         AND  N.DT_EMISSAO BETWEEN ".($inicioData == 0 ? "DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO DATEADD(0 MONTH TO CURRENT_DATE)) AND CURRENT_DATE" : "'$inicioData' AND '$fimData'") . "
@@ -43,8 +47,12 @@ class Faturamento extends Model
                     GROUP BY N.CD_EMPRESA,
                         N.NR_LANCAMENTO,
                         N.DT_EMISSAO,
+                        N.DT_REGISTRO,
+                        N.NR_NOTAFISCAL,
                         MES.O_DS_MES,
                         N.DT_CANCELAMENTO,
+                        N.CD_PESSOA,
+                        P.NM_PESSOA,
                         N.CD_SERIE,
                         N.CD_USUARIO,
                         U.NM_USUARIO,

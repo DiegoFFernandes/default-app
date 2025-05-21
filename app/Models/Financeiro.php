@@ -26,13 +26,14 @@ class Financeiro extends Model
                     CONTAS.DS_OBSERVACAO,
                     CONTAS.DS_LIBERACAO,
                     CONTAS.DT_LANCAMENTO,
+                    CONTAS.DT_VENCIMENTO,
                     COALESCE(CONTAS.ST_VISTO, 'N') ST_VISTO
                 FROM CONTAS
                 INNER JOIN RETORNA_MAIORPARCELACONTAS(CONTAS.CD_EMPRESA, CONTAS.NR_LANCAMENTO, CONTAS.CD_PESSOA, CONTAS.CD_TIPOCONTA) RMAX ON (1 = 1)
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
                 INNER JOIN TIPOCONTA TC ON (TC.CD_TIPOCONTA = CONTAS.CD_TIPOCONTA)
                 WHERE CONTAS.ST_BLOQUEADA = 'S'
-                    AND CONTAS.ST_CONTAS NOT IN ('C', 'L')                   
+                    AND CONTAS.ST_CONTAS NOT IN ('C', 'L', 'A')                   
                     AND COALESCE(CONTAS.ST_VISTO, 'N') = '$status'
                 GROUP BY
                     CONTAS.CD_EMPRESA,
@@ -47,6 +48,7 @@ class Financeiro extends Model
                     RMAX.O_NR_MAIORPARCELA,
                     CONTAS.DS_OBSERVACAO,
                     CONTAS.DT_LANCAMENTO,
+                    CONTAS.DT_VENCIMENTO,
                     CONTAS.ST_VISTO  ";
 
         $results = DB::connection('firebird')->select($query);

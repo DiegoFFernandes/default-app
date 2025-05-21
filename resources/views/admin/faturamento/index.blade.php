@@ -189,7 +189,7 @@
                 </div>
 
             </div>
-
+            
         </div>
     </section>
 @stop
@@ -247,7 +247,7 @@
                         $("#loading").removeClass('invisible');
                     }
                 },
-                layout: "fitColumns",
+                layout: "fitDataStretch",
                 dataLoader: true,
                 dataLoaderLoading: "<div class='text-center p-4'><i class='fas fa-spinner fa-spin fa-2x text-danger'></i></div>",
                 groupStartOpen: false,
@@ -289,6 +289,10 @@
                         field: "USUARIO",
                     },
                     {
+                        title: "Cliente",
+                        field: "NM_PESSOA",
+                    },
+                    {
                         title: "Lancamento",
                         field: "NR_LANCAMENTO",
                     },
@@ -298,11 +302,15 @@
                     },
                     {
                         title: "Dt Emissão",
-                        field: "DT_EMISSAO",
+                        field: "DT_REGISTRO",
                         hozAlign: "center",
+                        formatter: function(cell) {
+                            const rawDate = cell.getValue();
+                            return formatDate(rawDate);
+                        }
                     },
                     {
-                        title: "Qtd",
+                        title: "Qtd Itens",
                         field: "QTD_ITENS",
                     }
                 ]
@@ -338,9 +346,23 @@
         });
         // Filtro por Região
         document.getElementById("filtro-dia").addEventListener("keyup", function() {
-            table.setFilter("DT_EMISSAO", "like", this.value.toLowerCase());
+            table.setFilter(function(data, filterParams) {
+                const input = document.getElementById("filtro-dia").value.trim();
+
+                if (!input) return true;
+
+                const dataFormatada = new Date(data.DT_REGISTRO).toLocaleDateString('pt-BR');
+                return dataFormatada.includes(input);
+            });
+
             tableFiltred();
         });
+
+        function formatDate(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+        }
 
         function tableFiltred() {
             table.on("dataFiltered", function(filters, rows) {
@@ -618,12 +640,12 @@
                         },
                         x: {
                             beginAtZero: true,
-                            max: Math.max(...qtdPoruser)+10,
+                            max: Math.max(...qtdPoruser) + 10,
                             ticks: {
                                 stepSize: 1 // <--- Espaçamento fixo no eixo X
                             }
                         },
-                        
+
                     }
                 },
                 plugins: [ChartDataLabels]

@@ -37,4 +37,10 @@ class Helper
         // Utiliza a classe de Carbon para converter ao formato de data ou hora desejado
         return Carbon\Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
     }
+    public static function formatDate($value)
+    {
+        // 2025-03-03 16:08:50
+        // Utiliza a classe de Carbon para converter ao formato de data ou hora desejado
+        return Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $value)->format('d/m/Y H:i:s');
+    }
 }

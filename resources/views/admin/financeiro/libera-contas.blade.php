@@ -27,9 +27,13 @@
                                 <input id="filtro-nome" type="text" class="form-control"
                                     placeholder="Filtrar por Pessoa">
                             </div>
-                            <div class="col-md-4 mb-1">
+                            <div class="col-md-2 mb-1">
                                 <input id="filtro-docto" type="text" class="form-control"
                                     placeholder="Filtrar por Documento">
+                            </div>
+                            <div class="col-md-2 mb-1">
+                                <input id="filtro-data" type="text" class="form-control"
+                                    placeholder="Filtrar por Vencimento">
                             </div>
                         </div>
                         <!-- /.row -->
@@ -63,6 +67,7 @@
                                             <th>Parcelas</th>
                                             <th>Total</th>
                                             <th>Emissão</th>
+                                            <th>Vencimento</th>
                                             <th>Ds Liberacao</th>
                                         </tr>
                                     </thead>
@@ -96,7 +101,7 @@
                         <label for="liberacao">*Motivo Liberação/Bloqueio</label>
                         <textarea class="form-control" id="liberacao" rows="2" cols="50"></textarea>
                     </div>
-                    <div class="row">
+                    <div class="row mb-5">
                         <div class="col-md-6 col-sm-6" style="padding-top: 10px;">
                             <button class="btn btn-success btn-sm btn-block btn-aproover" id="">Aprovar</button>
                         </div>
@@ -321,6 +326,9 @@
         $('#filtro-docto').on('keyup', function() {
             tableContas.column(4).search(this.value).draw();
         });
+         $('#filtro-data').on('keyup', function() {
+            tableContas.column(8).search(this.value).draw();
+        });
 
 
         function loadData(status, dsLiberacao) {
@@ -473,13 +481,18 @@
                         visible: true,
                     },
                     {
+                        data: 'DT_VENCIMENTO',
+                        name: 'DT_VENCIMENTO',
+                        visible: true,
+                    },
+                    {
                         data: 'DS_LIBERACAO',
                         name: 'DS_LIBERACAO',
                         visible: false,
                     },
                 ],
                 columnDefs: [{
-                    targets: [7],
+                    targets: [7,8],
                     render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                 }, {
                     targets: [6],

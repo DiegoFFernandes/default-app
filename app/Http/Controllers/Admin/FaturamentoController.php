@@ -39,8 +39,6 @@ class FaturamentoController extends Controller
         $uri = $uri[1];
         $title_page = "Análise Faturista";
 
-
-
         return view('admin.faturamento.index', compact(
             'user_auth',
             'uri',

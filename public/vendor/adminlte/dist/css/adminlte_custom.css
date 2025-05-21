@@ -137,6 +137,14 @@ div.dt-length label {
     font-weight: normal;              /* Opcional: suaviza a fonte */
 }
 
+.nav-icon {
+    background: #ffffff;
+    padding: 2px;
+    border-radius: 5px;
+    color: #DC3545;
+    width: 1.8rem;
+}
+
 @media (max-width: 600px) {
     .text-sm {
         /* font-size: 10px !important; */
