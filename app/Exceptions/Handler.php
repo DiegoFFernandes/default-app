@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -46,5 +48,23 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+    public function render($request, Throwable $exception)
+    {
+        // Redireciona se o usuário não estiver autenticado (sessão expirada)
+        if ($exception instanceof AuthenticationException) {
+            return redirect()->guest(route('login'))->withErrors([
+                'Sessão expirada. Faça login novamente.',
+            ]);
+        }
+
+        // Redireciona se for erro de permissão (usuário logado, mas sem role/permissão)
+        if ($exception instanceof UnauthorizedException) {
+            return redirect()->route('login')->withErrors([
+                'Sessão expirada ou acesso não autorizado. Faça login novamente.',
+            ]);
+        }
+
+        return parent::render($request, $exception);
     }
 }

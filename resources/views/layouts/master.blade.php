@@ -12,18 +12,20 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.5.1/css/rowGroup.dataTables.css">
 
 
+
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
     <!-- Tabulator CSS -->
-    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/toastr.min.css') }}">
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2.min.css') }}">
-   
+
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css') }}">
 @endpush
@@ -48,7 +50,7 @@
 
 
     <!-- Tabulator JS -->
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
 
 
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
@@ -90,6 +92,25 @@
             });
             $('#daterange').inputmask({
                 mask: ['99/99/9999 - 99/99/9999']
+            });
+            $('.date-mask').inputmask({
+                mask: ['99/99/9999']
+            });
+
+            $('#daterange').daterangepicker({
+                autoUpdateInput: false,
+            }).attr('readonly', true);
+            
+            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
+                    'DD/MM/YYYY'));
+                inicioData = picker.startDate.format('MM/DD/YYYY');
+                fimData = picker.endDate.format('MM/DD/YYYY');
+            });
+            $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val("");
+                inicioData = 0;
+                fimData = 0;
             });
 
             @if (session('success'))

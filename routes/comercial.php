@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AreaComercialController;
 use App\Http\Controllers\Admin\BloqueioPedidosController;
+use App\Http\Controllers\admin\GarantiaController;
 use App\Http\Controllers\Admin\LiberaOrdemComissaoController;
 use App\Http\Controllers\Admin\ProducaoController;
 use App\Http\Controllers\Admin\RegiaoComercialController;
@@ -29,7 +30,7 @@ Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
 
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::prefix('cadastro')->group(function () {        
+    Route::prefix('cadastro')->group(function () {       
 
         Route::get('area-comercial', [AreaComercialController::class, 'index'])->name('area-comercial.index');
         Route::get('get-area-comercial', [AreaComercialController::class, 'create'])->name('get-area-comercial.create');
@@ -52,4 +53,11 @@ Route::middleware(['permission:ver-pedidos-coletados-acompanhamento'])->group(fu
     Route::get('movimento/get-pedidos', [BloqueioPedidosController::class, 'getPedidoAcompanhar'])->name('get-pedido-acompanhar');
     Route::get('movimento/get-item-pedidos', [BloqueioPedidosController::class, 'getItemPedidoAcompanhar'])->name('get-item-pedido-acompanhar');
     Route::get('movimento/get-detalhe-item-pedidos/{id}', [BloqueioPedidosController::class, 'getDetalheItemPedidoAcompanhar'])->name('get-detalhe-item-pedido');
+});
+
+Route::middleware(['permission:ver-analise-garantia'])->group(function () {
+    Route::prefix('comercial')->group(function () {
+        Route::get('analise-garantia', [GarantiaController::class, 'index'])->name('analise-garantia.index');
+        Route::get('get-analise-garantia', [GarantiaController::class, 'getAnaliseGarantia'])->name('get-analise-garantia');    });
+   
 });

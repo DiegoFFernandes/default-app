@@ -51,14 +51,48 @@
             <!-- /.card-header -->
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-4 mb-2">
                         <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Pessoa">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 mb-2">
+                        <input id="filtro-vendedor" type="text" class="form-control" placeholder="Filtrar por Vendedor">
+                    </div>
+                    <div class="col-md-4 mb-2">
                         <input id="filtro-cnpj" type="text" class="form-control" placeholder="Filtrar por CNPJ">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-4 mb-2">
                         <input id="filtro-regiao" type="text" class="form-control" placeholder="Filtrar por Região">
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <input id="daterange" type="text" class="form-control" placeholder="Filtrar por Vencimento">
+                    </div>
+                    <div class="col-md-4 mb-2 d-flex align-items-center">
+                        <div class="custom-control custom-checkbox mr-3">
+                            <input class="custom-control-input custom-control-input-danger" type="checkbox"
+                                id="checkVencidas" name="filtroVencimento">
+                            <label for="checkVencidas" class="custom-control-label">Vencidas</label>
+                        </div>
+                        <div class="custom-control custom-checkbox mr-3">
+                            <input class="custom-control-input custom-control-input-danger" type="checkbox"
+                                id="checkAvencer" name="filtroVencimento">
+                            <label for="checkAvencer" class="custom-control-label">A Vencer</label>
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                            <input class="custom-control-input custom-control-input-danger" type="checkbox" id="checkAll"
+                                 name="filtroVencimento">
+                            <label for="checkAll" class="custom-control-label">Todas</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-default btn-sm float-right" id="btn-limpar">
+                                <i class="fas fa-eraser"></i> Limpar
+                            </button>
+                        </div>
+                        <!-- /.row -->
                     </div>
                 </div>
                 <!-- /.row -->
@@ -69,7 +103,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="list-cobranca">
-                            <div id="tabela-dados"></div>
+                            <div id="tabela-dados" class="table table-bordered table-hover text-sm"></div>
                         </div>
                     </div>
                 </div>
@@ -78,130 +112,179 @@
     </section>
     <!-- /.content -->
 @stop
+@section('css')
+    <style>
+        .tabulator .tabulator-row:nth-child(even) {
+            background-color: inherit !important;
+        }
+    </style>
+@stop
 
 @section('js')
     <script>
-        let dados = [];
-        const tabela = new Tabulator("#tabela-dados", {
-            ajaxURL: "{{ route('teste-cobranca') }}",
-            layout: "fitDataStretch",
-            groupBy: ["DS_AREACOMERCIAL", "DS_REGIAOCOMERCIAL"],
-            groupHeader: [
-                // Primeiro nível: DS_AREACOMERCIAL (agrupamento manual)
-                function(value, count) {
-                    let total = dados
-                        .filter(d => d.DS_AREACOMERCIAL === value)
-                        .reduce((sum, d) => sum + parseFloat(d.VL_SALDO || 0), 0);
+        var dados = [];
+        var tabela = null;
+        var inicioData = 0;
+        var fimData = 0;
 
-                    let titulos = dados
-                        .filter(d => d.DS_AREACOMERCIAL === value)
-                        .reduce((sum, d) => sum + parseFloat(d.TITULOS || 0), 0);
-                    return `${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${count} cliente${count > 1 ? 's' : ''}) - ${titulos} títulos`;
+        carregaDados();
 
-                    // return `
-                //     <div style="display:inline-block; width:100%;">
-                //         <span style="display:inline-block; width:15%; color: black"><strong>${value}</strong></span>
-                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">${count} cliente${count > 1 ? 's' : ''}</span>
-                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">${titulos} título${titulos > 1 ? 's' : ''}</span>
-                //     </div>
-                //     `;
+        function carregaDados() {
+            tabela = new Tabulator("#tabela-dados", {
+                ajaxURL: "{{ route('teste-cobranca') }}",
+                layout: "fitDataStretch",
+                groupBy: ["DS_AREACOMERCIAL", "DS_REGIAOCOMERCIAL", "NM_VENDEDOR", "NM_PESSOA"],
+                groupHeader: [
+                    // Primeiro nível: DS_AREACOMERCIAL (agrupamento manual)
+                    function(value, count, data, group) {
+                        let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
+                        // let titulos = dados
+                        //     .filter(d => d.DS_AREACOMERCIAL === value)
+                        //     .reduce((sum, d) => sum + parseFloat(d.TITULOS || 0), 0);
+                        // return `${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} `;
+
+                        return `<div style=" display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>`;
+
+                    },
+                    // Segundo nível: DS_REGIAOCOMERCIAL
+                    function(value, count, data, group) {
+                        let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
+                        return `<div style=" display:inline-block; width:97%; background-color:#6c757d; color:white; padding:5px; font-weight:bold;">
+                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>`;
+
+                    },
+                    function(value, count, data, group) {
+                        let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
+                        return `<div style=" display:inline-block; width:97%; background-color:#adb5bd; color:black; padding:5px; font-weight:bold;">
+                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>`;
+                    },
+                    function(value, count, data, group) {
+                        let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
+                        return `<div style=" display:inline-block; width:97%; background-color:#dee2e6; color:black; padding:5px; font-weight:bold;">
+                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </div>`;
+                    }
+                ],
+                groupStartOpen: false,
+                responsiveLayoutCollapseStartOpen: false, // ou true
+                responsiveLayoutCollapseUseFormatters: true,
+                groupToggleElement: "header",
+                columns: [{
+                        title: "Documento",
+                        field: "NR_DOCUMENTO",
+                        hozAlign: "center",
+                    },
+                    {
+                        title: "Nome",
+                        field: "NM_PESSOA",
+                        widthGrow: 2,
+                    },
+                    {
+                        title: "CNPJ",
+                        field: "NR_CNPJCPF",
+                        width: 200,
+                        hozAlign: "center",
+                    },
+                    {
+                        title: "Vencimento",
+                        field: "DT_VENCIMENTO",
+                        hozAlign: "center",
+                        sorter: "date",
+                        formatter: function(cell) {
+                            let data = cell.getValue();
+                            if (!data) return "";
+                            let [ano, mes, dia] = data.split("-");
+                            return `${dia}/${mes}/${ano}`;
+                        }
+                    },
+                    {
+                        title: "Valor",
+                        field: "VL_SALDO",
+                        hozAlign: "left",
+                        formatter: "money",
+                        formatterParams: {
+                            decimal: ",",
+                            thousand: ".",
+                            symbol: "R$ ",
+                            precision: 2
+                        }
+                    }, {
+                        title: "Juros",
+                        field: "VL_JUROS",
+                        hozAlign: "center",
+                        formatter: "money",
+                        formatterParams: {
+                            decimal: ",",
+                            thousand: ".",
+                            precision: 2
+                        }
+                    },
+
+                    {
+                        title: "Dias Atraso",
+                        field: "NR_DIAS",
+                        hozAlign: "left",
+                    }
+                ],
+                ajaxResponse: function(url, params, response) {
+                    dados = response; // Salva os dados para o somatório funcionar
+
+                    atualizaDados(dados); // Atualiza os dados iniciais
+
+                    return response;
                 },
-                // Segundo nível: DS_REGIAOCOMERCIAL
-                function(value, count, data, group) {
-                    let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
+            });
+        }
 
-                    return `${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${count} cliente${count > 1 ? 's' : ''})`;
-                    // return `
-                //     <div style="display:inline-block; width:100%;">
-                //         <span style="display:inline-block; width:15%; color: black;"><strong>${value}</strong></span>
-                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                //         <span style="display:inline-block; width:15%; color: black; text-align: right;">${count} cliente${count > 1 ? 's' : ''}</span>                            
-                //     </div>
-                //     `;
+        function atualizaDados(dados) {
+            let totalGeral = dados.reduce((sum, d) => sum + parseFloat(d.VL_SALDO || 0), 0);
+
+            let maiorValor = 0;
+            let regiaoMaior = '';
+            let qtdTitulos = 0;
+
+            dados.forEach(function(item) {
+                let valor = Number(item.VL_SALDO);
+                qtdTitulos++;
+                if (valor > maiorValor) {
+                    maiorValor = valor;
+                    regiaoMaior = item.DS_REGIAOCOMERCIAL;
                 }
-            ],
-            groupStartOpen: false,
-            responsiveLayoutCollapseStartOpen: false, // ou true
-            responsiveLayoutCollapseUseFormatters: true,
-            groupToggleElement: "header",
-            columns: [{
-                    title: "Documento",
-                    field: "NR_DOCUMENTO",
-                },
-                {
-                    title: "Nome",
-                    field: "NM_PESSOA",
-                    widthGrow: 2,
-                },
-                {
-                    title: "CNPJ",
-                    field: "NR_CNPJCPF",
-                    width: 200,
-                },
-                {
-                    title: "Vencimento",
-                    field: "DT_VENCIMENTO",
-                    hozAlign: "center",
-                    sorter: "date",
-                    formatter: function(cell) {
-                        let data = cell.getValue();
-                        if (!data) return "";
-                        let [ano, mes, dia] = data.split("-");
-                        return `${dia}/${mes}/${ano}`;
-                    }
-                },
-                {
-                    title: "Valor",
-                    field: "VL_SALDO",
-                    hozAlign: "right",
-                    formatter: "money",
-                    formatterParams: {
-                        decimal: ",",
-                        thousand: ".",
-                        symbol: "R$ ",
-                        precision: 2
-                    }
-                }
-            ],
-            ajaxResponse: function(url, params, response) {
-                dados = response; // Salva os dados para o somatório funcionar
-                let totalGeral = dados.reduce((sum, d) => sum + parseFloat(d.VL_SALDO || 0), 0);
+            });
 
-                let maiorValor = 0;
-                let regiaoMaior = '';
-                let qtdTitulos = 0;
+            $('#qtd-titulos').text(qtdTitulos);
 
-                dados.forEach(function(item) {
-                    let valor = Number(item.VL_SALDO);
-                    qtdTitulos += Number(item.TITULOS);
-                    if (valor > maiorValor) {
-                        maiorValor = valor;
-                        regiaoMaior = item.DS_REGIAOCOMERCIAL;
-                    }
-                });
+            $('#soma-geral').text(totalGeral.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }));
 
-                $('#qtd-titulos').text(qtdTitulos);
+            $('#maior-divida').html(maiorValor.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }) + '<small>  ' + regiaoMaior + '</small>')
+        }
 
-                $('#soma-geral').text(totalGeral.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                }));
+        function tableFiltred() {
+            tabela.on("dataFiltered", function(filters, rows) {
 
-                $('#maior-divida').html(maiorValor.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                }) + '<small>  ' + regiaoMaior + '</small>')
+                let dadosFiltrados = rows.map(row => row.getData());
+                console.log(dadosFiltrados);
+                // Atualiza os dados com os novos filtros
+                atualizaDados(dadosFiltrados);
+            });
+        }
 
-
-                return response;
-            },
-        });
 
         // Filtro por nome
         document.getElementById("filtro-nome").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
             tabela.setFilter("NM_PESSOA", "like", valor);
+            tableFiltred();
         });
 
         // Filtro por CNPJ
@@ -213,6 +296,72 @@
         document.getElementById("filtro-regiao").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
             tabela.setFilter("DS_REGIAOCOMERCIAL", "like", valor);
+        });
+        // Filtro por Região
+        document.getElementById("filtro-vendedor").addEventListener("keyup", function() {
+            const valor = this.value.toLowerCase();
+            tabela.setFilter("NM_VENDEDOR", "like", valor);
+        });
+
+        // Filtro por Vencimento
+        document.querySelectorAll('input[name="filtroVencimento"]').forEach(el => {
+            el.addEventListener("change", aplicarFiltroVencimento);
+        });
+
+        function aplicarFiltroVencimento() {
+            const vencidas = document.getElementById("checkVencidas").checked;
+            const avencer = document.getElementById("checkAvencer").checked;
+            const todas = document.getElementById("checkAll").checked;
+
+            const hoje = moment().format('YYYY-MM-DD');
+
+            if (todas) {
+                // Marca todos os checkboxes
+                document.getElementById("checkVencidas").checked = true;
+                document.getElementById("checkAvencer").checked = true;
+               tabela.setFilter("DT_VENCIMENTO", "<", moment().format('2999-12-31'));
+            } else if (vencidas && !avencer) {
+                document.getElementById("checkAvencer").checked = false;
+                document.getElementById("checkAll").checked = false;
+
+                tabela.setFilter("DT_VENCIMENTO", "<", hoje);
+            } else if (avencer && !vencidas) {
+                document.getElementById("checkVencidas").checked = false;
+                document.getElementById("checkAll").checked = false;
+
+                tabela.setFilter("DT_VENCIMENTO", ">=", hoje);
+            } else {
+                // Nenhum marcado: limpa todos os filtros
+                tabela.setFilter("DT_VENCIMENTO", "<", moment().format('2999-12-31'));
+            }
+        }
+
+
+
+        // Filtro por Vencimento
+        $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+
+            inicioData = picker.startDate.format('YYYY-MM-DD');
+            fimData = picker.endDate.format('YYYY-MM-DD');
+
+            console.log("Início:", inicioData, "Fim:", fimData);
+
+            tabela.setFilter(function(data) {
+                const dataVenc = moment(data.DT_VENCIMENTO);
+
+                return dataVenc.isSameOrAfter(inicioData) && dataVenc.isSameOrBefore(fimData);
+            });
+            tableFiltred();
+        });
+
+
+
+        document.getElementById("btn-limpar").addEventListener("click", function() {
+            document.getElementById("filtro-nome").value = "";
+            document.getElementById("filtro-cnpj").value = "";
+            document.getElementById("filtro-regiao").value = "";
+            document.getElementById("daterange").value = "";
+            tabela.clearFilter();
         });
 
         tabela.on("dataFiltered", function(filters, rows) {

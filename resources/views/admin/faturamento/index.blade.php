@@ -189,7 +189,7 @@
                 </div>
 
             </div>
-            
+
         </div>
     </section>
 @stop
@@ -301,7 +301,7 @@
                         field: "CD_SERIE",
                     },
                     {
-                        title: "Dt Emissão",
+                        title: "Dt Emissao",
                         field: "DT_REGISTRO",
                         hozAlign: "center",
                         formatter: function(cell) {
@@ -346,15 +346,7 @@
         });
         // Filtro por Região
         document.getElementById("filtro-dia").addEventListener("keyup", function() {
-            table.setFilter(function(data, filterParams) {
-                const input = document.getElementById("filtro-dia").value.trim();
-
-                if (!input) return true;
-
-                const dataFormatada = new Date(data.DT_REGISTRO).toLocaleDateString('pt-BR');
-                return dataFormatada.includes(input);
-            });
-
+            table.setFilter("DT_EMISSAO", "like", this.value.toLowerCase());
             tableFiltred();
         });
 
@@ -640,12 +632,12 @@
                         },
                         x: {
                             beginAtZero: true,
-                            max: Math.max(...qtdPoruser) + 10,
+                            max: Math.max(...qtdPoruser)+10,
                             ticks: {
                                 stepSize: 1 // <--- Espaçamento fixo no eixo X
                             }
                         },
-
+                        
                     }
                 },
                 plugins: [ChartDataLabels]

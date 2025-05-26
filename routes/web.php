@@ -18,6 +18,6 @@ Auth::routes();
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 
 
-
 Route::get('/home', [HomeController::class, 'index'])->name('home');
+
 

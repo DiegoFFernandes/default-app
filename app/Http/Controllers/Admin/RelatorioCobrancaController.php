@@ -277,7 +277,7 @@ class RelatorioCobrancaController extends Controller
             }
         }
 
-        $data = $this->cobranca->clientesInadiplentes($cd_regiao);
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao);
 
         foreach ($data as $item) {
             foreach ($regioes_mysql as $regiao) {
