@@ -5,6 +5,8 @@ namespace App\Models;
 use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class Cobranca extends Model
@@ -34,6 +36,7 @@ class Cobranca extends Model
                     CONTAS.NR_DOCUMENTO || ' - ' || CONTAS.NR_PARCELA || '/' || RMAX.O_NR_MAIORPARCELA NR_DOCUMENTO,
                     CONTAS.DT_LANCAMENTO,
                     CONTAS.DT_VENCIMENTO,
+                    ME.O_DS_ABREVIACAOMES || '/' || EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) MES,
                     CONTAS.VL_DOCUMENTO,
                     CONTAS.VL_SALDO,
                     CJ.O_VL_JURO VL_JUROS,
@@ -56,6 +59,7 @@ class Cobranca extends Model
                     COALESCE(AC.CD_AREACOMERCIAL, 99) CD_AREACOMERCIAL,
                     COALESCE(AC.DS_AREACOMERCIAL, 'SEM AREA') DS_AREACOMERCIAL
                 FROM CONTAS
+                INNER JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) ME ON (1 = 1)
                 INNER JOIN RETORNA_MAIORPARCELACONTAS(CONTAS.CD_EMPRESA, CONTAS.NR_LANCAMENTO, CONTAS.CD_PESSOA, CONTAS.CD_TIPOCONTA) RMAX ON (1 = 1)
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
                 INNER JOIN TIPOCONTA ON (TIPOCONTA.CD_TIPOCONTA = CONTAS.CD_TIPOCONTA)
@@ -87,12 +91,20 @@ class Cobranca extends Model
                 WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     " . (!empty($cd_regiao) ? "AND RCG.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
-                    --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007)
-                    AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')             
+                    --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 18404)
+                    AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')   
+                ORDER BY CONTAS.DT_VENCIMENTO;          
              ";
 
-        $data = DB::connection('firebird')->select($query);
-        return Helper::ConvertFormatText($data);
+        // $data = DB::connection('firebird')->select($query);
+        // return Helper::ConvertFormatText($data);
+
+        $key = "contas-1" . Auth::user()->id;
+
+        return Cache::remember($key, now()->addMinutes(2), function () use ($query) {
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+        });
     }
 
     public function clientesInadiplentes($cd_regiao)

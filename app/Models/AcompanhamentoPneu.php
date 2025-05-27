@@ -94,7 +94,7 @@ class AcompanhamentoPneu extends Model
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
-                    WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 30 AND CURRENT_DATE
+                    WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
@@ -118,9 +118,13 @@ class AcompanhamentoPneu extends Model
     }
     public function ItemPedidoPneu($pedido)
     {
-        $query = "SELECT PP.IDEMPRESA CD_EMPRESA, PP.ID PEDIDO, PPM.idpedidomovel, OPR.id NRORDEM, IPP.id, IPP.nrsequencia, (PP.IDPESSOA||' - '||PC.NM_PESSOA) PESSOA, SP.dsservico,
+        $query = "SELECT PP.IDEMPRESA CD_EMPRESA, PP.ID PEDIDO, PPM.idpedidomovel, OPR.id NRORDEM, IPP.id, IPP.nrsequencia, 
+        (PP.IDPESSOA||' - '||PC.NM_PESSOA) PESSOA, SP.dsservico,
         MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-        IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO
+        IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO, CASE
+      WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
+      WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
+    END STORDEM
         FROM PEDIDOPNEU PP
         INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
         INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
@@ -137,7 +141,7 @@ class AcompanhamentoPneu extends Model
         WHERE PP.ID = $pedido /**informar o numero do pedido aqui */
         GROUP BY PP.IDEMPRESA, PP.ID, PPM.idpedidomovel, OPR.id, IPP.id, IPP.nrsequencia, PESSOA, SP.dsservico,
         MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-        IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO 
+        IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO, OPR.STORDEM
         ORDER BY PP.IDEMPRESA, IPP.ID";
         
         $data = DB::connection('firebird')->select($query);

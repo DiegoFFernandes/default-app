@@ -182,16 +182,16 @@
 @section('css')
     <style>
         /* .popover {
-            max-width: none;
-            
-        }
+                max-width: none;
+                
+            }
 
-        .popover-lg{
-            max-width: 200px;
-            width: 50%;
-            white-space: normal;
-            
-        } */
+            .popover-lg{
+                max-width: 200px;
+                width: 50%;
+                white-space: normal;
+                
+            } */
     </style>
 @endsection
 
@@ -207,6 +207,7 @@
                         <th>Nr Ordem</th>
                         <th>Serviço</th>
                         <th>Valor</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
             </table>
@@ -415,7 +416,7 @@
                     {
                         data: 'STPEDIDO',
                         name: 'STPEDIDO',
-                    },
+                    }
                 ],
                 columnDefs: [{
                     targets: [6, 7],
@@ -485,7 +486,10 @@
                     {
                         data: 'VLUNITARIO',
                         name: 'VLUNITARIO'
-                    }
+                    },{
+                        data: 'STORDEM',
+                        name: 'STORDEM',
+                    },
                 ]
             });
         }
@@ -544,7 +548,7 @@
                     {
                         data: 'O_ST_RETRABALHO',
                         name: 'O_ST_RETRABALHO'
-                    }
+                    },                    
                 ],
                 "order": [2, 'asc']
             });

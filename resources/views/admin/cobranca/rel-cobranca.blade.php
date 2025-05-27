@@ -79,7 +79,7 @@
                         </div>
                         <div class="custom-control custom-checkbox">
                             <input class="custom-control-input custom-control-input-danger" type="checkbox" id="checkAll"
-                                 name="filtroVencimento">
+                                name="filtroVencimento">
                             <label for="checkAll" class="custom-control-label">Todas</label>
                         </div>
                     </div>
@@ -107,7 +107,19 @@
                         </div>
                     </div>
                 </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Contas Mensais</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: auto">
+                            <canvas id="contas-mensal-chart" height="50"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+
         </div>
     </section>
     <!-- /.content -->
@@ -126,6 +138,7 @@
         var tabela = null;
         var inicioData = 0;
         var fimData = 0;
+        var ChartContasMes;
 
         carregaDados();
 
@@ -235,6 +248,7 @@
 
                     atualizaDados(dados); // Atualiza os dados iniciais
 
+
                     return response;
                 },
             });
@@ -256,6 +270,8 @@
                 }
             });
 
+            carregaChart(dados);
+
             $('#qtd-titulos').text(qtdTitulos);
 
             $('#soma-geral').text(totalGeral.toLocaleString('pt-BR', {
@@ -273,12 +289,10 @@
             tabela.on("dataFiltered", function(filters, rows) {
 
                 let dadosFiltrados = rows.map(row => row.getData());
-                console.log(dadosFiltrados);
                 // Atualiza os dados com os novos filtros
                 atualizaDados(dadosFiltrados);
             });
         }
-
 
         // Filtro por nome
         document.getElementById("filtro-nome").addEventListener("keyup", function() {
@@ -291,21 +305,25 @@
         document.getElementById("filtro-cnpj").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
             tabela.setFilter("NR_CNPJCPF", "like", valor);
+            tableFiltred();
         });
         // Filtro por Região
         document.getElementById("filtro-regiao").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
             tabela.setFilter("DS_REGIAOCOMERCIAL", "like", valor);
+            tableFiltred();
         });
         // Filtro por Região
         document.getElementById("filtro-vendedor").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
             tabela.setFilter("NM_VENDEDOR", "like", valor);
+            tableFiltred();
         });
 
         // Filtro por Vencimento
         document.querySelectorAll('input[name="filtroVencimento"]').forEach(el => {
             el.addEventListener("change", aplicarFiltroVencimento);
+            tableFiltred();
         });
 
         function aplicarFiltroVencimento() {
@@ -319,7 +337,7 @@
                 // Marca todos os checkboxes
                 document.getElementById("checkVencidas").checked = true;
                 document.getElementById("checkAvencer").checked = true;
-               tabela.setFilter("DT_VENCIMENTO", "<", moment().format('2999-12-31'));
+                tabela.setFilter("DT_VENCIMENTO", "<", moment().format('2999-12-31'));
             } else if (vencidas && !avencer) {
                 document.getElementById("checkAvencer").checked = false;
                 document.getElementById("checkAll").checked = false;
@@ -336,15 +354,11 @@
             }
         }
 
-
-
         // Filtro por Vencimento
         $('#daterange').on('apply.daterangepicker', function(ev, picker) {
 
             inicioData = picker.startDate.format('YYYY-MM-DD');
             fimData = picker.endDate.format('YYYY-MM-DD');
-
-            console.log("Início:", inicioData, "Fim:", fimData);
 
             tabela.setFilter(function(data) {
                 const dataVenc = moment(data.DT_VENCIMENTO);
@@ -353,8 +367,6 @@
             });
             tableFiltred();
         });
-
-
 
         document.getElementById("btn-limpar").addEventListener("click", function() {
             document.getElementById("filtro-nome").value = "";
@@ -371,5 +383,99 @@
                 currency: 'BRL'
             }));
         });
+
+
+        function carregaChart(dadosNovo) {
+            var ChartData;
+            var MesUnificado = [];
+
+
+            if (ChartContasMes) {
+                ChartContasMes.destroy(); // Destrói o gráfico anterior
+            }
+
+            MesUnificado = [...new Set(dadosNovo.map(d => d.MES))];
+            areasUnicas = [...new Set(dadosNovo.map(d => d.DS_AREACOMERCIAL))];
+            const somaPorMes = {};
+
+            const coresFixas = [{
+                    borderColor: 'rgba(60,141,188,0.9)', // Azul
+                    backgroundColor: 'rgba(60,141,188,0.4)'
+                },
+                {
+                    borderColor: 'rgba(2220, 53, 69,1)', // Cinza
+                    backgroundColor: 'rgba(220, 53, 69,0.4)'
+                }
+            ];
+
+            const datasets = areasUnicas.map((area, index) => {
+                // Resetar o acumulador para cada área
+                const somaPorMes = {};
+
+                // Para cada mês, soma os valores da área correspondente
+                MesUnificado.forEach(mes => {
+                    dados
+                        .filter(d => d.DS_AREACOMERCIAL === area && d.MES === mes)
+                        .forEach(d => {
+                            const valor = parseFloat(d.VL_SALDO);
+                            somaPorMes[mes] = (somaPorMes[mes] || 0) + valor;
+                        });
+                });
+
+                // Cria um array na ordem dos meses com valor 0 caso não haja dado
+                const dadosPorMes = MesUnificado.map(mes => somaPorMes[mes] || 0);
+
+                const cor = coresFixas[index] || {
+                    borderColor: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                    backgroundColor: '#' + Math.floor(Math.random() * 16777215).toString(16) + '44'
+                };
+
+                return {
+                    label: area,
+                    data: dadosPorMes,
+                    borderColor: cor.borderColor,
+                    backgroundColor: cor.backgroundColor,
+                    tension: 0.3
+                };
+            });
+
+            console.log(datasets);
+
+
+            ChartData = {
+                labels: MesUnificado,
+                datasets: datasets.map(ds => ({
+                    label: ds.label,
+                    backgroundColor: ds.backgroundColor,
+                    borderColor: ds.borderColor,
+                    pointRadius: false,
+                    pointColor: ds.borderColor,
+                    pointStrokeColor: ds.borderColor,
+                    pointHighlightFill: '#fff',
+                    pointHighlightStroke: ds.borderColor,
+                    data: ds.data
+                }))
+            };
+
+            const ctx = document.getElementById('contas-mensal-chart').getContext('2d');
+            ChartContasMes = new Chart(ctx, {
+                type: 'bar',
+                data: ChartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                },
+                
+            });
+        }
     </script>
 @stop
