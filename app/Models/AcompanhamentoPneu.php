@@ -67,8 +67,28 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function ListPedidoPneu($cd_regiao)
+    public function ListPedidoPneu($cd_regiao, $data)
     {
+
+        if (is_null($data)) {
+            $pedido = "";
+            $pedido_palm = "";
+            $nm_cliente = "";
+            $empresa = 0;
+            $grupo_item = 0;
+            $inicioData = "";
+            $fimData = "";
+        } else {
+            $empresa = $data['cd_empresa'];
+            $pedido = $data['pedido'];
+            $pedido_palm = $data['pedido_palm'];
+            $nm_cliente = $data['nm_cliente'];
+            $grupo_item = $data['grupo_item'];
+            $inicioData = $data['dt_inicial'];
+            $fimData = $data['dt_final'];
+        }
+
+
         $query = "
                     SELECT
                         PP.IDEMPRESA CD_EMPRESA,
@@ -88,14 +108,26 @@ class AcompanhamentoPneu extends Model
                             WHEN 'P' THEN 'PRODUCAO PARCIAL'
                             ELSE PP.STPEDIDO
                         END) STPEDIDO,
+                        TP.DSTIPOPEDIDO,
                         COUNT(IPP.id) QTDPNEUS
                     FROM PEDIDOPNEU PP
-                    INNER join ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)
+                    INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
+                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
+                    INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)                  
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
+                        " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
+                        " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
+                        " . (($pedido_palm != "") ? "AND PPM.IDPEDIDOMOVEL IN ($pedido_palm)" : "") . "
+                        " . (($nm_cliente != "") ? "AND PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "  
+                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
+                        " . (($inicioData != 0) ? "AND PP.DTEMISSAO >= '$inicioData'" : "") . "
+                        " . (($fimData != 0) ? "AND PP.DTEMISSAO <= '$fimData'" : "") . "
+
+
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
@@ -103,7 +135,8 @@ class AcompanhamentoPneu extends Model
                         EP.CD_REGIAOCOMERCIAL,
                         PP.DTEMISSAO,
                         PP.DTENTREGA,
-                        PP.STPEDIDO
+                        PP.STPEDIDO,                        
+                        TP.DSTIPOPEDIDO
 
                     ORDER BY PP.IDEMPRESA  
                 ";
@@ -121,10 +154,12 @@ class AcompanhamentoPneu extends Model
         $query = "SELECT PP.IDEMPRESA CD_EMPRESA, PP.ID PEDIDO, PPM.idpedidomovel, OPR.id NRORDEM, IPP.id, IPP.nrsequencia, 
         (PP.IDPESSOA||' - '||PC.NM_PESSOA) PESSOA, SP.dsservico,
         MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-        IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO, CASE
-      WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
-      WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
-    END STORDEM
+        IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO, 
+        COALESCE(
+            CASE
+            WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
+            WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
+            END, 'SEM OP') STORDEM    
         FROM PEDIDOPNEU PP
         INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
         INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
@@ -143,7 +178,7 @@ class AcompanhamentoPneu extends Model
         MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
         IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO, OPR.STORDEM
         ORDER BY PP.IDEMPRESA, IPP.ID";
-        
+
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }

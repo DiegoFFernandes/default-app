@@ -107,7 +107,7 @@ div.dt-length label {
 /* Estilo geral para todos os toasts */
 .toast {
     font-weight: bold;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     border-radius: 6px;
 }
 
@@ -131,10 +131,14 @@ div.dt-length label {
     background-color: #dc3545 !important;
     color: #fff !important;
 }
+
 .nav-tabs .nav-link {
-    color: #000 !important;          /* Cor preta */
-    text-decoration: none !important; /* Remove sublinhado */
-    font-weight: normal;              /* Opcional: suaviza a fonte */
+    color: #000 !important;
+    /* Cor preta */
+    text-decoration: none !important;
+    /* Remove sublinhado */
+    font-weight: normal;
+    /* Opcional: suaviza a fonte */
 }
 
 .nav-icon {
@@ -143,6 +147,44 @@ div.dt-length label {
     border-radius: 5px;
     color: #DC3545;
     width: 1.8rem;
+}
+
+
+.fa-plus-circle {
+    color: rgb(3, 128, 3);
+    background: #ffffff;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.fa-plus-square {
+    color: rgb(3, 128, 3);
+    padding: 2px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+.fa-minus-square {
+    color: #D73443;
+    padding: 2px;
+    font-size: 13px;
+    border-radius: 4px;
+}
+
+.fa-minus-circle {
+    color: #D73443;
+    background: #ffffff;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+
+button.select2-selection__choice__remove {
+    border: none;
+    background: none;
+    padding-left: 9px;
+    color: black;
+    margin-left: 5px;
 }
 
 @media (max-width: 600px) {

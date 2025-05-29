@@ -28,6 +28,8 @@
                                 style="width: 150px">Produzidos P/ Faturar</a>
                             <a href={{ route('rel-cobranca') }} class="btn btn-sm btn-dark mb-1"
                                 style="width: 150px">Relatório Cobranca</a>
+                            <a href={{ route('bloqueio-pedidos') }} class="btn btn-sm btn-dark mb-1"
+                                style="width: 150px">Acompanha Pedidos</a>    
                         </div>
                     </div>
                 </div>

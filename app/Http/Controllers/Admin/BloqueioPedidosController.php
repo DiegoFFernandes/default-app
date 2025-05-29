@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AcompanhamentoPneu;
 use App\Models\AreaComercial;
 use App\Models\BloqueioPedido;
+use App\Models\Empresa;
+use App\Models\Item;
 use App\Models\RegiaoComercial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +17,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user;
+    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa;
 
     public function __construct(
         Request $request,
@@ -23,12 +25,16 @@ class BloqueioPedidosController extends Controller
         RegiaoComercial $regiao,
         AreaComercial $area,
         AcompanhamentoPneu $acompanha,
+        Item $item,
+        Empresa $empresa
     ) {
         $this->request = $request;
         $this->bloqueio = $bloqueio;
         $this->regiao = $regiao;
         $this->area = $area;
         $this->acompanha = $acompanha;
+        $this->item = $item;
+        $this->empresa = $empresa;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -43,6 +49,8 @@ class BloqueioPedidosController extends Controller
         $exploder     = explode('/', $this->request->route()->uri());
         $regiao = $this->regiao->regiaoAll();
         $uri = ucfirst($exploder[1]);
+        $grupo = $this->item->getGroupItem();
+        $empresa = $this->empresa->empresa();
 
         if ($this->user->hasRole('gerencia')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
@@ -62,7 +70,13 @@ class BloqueioPedidosController extends Controller
             }
         }
 
-        return view('admin.comercial.bloqueio-pedidos', compact('title_page', 'user_auth', 'uri', 'regiao'));
+        return view('admin.comercial.bloqueio-pedidos', compact(
+            'title_page',
+            'user_auth',
+            'uri',
+            'regiao',
+            'grupo', 'empresa'
+        ));
     }
     public function getBloqueioPedido()
     {
@@ -77,18 +91,18 @@ class BloqueioPedidosController extends Controller
         $bloqueio = $this->bloqueio->BloqueioPedido($cd_regiao);
 
         return DataTables::of($bloqueio)
-            ->addColumn('action', function ($b) {                
+            ->addColumn('action', function ($b) {
                 $button = '<a href="https://api.whatsapp.com/send?phone=+5541985227055&text=
                 Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
                     . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success">
                 <i class="fab fa-whatsapp"></i></a>';
                 $button .= '<button type="button" class="btn btn-info ml-1 popover-lg" data-toggle="popover" title="Detalhes" 
-                data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';               
+                data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';
                 return $button;
             })
             ->addColumn('status_cliente', ' ')
             ->addColumn('status_scpc', ' ')
-            ->addColumn('status_pedido', ' ')            
+            ->addColumn('status_pedido', ' ')
             ->editColumn('status_cliente', function ($row) {
                 return $row->ST_ATIVA && BloqueioPedido::STATUS_CLIENTE[$row->ST_ATIVA] ? BloqueioPedido::STATUS_CLIENTE[$row->ST_ATIVA] : 'none';
             })
@@ -103,24 +117,24 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
-        $regiao = "";
-        if (!empty($this->request->regiao)) {
-            $regiao = implode(',', $this->request->regiao);
-        }
+        $cd_regiao = "";     
+        
         if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
         } elseif ($this->user->hasRole('gerencia')) {
-
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
                 ->pluck('cd_regiaocomercial')
                 ->implode(',');
         }
-
-        $pedidos = $this->acompanha->ListPedidoPneu($regiao);
+        if (!empty($this->request->data['regiao'])) {
+            $cd_regiao = implode(',', $this->request->data['regiao']);
+        }
+         
+        $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao, $this->request->data);
         return DataTables::of($pedidos)
 
             ->addColumn('actions', function ($d) {
-                return '<span class="right badge badge-success details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+                return '<span class="right details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
             })
             ->rawColumns(['actions'])
             ->setRowClass(function ($p) {

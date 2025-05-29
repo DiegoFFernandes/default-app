@@ -112,6 +112,7 @@
                                             <th>Dt Emissão</th>
                                             <th>Dt Entrega</th>
                                             <th>Status</th>
+                                            <th>Tipo Pedido</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -123,9 +124,9 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Cliente</th>
+                                            <th>Emp</th>
                                             <th>Pedido</th>
                                             <th>Pedido Palm</th>
-                                            <th>Emp</th>
                                             <th>Data</th>
                                             <th>Bloqueio</th>
                                             <th>Ativo</th>
@@ -147,6 +148,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
+                    <h4 class="modal-title">Filtros</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -155,10 +157,26 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
+                                <label>Empresa</label>
+                                 <select name="cd_empresa" id="cd_empresa" class="form-control" style="width: 100%;">   
+                                        <option value="0" selected>Todas</option>                                 
+                                    @foreach ($empresa as $e)
+                                        <option value="{{ $e->CD_EMPRESA }}">{{ $e->CD_EMPRESA }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Dt Emissão</label>
+                                <input type="text" class="form-control" id="daterange" placeholder="Data Emissão">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
                                 <label>Região</label>
-                                <select class="form-control" name="cd_regiaocomercial[]" id="cd_regiaocomercial"
-                                    style="width: 100%;" multiple>
-
+                                <select name="cd_regiaocomercial[]" class="form-control" id="cd_regiaocomercial" style="width: 100%;"
+                                    multiple>
                                     @foreach ($regiao as $r)
                                         <option value="{{ $r->CD_REGIAOCOMERCIAL }}">{{ $r->DS_REGIAOCOMERCIAL }}
                                         </option>
@@ -166,6 +184,36 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Cliente</label>
+                                <input type="text" class="form-control" id="nm_cliente" placeholder="Nome Cliente">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Pedido Palm</label>
+                                <input type="number" class="form-control" id="pedido_palm" placeholder="Pedido Palm">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Pedido</label>
+                                <input type="number" class="form-control" id="pedido" placeholder="Pedido">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Grupo Item</label>
+                                <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;">    
+                                    <option value="0">Todos</option>                                 
+                                    @foreach ($grupo as $g)
+                                        <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
@@ -181,24 +229,14 @@
 
 @section('css')
     <style>
-        /* .popover {
-                max-width: none;
-                
-            }
 
-            .popover-lg{
-                max-width: 200px;
-                width: 50%;
-                white-space: normal;
-                
-            } */
     </style>
 @endsection
 
 @section('js')
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
-            <div class="label label-info">{{ PESSOA }}</div>
+            <span class="badge bg-info">{{ PESSOA }}</span>
             <table class="table row-border" id="pedido-{{ ID }}" style="width:100%">
                 <thead>
                     <tr>
@@ -235,8 +273,17 @@
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
         var regiao;
         var table;
+        var inicioData = 0;
+        var fimData = 0;
+        var dados;
+
+        $('#grupo_item').select2({
+            placeholder: 'Selecione o grupo',
+            theme: 'bootstrap4',
+        });
+
         $('#cd_regiaocomercial').select2({
-            theme: 'classic'
+            theme: 'bootstrap4',
         });
         $('#bloqueio').click(function() {
             //Rever essa rotina atualiza caso o usuario voltar para aba bloqueio
@@ -319,9 +366,9 @@
 
         $('#title-page').text('Acompanhameto Pedido');
 
-        $('#pedido-acompanhar').DataTable().destroy();
+        $('#pedido-acompanhar').DataTable().destroy();        
 
-        table = initTableAcompanhar(regiao);
+        table = initTableAcompanhar(dados);
 
         $('#pedido-acompanhar tbody').on('click', '.details-control', function() {
             var tr = $(this).closest('tr');
@@ -333,31 +380,45 @@
                 // This row is already open - close it
                 row.child.hide();
                 tr.removeClass('shown');
-                // $(this).removeClass('fa-minus-circle').addClass('fa-plus-circle');
+
+                $(this).find('i').removeClass('fa-minus-circle').addClass('fa-plus-circle');
+
             } else {
                 // Open this row
                 row.child(template(row.data())).show();
                 initTable(tableId, row.data());
                 // console.log(row.data());
                 tr.addClass('shown');
-                // $(this).removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');
                 tr.next().find('td').addClass('no-padding');
             }
         });
 
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
-            regiao = $('#cd_regiaocomercial').val();
 
-            if (regiao.length === 0) {
-                msgToastr('Selecione pelo menos uma região!', 'warning');
-                return false;
-            }
+
+            dados = {
+                cd_empresa: $('#cd_empresa').val(),
+                nm_cliente: $('#nm_cliente').val(),
+                pedido_palm: $('#pedido_palm').val(),
+                pedido: $('#pedido').val(),
+                grupo_item: $('#grupo_item').val(),
+                cd_regiaocomercial: $('#cd_regiaocomercial').val(),
+                dt_inicial: inicioData,
+                dt_final: fimData,
+                regiao: $('#cd_regiaocomercial').val()
+            };
+
+
+
             $('#modal-filter').modal('hide');
-            initTableAcompanhar(regiao);
+            initTableAcompanhar(dados);
         });
 
-        function initTableAcompanhar(regiao) {
+        function initTableAcompanhar(dados) {
+
+            console.log(dados);
             table = $('#pedido-acompanhar').DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
@@ -371,7 +432,7 @@
                 ajax: {
                     url: "{{ route('get-pedido-acompanhar') }}",
                     data: {
-                        regiao: regiao
+                        data: dados
                     }
                 },
                 columns: [{
@@ -416,6 +477,10 @@
                     {
                         data: 'STPEDIDO',
                         name: 'STPEDIDO',
+                    },
+                    {
+                        data: 'DSTIPOPEDIDO',
+                        name: 'DSTIPOPEDIDO',
                     }
                 ],
                 columnDefs: [{
@@ -468,7 +533,7 @@
                         "orderable": false,
                         "searchable": false,
                         "data": 'null',
-                        "defaultContent": '<span class="right badge badge-success mr-2"><i class="fa fa-plus-circle"></i>',
+                        "defaultContent": '<span class="right mr-2"><i class="fas fa-plus-square"></i></span>',
                         "width": "1%"
                     },
                     {
@@ -486,7 +551,7 @@
                     {
                         data: 'VLUNITARIO',
                         name: 'VLUNITARIO'
-                    },{
+                    }, {
                         data: 'STORDEM',
                         name: 'STORDEM',
                     },
@@ -502,14 +567,13 @@
                 // This row is already open - close it
                 row_item.child.hide();
                 tr_item.removeClass('shown');
-                // $(this).find('i').removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+                $(this).find('i').removeClass('fa-minus-square').addClass('fa-plus-square');
             } else {
                 // Open this row
                 row_item.child(details_item_pedido(row_item.data())).show();
                 initTableItemPedido(tableId, row_item.data());
-                console.log(row_item.data());
                 tr_item.addClass('shown');
-                // $(this).find('i').removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+                $(this).find('i').removeClass('fa-plus-square').addClass('fa-minus-square');
                 tr_item.next().find('td').addClass('no-padding');
             }
         });
@@ -548,9 +612,9 @@
                     {
                         data: 'O_ST_RETRABALHO',
                         name: 'O_ST_RETRABALHO'
-                    },                    
+                    },
                 ],
-                "order": [2, 'asc']
+                
             });
         }
         $('#icon-filter').click(function() {

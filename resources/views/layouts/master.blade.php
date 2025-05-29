@@ -12,8 +12,6 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.5.1/css/rowGroup.dataTables.css">
 
 
-
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
@@ -25,9 +23,10 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/toastr.min.css') }}">
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css') }}">
 
 
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=1') }}">
 @endpush
 
 @push('js')
@@ -55,6 +54,8 @@
 
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js') }}"></script>
+
+
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.extensions.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/jquery.inputmask.js') }}"></script>
@@ -100,6 +101,7 @@
             $('#daterange').daterangepicker({
                 autoUpdateInput: false,
             }).attr('readonly', true);
+            
             
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
