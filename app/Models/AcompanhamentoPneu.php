@@ -76,8 +76,8 @@ class AcompanhamentoPneu extends Model
             $nm_cliente = "";
             $empresa = 0;
             $grupo_item = 0;
-            $inicioData = "";
-            $fimData = "";
+            $inicioData = 0;
+            $fimData = 0;
         } else {
             $empresa = $data['cd_empresa'];
             $pedido = $data['pedido'];

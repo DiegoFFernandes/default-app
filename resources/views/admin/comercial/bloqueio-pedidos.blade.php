@@ -7,7 +7,7 @@
         <div class="row">
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                    <span class="info-box-icon bg-success"><a href="#" id="i-finalizados"><i class="fas fa-check"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Finalizados</span>
@@ -20,7 +20,7 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon"><i class="far fa-flag"></i></span>
+                    <span class="info-box-icon"><a href="#" id="i-aguardando"><i class="far fa-flag"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Aguardando</span>
@@ -33,7 +33,7 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-warning"><i class="far fa-copy"></i></span>
+                    <span class="info-box-icon bg-warning"><a href="#" id="i-producao"><i class="far fa-copy"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Em produção</span>
@@ -46,7 +46,7 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-danger"><i class="fas fa-ban"></i></span>
+                    <span class="info-box-icon bg-danger"><a href="#" id="i-bloqueados"><i class="fas fa-ban"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Bloqueados</span>
@@ -60,7 +60,7 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-info"><i class="fas fa-window-close"></i></span>
+                    <span class="info-box-icon bg-info"><a href="#" id="i-cancelados"><i class="fas fa-window-close"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Canceladas</span>
@@ -158,8 +158,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Empresa</label>
-                                 <select name="cd_empresa" id="cd_empresa" class="form-control" style="width: 100%;">   
-                                        <option value="0" selected>Todas</option>                                 
+                                <select name="cd_empresa" id="cd_empresa" class="form-control" style="width: 100%;">
+                                    <option value="0" selected>Todas</option>
                                     @foreach ($empresa as $e)
                                         <option value="{{ $e->CD_EMPRESA }}">{{ $e->CD_EMPRESA }}</option>
                                     @endforeach
@@ -175,8 +175,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Região</label>
-                                <select name="cd_regiaocomercial[]" class="form-control" id="cd_regiaocomercial" style="width: 100%;"
-                                    multiple>
+                                <select name="cd_regiaocomercial[]" class="form-control" id="cd_regiaocomercial"
+                                    style="width: 100%;" multiple>
                                     @foreach ($regiao as $r)
                                         <option value="{{ $r->CD_REGIAOCOMERCIAL }}">{{ $r->DS_REGIAOCOMERCIAL }}
                                         </option>
@@ -205,8 +205,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Grupo Item</label>
-                                <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;">    
-                                    <option value="0">Todos</option>                                 
+                                <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;">
+                                    <option value="0">Todos</option>
                                     @foreach ($grupo as $g)
                                         <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}</option>
                                     @endforeach
@@ -281,7 +281,6 @@
             placeholder: 'Selecione o grupo',
             theme: 'bootstrap4',
         });
-
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
         });
@@ -366,7 +365,7 @@
 
         $('#title-page').text('Acompanhameto Pedido');
 
-        $('#pedido-acompanhar').DataTable().destroy();        
+        $('#pedido-acompanhar').DataTable().destroy();
 
         table = initTableAcompanhar(dados);
 
@@ -397,7 +396,6 @@
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
 
-
             dados = {
                 cd_empresa: $('#cd_empresa').val(),
                 nm_cliente: $('#nm_cliente').val(),
@@ -410,15 +408,12 @@
                 regiao: $('#cd_regiaocomercial').val()
             };
 
-
-
             $('#modal-filter').modal('hide');
             initTableAcompanhar(dados);
         });
 
         function initTableAcompanhar(dados) {
 
-            console.log(dados);
             table = $('#pedido-acompanhar').DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
@@ -502,9 +497,7 @@
                     $('.bloqueados').text(bloqueados);
                     $('.aguardando').text(aguardando);
                     $('.canceladas').text(canceladas);
-
                 }
-
             });
             return table;
         }
@@ -614,7 +607,7 @@
                         name: 'O_ST_RETRABALHO'
                     },
                 ],
-                
+
             });
         }
         $('#icon-filter').click(function() {
@@ -627,6 +620,40 @@
                 html: true,
                 placement: 'top'
             });
+        });        
+
+        table.on('draw.dt', function () {
+
+            let dadosFiltrados = table.rows({filter: 'applied'}).data().toArray();            
+            
+            let finalizados = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "ATENDIDO").length;
+            let producao = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "EM PRODUCAO").length;
+            let bloqueados = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "BLOQUEADO").length;
+            let aguardando = dadosFiltrados.filter(item => item.STPEDIDO.trim()=== "AGUARDANDO").length;
+            let canceladas = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "CANCELADO").length;
+
+            $('.finalizados').text(finalizados);
+            $('.producao').text(producao);
+            $('.bloqueados').text(bloqueados);
+            $('.aguardando').text(aguardando);
+            $('.canceladas').text(canceladas);
+
+        });
+
+        $('#i-finalizados').click(function() {            
+            table.search('ATENDIDO').draw();           
+        });
+        $('#i-producao').click(function() {            
+            table.search('EM PRODUCAO').draw();           
+        });
+        $('#i-aguardando').click(function() {            
+            table.search('AGUARDANDO').draw();           
+        });
+        $('#i-cancelados').click(function() {            
+            table.search('CANCELADO').draw();           
+        });
+         $('#i-bloqueados').click(function() {            
+            table.search('BLOQUEADO').draw();           
         });
     </script>
 @stop

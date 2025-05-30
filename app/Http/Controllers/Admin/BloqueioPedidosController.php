@@ -75,7 +75,8 @@ class BloqueioPedidosController extends Controller
             'user_auth',
             'uri',
             'regiao',
-            'grupo', 'empresa'
+            'grupo',
+            'empresa'
         ));
     }
     public function getBloqueioPedido()
@@ -117,8 +118,8 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
-        $cd_regiao = "";     
-        
+        $cd_regiao = "";
+
         if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
         } elseif ($this->user->hasRole('gerencia')) {
@@ -129,7 +130,7 @@ class BloqueioPedidosController extends Controller
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
-         
+
         $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao, $this->request->data);
         return DataTables::of($pedidos)
 
