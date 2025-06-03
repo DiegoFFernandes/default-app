@@ -77,10 +77,11 @@
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">
+                    <span class="modal-title">Editar Região</span>
                     <button type="button" class="close btn-cancel" data-dismiss="modal" data-keyboard="false"
                         aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Editar Região</h4>
+
                 </div>
                 <!-- Modal body -->
                 <div class="modal-body">
@@ -129,10 +130,18 @@
 @section('js')
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#cd_regiaocomercial').select2();
-            $('#cd_regiaocomercial_modal').select2();
-            $('#cd_usuario').select2();
-            $('#cd_usuario_modal').select2();
+            $('#cd_regiaocomercial').select2({
+                theme: 'bootstrap4'
+            });
+            $('#cd_regiaocomercial_modal').select2({
+                theme: 'bootstrap4'
+            });
+            $('#cd_usuario').select2({
+                theme: 'bootstrap4'
+            });
+            $('#cd_usuario_modal').select2({
+                theme: 'bootstrap4'
+            });
             $('#btn-vincular').click(function() {
                 let ds_regiaocomercial = $("#cd_regiaocomercial option:selected").text();
                 let cd_regiaocomercial = $('#cd_regiaocomercial').val();
@@ -209,7 +218,7 @@
             });
             $('.btn-update').click(function() {
 
-                toastr.warning(
+                toastr.info(
                     "<button type='button' id='confirmationButtonYes' class='btn btn-success clear'>Sim</button>" +
                     "<button type='button' id='confirmationButtonNo' class='btn btn-primary clear'>Não</button>",
                     'Você tem certeza que deseja atualizar?', {
@@ -264,9 +273,9 @@
             var deleteId;
             $('body').on('click', '#getDeleteId', function() {
                 deleteId = $(this).data('id');
-                toastr.warning(
-                    "<button type='button' id='confirmationButtonYes' class='btn btn-success clear'>Sim</button>" +
-                    "<button type='button' id='confirmationButtonNo' class='btn btn-primary clear'>Não</button>",
+                toastr.info(
+                    "<button type='button' id='confirmationButtonYes' class='btn btn-danger ml-2'>Sim</button> " +
+                    "<button type='button' id='confirmationButtonNo' class='btn btn-primary '>Não</button>",
                     'Deseja realmente excluir o item ' + deleteId + ' ?', {
                         closeButton: false,
                         allowHtml: true,

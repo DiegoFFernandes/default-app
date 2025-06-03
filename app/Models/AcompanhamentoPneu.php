@@ -74,6 +74,7 @@ class AcompanhamentoPneu extends Model
             $pedido = "";
             $pedido_palm = "";
             $nm_cliente = "";
+            $nm_vendedor = "";
             $empresa = 0;
             $grupo_item = 0;
             $inicioData = 0;
@@ -83,6 +84,7 @@ class AcompanhamentoPneu extends Model
             $pedido = $data['pedido'];
             $pedido_palm = $data['pedido_palm'];
             $nm_cliente = $data['nm_cliente'];
+            $nm_vendedor = $data['nm_vendedor'];
             $grupo_item = $data['grupo_item'];
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
@@ -95,6 +97,7 @@ class AcompanhamentoPneu extends Model
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
                         CAST(PP.IDPESSOA || ' - ' || PC.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) PESSOA,
+                        PP.IDVENDEDOR||' - '||V.NM_PESSOA NM_VENDEDOR,
                         EP.CD_REGIAOCOMERCIAL,
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
@@ -115,6 +118,8 @@ class AcompanhamentoPneu extends Model
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)                  
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
+                    INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
+                    
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
@@ -123,6 +128,7 @@ class AcompanhamentoPneu extends Model
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
                         " . (($pedido_palm != "") ? "AND PPM.IDPEDIDOMOVEL IN ($pedido_palm)" : "") . "
                         " . (($nm_cliente != "") ? "AND PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "  
+                        " . (($nm_vendedor != "") ? "AND V.NM_PESSOA LIKE '%$nm_vendedor%'" : "") . "
                         " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
                         " . (($inicioData != 0) ? "AND PP.DTEMISSAO >= '$inicioData'" : "") . "
                         " . (($fimData != 0) ? "AND PP.DTEMISSAO <= '$fimData'" : "") . "
@@ -131,7 +137,10 @@ class AcompanhamentoPneu extends Model
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
-                        PP.IDPESSOA,PC.NM_PESSOA,
+                        PP.IDPESSOA,
+                        PC.NM_PESSOA,
+                        PP.IDVENDEDOR,
+                        V.NM_PESSOA,
                         EP.CD_REGIAOCOMERCIAL,
                         PP.DTEMISSAO,
                         PP.DTENTREGA,

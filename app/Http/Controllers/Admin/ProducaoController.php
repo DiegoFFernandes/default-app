@@ -41,9 +41,16 @@ class ProducaoController extends Controller
         $user_auth    = $this->user;
         $exploder     = explode('/', $this->request->route()->uri());
         $uri = ucfirst($exploder[1]);
-
-        $regiao = $this->regiao->regiaoAll();
+        $empresa = $this->empresa->empresa();
+        
         $user =  $this->user->getData();
+        $regiao = "";
+
+        if ($this->user->hasRole('admin')) {
+             $regiao = $this->regiao->regiaoAll();
+        } elseif ($this->user->hasRole('gerencia')) {
+            $regiao = $this->regiao->findRegiaoUser($this->user->id);
+        }
 
         $list_regiao = $this->regiao->showUserRegiao();
 
@@ -53,16 +60,31 @@ class ProducaoController extends Controller
             'uri',
             'regiao',
             'user',
-            'list_regiao'
+            'list_regiao',
+            'empresa'
         ));
     }
     public function getListPneusProduzidosFaturar()
     {
-        $data = $this->producao->getPneusProduzidosFaturar();
+        $cd_regiao = "";
+
+        if ($this->user->hasRole('admin')) {
+            $cd_regiao = "";
+        } elseif ($this->user->hasRole('gerencia')) {
+            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
+                ->pluck('CD_REGIAOCOMERCIAL')
+                ->implode(',');
+        }
+        if (!empty($this->request->data['regiao'])) {
+            $cd_regiao = implode(',', $this->request->data['regiao']);
+        }
+
+        $data = $this->producao->getPneusProduzidosFaturar($cd_regiao, $this->request->data);
+
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('CD_EMPRESA', function ($row) {
-                return '<span class="right badge badge-danger details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $row->CD_EMPRESA;
+                return '<span class="right details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $row->CD_EMPRESA;
             })
             ->addColumn('NM_PESSOA', function ($row) {
                 return $row->NM_PESSOA;
@@ -87,7 +109,7 @@ class ProducaoController extends Controller
         $nr_embarque = $this->request->get('nr_embarque');
         $pedido = $this->request->get('pedido');
 
-       
+
         if ($nr_embarque == 'SEM EMBARQUE') {
             $nr_embarque = 0;
         }
@@ -95,7 +117,5 @@ class ProducaoController extends Controller
         $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque);
 
         return DataTables::of($data)->make(true);
-        
-
     }
 }

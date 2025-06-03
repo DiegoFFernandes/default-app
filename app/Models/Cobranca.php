@@ -90,7 +90,7 @@ class Cobranca extends Model
 
                 WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
-                    " . (!empty($cd_regiao) ? "AND RCG.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
+                    " . (!empty($cd_regiao) ? "AND RGC.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
                     --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 18404)
                     AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')   
                 ORDER BY CONTAS.DT_VENCIMENTO;          

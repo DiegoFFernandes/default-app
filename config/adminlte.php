@@ -396,14 +396,17 @@ return [
             'text' => 'Faturamento',
             'icon' => 'nav-icon fas fa-file-invoice-dollar',
             'url' => '#',
+            'can' => ['ver-produzidos-sem-faturar', 'ver-analise-faturamento'],
             'submenu' => [
                 [
                     'text' => 'Produzidos S/ Faturar',
-                    'route' => 'produzidos-sem-faturar'
+                    'route' => 'produzidos-sem-faturar',
+                    'can' => ['ver-produzidos-sem-faturar'],
                 ],
                 [
                     'text' => 'Análise Faturista',
-                    'route' => 'analise-faturamento.index'
+                    'route' => 'analise-faturamento.index',
+                    'can' => ['ver-analise-faturamento'],
                 ]
             ]
         ],

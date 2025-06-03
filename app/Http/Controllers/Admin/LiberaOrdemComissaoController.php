@@ -106,7 +106,7 @@ class LiberaOrdemComissaoController extends Controller
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
-                return '<span class="right badge badge-danger details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
+                return '<span class="right details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
             })
             ->rawColumns(['actions'])
             ->make(true);

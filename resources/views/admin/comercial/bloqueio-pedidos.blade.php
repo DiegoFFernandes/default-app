@@ -7,7 +7,8 @@
         <div class="row">
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-success"><a href="#" id="i-finalizados"><i class="fas fa-check"></i></a></span>
+                    <span class="info-box-icon bg-success"><a href="#" id="i-finalizados"><i
+                                class="fas fa-check"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Finalizados</span>
@@ -33,7 +34,8 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-warning"><a href="#" id="i-producao"><i class="far fa-copy"></i></a></span>
+                    <span class="info-box-icon bg-warning"><a href="#" id="i-producao"><i
+                                class="far fa-copy"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Em produção</span>
@@ -46,7 +48,8 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-danger"><a href="#" id="i-bloqueados"><i class="fas fa-ban"></i></a></span>
+                    <span class="info-box-icon bg-danger"><a href="#" id="i-bloqueados"><i
+                                class="fas fa-ban"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Bloqueados</span>
@@ -60,7 +63,8 @@
             <!-- /.col -->
             <div class="col-md-2 col-sm-6 col-12">
                 <div class="info-box">
-                    <span class="info-box-icon bg-info"><a href="#" id="i-cancelados"><i class="fas fa-window-close"></i></a></span>
+                    <span class="info-box-icon bg-info"><a href="#" id="i-cancelados"><i
+                                class="fas fa-window-close"></i></a></span>
 
                     <div class="info-box-content">
                         <span class="info-box-text">Canceladas</span>
@@ -92,13 +96,108 @@
                         <div class="tab-content">
                             <div class="tab-pane fade active show" id="acompanhamento-pedido" role="tabpanel"
                                 aria-labelledby="custom-tabs-four-home-tab">
-                                <div>
-                                    <button class="btn btn-tool pull-right" id="icon-filter"><i
-                                            class="fas fa-filter"></i></button>
-                                    <button class="btn btn-tool pull-right" id="icon-refresh"><i
-                                            class="fas fa-sync-alt"></i></button>
+                                <div class="card collapsed-card mb-4">
+                                    <div class="card-header">
+                                        <h3 class="card-title mt-2">Filtros:</h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- /.card-header -->
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Empresa</label>
+                                                    <select name="cd_empresa" id="cd_empresa" class="form-control"
+                                                        style="width: 100%;">
+                                                        <option value="0" selected>Todas</option>
+                                                        @foreach ($empresa as $e)
+                                                            <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Dt Emissão</label>
+                                                    <input type="text" class="form-control" id="daterange"
+                                                        placeholder="Data Emissão">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Pedido Palm</label>
+                                                    <input type="number" class="form-control" id="pedido_palm"
+                                                        placeholder="Pedido Palm">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Pedido</label>
+                                                    <input type="number" class="form-control" id="pedido"
+                                                        placeholder="Pedido">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Grupo Item</label>
+                                                    <select name="grupo_item" id="grupo_item" class="form-control"
+                                                        style="width: 100%;">
+                                                        <option value="0">Todos</option>
+                                                        @foreach ($grupo as $g)
+                                                            <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label>Região</label>
+                                                    <select name="cd_regiaocomercial[]" class="form-control"
+                                                        id="cd_regiaocomercial" style="width: 100%;" multiple>
+                                                        @foreach ($regiao as $r)
+                                                            <option value="{{ $r->CD_REGIAOCOMERCIAL }}">
+                                                                {{ $r->DS_REGIAOCOMERCIAL }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Vendedor</label>
+                                                    <input type="text" class="form-control" id="nm_vendedor"
+                                                        placeholder="Nome Vendedor">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Cliente</label>
+                                                    <input type="text" class="form-control" id="nm_cliente"
+                                                        placeholder="Nome Cliente">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <button type="button" class="btn btn-primary btn-sm float-right mr-2"
+                                                        id="searchRegiao">Filtrar</button>
+                                                </div>
+                                                <!-- /.row -->
+                                            </div>
+                                        </div>
+                                        <!-- /.row -->
+                                    </div>
                                 </div>
-
+                                <hr>
                                 <table class="table stripe compact nowrap" id="pedido-acompanhar"
                                     style="width:100%; font-size:12px">
                                     <thead>
@@ -132,7 +231,6 @@
                                             <th>Ativo</th>
                                             <th>Scpc</th>
                                             <th>Status</th>
-
                                         </tr>
                                     </thead>
                                 </table>
@@ -143,88 +241,6 @@
                 </div>
             </div>
     </section>
-    <!-- /.content -->
-    <div class="modal fade" id="modal-filter">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Filtros</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label>Empresa</label>
-                                <select name="cd_empresa" id="cd_empresa" class="form-control" style="width: 100%;">
-                                    <option value="0" selected>Todas</option>
-                                    @foreach ($empresa as $e)
-                                        <option value="{{ $e->CD_EMPRESA }}">{{ $e->CD_EMPRESA }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label>Dt Emissão</label>
-                                <input type="text" class="form-control" id="daterange" placeholder="Data Emissão">
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label>Região</label>
-                                <select name="cd_regiaocomercial[]" class="form-control" id="cd_regiaocomercial"
-                                    style="width: 100%;" multiple>
-                                    @foreach ($regiao as $r)
-                                        <option value="{{ $r->CD_REGIAOCOMERCIAL }}">{{ $r->DS_REGIAOCOMERCIAL }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label>Cliente</label>
-                                <input type="text" class="form-control" id="nm_cliente" placeholder="Nome Cliente">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Pedido Palm</label>
-                                <input type="number" class="form-control" id="pedido_palm" placeholder="Pedido Palm">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Pedido</label>
-                                <input type="number" class="form-control" id="pedido" placeholder="Pedido">
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label>Grupo Item</label>
-                                <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;">
-                                    <option value="0">Todos</option>
-                                    @foreach ($grupo as $g)
-                                        <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="searchRegiao">Filtrar</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
-        </div>
-        <!-- /.modal-dialog -->
-    </div>
 @stop
 
 @section('css')
@@ -399,6 +415,7 @@
             dados = {
                 cd_empresa: $('#cd_empresa').val(),
                 nm_cliente: $('#nm_cliente').val(),
+                nm_vendedor: $('#nm_vendedor').val(),
                 pedido_palm: $('#pedido_palm').val(),
                 pedido: $('#pedido').val(),
                 grupo_item: $('#grupo_item').val(),
@@ -408,7 +425,6 @@
                 regiao: $('#cd_regiaocomercial').val()
             };
 
-            $('#modal-filter').modal('hide');
             initTableAcompanhar(dados);
         });
 
@@ -610,9 +626,7 @@
 
             });
         }
-        $('#icon-filter').click(function() {
-            $('#modal-filter').modal('show');
-        });
+
         // Ativar popover após cada renderização
         $('#bloqueio-pedidos').on('draw.dt', function() {
             $('[data-toggle="popover"]').popover({
@@ -620,16 +634,18 @@
                 html: true,
                 placement: 'top'
             });
-        });        
+        });
 
-        table.on('draw.dt', function () {
+        table.on('draw.dt', function() {
 
-            let dadosFiltrados = table.rows({filter: 'applied'}).data().toArray();            
-            
+            let dadosFiltrados = table.rows({
+                filter: 'applied'
+            }).data().toArray();
+
             let finalizados = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "ATENDIDO").length;
             let producao = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "EM PRODUCAO").length;
             let bloqueados = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "BLOQUEADO").length;
-            let aguardando = dadosFiltrados.filter(item => item.STPEDIDO.trim()=== "AGUARDANDO").length;
+            let aguardando = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "AGUARDANDO").length;
             let canceladas = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "CANCELADO").length;
 
             $('.finalizados').text(finalizados);
@@ -640,20 +656,20 @@
 
         });
 
-        $('#i-finalizados').click(function() {            
-            table.search('ATENDIDO').draw();           
+        $('#i-finalizados').click(function() {
+            table.search('ATENDIDO').draw();
         });
-        $('#i-producao').click(function() {            
-            table.search('EM PRODUCAO').draw();           
+        $('#i-producao').click(function() {
+            table.search('EM PRODUCAO').draw();
         });
-        $('#i-aguardando').click(function() {            
-            table.search('AGUARDANDO').draw();           
+        $('#i-aguardando').click(function() {
+            table.search('AGUARDANDO').draw();
         });
-        $('#i-cancelados').click(function() {            
-            table.search('CANCELADO').draw();           
+        $('#i-cancelados').click(function() {
+            table.search('CANCELADO').draw();
         });
-         $('#i-bloqueados').click(function() {            
-            table.search('BLOQUEADO').draw();           
+        $('#i-bloqueados').click(function() {
+            table.search('BLOQUEADO').draw();
         });
     </script>
 @stop
