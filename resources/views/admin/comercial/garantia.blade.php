@@ -92,6 +92,32 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
+                        <h3 class="card-title">Laudo por Empresa</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="overflow-y: auto;" class="mt-3">
+                            <canvas id="chart-por-empresa" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Evolução Mensal</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="overflow-y: auto;" class="mt-3">
+                            <canvas id="chart-por-mes" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
                         <h3 class="card-title">Emissão por Usúario</h3>
                     </div>
                     <div class="card-body">
@@ -173,32 +199,6 @@
                     <div class="card-body box">
                         <div class="subbox2">
                             <canvas id="chart-nao-procedente"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Laudo por Empresa</h3>
-                    </div>
-                    <div class="card-body">
-                        <div style="overflow-y: auto;" class="mt-3">
-                            <canvas id="chart-por-empresa" height="100"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Evolução Mensal</h3>
-                    </div>
-                    <div class="card-body">
-                        <div style="overflow-y: auto;" class="mt-3">
-                            <canvas id="chart-por-mes" height="100"></canvas>
                         </div>
                     </div>
                 </div>
@@ -660,7 +660,7 @@
                         language: {
                             "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                         },
-                        data: data,                       
+                        data: data,
                         scrollY: '300px',
                         rowGroup: gerarRowGroup({
                             dataSrc: collapsedGroups,

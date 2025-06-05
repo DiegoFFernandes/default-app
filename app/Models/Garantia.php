@@ -74,7 +74,7 @@ class Garantia extends Model
                 " . (($ds_motivo != "") ? "AND M.DSMOTIVO like '%$ds_motivo%'" : "") . "
                 " . (($nm_pessoa != "") ? "AND PESSOA.NM_PESSOA  like '%$nm_pessoa%'" : "") . "
                 " . (($cd_empresa != 0) ? "AND LP.IDEMPRELAUDO IN ($cd_empresa)" : "") . "
-                " . (($dt_inicio != 0) ? "AND LP.DT_LAUDO between '$dt_inicio' and '$dt_fim'" : "AND LP.DT_LAUDO BETWEEN '01.01.2025' AND '15.02.2025'") . "
+                " . (($dt_inicio != 0) ? "AND LP.DT_LAUDO between '$dt_inicio' and '$dt_fim'" : "AND LP.DT_LAUDO BETWEEN DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO DATEADD(0 MONTH TO CURRENT_DATE)) AND CURRENT_DATE") . "
                 --AND LP.NR_LAUDO = 59717
                 --AND COALESCE(CL.VL_CLASSIFICACAO, 0) > 0
             ORDER BY M.DSMOTIVO  
