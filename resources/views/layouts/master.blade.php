@@ -88,6 +88,7 @@
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+
             $('#phone').inputmask({
                 mask: ['(99)9999-9999', '(99)99999-9999']
             });
@@ -102,7 +103,7 @@
                 autoUpdateInput: false,
             }).attr('readonly', true);
             
-            
+                      
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
                     'DD/MM/YYYY'));

@@ -33,19 +33,20 @@ class GarantiaController extends Controller
         $title_page = 'Análise Garantia';
         $uri  = $this->request->route()->uri();
         $user_auth = $this->user_auth;
-        $empresas  = $this->empresa->empresa();
+        $empresa  = $this->empresa->empresa();
 
 
         return view('admin.comercial.garantia', compact(
             'title_page',
             'user_auth',
-            'empresas',
+            'empresa',
 
         ));
     }
     public function getAnaliseGarantia()
     {
-        $data = $this->garantia->getGarantia();
+        
+        return $data = $this->garantia->getGarantia($this->request);
         return response()->json($data);
     }
 }

@@ -98,7 +98,7 @@ class LiberaOrdemComissaoController extends Controller
         } elseif ($this->user->hasRole('gerencia')) {
             // Criar condição caso o usuario for gerente mais não estiver associado no painel
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('cd_regiaocomercial')
+                ->pluck('CD_REGIAOCOMERCIAL')
                 ->implode(',');
         }
 

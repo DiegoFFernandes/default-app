@@ -36,7 +36,7 @@ class RelatorioCobrancaController extends Controller
     }
     public function index()
     {
-        $title_page   = 'Titulos em Atraso - Área';
+        $title_page   = 'Relatório de Cobrança';
         // $user_auth    = $this->user;        
         $exploder = explode('/', $this->request->route()->uri());
         $uri = ucfirst($exploder[1]);
@@ -66,7 +66,7 @@ class RelatorioCobrancaController extends Controller
         } elseif ($this->user->hasRole('gerencia')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('cd_regiaocomercial')
+                ->pluck('CD_REGIAOCOMERCIAL')
                 ->implode(',');
             if (empty($cd_regiao)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
@@ -270,7 +270,7 @@ class RelatorioCobrancaController extends Controller
         } elseif ($this->user->hasRole('gerencia')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('cd_regiaocomercial')
+                ->pluck('CD_REGIAOCOMERCIAL')
                 ->implode(',');
             if (empty($cd_regiao)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');

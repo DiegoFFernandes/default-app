@@ -56,6 +56,7 @@ class BloqueioPedidosController extends Controller
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
             $find = $this->regiao->findRegiaoUser($this->user->id);
             $array = json_decode($find, true);
+
             if (empty($array)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
             }
@@ -85,7 +86,7 @@ class BloqueioPedidosController extends Controller
             $cd_regiao = "";
         } elseif ($this->user->hasRole('gerencia')) {
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('cd_regiaocomercial')
+                ->pluck('CD_REGIAOCOMERCIAL')
                 ->implode(',');
         }
 
@@ -124,7 +125,7 @@ class BloqueioPedidosController extends Controller
             $cd_regiao = "";
         } elseif ($this->user->hasRole('gerencia')) {
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('cd_regiaocomercial')
+                ->pluck('CD_REGIAOCOMERCIAL')
                 ->implode(',');
         }
         if (!empty($this->request->data['regiao'])) {
