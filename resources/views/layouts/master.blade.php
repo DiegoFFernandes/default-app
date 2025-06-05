@@ -50,6 +50,7 @@
 
     <!-- Tabulator JS -->
     <script src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
+    <script type="text/javascript" src="https://oss.sheetjs.com/sheetjs/xlsx.full.min.js"></script>
 
 
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
@@ -84,6 +85,17 @@
                 "hideMethod": "fadeOut"
             }
             toastr[classe](msg);
+        }
+        function exportarParaExcel(dados, nomeArquivo = "dados.xlsx", nomeAba = "Planilha") {
+            // Cria uma nova planilha a partir dos dados (array de objetos)
+            const worksheet = XLSX.utils.json_to_sheet(dados);
+
+            // Cria o workbook (arquivo Excel)
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, nomeAba);
+
+            // Faz o download do arquivo
+            XLSX.writeFile(workbook, nomeArquivo);
         }
     </script>
     <script>

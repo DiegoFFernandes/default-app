@@ -97,7 +97,7 @@
                             <div class="card-header border-1">
                                 <h3 class="card-title">Faturistas</h3>
                                 <div class="card-tools">
-                                    <a href="#" class="btn btn-tool btn-sm">
+                                    <a href="#" class="btn btn-tool btn-sm btn-download">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     <a href="#" class="btn btn-tool btn-sm">
@@ -115,7 +115,7 @@
                             <div class="card-header border-1">
                                 <h3 class="card-title">Motivos Cancelamentos</h3>
                                 <div class="card-tools">
-                                    <a href="#" class="btn btn-tool btn-sm">
+                                    <a href="#" class="btn btn-tool btn-sm btn-download">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     <a href="#" class="btn btn-tool btn-sm">
@@ -348,6 +348,15 @@
         document.getElementById("filtro-dia").addEventListener("keyup", function() {
             table.setFilter("DT_EMISSAO", "like", this.value.toLowerCase());
             tableFiltred();
+        });
+
+        document.querySelectorAll(".btn-download").forEach(btn => {
+            btn.addEventListener("click", function() {
+
+
+
+                exportarParaExcel(dadosFiltrados, "faturista.xlsx", "Faturista");
+            });
         });
 
         function formatDate(value) {
@@ -632,16 +641,16 @@
                         },
                         x: {
                             beginAtZero: true,
-                            max: Math.max(...qtdPoruser)+10,
+                            max: Math.max(...qtdPoruser) + 10,
                             ticks: {
                                 stepSize: 1 // <--- Espaçamento fixo no eixo X
                             }
                         },
-                        
+
                     }
                 },
                 plugins: [ChartDataLabels]
             });
-        }
+        }        
     </script>
 @stop
