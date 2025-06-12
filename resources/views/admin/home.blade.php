@@ -21,6 +21,8 @@
                     </div>
                     <div class="card-body">
                         @role('admin')
+                            <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
+                                style="width: 150px">Coleta Geral</a>
                             <a href="{{ route('analise-faturamento.index') }}" class="btn btn-sm btn-dark mb-1"
                                 style="width: 150px">Faturamento</a>
                             <a href="{{ route('analise-garantia.index') }}" class="btn btn-sm btn-dark mb-1"

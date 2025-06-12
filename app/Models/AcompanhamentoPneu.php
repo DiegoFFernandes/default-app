@@ -75,6 +75,7 @@ class AcompanhamentoPneu extends Model
             $pedido_palm = "";
             $nm_cliente = "";
             $nm_vendedor = "";
+            $idvendedor = "";
             $empresa = 0;
             $grupo_item = 0;
             $inicioData = 0;
@@ -85,11 +86,11 @@ class AcompanhamentoPneu extends Model
             $pedido_palm = $data['pedido_palm'];
             $nm_cliente = $data['nm_cliente'];
             $nm_vendedor = $data['nm_vendedor'];
+            $idvendedor = $data['idvendedor'];
             $grupo_item = $data['grupo_item'];
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
         }
-
 
         $query = "
                     SELECT
@@ -122,16 +123,16 @@ class AcompanhamentoPneu extends Model
                     
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
-                    WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
+                    WHERE  
+                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
                         " . (($pedido_palm != "") ? "AND PPM.IDPEDIDOMOVEL IN ($pedido_palm)" : "") . "
                         " . (($nm_cliente != "") ? "AND PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "  
                         " . (($nm_vendedor != "") ? "AND V.NM_PESSOA LIKE '%$nm_vendedor%'" : "") . "
-                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
-                        " . (($inicioData != 0) ? "AND PP.DTEMISSAO >= '$inicioData'" : "") . "
-                        " . (($fimData != 0) ? "AND PP.DTEMISSAO <= '$fimData'" : "") . "
+                        " . (($idvendedor != "") ? "AND PP.IDVENDEDOR IN ($idvendedor)" : "") . "
+                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "                       
 
 
                     GROUP BY PP.IDEMPRESA,
@@ -187,6 +188,44 @@ class AcompanhamentoPneu extends Model
         MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
         IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO, OPR.STORDEM
         ORDER BY PP.IDEMPRESA, IPP.ID";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
+
+    public function getColetaEmpresa($data)
+    {        
+        $query = "
+                    SELECT
+                        PP.IDEMPRESA CD_EMPRESA,
+                        PP.IDVENDEDOR,
+                        PP.IDVENDEDOR || ' - ' || V.NM_PESSOA NM_VENDEDOR,
+                        --PC.NM_PESSOA,
+                        COUNT(DISTINCT
+                        CASE
+                        WHEN PP.STPEDIDO = 'B' THEN 1
+                        ELSE NULL
+                        END) BLOQUEADAS,
+                        COUNT(DISTINCT PP.ID) QTDPEDIDOS,
+                        COUNT(IPP.ID) QTDPNEUS,
+                        CAST(SUM(IPP.VLUNITARIO) AS DECIMAL(12,2)) VALOR,
+                        CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO
+                    FROM PEDIDOPNEU PP
+                    INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
+                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+                    INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                    INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
+                    INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
+                    LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
+                    LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
+                    WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE
+                        --PP.DTEMISSAO BETWEEN '' AND '04.04.2025'
+                        --AND PP.IDVENDEDOR = 18061
+                        AND PP.IDEMPRESA = $data[cd_empresa]
+                    GROUP BY PP.IDEMPRESA,
+                        PP.IDVENDEDOR,
+                        V.NM_PESSOA
+                        --PC.NM_PESSOA";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);

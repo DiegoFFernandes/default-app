@@ -16,21 +16,20 @@ Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
         Route::get('get-ordem-bloqueadas-comercial', [LiberaOrdemComissaoController::class, 'getListOrdemBloqueadas'])->name('get-ordens-bloqueadas-comercial');
         Route::get('get-pneus-ordem-bloqueadas-comercial/{id}', [LiberaOrdemComissaoController::class, 'getListPneusOrdemBloqueadas'])->name('get-pneus-ordens-bloqueadas-comercial');
         Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
-               
-      }); 
+    });
 });
 
 Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
     Route::prefix('producao')->group(function () {
         Route::get('pneus-produzidos-sem-faturar', [ProducaoController::class, 'index'])->name('produzidos-sem-faturar');
-        Route::get('get-pneus-produzidos-sem-faturar', [ProducaoController::class, 'getListPneusProduzidosFaturar'])->name('get-pneus-produzidos-sem-faturar');   
+        Route::get('get-pneus-produzidos-sem-faturar', [ProducaoController::class, 'getListPneusProduzidosFaturar'])->name('get-pneus-produzidos-sem-faturar');
         Route::get('get-pneus-produzidos-sem-faturar-details', [ProducaoController::class, 'getListPneusProduzidosFaturarDetails'])->name('get-pneus-produzidos-sem-faturar-details');
     });
 });
 
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::prefix('cadastro')->group(function () {       
+    Route::prefix('cadastro')->group(function () {
 
         Route::get('area-comercial', [AreaComercialController::class, 'index'])->name('area-comercial.index');
         Route::get('get-area-comercial', [AreaComercialController::class, 'create'])->name('get-area-comercial.create');
@@ -58,6 +57,13 @@ Route::middleware(['permission:ver-pedidos-coletados-acompanhamento'])->group(fu
 Route::middleware(['permission:ver-analise-garantia'])->group(function () {
     Route::prefix('comercial')->group(function () {
         Route::get('analise-garantia', [GarantiaController::class, 'index'])->name('analise-garantia.index');
-        Route::get('get-analise-garantia', [GarantiaController::class, 'getAnaliseGarantia'])->name('get-analise-garantia');    });
-   
+        Route::get('get-analise-garantia', [GarantiaController::class, 'getAnaliseGarantia'])->name('get-analise-garantia');
+    });
+});
+
+Route::middleware(['role:admin'])->group(function () {
+    Route::prefix('coleta')->group(function () {
+        Route::get('coleta-empresa-geral', [BloqueioPedidosController::class, 'coletaGeral'])->name('coleta-empresa-geral');
+        Route::get('get-empresa-geral', [BloqueioPedidosController::class, 'getColetaGeral'])->name('get-coleta-empresa-geral');
+    });
 });

@@ -119,6 +119,7 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
+        
         $cd_regiao = "";
 
         if ($this->user->hasRole('admin')) {
@@ -174,4 +175,42 @@ class BloqueioPedidosController extends Controller
             })
             ->make();
     }
+
+    public function coletaGeral()
+    {
+        $title_page   = 'Pedidos Geral';
+        $user_auth    = $this->user;
+        $exploder     = explode('/', $this->request->route()->uri());
+        $regiao = $this->regiao->regiaoAll();
+        $uri = ucfirst($exploder[1]);
+        $grupo = $this->item->getGroupItem();
+        $empresa = $this->empresa->empresa();
+
+
+        return view('admin.comercial.coleta-empresa', compact(
+            'title_page',
+            'user_auth',
+            'uri',
+            'regiao',
+            'grupo',
+            'empresa'
+        ));
+    }
+
+    public function getColetaGeral()
+    {
+        $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);
+        return DataTables::of($pedidos)
+
+            ->addColumn('actions', function ($d) {
+                return '<span class="right details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span> ';
+            })
+            ->rawColumns(['actions'])            
+            ->make();
+    }
+
+
+
+
+
 }
