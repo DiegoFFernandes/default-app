@@ -65,5 +65,6 @@ Route::middleware(['role:admin'])->group(function () {
     Route::prefix('coleta')->group(function () {
         Route::get('coleta-empresa-geral', [BloqueioPedidosController::class, 'coletaGeral'])->name('coleta-empresa-geral');
         Route::get('get-empresa-geral', [BloqueioPedidosController::class, 'getColetaGeral'])->name('get-coleta-empresa-geral');
+        Route::get('get-qtd-coleta', [BloqueioPedidosController::class, 'getQtdColeta'])->name('get-qtd-coleta');
     });
 });

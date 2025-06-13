@@ -119,7 +119,7 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
-        
+
         $cd_regiao = "";
 
         if ($this->user->hasRole('admin')) {
@@ -201,16 +201,19 @@ class BloqueioPedidosController extends Controller
     {
         $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);
         return DataTables::of($pedidos)
-
             ->addColumn('actions', function ($d) {
                 return '<span class="right details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span> ';
             })
-            ->rawColumns(['actions'])            
+            ->rawColumns(['actions'])
             ->make();
     }
 
+    public function getQtdColeta()
+    {
+        $pedidos = $this->acompanha->getQtdColeta($this->request);
 
-
-
-
+        return response()->json(
+            $pedidos
+        );
+    }
 }

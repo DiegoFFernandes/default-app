@@ -16,15 +16,17 @@ class Empresa extends Model
         $query = "SELECT
                     EMPRESA.CD_EMPRESA,
                     CASE 
-                        WHEN EMPRESA.CD_EMPRESA = 1 THEN 'CAMBE'
+                        WHEN EMPRESA.CD_EMPRESA = 1 THEN 'Cambe'
                         WHEN EMPRESA.CD_EMPRESA = 2 THEN '2'
-                        WHEN EMPRESA.CD_EMPRESA = 3 THEN 'OSVALDO CRUZ'
+                        WHEN EMPRESA.CD_EMPRESA = 3 THEN 'Osvaldo Cruz'
                         WHEN EMPRESA.CD_EMPRESA = 4 THEN '4'
-                        WHEN EMPRESA.CD_EMPRESA = 5 THEN 'PONTA GROSSA'
-                        WHEN EMPRESA.CD_EMPRESA = 6 THEN 'CATANDUVA'                       
+                        WHEN EMPRESA.CD_EMPRESA = 5 THEN 'Ponta Grossa'
+                        WHEN EMPRESA.CD_EMPRESA = 6 THEN 'Catanduva'
                         ELSE 'OUTROS'
                     END NM_EMPRESA
-                FROM EMPRESA";
+                FROM EMPRESA
+                WHERE EMPRESA.CD_EMPRESA IN (1, 3, 5, 6)"
+                ;
 
         $data = DB::connection('firebird')->select($query);
 

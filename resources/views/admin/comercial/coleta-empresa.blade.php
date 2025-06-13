@@ -101,101 +101,81 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="card card-danger card-outline card-outline-tabs">
-                            <div class="card-header p-0 border-bottom-0">
-                                <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="acompanhamento-1" data-toggle="pill"
-                                            href="#acompanhamento-1" role="tab" aria-controls="acompanhamento-pedido"
-                                            aria-selected="true">Cambé</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade active show" id="acompanhamento-1" role="tabpanel"
-                                        aria-labelledby="custom-tabs-four-home-tab">
+                    @foreach ($empresa as $e)
+                        <div class="col-md-6">
+                            <div class="card card-danger card-outline card-outline-tabs">
+                                <div class="card-header p-0 border-bottom-0">
+                                    <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" id="acompanhamento-1" data-toggle="pill"
+                                                href="#acompanhamento-{{ $e->CD_EMPRESA }}" role="tab"
+                                                aria-controls="acompanhamento-pedido"
+                                                aria-selected="true">{{ $e->NM_EMPRESA }}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content">
+                                        <div class="row">
+                                            <div class="col-sm-6 col-md-4">
+                                                <div class="info-box">
+                                                    <span class="info-box-icon">
+                                                        <i id="icon-anteontem-{{ $e->CD_EMPRESA }}"
+                                                            class="fas fa-sort-amount-up-alt"></i>
+                                                    </span>
+                                                    <div class="info-box-content">
+                                                        <span class="info-box-text">AnteOntem</span>
+                                                        <span
+                                                            class="info-box-number qt-ante-ontem-{{ $e->CD_EMPRESA }}"></span>
+                                                    </div>
+                                                    <!-- /.info-box-content -->
+                                                </div>
+                                                <!-- /.info-box -->
+                                            </div>
+                                            <div class="col-sm-6 col-md-4">
+                                                <div class="info-box">
+                                                    <span class="info-box-icon">
+                                                        <i id="icon-ontem-{{ $e->CD_EMPRESA }}"
+                                                            class="fas fa-sort-amount-up-alt"></i>
+                                                    </span>
+                                                    <div class="info-box-content">
+                                                        <span class="info-box-text">Ontem</span>
+                                                        <span
+                                                            class="info-box-number qt-ontem-{{ $e->CD_EMPRESA }}"></span>
+                                                    </div>
+                                                    <!-- /.info-box-content -->
+                                                </div>
+                                                <!-- /.info-box -->
+                                            </div>
+                                            <div class="col-sm-6 col-md-4">
+                                                <div class="info-box">
+                                                    <span class="info-box-icon">
+                                                        <i id="icon-hoje-{{ $e->CD_EMPRESA }}"
+                                                            class="fas fa-sort-amount-up-alt"></i>
+                                                    </span>
+                                                    <div class="info-box-content">
+                                                        <span class="info-box-text">Hoje</span>
+                                                        <span class="info-box-number qt-hoje-{{ $e->CD_EMPRESA }}"></span>
+                                                    </div>
+                                                    <!-- /.info-box-content -->
+                                                </div>
+                                                <!-- /.info-box -->
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade active show" id="acompanhamento-{{ $e->CD_EMPRESA }}"
+                                            role="tabpanel" aria-labelledby="custom-tabs-four-home-tab">
 
-                                        <table class="table stripe compact nowrap" id="coleta-empresa-1"
-                                            style="width:100%; font-size:12px">
-                                        </table>
+                                            <table class="table stripe compact nowrap"
+                                                id="coleta-empresa-{{ $e->CD_EMPRESA }}"
+                                                style="width:100%; font-size:12px">
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card card-danger card-outline card-outline-tabs">
-                            <div class="card-header p-0 border-bottom-0">
-                                <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="acompanhamento-3" data-toggle="pill"
-                                            href="#tab-empresa-3" role="tab" aria-controls="acompanhamento-pedido"
-                                            aria-selected="true">Osvaldo Cruz</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade active show" id="tab-empresa-3" role="tabpanel"
-                                        aria-labelledby="custom-tabs-four-home-tab">
-                                        <table class="table stripe compact nowrap" id="coleta-empresa-3"
-                                            style="width:100%; font-size:12px">
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card card-danger card-outline card-outline-tabs">
-                            <div class="card-header p-0 border-bottom-0">
-                                <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="acompanhamento-5" data-toggle="pill"
-                                            href="#tab-empresa-5" role="tab" aria-controls="acompanhamento-pedido"
-                                            aria-selected="true">Ponta Grossa</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade active show" id="tab-empresa-5" role="tabpanel"
-                                        aria-labelledby="custom-tabs-four-home-tab">
-                                        <table class="table stripe compact nowrap" id="coleta-empresa-5"
-                                            style="width:100%; font-size:12px">
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card card-danger card-outline card-outline-tabs">
-                            <div class="card-header p-0 border-bottom-0">
-                                <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="acompanhamento-6" data-toggle="pill"
-                                            href="#tab-empresa-6" role="tab" aria-controls="acompanhamento-pedido"
-                                            aria-selected="true">Catanduva</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div class="card-body">
-                                <div class="tab-content">
-                                    <div class="tab-pane fade active show" id="tab-empresa-6" role="tabpanel"
-                                        aria-labelledby="custom-tabs-four-home-tab">
-                                        <table class="table stripe compact nowrap" id="coleta-empresa-6"
-                                            style="width:100%; font-size:12px">
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
-
             </div>
     </section>
 @stop
@@ -211,7 +191,11 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 200px;
+            max-width: 30%;
+        }
+
+        table.dataTable {
+            table-layout: fixed;
         }
     </style>
 @endsection
@@ -294,7 +278,6 @@
         var tableEmpresa5 = initTableColetaGeral(5, 'coleta-empresa-5');
         var tableEmpresa6 = initTableColetaGeral(6, 'coleta-empresa-6');
 
-
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
 
@@ -358,6 +341,41 @@
         }
 
         function initTableColetaGeral(empresaId, tableId) {
+
+            getQtdColetaDia(empresaId).then(data => {
+
+                const anteontem = data[0].QTDPNEUS_ANTEONTEM;
+                const ontem = data[0].QTDPNEUS_ONTEM;
+                const hoje = data[0].QTDPNEUS_HOJE;
+
+                $('.qt-ante-ontem-' + empresaId).text(anteontem);
+                $('.qt-ontem-' + empresaId).text(ontem);
+                $('.qt-hoje-' + empresaId).text(hoje);
+
+                if (parseInt(hoje) < parseInt(ontem)) {
+                    console.log('hoje < ontem');
+                    $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
+                    $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
+
+                } else {
+                    $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-up-alt text-success');
+                    $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-down-alt text-danger');
+
+                }
+                if (parseInt(ontem) < parseInt(anteontem)) {
+                    $('#icon-ontem-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
+                    $('#icon-ontem-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
+
+                } else {
+                    $('#icon-ontem-' + empresaId).addClass('fa-sort-amount-up-alt text-success');
+                    $('#icon-ontem-' + empresaId).removeClass('fa-sort-amount-down-alt text-danger');
+                }
+
+
+            }).catch(error => {
+                console.error("Erro ao obter a quantidade de pedidos:", error);
+            });
+
             dados = {
                 cd_empresa: empresaId,
                 nm_cliente: $('#nm_cliente').val(),
@@ -415,6 +433,8 @@
                         data: 'QTDPEDIDOS',
                         title: "Pedidos",
                         name: 'QTDPEDIDOS',
+                        "width": "1%",
+                        visible: false
 
                     },
                     {
@@ -508,7 +528,7 @@
                     {
                         data: 'PESSOA',
                         name: 'PESSOA',
-                        "width": "35%"
+                        "width": "30%"
                     },
                     {
                         data: 'QTDPNEUS',
@@ -586,5 +606,23 @@
                 ]
             });
         }
+
+        function getQtdColetaDia(cd_empresa) {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: "{{ route('get-qtd-coleta') }}",
+                    method: "GET",
+                    data: {
+                        cd_empresa: cd_empresa
+                    },
+                    success: function(data) {
+                        resolve(data);
+                    },
+                    error: function(xhr, status, error) {
+                        reject(error);
+                    }
+                });
+            });
+        };
     </script>
 @stop

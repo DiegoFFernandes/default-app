@@ -194,7 +194,16 @@ class AcompanhamentoPneu extends Model
     }
 
     public function getColetaEmpresa($data)
-    {        
+    {
+        if (is_null($data)) {
+            $cd_empresa = 0;
+            $inicioData = 0;
+            $fimData = 0;
+        } else {
+            $cd_empresa = $data['cd_empresa'];
+            $inicioData = $data['dt_inicial'];
+            $fimData = $data['dt_final'];
+        }
         $query = "
                     SELECT
                         PP.IDEMPRESA CD_EMPRESA,
@@ -218,14 +227,66 @@ class AcompanhamentoPneu extends Model
                     INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
-                    WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE
-                        --PP.DTEMISSAO BETWEEN '' AND '04.04.2025'
+                    WHERE                         
+                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
+                        --PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE
                         --AND PP.IDVENDEDOR = 18061
-                        AND PP.IDEMPRESA = $data[cd_empresa]
+                        AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA,
                         PP.IDVENDEDOR,
                         V.NM_PESSOA
                         --PC.NM_PESSOA";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
+
+    public function getQtdColeta($data)
+    {
+        if (is_null($data)) {
+            $cd_empresa = 0;
+        } else {
+            $cd_empresa = $data['cd_empresa'];
+        }
+        $query = "
+                   SELECT
+                        PP.IDEMPRESA,
+                        --HOJE
+                        COUNT(DISTINCT
+                        CASE
+                        WHEN PP.DTEMISSAO = CURRENT_DATE THEN PP.ID
+                        END) AS QTDPEDIDOS_HOJE,
+                        COUNT(
+                        CASE
+                        WHEN PP.DTEMISSAO = CURRENT_DATE THEN IPP.ID
+                        END) AS QTDPNEUS_HOJE,
+
+                        --ONTEM
+                        COUNT(DISTINCT
+                        CASE
+                        WHEN PP.DTEMISSAO = CURRENT_DATE - 1 THEN PP.ID
+                        END) AS QTDPEDIDOS_ONTEM,
+                        COUNT(
+                        CASE
+                        WHEN PP.DTEMISSAO = CURRENT_DATE - 1 THEN IPP.ID
+                        END) AS QTDPNEUS_ONTEM,
+
+                        --ANTEONTEM
+                        COUNT(DISTINCT
+                        CASE
+                        WHEN PP.DTEMISSAO = CURRENT_DATE-2 THEN PP.ID
+                        END) AS QTDPEDIDOS_ANTEONTEM,
+                        COUNT(
+                        CASE
+                        WHEN PP.DTEMISSAO = CURRENT_DATE-2 THEN IPP.ID
+                        END) AS QTDPNEUS_ANTEONTEM
+                    FROM PEDIDOPNEU PP
+                    INNER JOIN ITEMPEDIDOPNEU IPP ON IPP.IDPEDIDOPNEU = PP.ID
+                    WHERE 
+                        PP.DTEMISSAO BETWEEN CURRENT_DATE - 2 AND CURRENT_DATE
+                        --PP.DTEMISSAO BETWEEN '04.04.2025' AND '05.04.2025'
+                        AND PP.IDEMPRESA = $cd_empresa
+                    GROUP BY PP.IDEMPRESA";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
