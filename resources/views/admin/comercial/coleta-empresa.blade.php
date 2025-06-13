@@ -124,13 +124,13 @@
                                                             class="fas fa-sort-amount-up-alt"></i>
                                                     </span>
                                                     <div class="info-box-content">
-                                                        <span class="info-box-text">AnteOntem</span>
+                                                        <a class="btn-anteontem" href="#"
+                                                            data-cd_empresa="{{ $e->CD_EMPRESA }}"><span
+                                                                class="info-box-text">AnteOntem</span></a>
                                                         <span
                                                             class="info-box-number qt-ante-ontem-{{ $e->CD_EMPRESA }}"></span>
                                                     </div>
-                                                    <!-- /.info-box-content -->
                                                 </div>
-                                                <!-- /.info-box -->
                                             </div>
                                             <div class="col-sm-6 col-md-4">
                                                 <div class="info-box">
@@ -164,6 +164,9 @@
                                         </div>
                                         <div class="tab-pane fade active show" id="acompanhamento-{{ $e->CD_EMPRESA }}"
                                             role="tabpanel" aria-labelledby="custom-tabs-four-home-tab">
+                                            <div class="float-right mb-2">
+                                                <small class="badge badge-danger badge-date-{{ $e->CD_EMPRESA }}"></small>
+                                            </div>
 
                                             <table class="table stripe compact nowrap"
                                                 id="coleta-empresa-{{ $e->CD_EMPRESA }}"
@@ -196,6 +199,11 @@
 
         table.dataTable {
             table-layout: fixed;
+        }
+
+        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+
+            display: none;
         }
     </style>
 @endsection
@@ -259,8 +267,6 @@
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
         var regiao;
         var table;
-        var inicioData = 0;
-        var fimData = 0;
         var dados;
 
         $('#grupo_item').select2({
@@ -273,10 +279,10 @@
 
         $('#pedido-acompanhar').DataTable().destroy();
 
-        var tableEmpresa1 = initTableColetaGeral(1, 'coleta-empresa-1');
-        var tableEmpresa3 = initTableColetaGeral(3, 'coleta-empresa-3');
-        var tableEmpresa5 = initTableColetaGeral(5, 'coleta-empresa-5');
-        var tableEmpresa6 = initTableColetaGeral(6, 'coleta-empresa-6');
+        var tableEmpresa1 = setTimeout(() => initTableColetaGeral(1, 'coleta-empresa-1', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 0);
+        var tableEmpresa3 = setTimeout(() => initTableColetaGeral(3, 'coleta-empresa-3', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 300);
+        var tableEmpresa5 = setTimeout(() => initTableColetaGeral(5, 'coleta-empresa-5', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 600);
+        var tableEmpresa6 = setTimeout(() => initTableColetaGeral(6, 'coleta-empresa-6', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 900);
 
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
@@ -316,6 +322,18 @@
             iconeMenos: 'fa-minus-circle'
         });
 
+        $(document).on('click', '.btn-anteontem', function() {
+            const cd_empresa = $(this).data('cd_empresa');
+            const tableId = 'coleta-empresa-' + cd_empresa;
+            const inicio = moment().subtract(2, 'days').format('DD.MM.YYYY');
+            const fim = moment().subtract(2, 'days').format('DD.MM.YYYY');
+
+            $('#' + tableId).DataTable().destroy();
+
+            initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
+
+        });
+
         function configurarDetalhesLinha(selector, options) {
             $(document).on('click', selector, function() {
                 const tr = $(this).closest('tr');
@@ -340,41 +358,45 @@
             });
         }
 
-        function initTableColetaGeral(empresaId, tableId) {
+        function initTableColetaGeral(empresaId, tableId, inicio, fim, tipo) {
 
-            getQtdColetaDia(empresaId).then(data => {
+            if (tipo !== 1) {
+                getQtdColetaDia(empresaId).then(data => {
 
-                const anteontem = data[0].QTDPNEUS_ANTEONTEM;
-                const ontem = data[0].QTDPNEUS_ONTEM;
-                const hoje = data[0].QTDPNEUS_HOJE;
+                    const anteontem = data[0].QTDPNEUS_ANTEONTEM;
+                    const ontem = data[0].QTDPNEUS_ONTEM;
+                    const hoje = data[0].QTDPNEUS_HOJE;
 
-                $('.qt-ante-ontem-' + empresaId).text(anteontem);
-                $('.qt-ontem-' + empresaId).text(ontem);
-                $('.qt-hoje-' + empresaId).text(hoje);
+                    $('.qt-ante-ontem-' + empresaId).text(anteontem);
+                    $('.qt-ontem-' + empresaId).text(ontem);
+                    $('.qt-hoje-' + empresaId).text(hoje);
 
-                if (parseInt(hoje) < parseInt(ontem)) {
-                    console.log('hoje < ontem');
-                    $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
-                    $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
+                    if (parseInt(hoje) < parseInt(ontem)) {
+                        console.log('hoje < ontem');
+                        $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
+                        $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
 
-                } else {
-                    $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-up-alt text-success');
-                    $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-down-alt text-danger');
+                    } else {
+                        $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-up-alt text-success');
+                        $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-down-alt text-danger');
 
-                }
-                if (parseInt(ontem) < parseInt(anteontem)) {
-                    $('#icon-ontem-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
-                    $('#icon-ontem-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
+                    }
+                    if (parseInt(ontem) < parseInt(anteontem)) {
+                        $('#icon-ontem-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
+                        $('#icon-ontem-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
 
-                } else {
-                    $('#icon-ontem-' + empresaId).addClass('fa-sort-amount-up-alt text-success');
-                    $('#icon-ontem-' + empresaId).removeClass('fa-sort-amount-down-alt text-danger');
-                }
+                    } else {
+                        $('#icon-ontem-' + empresaId).addClass('fa-sort-amount-up-alt text-success');
+                        $('#icon-ontem-' + empresaId).removeClass('fa-sort-amount-down-alt text-danger');
+                    }
 
 
-            }).catch(error => {
-                console.error("Erro ao obter a quantidade de pedidos:", error);
-            });
+                }).catch(error => {
+                    console.error("Erro ao obter a quantidade de pedidos:", error);
+                });
+            }
+
+            $('.badge-date-' + empresaId).text('Periodo: ' + inicio + ' a ' + fim);
 
             dados = {
                 cd_empresa: empresaId,
@@ -384,9 +406,10 @@
                 pedido: $('#pedido').val(),
                 grupo_item: $('#grupo_item').val(),
                 cd_regiaocomercial: $('#cd_regiaocomercial').val(),
-                dt_inicial: inicioData,
-                dt_final: fimData,
+                dt_inicial: inicio,
+                dt_final: fim,
             };
+
             const table = $('#' + tableId).DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",

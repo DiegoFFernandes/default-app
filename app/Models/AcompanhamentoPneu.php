@@ -192,7 +192,6 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-
     public function getColetaEmpresa($data)
     {
         if (is_null($data)) {
@@ -228,9 +227,11 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
-                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
+                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'") . "                         
                         --PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE
                         --AND PP.IDVENDEDOR = 18061
+                        AND PP.STPEDIDO <> 'C'
+                        AND ITEM.CD_GRUPO IN (102,105,140,132,130)                        
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA,
                         PP.IDVENDEDOR,
@@ -240,7 +241,6 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-
     public function getQtdColeta($data)
     {
         if (is_null($data)) {
@@ -282,9 +282,12 @@ class AcompanhamentoPneu extends Model
                         END) AS QTDPNEUS_ANTEONTEM
                     FROM PEDIDOPNEU PP
                     INNER JOIN ITEMPEDIDOPNEU IPP ON IPP.IDPEDIDOPNEU = PP.ID
+                    INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                     WHERE 
                         PP.DTEMISSAO BETWEEN CURRENT_DATE - 2 AND CURRENT_DATE
                         --PP.DTEMISSAO BETWEEN '04.04.2025' AND '05.04.2025'
+                        AND PP.STPEDIDO <> 'C'
+                        AND ITEM.CD_GRUPO IN (102,105,140,132,130)
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA";
 
