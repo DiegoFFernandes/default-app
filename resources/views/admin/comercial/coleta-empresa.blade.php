@@ -139,7 +139,9 @@
                                                             class="fas fa-sort-amount-up-alt"></i>
                                                     </span>
                                                     <div class="info-box-content">
-                                                        <span class="info-box-text">Ontem</span>
+                                                        <a class="btn-ontem" href="#"
+                                                            data-cd_empresa="{{ $e->CD_EMPRESA }}"><span
+                                                                class="info-box-text">Ontem</span></a>
                                                         <span
                                                             class="info-box-number qt-ontem-{{ $e->CD_EMPRESA }}"></span>
                                                     </div>
@@ -154,7 +156,9 @@
                                                             class="fas fa-sort-amount-up-alt"></i>
                                                     </span>
                                                     <div class="info-box-content">
-                                                        <span class="info-box-text">Hoje</span>
+                                                        <a class="btn-hoje" href="#"
+                                                            data-cd_empresa="{{ $e->CD_EMPRESA }}">
+                                                            <span class="info-box-text">Hoje</span></a>
                                                         <span class="info-box-number qt-hoje-{{ $e->CD_EMPRESA }}"></span>
                                                     </div>
                                                     <!-- /.info-box-content -->
@@ -178,6 +182,9 @@
                             </div>
                         </div>
                     @endforeach
+                    <!-- inputs ocultos -->
+                    <input type="hidden" id="click-dt-inicio" value="">
+                    <input type="hidden" id="click-dt-fim" value="">
                 </div>
             </div>
     </section>
@@ -279,10 +286,14 @@
 
         $('#pedido-acompanhar').DataTable().destroy();
 
-        var tableEmpresa1 = setTimeout(() => initTableColetaGeral(1, 'coleta-empresa-1', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 0);
-        var tableEmpresa3 = setTimeout(() => initTableColetaGeral(3, 'coleta-empresa-3', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 300);
-        var tableEmpresa5 = setTimeout(() => initTableColetaGeral(5, 'coleta-empresa-5', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 600);
-        var tableEmpresa6 = setTimeout(() => initTableColetaGeral(6, 'coleta-empresa-6', moment().format('DD.MM.YYYY'), moment().format('DD.MM.YYYY')), 900);
+        var tableEmpresa1 = setTimeout(() => initTableColetaGeral(1, 'coleta-empresa-1', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 0);
+        var tableEmpresa3 = setTimeout(() => initTableColetaGeral(3, 'coleta-empresa-3', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 300);
+        var tableEmpresa5 = setTimeout(() => initTableColetaGeral(5, 'coleta-empresa-5', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 600);
+        var tableEmpresa6 = setTimeout(() => initTableColetaGeral(6, 'coleta-empresa-6', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 900);
 
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
@@ -328,10 +339,44 @@
             const inicio = moment().subtract(2, 'days').format('DD.MM.YYYY');
             const fim = moment().subtract(2, 'days').format('DD.MM.YYYY');
 
+            //Salvas as informações no input oculto para poder reaproveitar na consulta
+            $('#click-dt-inicio').val(inicio);
+            $('#click-dt-fim').val(fim);
+
+            $('#' + tableId).DataTable().destroy();
+
+            initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
+        });
+
+        $(document).on('click', '.btn-hoje', function() {
+            const cd_empresa = $(this).data('cd_empresa');
+            const tableId = 'coleta-empresa-' + cd_empresa;
+            const inicio = moment().format('DD.MM.YYYY');
+            const fim = moment().format('DD.MM.YYYY');
+
+            //Salvas as informações no input oculto para poder reaproveitar na consulta
+            $('#click-dt-inicio').val(inicio);
+            $('#click-dt-fim').val(fim);
+
             $('#' + tableId).DataTable().destroy();
 
             initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
 
+        });
+
+        $(document).on('click', '.btn-ontem', function() {
+            const cd_empresa = $(this).data('cd_empresa');
+            const tableId = 'coleta-empresa-' + cd_empresa;
+            const inicio = moment().subtract(1, 'days').format('DD.MM.YYYY');
+            const fim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+
+            //Salvas as informações no input oculto para poder reaproveitar na consulta
+            $('#click-dt-inicio').val(inicio);
+            $('#click-dt-fim').val(fim);
+
+            $('#' + tableId).DataTable().destroy();
+
+            initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
         });
 
         function configurarDetalhesLinha(selector, options) {
@@ -502,11 +547,15 @@
                 pedido_palm: "",
                 nm_cliente: "",
                 nm_vendedor: "",
-                empresa: 0,
                 grupo_item: 0,
                 dt_inicial: moment().format('DD.MM.YYYY'),
                 dt_final: moment().format('DD.MM.YYYY')
 
+            }
+
+            if ($('click-dt-inicio').val() !== '') {
+                dados.dt_inicial = $('#click-dt-inicio').val();
+                dados.dt_final = $('#click-dt-fim').val();
             }
 
             table = $('#' + tableId).DataTable({
