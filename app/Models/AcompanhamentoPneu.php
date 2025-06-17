@@ -97,6 +97,7 @@ class AcompanhamentoPneu extends Model
                         PP.IDEMPRESA CD_EMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
+                        PP.IDVENDEDOR,
                         CAST(PP.IDPESSOA || ' - ' || PC.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) PESSOA,
                         PP.IDVENDEDOR||' - '||V.NM_PESSOA NM_VENDEDOR,
                         EP.CD_REGIAOCOMERCIAL,
@@ -113,7 +114,11 @@ class AcompanhamentoPneu extends Model
                             ELSE PP.STPEDIDO
                         END) STPEDIDO,
                         TP.DSTIPOPEDIDO,
-                        COUNT(IPP.id) QTDPNEUS
+                        COUNT(IPP.id) QTDPNEUS,
+
+                        FORMAPAGTO.DS_FORMAPAGTO,
+                        CONDPAGTO.DS_CONDPAGTO,
+                        PP.DSOBSERVACAO
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
@@ -121,10 +126,14 @@ class AcompanhamentoPneu extends Model
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
                     
+                    INNER JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
+                    INNER JOIN FORMAPAGTO ON (FORMAPAGTO.CD_FORMAPAGTO = PP.CDFORMAPAGTO)
+
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
                         " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
+                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -132,9 +141,8 @@ class AcompanhamentoPneu extends Model
                         " . (($nm_cliente != "") ? "AND PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "  
                         " . (($nm_vendedor != "") ? "AND V.NM_PESSOA LIKE '%$nm_vendedor%'" : "") . "
                         " . (($idvendedor != "") ? "AND PP.IDVENDEDOR IN ($idvendedor)" : "") . "
-                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "                       
-
-
+                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "   
+                        AND PP.STPEDIDO <> 'C'               
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
@@ -146,7 +154,10 @@ class AcompanhamentoPneu extends Model
                         PP.DTEMISSAO,
                         PP.DTENTREGA,
                         PP.STPEDIDO,                        
-                        TP.DSTIPOPEDIDO
+                        TP.DSTIPOPEDIDO,
+                        FORMAPAGTO.DS_FORMAPAGTO,
+                        CONDPAGTO.DS_CONDPAGTO,
+                        PP.DSOBSERVACAO
 
                     ORDER BY PP.IDEMPRESA  
                 ";
@@ -228,7 +239,7 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
                         " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'") . "                         
-                        --PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE
+                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
                         AND ITEM.CD_GRUPO IN (102,105,140,132,130)                        

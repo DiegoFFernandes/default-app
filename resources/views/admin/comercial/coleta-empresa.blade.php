@@ -117,6 +117,10 @@
                                 <div class="card-body">
                                     <div class="tab-content">
                                         <div class="row">
+                                            <!-- inputs ocultos -->
+                                            <input type="hidden" id="click-dt-inicio-{{ $e->CD_EMPRESA }}" value="">
+                                            <input type="hidden" id="click-dt-fim-{{ $e->CD_EMPRESA }}" value="">
+
                                             <div class="col-sm-6 col-md-4">
                                                 <div class="info-box">
                                                     <span class="info-box-icon">
@@ -182,11 +186,71 @@
                             </div>
                         </div>
                     @endforeach
-                    <!-- inputs ocultos -->
-                    <input type="hidden" id="click-dt-inicio" value="">
-                    <input type="hidden" id="click-dt-fim" value="">
+
                 </div>
+
+
+                <div class="modal fade" id="modal-detalhes-pedido" tabindex="-1" role="dialog"
+                    aria-labelledby="modal-default-label" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header py-2">
+                                <h5 class="modal-title">Detalhes Pedido
+                                    <span class="badge badge-danger" id="badge-num-pedido">#1234</span>
+                                </h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body pt-2 pb-1">
+                                <div class="form-group mb-2">
+                                    <label for="nomePessoa" class="mb-0">Pessoa:</label>
+                                    <input type="text" class="form-control form-control-sm" id="nomePessoa" readonly>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="condicaoDetails" class="mb-0">Condição Pagamento:</label>
+                                        <input type="text" class="form-control form-control-sm mb-2"
+                                            id="condicaoDetails" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="formaDetails" class="mb-0">Forma Pagamento:</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="formaDetails"
+                                            readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-2">
+                                    <label for="observacaoDetails" class="mb-0">Observação:</label>
+                                    <textarea class="form-control form-control-sm" id="observacaoDetails" rows="2" readonly></textarea>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-sm compact" id="item-pedido"
+                                        style="width:100%; font-size:12px">
+                                        <thead>
+                                            <tr>
+                                                <th>Sq</th>
+                                                <th>Nr Ordem</th>
+                                                <th>Serviço</th>
+                                                <th>Valor</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer p-2">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                    data-dismiss="modal">Fechar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+        </div>
     </section>
 @stop
 
@@ -333,50 +397,62 @@
             iconeMenos: 'fa-minus-circle'
         });
 
-        $(document).on('click', '.btn-anteontem', function() {
+        $(document).on('click', '.btn-anteontem', function(e) {
+            e.preventDefault();
+
             const cd_empresa = $(this).data('cd_empresa');
             const tableId = 'coleta-empresa-' + cd_empresa;
             const inicio = moment().subtract(2, 'days').format('DD.MM.YYYY');
             const fim = moment().subtract(2, 'days').format('DD.MM.YYYY');
 
-            //Salvas as informações no input oculto para poder reaproveitar na consulta
-            $('#click-dt-inicio').val(inicio);
-            $('#click-dt-fim').val(fim);
-
             $('#' + tableId).DataTable().destroy();
 
             initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
         });
 
-        $(document).on('click', '.btn-hoje', function() {
+        $(document).on('click', '.btn-hoje', function(e) {
+            e.preventDefault();
+
             const cd_empresa = $(this).data('cd_empresa');
             const tableId = 'coleta-empresa-' + cd_empresa;
             const inicio = moment().format('DD.MM.YYYY');
             const fim = moment().format('DD.MM.YYYY');
 
-            //Salvas as informações no input oculto para poder reaproveitar na consulta
-            $('#click-dt-inicio').val(inicio);
-            $('#click-dt-fim').val(fim);
-
             $('#' + tableId).DataTable().destroy();
 
             initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
 
         });
 
-        $(document).on('click', '.btn-ontem', function() {
+        $(document).on('click', '.btn-ontem', function(e) {
+            e.preventDefault();
+
             const cd_empresa = $(this).data('cd_empresa');
             const tableId = 'coleta-empresa-' + cd_empresa;
             const inicio = moment().subtract(1, 'days').format('DD.MM.YYYY');
             const fim = moment().subtract(1, 'days').format('DD.MM.YYYY');
 
-            //Salvas as informações no input oculto para poder reaproveitar na consulta
-            $('#click-dt-inicio').val(inicio);
-            $('#click-dt-fim').val(fim);
-
             $('#' + tableId).DataTable().destroy();
 
             initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
+        });
+
+        $(document).on('click', '.btn-show-modal', function(e) {
+            e.preventDefault();
+
+            $('#item-pedido').DataTable().destroy();
+            $('#modal-detalhes-pedido').modal('show');
+            
+            $('#badge-num-pedido').text('#' + $(this).data('id'));
+            $('#nomePessoa').val($(this).data('nm_pessoa'));    
+            $('#condicaoDetails').val($(this).data('cond_pagamento'));
+            $('#formaDetails').val($(this).data('forma_pagamento'));
+            $('#observacaoDetails').val($(this).data('observacao'));
+
+            initTablePedidoCliente('item-pedido', {
+                ID: $(this).data('id')
+            });
+
         });
 
         function configurarDetalhesLinha(selector, options) {
@@ -442,6 +518,10 @@
             }
 
             $('.badge-date-' + empresaId).text('Periodo: ' + inicio + ' a ' + fim);
+
+            //Salvas as informações no input oculto para poder reaproveitar na consulta
+            $('#click-dt-inicio-' + empresaId).val(inicio);
+            $('#click-dt-fim-' + empresaId).val(fim);
 
             dados = {
                 cd_empresa: empresaId,
@@ -553,10 +633,11 @@
 
             }
 
-            if ($('click-dt-inicio').val() !== '') {
-                dados.dt_inicial = $('#click-dt-inicio').val();
-                dados.dt_final = $('#click-dt-fim').val();
+            if ($('#click-dt-inicio-' + dados.cd_empresa).val() !== '') {
+                dados.dt_inicial = $('#click-dt-inicio-' + dados.cd_empresa).val();
+                dados.dt_final = $('#click-dt-fim-' + dados.cd_empresa).val();
             }
+
 
             table = $('#' + tableId).DataTable({
                 language: {
@@ -594,8 +675,8 @@
                     {
                         data: 'IDPEDIDOMOVEL',
                         name: 'IDPEDIDOMOVEL',
-                        visible: false,
-                        "width": "10%"
+                        visible: true,
+                        "width": "1%"
                     },
                     {
                         data: 'PESSOA',
@@ -639,6 +720,8 @@
         }
 
         function initTablePedidoCliente(tableId, data) {
+
+            console.log(tableId);
             return $('#' + tableId).DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
@@ -658,7 +741,8 @@
                 },
                 columns: [{
                         data: 'NRSEQUENCIA',
-                        name: 'NRSEQUENCIA'
+                        name: 'NRSEQUENCIA',
+                        "width": "1%"
                     },
                     {
                         data: 'NRORDEM',
@@ -675,7 +759,12 @@
                         data: 'STORDEM',
                         name: 'STORDEM',
                     },
-                ]
+                ],
+                columnDefs: [{
+                    targets: [3],
+                    className: 'dt-right',
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                }],
             });
         }
 

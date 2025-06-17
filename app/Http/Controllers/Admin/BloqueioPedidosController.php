@@ -137,7 +137,24 @@ class BloqueioPedidosController extends Controller
         return DataTables::of($pedidos)
 
             ->addColumn('actions', function ($d) {
-                return '<span class="right details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+
+                $dataAttrs = [
+                    'id' => $d->ID,
+                    'cd_empresa' => $d->CD_EMPRESA,
+                    'nm_pessoa' => $d->PESSOA,
+                    'forma_pagamento' => $d->DS_FORMAPAGTO,
+                    'cond_pagamento' => $d->DS_CONDPAGTO,
+                    'observacao' => $d->DSOBSERVACAO,
+                ];
+
+                $dataString = collect($dataAttrs)
+                    ->map(function ($value, $key) {
+                        return 'data-' . $key . '="' . $value . '"';
+                    })->implode(' ');
+
+                $btn = '<span class="btn-detalhes btn-show-modal right mr-2" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
+                $btn .=  '<span class="btn-detalhes details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+                return $btn;
             })
             ->rawColumns(['actions'])
             ->setRowClass(function ($p) {
@@ -175,7 +192,6 @@ class BloqueioPedidosController extends Controller
             })
             ->make();
     }
-
     public function coletaGeral()
     {
         $title_page   = 'Pedidos Geral';
@@ -196,18 +212,16 @@ class BloqueioPedidosController extends Controller
             'empresa'
         ));
     }
-
     public function getColetaGeral()
     {
         $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
-                return '<span class="right details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span> ';
+                return '<span class="details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span> ';
             })
             ->rawColumns(['actions'])
             ->make();
     }
-
     public function getQtdColeta()
     {
         $pedidos = $this->acompanha->getQtdColeta($this->request);

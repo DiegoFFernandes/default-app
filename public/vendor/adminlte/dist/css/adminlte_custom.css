@@ -178,6 +178,16 @@ div.dt-length label {
     border-radius: 4px;
 }
 
+.fa-eye{
+    color: #424950;
+}
+
+.btn-detalhes{    
+    background: #ffffff;
+    padding: 2px;
+    border-radius: 4px;
+}
+
 
 button.select2-selection__choice__remove {
     border: none;
