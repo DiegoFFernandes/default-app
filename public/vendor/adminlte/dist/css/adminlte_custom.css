@@ -141,13 +141,13 @@ div.dt-length label {
     /* Opcional: suaviza a fonte */
 }
 
-.nav-icon {
+/* .nav-icon {
     background: #ffffff;
     padding: 2px;
     border-radius: 5px;
     color: #DC3545;
     width: 1.8rem;
-}
+} */
 
 
 .fa-plus-circle {
@@ -188,6 +188,9 @@ div.dt-length label {
     border-radius: 4px;
 }
 
+.content-header {
+    padding: 8px .5rem;
+}
 
 button.select2-selection__choice__remove {
     border: none;

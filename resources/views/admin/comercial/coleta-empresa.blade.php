@@ -186,9 +186,7 @@
                             </div>
                         </div>
                     @endforeach
-
                 </div>
-
 
                 <div class="modal fade" id="modal-detalhes-pedido" tabindex="-1" role="dialog"
                     aria-labelledby="modal-default-label" aria-hidden="true">
@@ -196,27 +194,56 @@
                         <div class="modal-content">
                             <div class="modal-header py-2">
                                 <h5 class="modal-title">Detalhes Pedido
-                                    <span class="badge badge-danger" id="badge-num-pedido">#1234</span>
+                                    <span class="badge badge-danger" id="badge-num-pedido"></span>
+                                    <span class="badge badge-info" id="badge-dt-sinc"></span>
                                 </h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body pt-2 pb-1">
-                                <div class="form-group mb-2">
-                                    <label for="nomePessoa" class="mb-0">Pessoa:</label>
-                                    <input type="text" class="form-control form-control-sm" id="nomePessoa" readonly>
-                                </div>
-
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
+                                        <div class="form-group mb-2">
+                                            <label for="nomePessoa" class="mb-0">Pessoa:</label>
+                                            <input type="text" class="form-control form-control-sm" id="nomePessoa"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group mb-2">
+                                            <label for="pedidoPalm" class="mb-0">Pedido Palm</label>
+                                            <input type="text" class="form-control form-control-sm" id="pedidoPalm"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="form-group mb-2">
+                                            <label for="pedido" class="mb-0">Pedido</label>
+                                            <input type="text" class="form-control form-control-sm" id="pedidoColeta"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
                                         <label for="condicaoDetails" class="mb-0">Condição Pagamento:</label>
                                         <input type="text" class="form-control form-control-sm mb-2"
                                             id="condicaoDetails" readonly>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-3">
                                         <label for="formaDetails" class="mb-0">Forma Pagamento:</label>
                                         <input type="text" class="form-control form-control-sm mb-2" id="formaDetails"
+                                            readonly>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="dtEmissao" class="mb-0">Data Emissão:</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="dtEmissao"
+                                            readonly>
+                                    </div>
+                                      <div class="col-md-3">
+                                        <label for="dtEntrega" class="mb-0">Data Entrega:</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="dtEntrega"
                                             readonly>
                                     </div>
                                 </div>
@@ -283,20 +310,7 @@
     <script id="details-pedido-vendedor" type="text/x-handlebars-template">
         @verbatim            
             <table class="table-pedido stripe row-border" id="pedido-{{ IDVENDEDOR }}" style="width:100%">
-                <thead>
-                    <tr>
-                        <th>Emp</th>
-                        <th>Emp</th>
-                        <th>Pedido</th>
-                        <th>Pedido Palm</th>
-                        <th>Cliente</th>
-                        <th>Pneus</th>
-                        <th>Dt Emissão</th>
-                        <th>Dt Entrega</th>
-                        <th>Status</th>
-                        <th>Tipo Pedido</th>
-                    </tr>
-                </thead>
+                
             </table>
         @endverbatim
     </script>
@@ -442,18 +456,35 @@
 
             $('#item-pedido').DataTable().destroy();
             $('#modal-detalhes-pedido').modal('show');
-            
-            $('#badge-num-pedido').text('#' + $(this).data('id'));
-            $('#nomePessoa').val($(this).data('nm_pessoa'));    
+            const dt_sinc = formatDate($(this).data('dt_sincronizacao'));
+
+            $('#badge-num-pedido').text('#' + $(this).data('pedido'));
+            $('#badge-dt-sinc').text("Sinc: " + dt_sinc);
+
+            $('#nomePessoa').val($(this).data('nm_pessoa'));
             $('#condicaoDetails').val($(this).data('cond_pagamento'));
             $('#formaDetails').val($(this).data('forma_pagamento'));
             $('#observacaoDetails').val($(this).data('observacao'));
 
+            $('#pedidoPalm').val($(this).data('pedido_palm'));
+            $('#pedidoColeta').val($(this).data('pedido'));   
+            $('#dtEmissao').val($(this).data('dt_emissao'));
+            $('#dtEntrega').val($(this).data('dt_entrega'));          
+           
+           
+            
+
             initTablePedidoCliente('item-pedido', {
-                ID: $(this).data('id')
+                ID: $(this).data('pedido')
             });
 
         });
+
+        function formatDate(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+        }
 
         function configurarDetalhesLinha(selector, options) {
             $(document).on('click', selector, function() {
@@ -492,8 +523,7 @@
                     $('.qt-ontem-' + empresaId).text(ontem);
                     $('.qt-hoje-' + empresaId).text(hoje);
 
-                    if (parseInt(hoje) < parseInt(ontem)) {
-                        console.log('hoje < ontem');
+                    if (parseInt(hoje) < parseInt(ontem)) {                        
                         $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
                         $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
 
@@ -602,11 +632,7 @@
                         targets: [6],
                         className: 'dt-right',
                         render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                    },
-                    {
-                        targets: 2, // índice da coluna que você quer truncar
-                        className: 'text-truncate'
-                    }
+                    },                   
 
                 ],
 
@@ -659,56 +685,80 @@
                 columns: [{
                         data: 'actions',
                         name: 'actions',
+                        title: "",
                         "width": "1%"
                     },
                     {
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',
+                        title: "Emp",
                         "width": "1%",
                         visible: false
                     },
                     {
                         data: 'ID',
                         name: 'ID',
-                        visible: true
+                        title: "Pedido",
+                        visible: false
                     },
                     {
                         data: 'IDPEDIDOMOVEL',
                         name: 'IDPEDIDOMOVEL',
                         visible: true,
+                        title: "Pedido Palm",
                         "width": "1%"
                     },
                     {
                         data: 'PESSOA',
                         name: 'PESSOA',
+                        title: "Cliente",
                         "width": "30%"
+                    },
+                    {
+                        data: 'VALOR_MEDIO',
+                        name: 'VALOR_MEDIO',
+                        title: "P. Médio",
+                        "width": "1%"
                     },
                     {
                         data: 'QTDPNEUS',
                         name: 'QTDPNEUS',
+                        title: "Pneus",
                         "width": "1%"
                     },
                     {
                         data: 'DTEMISSAO',
                         name: 'DTEMISSAO',
+                        title: "Dt Emissão",
+                        visible: false
                     },
                     {
                         data: 'DTENTREGAPED',
                         name: 'DTENTREGAPED',
+                        title: "Dt Entrega",
+                        visible: false
                     },
                     {
                         data: 'STPEDIDO',
+                        title: "Status",
                         name: 'STPEDIDO',
+                        visible: false
+                    },
+                    {
+                        data: 'MOTIVO',
+                        name: 'MOTIVO',
+                        title: "Status",
                     },
                     {
                         data: 'DSTIPOPEDIDO',
                         name: 'DSTIPOPEDIDO',
+                        title: "Tipo Pedido"
                     }
                 ],
                 columnDefs: [{
-                    targets: [6, 7],
-                    className: 'dt-center',
-                    render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                    targets: [5],
+                    className: 'dt-right',
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                 }],
                 "order": [6, 'desc'],
                 footerCallback: function(row, data, start, end, display) {
@@ -720,8 +770,7 @@
         }
 
         function initTablePedidoCliente(tableId, data) {
-
-            console.log(tableId);
+           
             return $('#' + tableId).DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",

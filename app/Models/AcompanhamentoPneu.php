@@ -101,6 +101,7 @@ class AcompanhamentoPneu extends Model
                         CAST(PP.IDPESSOA || ' - ' || PC.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) PESSOA,
                         PP.IDVENDEDOR||' - '||V.NM_PESSOA NM_VENDEDOR,
                         EP.CD_REGIAOCOMERCIAL,
+                        PPM.DTREGISTROPALM,
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
                         (
@@ -115,10 +116,17 @@ class AcompanhamentoPneu extends Model
                         END) STPEDIDO,
                         TP.DSTIPOPEDIDO,
                         COUNT(IPP.id) QTDPNEUS,
-
+                        CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO, 
                         FORMAPAGTO.DS_FORMAPAGTO,
                         CONDPAGTO.DS_CONDPAGTO,
+                        CASE
+                            WHEN PP.TP_BLOQUEIO = 'F' AND PP.STPEDIDO = 'B' THEN 'FINANCEIRO'
+                            WHEN PP.TP_BLOQUEIO = 'C' AND PP.STPEDIDO = 'B' THEN 'COMERCIAL'
+                            WHEN PP.TP_BLOQUEIO = 'A' AND PP.STPEDIDO = 'B' THEN 'AMBOS'
+                            ELSE 'LIBERADO'
+                        END MOTIVO,
                         PP.DSOBSERVACAO
+                        
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
@@ -153,7 +161,9 @@ class AcompanhamentoPneu extends Model
                         EP.CD_REGIAOCOMERCIAL,
                         PP.DTEMISSAO,
                         PP.DTENTREGA,
-                        PP.STPEDIDO,                        
+                        PPM.DTREGISTROPALM,
+                        PP.STPEDIDO,  
+                        PP.TP_BLOQUEIO,                      
                         TP.DSTIPOPEDIDO,
                         FORMAPAGTO.DS_FORMAPAGTO,
                         CONDPAGTO.DS_CONDPAGTO,
@@ -172,33 +182,34 @@ class AcompanhamentoPneu extends Model
     }
     public function ItemPedidoPneu($pedido)
     {
-        $query = "SELECT PP.IDEMPRESA CD_EMPRESA, PP.ID PEDIDO, PPM.idpedidomovel, OPR.id NRORDEM, IPP.id, IPP.nrsequencia, 
-        (PP.IDPESSOA||' - '||PC.NM_PESSOA) PESSOA, SP.dsservico,
-        MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-        IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO, 
-        COALESCE(
-            CASE
-            WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
-            WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
-            END, 'SEM OP') STORDEM    
-        FROM PEDIDOPNEU PP
-        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-        INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
-        LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID AND OPR.STORDEM <> 'C')
-        INNER JOIN PNEU P ON (P.ID = IPP.IDPNEU)
-        INNER JOIN MODELOPNEU MOP ON (MOP.ID = P.IDMODELOPNEU)
-        INNER JOIN MARCAPNEU MAC ON (MAC.ID = MOP.IDMARCAPNEU)
-        INNER JOIN MEDIDAPNEU MD ON(MD.ID = P.IDMEDIDAPNEU)
-        INNER JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
-        INNER JOIN SERVICOPNEU SP ON(SP.ID = IPP.IDSERVICOPNEU)
-        LEFT JOIN PEDIDOPNEUMOVEL PPM ON(PPM.ID = PP.ID)
-        LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPPB ON(IPPB.IDITEMPEDIDOPNEU = IPP.ID)
-        LEFT JOIN PESSOA PV ON (PV.CD_PESSOA = IPPB.IDBORRACHEIRO)
-        WHERE PP.ID = $pedido /**informar o numero do pedido aqui */
-        GROUP BY PP.IDEMPRESA, PP.ID, PPM.idpedidomovel, OPR.id, IPP.id, IPP.nrsequencia, PESSOA, SP.dsservico,
-        MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-        IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO, OPR.STORDEM
-        ORDER BY PP.IDEMPRESA, IPP.ID";
+        $query = "
+            SELECT PP.IDEMPRESA CD_EMPRESA, PP.ID PEDIDO, PPM.idpedidomovel, OPR.id NRORDEM, IPP.id, IPP.nrsequencia, 
+            (PP.IDPESSOA||' - '||PC.NM_PESSOA) PESSOA, SP.dsservico,
+            MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
+            IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO, 
+            COALESCE(
+                CASE
+                WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
+                WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
+                END, 'SEM OP') STORDEM    
+            FROM PEDIDOPNEU PP
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+            INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
+            LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID AND OPR.STORDEM <> 'C')
+            INNER JOIN PNEU P ON (P.ID = IPP.IDPNEU)
+            INNER JOIN MODELOPNEU MOP ON (MOP.ID = P.IDMODELOPNEU)
+            INNER JOIN MARCAPNEU MAC ON (MAC.ID = MOP.IDMARCAPNEU)
+            INNER JOIN MEDIDAPNEU MD ON(MD.ID = P.IDMEDIDAPNEU)
+            INNER JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
+            INNER JOIN SERVICOPNEU SP ON(SP.ID = IPP.IDSERVICOPNEU)
+            LEFT JOIN PEDIDOPNEUMOVEL PPM ON(PPM.ID = PP.ID)
+            LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPPB ON(IPPB.IDITEMPEDIDOPNEU = IPP.ID)
+            LEFT JOIN PESSOA PV ON (PV.CD_PESSOA = IPPB.IDBORRACHEIRO)
+            WHERE PP.ID = $pedido /**informar o numero do pedido aqui */
+            GROUP BY PP.IDEMPRESA, PP.ID, PPM.idpedidomovel, OPR.id, IPP.id, IPP.nrsequencia, PESSOA, SP.dsservico,
+            MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
+            IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO, OPR.STORDEM
+            ORDER BY PP.IDEMPRESA, IPP.ID";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);

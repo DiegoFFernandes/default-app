@@ -9,6 +9,7 @@ use App\Models\BloqueioPedido;
 use App\Models\Empresa;
 use App\Models\Item;
 use App\Models\RegiaoComercial;
+use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -139,12 +140,17 @@ class BloqueioPedidosController extends Controller
             ->addColumn('actions', function ($d) {
 
                 $dataAttrs = [
-                    'id' => $d->ID,
+                    'pedido' => $d->ID,
+                    'pedido_palm' => $d->IDPEDIDOMOVEL,
                     'cd_empresa' => $d->CD_EMPRESA,
                     'nm_pessoa' => $d->PESSOA,
                     'forma_pagamento' => $d->DS_FORMAPAGTO,
                     'cond_pagamento' => $d->DS_CONDPAGTO,
                     'observacao' => $d->DSOBSERVACAO,
+                    'status' => $d->STPEDIDO,
+                    'dt_emissao' => Helper::formatDate($d->DTEMISSAO),
+                    'dt_entrega' => Helper::formatDate($d->DTENTREGAPED),
+                    'dt_sincronizacao' => $d->DTREGISTROPALM,
                 ];
 
                 $dataString = collect($dataAttrs)
