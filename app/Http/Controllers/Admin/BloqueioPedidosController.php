@@ -218,6 +218,16 @@ class BloqueioPedidosController extends Controller
             'empresa'
         ));
     }
+    public function getColetaGeralRegiao()
+    {
+        $pedidos = $this->acompanha->getListColetaRegiao($this->request->data);
+        return DataTables::of($pedidos)
+            ->addColumn('actions', function ($d) {
+                return '<span class="details-control-vendedor mr-2"><i class="fas fa-plus-circle"></i></span> ';
+            })
+            ->rawColumns(['actions'])
+            ->make();
+    }
     public function getColetaGeral()
     {
         $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);

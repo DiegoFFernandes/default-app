@@ -241,7 +241,7 @@
                                         <input type="text" class="form-control form-control-sm mb-2" id="dtEmissao"
                                             readonly>
                                     </div>
-                                    <div class="col-md-3">
+                                      <div class="col-md-3">
                                         <label for="dtEntrega" class="mb-0">Data Entrega:</label>
                                         <input type="text" class="form-control form-control-sm mb-2" id="dtEntrega"
                                             readonly>
@@ -309,19 +309,12 @@
 @section('js')
     <script id="details-pedido-vendedor" type="text/x-handlebars-template">
         @verbatim            
-            <table class="table-pedido row-border" id="regiao-{{ CD_REGIAOCOMERCIAL }}" style="width:99%">
-                
-            </table>
-        @endverbatim
-    </script>
-    <script id="details-pedido-cliente" type="text/x-handlebars-template">
-        @verbatim            
             <table class="table-pedido stripe row-border" id="pedido-{{ IDVENDEDOR }}" style="width:100%">
                 
             </table>
         @endverbatim
     </script>
-    <script id="details-item-pedido" type="text/x-handlebars-template">
+    <script id="details-pedido-cliente" type="text/x-handlebars-template">
         @verbatim            
             <table class="table stripe row-border no-padding" id="item-pedido-{{ ID }}" style="width:100%">
                 <thead>
@@ -336,13 +329,27 @@
             </table>
         @endverbatim
     </script>
-
+    <script id="details-item-pedido" type="text/x-handlebars-template">
+        @verbatim
+            <span class="badge bg-info">{{ NRORDEM }} - {{DSSERVICO}}</span>
+            <table class="table str row-border" id="item-pedido-{{ ID }}" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Etapa</th>
+                        <th>Usúario</th>
+                        <th>Entrada</th>
+                        <th>Saida</th>
+                        <th>Detalhes</th>
+                        <th>Retrabalho</th>
+                    </tr>
+                </thead>
+            </table>
+        @endverbatim
+    </script>
     <script type="text/javascript">
         var details_pedido_vendedor = Handlebars.compile($("#details-pedido-vendedor").html());
         var details_pedido_cliente = Handlebars.compile($("#details-pedido-cliente").html());
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
-        // var details_ordem = Handlebars.compile($("#details-ordem").html());
-
         var regiao;
         var table;
         var dados;
@@ -353,47 +360,53 @@
         });
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
-        });        
-
-        var tableEmpresa1 = setTimeout(() => initTableColetaGeralRegiao(1, 'coleta-empresa-1', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 0);
-        var tableEmpresa3 = setTimeout(() => initTableColetaGeralRegiao(3, 'coleta-empresa-3', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 300);
-        var tableEmpresa5 = setTimeout(() => initTableColetaGeralRegiao(5, 'coleta-empresa-5', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 600);
-        var tableEmpresa6 = setTimeout(() => initTableColetaGeralRegiao(6, 'coleta-empresa-6', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 900);        
-
-        //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
-        configurarDetalhesLinha('.details-control-vendedor', {
-            idPrefixo: 'regiao-',
-            idCampo: 'CD_REGIAOCOMERCIAL',
-            templateFn: details_pedido_vendedor,
-            initFn: initTableColetaVendedor,
-            iconeMais: 'fa-plus-circle',
-            iconeMenos: 'fa-minus-circle'
         });
 
-        //Aguarda Click para buscar os detalhes dos pedidos dos clientes
+        $('#pedido-acompanhar').DataTable().destroy();
+
+        var tableEmpresa1 = setTimeout(() => initTableColetaGeral(1, 'coleta-empresa-1', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 0);
+        var tableEmpresa3 = setTimeout(() => initTableColetaGeral(3, 'coleta-empresa-3', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 300);
+        var tableEmpresa5 = setTimeout(() => initTableColetaGeral(5, 'coleta-empresa-5', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 600);
+        var tableEmpresa6 = setTimeout(() => initTableColetaGeral(6, 'coleta-empresa-6', moment().format('DD.MM.YYYY'),
+            moment().format('DD.MM.YYYY')), 900);
+
+        $('#searchRegiao').click(function() {
+            $('#pedido-acompanhar').DataTable().destroy();
+
+            dados = {
+                cd_empresa: $('#cd_empresa').val(),
+                nm_cliente: $('#nm_cliente').val(),
+                nm_vendedor: $('#nm_vendedor').val(),
+                pedido_palm: $('#pedido_palm').val(),
+                pedido: $('#pedido').val(),
+                grupo_item: $('#grupo_item').val(),
+                cd_regiaocomercial: $('#cd_regiaocomercial').val(),
+                dt_inicial: inicioData,
+                dt_final: fimData,
+                regiao: $('#cd_regiaocomercial').val()
+            };
+
+            initTableVendedor(dados);
+        });
+
+        //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
         configurarDetalhesLinha('.details-control-pedido', {
             idPrefixo: 'pedido-',
             idCampo: 'IDVENDEDOR',
-            templateFn: details_pedido_cliente,
-            initFn: initTablePedidoCliente,
+            templateFn: details_pedido_vendedor,
+            initFn: initTableVendedor,
             iconeMais: 'fa-plus-circle',
             iconeMenos: 'fa-minus-circle'
         });
 
-        //Aguarda Click para buscar os detalhes dos itens do pedido
         configurarDetalhesLinha('.details-control', {
             idPrefixo: 'item-pedido-',
             idCampo: 'ID',
-            templateFn: details_item_pedido,
-            initFn: initTableItemPedido,
+            templateFn: details_pedido_cliente,
+            initFn: initTablePedidoCliente,
             iconeMais: 'fa-plus-circle',
             iconeMenos: 'fa-minus-circle'
         });
@@ -408,7 +421,7 @@
 
             $('#' + tableId).DataTable().destroy();
 
-            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1);
+            initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
         });
 
         $(document).on('click', '.btn-hoje', function(e) {
@@ -421,7 +434,7 @@
 
             $('#' + tableId).DataTable().destroy();
 
-            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1);
+            initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
 
         });
 
@@ -435,7 +448,7 @@
 
             $('#' + tableId).DataTable().destroy();
 
-            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1);
+            initTableColetaGeral(cd_empresa, tableId, inicio, fim, 1);
         });
 
         $(document).on('click', '.btn-show-modal', function(e) {
@@ -444,7 +457,7 @@
             $('#item-pedido').DataTable().destroy();
             $('#modal-detalhes-pedido').modal('show');
             const dt_sinc = formatDate($(this).data('dt_sincronizacao'));
-
+            
             $('#badge-num-pedido').text('#' + $(this).data('pedido'));
             $('#badge-dt-sinc').text("Sinc: " + dt_sinc);
 
@@ -454,11 +467,14 @@
             $('#observacaoDetails').val($(this).data('observacao'));
 
             $('#pedidoPalm').val($(this).data('pedido_palm'));
-            $('#pedidoColeta').val($(this).data('pedido'));
+            $('#pedidoColeta').val($(this).data('pedido'));   
             $('#dtEmissao').val($(this).data('dt_emissao'));
-            $('#dtEntrega').val($(this).data('dt_entrega'));
+            $('#dtEntrega').val($(this).data('dt_entrega'));          
+           
+           
+            
 
-            initTableItemPedido('item-pedido', {
+            initTablePedidoCliente('item-pedido', {
                 ID: $(this).data('pedido')
             });
 
@@ -494,8 +510,7 @@
             });
         }
 
-        //Função para inicializar a tabela de coleta geral por região
-        function initTableColetaGeralRegiao(empresaId, tableId, inicio, fim, tipo) {
+        function initTableColetaGeral(empresaId, tableId, inicio, fim, tipo) {
 
             if (tipo !== 1) {
                 getQtdColetaDia(empresaId).then(data => {
@@ -508,7 +523,7 @@
                     $('.qt-ontem-' + empresaId).text(ontem);
                     $('.qt-hoje-' + empresaId).text(hoje);
 
-                    if (parseInt(hoje) < parseInt(ontem)) {
+                    if (parseInt(hoje) < parseInt(ontem)) {                        
                         $('#icon-hoje-' + empresaId).removeClass('fa-sort-amount-up-alt text-success');
                         $('#icon-hoje-' + empresaId).addClass('fa-sort-amount-down-alt text-danger');
 
@@ -561,7 +576,7 @@
                 retrieve: true,
                 scrollY: '400px',
                 ajax: {
-                    url: "{{ route('get-coleta-empresa-geral-regiao') }}",
+                    url: "{{ route('get-coleta-empresa-geral') }}",
                     data: {
                         data: dados
                     }
@@ -580,8 +595,8 @@
                         visible: false
                     },
                     {
-                        data: 'DS_REGIAOCOMERCIAL',
-                        title: "Região",
+                        data: 'NM_VENDEDOR',
+                        title: "Vendedor",
                         width: "20%",
                         name: 'ID',
                         visible: true
@@ -633,119 +648,26 @@
             return table;
         }
 
-        function initTableColetaVendedor(tableId, data) {
-
-            const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
-            const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
+        function initTableVendedor(tableId, dados) {
 
             dados = {
-                cd_empresa: data.CD_EMPRESA,
-                cd_regiaocomercial: data.CD_REGIAOCOMERCIAL,
-                dt_inicial: inicio,
-                dt_final: fim,
-            };
-
-            const table = $('#' + tableId).DataTable({
-                language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
-                },
-                paging: false,
-                sDom: 't',
-                processing: false,
-                serverSide: false,
-                retrieve: true,
-                searching: false,
-                ajax: {
-                    url: "{{ route('get-coleta-empresa-geral') }}",
-                    data: {
-                        data: dados
-                    }
-                },
-                columns: [{
-                        title: "",
-                        data: 'actions',
-                        name: 'actions',
-                        "width": "1%"
-                    },
-                    {
-                        data: 'CD_EMPRESA',
-                        name: 'CD_EMPRESA',
-                        title: "Empresa",
-                        "width": "1%",
-                        visible: false
-                    },
-                    {
-                        data: 'NM_VENDEDOR',
-                        title: "Vendedor",
-                        "width": "15%",
-                        name: 'ID',
-                        visible: true
-                    },
-                    {
-                        data: 'BLOQUEADAS',
-                        title: "Bloq.",
-                        name: 'BLOQUEADAS',
-                        "width": "1%",
-
-                    },
-                    {
-                        data: 'QTDPEDIDOS',
-                        title: "Pedidos",
-                        name: 'QTDPEDIDOS',
-                        "width": "1%",
-                        visible: false
-
-                    },
-                    {
-                        data: 'QTDPNEUS',
-                        title: "Pneus",
-                        name: 'QTDPNEUS',
-                        "width": "1%",
-                    },
-                    {
-                        data: 'VALOR_MEDIO',
-                        title: "Vlr Médio",
-                        name: 'VALOR_MEDIO',
-                        "width": "1%"
-                    }
-                ],
-                columnDefs: [{
-                        targets: [6],
-                        className: 'dt-right',
-                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                    },
-                    // {
-                    //     targets: 2, // índice da coluna que você quer truncar
-                    //     className: 'text-truncate'
-                    // }
-
-                ],
-
-                footerCallback: function(row, data, start, end, display) {
-
-
-                }
-            });
-            return table;
-        }
-
-        function initTablePedidoCliente(tableId, data) {
-
-            const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
-            const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
-
-            dados = {
-                cd_empresa: data.CD_EMPRESA,
-                idvendedor: data.IDVENDEDOR,
+                cd_empresa: dados.CD_EMPRESA,
+                idvendedor: dados.IDVENDEDOR,
                 pedido: "",
                 pedido_palm: "",
                 nm_cliente: "",
                 nm_vendedor: "",
                 grupo_item: 0,
-                dt_inicial: inicio,
-                dt_final: fim
+                dt_inicial: moment().format('DD.MM.YYYY'),
+                dt_final: moment().format('DD.MM.YYYY')
 
             }
+
+            if ($('#click-dt-inicio-' + dados.cd_empresa).val() !== '') {
+                dados.dt_inicial = $('#click-dt-inicio-' + dados.cd_empresa).val();
+                dados.dt_final = $('#click-dt-fim-' + dados.cd_empresa).val();
+            }
+
 
             table = $('#' + tableId).DataTable({
                 language: {
@@ -788,7 +710,7 @@
                         name: 'IDPEDIDOMOVEL',
                         visible: true,
                         title: "Pedido Palm",
-
+                       
                     },
                     {
                         data: 'PESSOA',
@@ -800,13 +722,13 @@
                         data: 'VALOR_MEDIO',
                         name: 'VALOR_MEDIO',
                         title: "P. Médio",
-
+                        "width": "1%"
                     },
                     {
                         data: 'QTDPNEUS',
                         name: 'QTDPNEUS',
                         title: "Pneus",
-
+                        "width": "1%"
                     },
                     {
                         data: 'DTEMISSAO',
@@ -851,7 +773,7 @@
             return table;
         }
 
-        function initTableItemPedido(tableId, data) {
+        function initTablePedidoCliente(tableId, data) {
            
             return $('#' + tableId).DataTable({
                 language: {

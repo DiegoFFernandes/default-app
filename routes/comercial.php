@@ -63,7 +63,9 @@ Route::middleware(['permission:ver-analise-garantia'])->group(function () {
 
 Route::middleware(['role:admin'])->group(function () {
     Route::prefix('coleta')->group(function () {
+        Route::get('coleta-empresa-regiao-geral', [BloqueioPedidosController::class, 'coletaGeral'])->name('coleta-empresa-geral');
         Route::get('coleta-empresa-geral', [BloqueioPedidosController::class, 'coletaGeral'])->name('coleta-empresa-geral');
+        Route::get('get-empresa-geral-regiao', [BloqueioPedidosController::class, 'getColetaGeralRegiao'])->name('get-coleta-empresa-geral-regiao');
         Route::get('get-empresa-geral', [BloqueioPedidosController::class, 'getColetaGeral'])->name('get-coleta-empresa-geral');
         Route::get('get-qtd-coleta', [BloqueioPedidosController::class, 'getQtdColeta'])->name('get-qtd-coleta');
     });

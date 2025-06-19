@@ -224,6 +224,7 @@ class AcompanhamentoPneu extends Model
             $cd_empresa = $data['cd_empresa'];
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
+            $cd_regiaocomercial = $data['cd_regiaocomercial'];
         }
         $query = "
                     SELECT
@@ -243,14 +244,18 @@ class AcompanhamentoPneu extends Model
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+                    
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
-                    LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
+                    LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA
+                                                        AND EP.CD_ENDERECO = 1)
+                    LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
                         " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'") . "                         
                         --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        " . (($cd_regiaocomercial != 0) ? "AND RC.CD_REGIAOCOMERCIAL = $cd_regiaocomercial" : "") . "
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
                         AND ITEM.CD_GRUPO IN (102,105,140,132,130)                        
@@ -258,6 +263,7 @@ class AcompanhamentoPneu extends Model
                     GROUP BY PP.IDEMPRESA,
                         PP.IDVENDEDOR,
                         V.NM_PESSOA
+                        
                         --PC.NM_PESSOA";
 
         $data = DB::connection('firebird')->select($query);
@@ -312,6 +318,55 @@ class AcompanhamentoPneu extends Model
                         AND ITEM.CD_GRUPO IN (102,105,140,132,130)
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
+    public function getListColetaRegiao($data)
+    {
+        if (is_null($data)) {
+            $cd_empresa = 0;
+            $inicioData = 0;
+            $fimData = 0;
+        } else {
+            $cd_empresa = $data['cd_empresa'];
+            $inicioData = $data['dt_inicial'];
+            $fimData = $data['dt_final'];
+        }
+        $query = "
+            SELECT
+                PP.IDEMPRESA CD_EMPRESA,
+                EP.CD_REGIAOCOMERCIAL,   
+                RC.DS_REGIAOCOMERCIAL,             
+                COUNT(DISTINCT
+                CASE
+                WHEN PP.STPEDIDO = 'B' THEN 1
+                ELSE NULL
+                END) BLOQUEADAS,
+                COUNT(DISTINCT PP.ID) QTDPEDIDOS,
+                COUNT(IPP.ID) QTDPNEUS,
+                CAST(SUM(IPP.VLUNITARIO) AS DECIMAL(12,2)) VALOR,
+                CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO
+            FROM PEDIDOPNEU PP
+            INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
+            INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
+            LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
+            LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
+            LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
+            WHERE  
+                " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'") . "                         
+                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                --AND PP.IDVENDEDOR = 18061
+                AND PP.STPEDIDO <> 'C'
+                AND ITEM.CD_GRUPO IN (102, 105, 140, 132, 130)
+                AND PP.IDEMPRESA = $cd_empresa
+            GROUP BY PP.IDEMPRESA,
+                EP.CD_REGIAOCOMERCIAL,
+                RC.DS_REGIAOCOMERCIAL
+                ";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
