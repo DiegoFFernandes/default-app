@@ -69,7 +69,6 @@ class AcompanhamentoPneu extends Model
     }
     public function ListPedidoPneu($cd_regiao, $data)
     {
-
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
@@ -125,7 +124,8 @@ class AcompanhamentoPneu extends Model
                             WHEN PP.TP_BLOQUEIO = 'A' AND PP.STPEDIDO = 'B' THEN 'AMBOS'
                             ELSE 'LIBERADO'
                         END MOTIVO,
-                        PP.DSOBSERVACAO
+                        PP.DSOBSERVACAO,
+                        pp.DSBLOQUEIO
                         
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
@@ -137,11 +137,12 @@ class AcompanhamentoPneu extends Model
                     INNER JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
                     INNER JOIN FORMAPAGTO ON (FORMAPAGTO.CD_FORMAPAGTO = PP.CDFORMAPAGTO)
 
-                    LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
+                    LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA
+                                                        AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
-                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
-                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
+                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -167,7 +168,8 @@ class AcompanhamentoPneu extends Model
                         TP.DSTIPOPEDIDO,
                         FORMAPAGTO.DS_FORMAPAGTO,
                         CONDPAGTO.DS_CONDPAGTO,
-                        PP.DSOBSERVACAO
+                        PP.DSOBSERVACAO, 
+                        PP.DSBLOQUEIO
 
                     ORDER BY PP.IDEMPRESA  
                 ";
@@ -234,7 +236,7 @@ class AcompanhamentoPneu extends Model
                         --PC.NM_PESSOA,
                         COUNT(DISTINCT
                         CASE
-                        WHEN PP.STPEDIDO = 'B' THEN 1
+                        WHEN PP.STPEDIDO = 'B' THEN PP.ID
                         ELSE NULL
                         END) BLOQUEADAS,
                         COUNT(DISTINCT PP.ID) QTDPEDIDOS,
@@ -249,16 +251,16 @@ class AcompanhamentoPneu extends Model
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA
-                                                        AND EP.CD_ENDERECO = 1)
+                                                        AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
-                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'") . "                         
-                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
+                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiaocomercial != 0) ? "AND RC.CD_REGIAOCOMERCIAL = $cd_regiaocomercial" : "") . "
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
-                        AND ITEM.CD_GRUPO IN (102,105,140,132,130)                        
+                        --AND ITEM.CD_GRUPO IN (102,105,140,132,130)                        
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA,
                         PP.IDVENDEDOR,
@@ -315,7 +317,7 @@ class AcompanhamentoPneu extends Model
                         PP.DTEMISSAO BETWEEN CURRENT_DATE - 2 AND CURRENT_DATE
                         --PP.DTEMISSAO BETWEEN '04.04.2025' AND '05.04.2025'
                         AND PP.STPEDIDO <> 'C'
-                        AND ITEM.CD_GRUPO IN (102,105,140,132,130)
+                        --AND ITEM.CD_GRUPO IN (102,105,140,132,130)
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA";
 
@@ -340,7 +342,7 @@ class AcompanhamentoPneu extends Model
                 RC.DS_REGIAOCOMERCIAL,             
                 COUNT(DISTINCT
                 CASE
-                WHEN PP.STPEDIDO = 'B' THEN 1
+                WHEN PP.STPEDIDO = 'B' THEN PP.ID
                 ELSE NULL
                 END) BLOQUEADAS,
                 COUNT(DISTINCT PP.ID) QTDPEDIDOS,
@@ -353,15 +355,16 @@ class AcompanhamentoPneu extends Model
             INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
             INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
-            LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA)
+            LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA
+                                                        AND EP.CD_ENDERECO = PP.IDENDERECO)
             LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             WHERE  
-                " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'") . "                         
-                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
+                PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                 --AND PP.IDVENDEDOR = 18061
                 AND PP.STPEDIDO <> 'C'
-                AND ITEM.CD_GRUPO IN (102, 105, 140, 132, 130)
+                --AND ITEM.CD_GRUPO IN (102, 105, 140, 132, 130)
                 AND PP.IDEMPRESA = $cd_empresa
             GROUP BY PP.IDEMPRESA,
                 EP.CD_REGIAOCOMERCIAL,

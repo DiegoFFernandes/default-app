@@ -148,9 +148,11 @@ class BloqueioPedidosController extends Controller
                     'cond_pagamento' => $d->DS_CONDPAGTO,
                     'observacao' => $d->DSOBSERVACAO,
                     'status' => $d->STPEDIDO,
-                    'dt_emissao' => Helper::formatDate($d->DTEMISSAO),
-                    'dt_entrega' => Helper::formatDate($d->DTENTREGAPED),
+                    'dt_emissao' => $d->DTEMISSAO,
+                    'dt_entrega' => $d->DTENTREGAPED,
                     'dt_sincronizacao' => $d->DTREGISTROPALM,
+                    'ds_motivo' => $d->MOTIVO,
+                    'ds_bloqueio' => $d->DSBLOQUEIO,
                 ];
 
                 $dataString = collect($dataAttrs)

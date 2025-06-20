@@ -196,6 +196,7 @@
                                 <h5 class="modal-title">Detalhes Pedido
                                     <span class="badge badge-danger" id="badge-num-pedido"></span>
                                     <span class="badge badge-info" id="badge-dt-sinc"></span>
+                                    <span class="badge" id="badge-ds-motivo"></span>
                                 </h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
@@ -250,7 +251,11 @@
 
                                 <div class="form-group mb-2">
                                     <label for="observacaoDetails" class="mb-0">Observação:</label>
-                                    <textarea class="form-control form-control-sm" id="observacaoDetails" rows="2" readonly></textarea>
+                                    <textarea class="form-control form-control-sm" id="observacaoDetails" rows="1" readonly></textarea>
+                                </div>
+                                <div class="form-group mb-2 d-none form-group-bloqueio">
+                                    <label for="dsBloqueioDetails" class="mb-0">Bloqueio:</label>
+                                    <textarea class="form-control form-control-sm" id="dsBloqueioDetails" rows="4" readonly></textarea>
                                 </div>
 
                                 <div class="table-responsive">
@@ -353,7 +358,7 @@
         });
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
-        });        
+        });
 
         var tableEmpresa1 = setTimeout(() => initTableColetaGeralRegiao(1, 'coleta-empresa-1', moment().format(
                 'DD.MM.YYYY'),
@@ -366,7 +371,7 @@
             moment().format('DD.MM.YYYY')), 600);
         var tableEmpresa6 = setTimeout(() => initTableColetaGeralRegiao(6, 'coleta-empresa-6', moment().format(
                 'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 900);        
+            moment().format('DD.MM.YYYY')), 900);
 
         //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
         configurarDetalhesLinha('.details-control-vendedor', {
@@ -447,6 +452,19 @@
 
             $('#badge-num-pedido').text('#' + $(this).data('pedido'));
             $('#badge-dt-sinc').text("Sinc: " + dt_sinc);
+
+            let ds_motivo = $(this).data('ds_motivo').trim();
+
+            if (ds_motivo === 'LIBERADO') {
+                $('#badge-ds-motivo').text(ds_motivo).removeClass('badge-warning').addClass('badge-success');
+                $('.form-group-bloqueio').addClass('d-none');
+            } else {
+                $('#badge-ds-motivo').text(ds_motivo).removeClass('badge-success').addClass('badge-warning');
+                $('.form-group-bloqueio').removeClass('d-none');
+                $('#dsBloqueioDetails').val($(this).data('ds_bloqueio'));
+                
+            }
+
 
             $('#nomePessoa').val($(this).data('nm_pessoa'));
             $('#condicaoDetails').val($(this).data('cond_pagamento'));
@@ -852,7 +870,7 @@
         }
 
         function initTableItemPedido(tableId, data) {
-           
+
             return $('#' + tableId).DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
