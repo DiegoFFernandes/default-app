@@ -80,13 +80,13 @@ class AcompanhamentoPneu extends Model
             $inicioData = 0;
             $fimData = 0;
         } else {
-            $empresa = $data['cd_empresa'];
+            $empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
             $pedido = $data['pedido'];
             $pedido_palm = $data['pedido_palm'];
             $nm_cliente = $data['nm_cliente'];
             $nm_vendedor = $data['nm_vendedor'];
             $idvendedor = $data['idvendedor'];
-            $grupo_item = $data['grupo_item'];
+            $grupo_item = implode(',', $data['grupo_item']);           
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
         }
@@ -141,8 +141,8 @@ class AcompanhamentoPneu extends Model
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
-                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
-                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                       " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
+                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -170,6 +170,7 @@ class AcompanhamentoPneu extends Model
                         CONDPAGTO.DS_CONDPAGTO,
                         PP.DSOBSERVACAO, 
                         PP.DSBLOQUEIO
+                        
 
                     ORDER BY PP.IDEMPRESA  
                 ";
@@ -185,37 +186,72 @@ class AcompanhamentoPneu extends Model
     public function ItemPedidoPneu($pedido)
     {
         $query = "
-            SELECT PP.IDEMPRESA CD_EMPRESA, PP.ID PEDIDO, PPM.idpedidomovel, OPR.id NRORDEM, IPP.id, IPP.nrsequencia, 
-            (PP.IDPESSOA||' - '||PC.NM_PESSOA) PESSOA, SP.dsservico,
-            MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-            IPP.ID IDITEMPEDPNEU, PP.IDVENDEDOR, PP.DTEMISSAO, 
-            COALESCE(
-                CASE
-                WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
-                WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
-                END, 'SEM OP') STORDEM    
-            FROM PEDIDOPNEU PP
-            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-            INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
-            LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID AND OPR.STORDEM <> 'C')
-            INNER JOIN PNEU P ON (P.ID = IPP.IDPNEU)
-            INNER JOIN MODELOPNEU MOP ON (MOP.ID = P.IDMODELOPNEU)
-            INNER JOIN MARCAPNEU MAC ON (MAC.ID = MOP.IDMARCAPNEU)
-            INNER JOIN MEDIDAPNEU MD ON(MD.ID = P.IDMEDIDAPNEU)
-            INNER JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
-            INNER JOIN SERVICOPNEU SP ON(SP.ID = IPP.IDSERVICOPNEU)
-            LEFT JOIN PEDIDOPNEUMOVEL PPM ON(PPM.ID = PP.ID)
-            LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPPB ON(IPPB.IDITEMPEDIDOPNEU = IPP.ID)
-            LEFT JOIN PESSOA PV ON (PV.CD_PESSOA = IPPB.IDBORRACHEIRO)
-            WHERE PP.ID = $pedido /**informar o numero do pedido aqui */
-            GROUP BY PP.IDEMPRESA, PP.ID, PPM.idpedidomovel, OPR.id, IPP.id, IPP.nrsequencia, PESSOA, SP.dsservico,
-            MAC.DSMARCA, MOP.DSMODELO, P.NRDOT, P.NRSERIE, DP.DSDESENHO, IPP.VLUNITARIO,
-            IPP.ID, PP.IDVENDEDOR, PP.DTEMISSAO, OPR.STORDEM
-            ORDER BY PP.IDEMPRESA, IPP.ID";
+                    SELECT
+                        PP.IDEMPRESA CD_EMPRESA,
+                        PP.ID PEDIDO,
+                        PPM.IDPEDIDOMOVEL,
+                        OPR.ID NRORDEM,
+                        IPP.ID,
+                        IPP.NRSEQUENCIA,
+                        (PP.IDPESSOA || ' - ' || PC.NM_PESSOA) PESSOA,
+                        SP.DSSERVICO,
+                        MAC.DSMARCA,
+                        MOP.DSMODELO,
+                        P.NRDOT,
+                        P.NRSERIE,
+                        DP.DSDESENHO,
+                        IPP.VLUNITARIO,
+                        IPP.ID IDITEMPEDPNEU,
+                        PP.IDVENDEDOR,
+                        PP.DTEMISSAO,
+                        COALESCE(
+                        CASE
+                        WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
+                        WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
+                        END, 'SEM OP') STORDEM
+                    FROM PEDIDOPNEU PP
+                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+                    INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
+                    LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID
+                        AND OPR.STORDEM <> 'C')
+                    INNER JOIN PNEU P ON (P.ID = IPP.IDPNEU)
+                    INNER JOIN MODELOPNEU MOP ON (MOP.ID = P.IDMODELOPNEU)
+                    INNER JOIN MARCAPNEU MAC ON (MAC.ID = MOP.IDMARCAPNEU)
+                    INNER JOIN MEDIDAPNEU MD ON (MD.ID = P.IDMEDIDAPNEU)
+                    INNER JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
+                    INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+                    LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
+                    LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPPB ON (IPPB.IDITEMPEDIDOPNEU = IPP.ID)
+                    LEFT JOIN PESSOA PV ON (PV.CD_PESSOA = IPPB.IDBORRACHEIRO)
+                    WHERE
+                        PP.ID = $pedido /**informar o numero do pedido aqui */
+                    GROUP BY PP.IDEMPRESA,
+                        PP.ID,
+                        PPM.IDPEDIDOMOVEL,
+                        OPR.ID,
+                        IPP.ID,
+                        IPP.NRSEQUENCIA,
+                        PESSOA,
+                        SP.DSSERVICO,
+                        MAC.DSMARCA,
+                        MOP.DSMODELO,
+                        P.NRDOT,
+                        P.NRSERIE,
+                        DP.DSDESENHO,
+                        IPP.VLUNITARIO,
+                        IPP.ID,
+                        PP.IDVENDEDOR,
+                        PP.DTEMISSAO,
+                        OPR.STORDEM
+                    ORDER BY PP.IDEMPRESA,
+                        IPP.ID  
+            ";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+
+    //Retorna a quantidade de pedidos por supervisor 
     public function getColetaEmpresa($data)
     {
         if (is_null($data)) {
@@ -223,10 +259,12 @@ class AcompanhamentoPneu extends Model
             $inicioData = 0;
             $fimData = 0;
         } else {
-            $cd_empresa = $data['cd_empresa'];
+            $cd_empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
+            
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
             $cd_regiaocomercial = $data['cd_regiaocomercial'];
+            $grupo_item = implode(',', $data['grupo_item']);
         }
         $query = "
                     SELECT
@@ -253,30 +291,32 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
+                    LEFT JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
-                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
-                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
-                        " . (($cd_regiaocomercial != 0) ? "AND RC.CD_REGIAOCOMERCIAL = $cd_regiaocomercial" : "") . "
+                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
+                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        " . (($cd_regiaocomercial != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL = $cd_regiaocomercial" : "") . "
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
-                        --AND ITEM.CD_GRUPO IN (102,105,140,132,130)                        
+                        AND ITEM.CD_GRUPO IN ($grupo_item)                      
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA,
                         PP.IDVENDEDOR,
-                        V.NM_PESSOA
-                        
+                        V.NM_PESSOA                        
                         --PC.NM_PESSOA";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+    //Retorna a quantidade de coletas dos ultimos 3 dias
     public function getQtdColeta($data)
     {
         if (is_null($data)) {
             $cd_empresa = 0;
         } else {
-            $cd_empresa = $data['cd_empresa'];
+            $cd_empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
+            
         }
         $query = "
                    SELECT
@@ -324,6 +364,8 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+
+    //Retorna o primeiro nivel da tabela 
     public function getListColetaRegiao($data)
     {
         if (is_null($data)) {
@@ -331,15 +373,16 @@ class AcompanhamentoPneu extends Model
             $inicioData = 0;
             $fimData = 0;
         } else {
-            $cd_empresa = $data['cd_empresa'];
+            $cd_empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
+            $grupo_item = implode(',', $data['grupo_item']);
         }
         $query = "
             SELECT
                 PP.IDEMPRESA CD_EMPRESA,
-                EP.CD_REGIAOCOMERCIAL,   
-                RC.DS_REGIAOCOMERCIAL,             
+                VENDEDOR.CD_VENDEDORGERAL CD_REGIAOCOMERCIAL,
+                COALESCE(SUPER.NM_PESSOA, 'SEM SUPERVISOR') DS_REGIAOCOMERCIAL,            
                 COUNT(DISTINCT
                 CASE
                 WHEN PP.STPEDIDO = 'B' THEN PP.ID
@@ -350,25 +393,26 @@ class AcompanhamentoPneu extends Model
                 CAST(SUM(IPP.VLUNITARIO) AS DECIMAL(12,2)) VALOR,
                 CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO
             FROM PEDIDOPNEU PP
+            INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
             INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
-            INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
-            INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
+            INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)           
+            LEFT JOIN PESSOA SUPER ON (SUPER.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
             LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PC.CD_PESSOA
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
             LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             WHERE  
-                --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
-                PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
+                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                 --AND PP.IDVENDEDOR = 18061
                 AND PP.STPEDIDO <> 'C'
-                --AND ITEM.CD_GRUPO IN (102, 105, 140, 132, 130)
+                AND ITEM.CD_GRUPO IN ($grupo_item)
                 AND PP.IDEMPRESA = $cd_empresa
             GROUP BY PP.IDEMPRESA,
-                EP.CD_REGIAOCOMERCIAL,
-                RC.DS_REGIAOCOMERCIAL
+                VENDEDOR.CD_VENDEDORGERAL,
+                SUPER.NM_PESSOA 
                 ";
 
         $data = DB::connection('firebird')->select($query);

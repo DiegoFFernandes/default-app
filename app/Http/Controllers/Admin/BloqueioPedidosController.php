@@ -120,7 +120,8 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
-
+        // return $this->request->data;
+        
         $cd_regiao = "";
 
         if ($this->user->hasRole('admin')) {
@@ -135,6 +136,15 @@ class BloqueioPedidosController extends Controller
         }
 
         $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao, $this->request->data);
+
+        // verifica se cd_empresa e nullo ou e igual a 7
+        if($this->request->filled('cd_empresa') && $this->request->data['cd_empresa'] == '7'){
+           foreach($pedidos as $pedido) {
+               $pedido->CD_EMPRESA = '7';
+           }
+        }
+        
+
         return DataTables::of($pedidos)
 
             ->addColumn('actions', function ($d) {
@@ -210,7 +220,12 @@ class BloqueioPedidosController extends Controller
         $grupo = $this->item->getGroupItem();
         $empresa = $this->empresa->empresa();
 
-
+        
+        $empresa[] = (object)[
+            'CD_EMPRESA' => '7',
+            'NM_EMPRESA' => 'Catanduva - Agro'
+        ];            
+         
         return view('admin.comercial.coleta-empresa', compact(
             'title_page',
             'user_auth',
@@ -221,8 +236,14 @@ class BloqueioPedidosController extends Controller
         ));
     }
     public function getColetaGeralRegiao()
-    {
-        $pedidos = $this->acompanha->getListColetaRegiao($this->request->data);
+    {              
+       $pedidos = $this->acompanha->getListColetaRegiao($this->request->data);
+       
+       if($this->request->data['cd_empresa'] == '7'){
+           foreach($pedidos as $pedido) {
+               $pedido->CD_EMPRESA = '7';
+           }
+        }
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
                 return '<span class="details-control-vendedor mr-2"><i class="fas fa-plus-circle"></i></span> ';
@@ -231,11 +252,16 @@ class BloqueioPedidosController extends Controller
             ->make();
     }
     public function getColetaGeral()
-    {
+    {        
         $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);
+        if($this->request->data['cd_empresa'] == '7'){
+           foreach($pedidos as $pedido) {
+               $pedido->CD_EMPRESA = '7';
+           }
+        }
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
-                return '<span class="details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span> ';
+                return '<span class="details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span>';
             })
             ->rawColumns(['actions'])
             ->make();

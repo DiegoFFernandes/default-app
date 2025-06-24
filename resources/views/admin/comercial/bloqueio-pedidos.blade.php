@@ -146,7 +146,7 @@
                                                 <div class="form-group">
                                                     <label>Grupo Item</label>
                                                     <select name="grupo_item" id="grupo_item" class="form-control"
-                                                        style="width: 100%;">
+                                                        style="width: 100%;" multiple>
                                                         <option value="0">Todos</option>
                                                         @foreach ($grupo as $g)
                                                             <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}
@@ -293,9 +293,9 @@
         var fimData = 0;
         var dados;
 
-        $('#grupo_item').select2({
-            placeholder: 'Selecione o grupo',
+        $('#grupo_item').select2({            
             theme: 'bootstrap4',
+            width: '100%',
         });
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
@@ -422,7 +422,8 @@
                 cd_regiaocomercial: $('#cd_regiaocomercial').val(),
                 dt_inicial: inicioData,
                 dt_final: fimData,
-                regiao: $('#cd_regiaocomercial').val()
+                regiao: $('#cd_regiaocomercial').val(),
+                idvendedor: ''
             };
 
             initTableAcompanhar(dados);

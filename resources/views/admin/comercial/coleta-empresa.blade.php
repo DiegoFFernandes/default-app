@@ -51,7 +51,8 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Grupo Item</label>
-                                    <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;">
+                                    <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;"
+                                        multiple>
                                         <option value="0">Todos</option>
                                         @foreach ($grupo as $g)
                                             <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}
@@ -107,7 +108,7 @@
                                 <div class="card-header p-0 border-bottom-0">
                                     <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
                                         <li class="nav-item">
-                                            <a class="nav-link active" id="acompanhamento-1" data-toggle="pill"
+                                            <a class="nav-link active" id="acompanhamento-{{ $e->CD_EMPRESA }}" data-toggle="pill"
                                                 href="#acompanhamento-{{ $e->CD_EMPRESA }}" role="tab"
                                                 aria-controls="acompanhamento-pedido"
                                                 aria-selected="true">{{ $e->NM_EMPRESA }}</a>
@@ -120,7 +121,8 @@
                                             <!-- inputs ocultos -->
                                             <input type="hidden" id="click-dt-inicio-{{ $e->CD_EMPRESA }}" value="">
                                             <input type="hidden" id="click-dt-fim-{{ $e->CD_EMPRESA }}" value="">
-
+                                             <input type="hidden" id="click-empresa-{{ $e->CD_EMPRESA }}" value="">
+                                           
                                             <div class="col-sm-6 col-md-4">
                                                 <div class="info-box">
                                                     <span class="info-box-icon">
@@ -353,25 +355,27 @@
         var dados;
 
         $('#grupo_item').select2({
-            placeholder: 'Selecione o grupo',
             theme: 'bootstrap4',
+            width: '100%',
         });
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
         });
 
-        var tableEmpresa1 = setTimeout(() => initTableColetaGeralRegiao(1, 'coleta-empresa-1', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 0);
-        var tableEmpresa3 = setTimeout(() => initTableColetaGeralRegiao(3, 'coleta-empresa-3', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 300);
-        var tableEmpresa5 = setTimeout(() => initTableColetaGeralRegiao(5, 'coleta-empresa-5', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 600);
-        var tableEmpresa6 = setTimeout(() => initTableColetaGeralRegiao(6, 'coleta-empresa-6', moment().format(
-                'DD.MM.YYYY'),
-            moment().format('DD.MM.YYYY')), 900);
+        var dtInicio = moment().format('DD.MM.YYYY');
+        var dtFim = moment().format('DD.MM.YYYY');
+        var grupo_item_carga = [101, 102, 105, 106, 113, 130, 132, 140, 150, 158];
+        //alimenta o grupo item para usar o dados
+        $('#grupo_item').val(grupo_item_carga).trigger('change');
+
+
+        var tableEmpresa1 = setTimeout(() => initTableColetaGeralRegiao(1, 'coleta-empresa-1', dtInicio, dtFim, 0, ), 0);
+        var tableEmpresa3 = setTimeout(() => initTableColetaGeralRegiao(3, 'coleta-empresa-3', dtInicio, dtFim, 0, ), 300);
+        var tableEmpresa4 = setTimeout(() => initTableColetaGeralRegiao(4, 'coleta-empresa-4', dtInicio, dtFim, 0, ), 600);
+        var tableEmpresa5 = setTimeout(() => initTableColetaGeralRegiao(5, 'coleta-empresa-5', dtInicio, dtFim, 0, ), 900);
+        var tableEmpresa6 = setTimeout(() => initTableColetaGeralRegiao(6, 'coleta-empresa-6', dtInicio, dtFim, 0, ), 1200);
+        var tableEmpresa7 = setTimeout(() => initTableColetaGeralRegiao(7, 'coleta-empresa-7', dtInicio, dtFim, 0, ), 1500);
+
 
         //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
         configurarDetalhesLinha('.details-control-vendedor', {
@@ -411,9 +415,11 @@
             const inicio = moment().subtract(2, 'days').format('DD.MM.YYYY');
             const fim = moment().subtract(2, 'days').format('DD.MM.YYYY');
 
+            let grupo_item = grupoItem(cd_empresa);
+
             $('#' + tableId).DataTable().destroy();
 
-            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1);
+            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1, grupo_item);
         });
 
         $(document).on('click', '.btn-hoje', function(e) {
@@ -424,9 +430,11 @@
             const inicio = moment().format('DD.MM.YYYY');
             const fim = moment().format('DD.MM.YYYY');
 
+            let grupo_item = grupoItem(cd_empresa);
+
             $('#' + tableId).DataTable().destroy();
 
-            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1);
+            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1, grupo_item);
 
         });
 
@@ -438,9 +446,11 @@
             const inicio = moment().subtract(1, 'days').format('DD.MM.YYYY');
             const fim = moment().subtract(1, 'days').format('DD.MM.YYYY');
 
+            let grupo_item = grupoItem(cd_empresa);
+
             $('#' + tableId).DataTable().destroy();
 
-            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1);
+            initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1, grupo_item);
         });
 
         $(document).on('click', '.btn-show-modal', function(e) {
@@ -462,9 +472,8 @@
                 $('#badge-ds-motivo').text(ds_motivo).removeClass('badge-success').addClass('badge-warning');
                 $('.form-group-bloqueio').removeClass('d-none');
                 $('#dsBloqueioDetails').val($(this).data('ds_bloqueio'));
-                
-            }
 
+            }
 
             $('#nomePessoa').val($(this).data('nm_pessoa'));
             $('#condicaoDetails').val($(this).data('cond_pagamento'));
@@ -494,8 +503,9 @@
                 const table = tr.closest('table');
                 const tableId = table.attr('id');
                 const row = $('#' + tableId).DataTable().row(tr);
-
+                
                 const data = row.data();
+
                 const tableChildId = options.idPrefixo + (options.idCampo ? data[options.idCampo] : data.ID);
 
                 if (row.child.isShown()) { // Se a linha já está expandida
@@ -550,11 +560,14 @@
                 });
             }
 
+            let grupo_item = grupoItem(empresaId);
+
+
             $('.badge-date-' + empresaId).text('Periodo: ' + inicio + ' a ' + fim);
 
             //Salvas as informações no input oculto para poder reaproveitar na consulta
             $('#click-dt-inicio-' + empresaId).val(inicio);
-            $('#click-dt-fim-' + empresaId).val(fim);
+            $('#click-dt-fim-' + empresaId).val(fim);            
 
             dados = {
                 cd_empresa: empresaId,
@@ -562,7 +575,7 @@
                 nm_vendedor: $('#nm_vendedor').val(),
                 pedido_palm: $('#pedido_palm').val(),
                 pedido: $('#pedido').val(),
-                grupo_item: $('#grupo_item').val(),
+                grupo_item: grupo_item,
                 cd_regiaocomercial: $('#cd_regiaocomercial').val(),
                 dt_inicial: inicio,
                 dt_final: fim,
@@ -655,13 +668,17 @@
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
+            
+            
+            const grupo_item = grupoItem(data.CD_EMPRESA);
 
             dados = {
                 cd_empresa: data.CD_EMPRESA,
                 cd_regiaocomercial: data.CD_REGIAOCOMERCIAL,
                 dt_inicial: inicio,
                 dt_final: fim,
-            };
+                grupo_item: grupo_item,
+            };            
 
             const table = $('#' + tableId).DataTable({
                 language: {
@@ -751,6 +768,10 @@
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
+            const teste = $('#click-empresa-' + data.CD_EMPRESA).val();
+           const grupo_item = grupoItem(data.CD_EMPRESA);
+
+            console.log(teste);
 
             dados = {
                 cd_empresa: data.CD_EMPRESA,
@@ -759,7 +780,7 @@
                 pedido_palm: "",
                 nm_cliente: "",
                 nm_vendedor: "",
-                grupo_item: 0,
+                grupo_item: grupo_item,
                 dt_inicial: inicio,
                 dt_final: fim
 
@@ -934,5 +955,17 @@
                 });
             });
         };
+
+        function grupoItem(cd_empresa) {
+            let grupo_item_carga = $('#grupo_item').val();
+            let grupo_item_agro = [120, 122, 125, 129];
+
+            if (cd_empresa == 7) {
+                grupo_item = grupo_item_agro;
+            } else {
+                grupo_item = grupo_item_carga;
+            }
+            return grupo_item;
+        }
     </script>
 @stop
