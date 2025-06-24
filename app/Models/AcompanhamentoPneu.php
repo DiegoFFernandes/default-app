@@ -316,7 +316,7 @@ class AcompanhamentoPneu extends Model
             $cd_empresa = 0;
         } else {
             $cd_empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
-            
+            $grupo_item = implode(',', $data['grupo_item']);
         }
         $query = "
                    SELECT
@@ -357,7 +357,7 @@ class AcompanhamentoPneu extends Model
                         PP.DTEMISSAO BETWEEN CURRENT_DATE - 2 AND CURRENT_DATE
                         --PP.DTEMISSAO BETWEEN '04.04.2025' AND '05.04.2025'
                         AND PP.STPEDIDO <> 'C'
-                        --AND ITEM.CD_GRUPO IN (102,105,140,132,130)
+                        AND ITEM.CD_GRUPO IN ($grupo_item)
                         AND PP.IDEMPRESA = $cd_empresa
                     GROUP BY PP.IDEMPRESA";
 

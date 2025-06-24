@@ -108,9 +108,9 @@
                                 <div class="card-header p-0 border-bottom-0">
                                     <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
                                         <li class="nav-item">
-                                            <a class="nav-link active" id="acompanhamento-{{ $e->CD_EMPRESA }}" data-toggle="pill"
-                                                href="#acompanhamento-{{ $e->CD_EMPRESA }}" role="tab"
-                                                aria-controls="acompanhamento-pedido"
+                                            <a class="nav-link active" id="acompanhamento-{{ $e->CD_EMPRESA }}"
+                                                data-toggle="pill" href="#acompanhamento-{{ $e->CD_EMPRESA }}"
+                                                role="tab" aria-controls="acompanhamento-pedido"
                                                 aria-selected="true">{{ $e->NM_EMPRESA }}</a>
                                         </li>
                                     </ul>
@@ -121,8 +121,8 @@
                                             <!-- inputs ocultos -->
                                             <input type="hidden" id="click-dt-inicio-{{ $e->CD_EMPRESA }}" value="">
                                             <input type="hidden" id="click-dt-fim-{{ $e->CD_EMPRESA }}" value="">
-                                             <input type="hidden" id="click-empresa-{{ $e->CD_EMPRESA }}" value="">
-                                           
+                                            <input type="hidden" id="click-empresa-{{ $e->CD_EMPRESA }}" value="">
+
                                             <div class="col-sm-6 col-md-4">
                                                 <div class="info-box">
                                                     <span class="info-box-icon">
@@ -503,7 +503,7 @@
                 const table = tr.closest('table');
                 const tableId = table.attr('id');
                 const row = $('#' + tableId).DataTable().row(tr);
-                
+
                 const data = row.data();
 
                 const tableChildId = options.idPrefixo + (options.idCampo ? data[options.idCampo] : data.ID);
@@ -567,7 +567,7 @@
 
             //Salvas as informações no input oculto para poder reaproveitar na consulta
             $('#click-dt-inicio-' + empresaId).val(inicio);
-            $('#click-dt-fim-' + empresaId).val(fim);            
+            $('#click-dt-fim-' + empresaId).val(fim);
 
             dados = {
                 cd_empresa: empresaId,
@@ -668,8 +668,8 @@
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
-            
-            
+
+
             const grupo_item = grupoItem(data.CD_EMPRESA);
 
             dados = {
@@ -678,7 +678,7 @@
                 dt_inicial: inicio,
                 dt_final: fim,
                 grupo_item: grupo_item,
-            };            
+            };
 
             const table = $('#' + tableId).DataTable({
                 language: {
@@ -769,7 +769,7 @@
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
             const teste = $('#click-empresa-' + data.CD_EMPRESA).val();
-           const grupo_item = grupoItem(data.CD_EMPRESA);
+            const grupo_item = grupoItem(data.CD_EMPRESA);
 
             console.log(teste);
 
@@ -944,7 +944,8 @@
                     url: "{{ route('get-qtd-coleta') }}",
                     method: "GET",
                     data: {
-                        cd_empresa: cd_empresa
+                        cd_empresa: cd_empresa,
+                        grupo_item: grupoItem(cd_empresa)
                     },
                     success: function(data) {
                         resolve(data);

@@ -254,6 +254,7 @@ class BloqueioPedidosController extends Controller
     public function getColetaGeral()
     {        
         $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);
+        
         if($this->request->data['cd_empresa'] == '7'){
            foreach($pedidos as $pedido) {
                $pedido->CD_EMPRESA = '7';
