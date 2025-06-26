@@ -11,8 +11,12 @@ class Empresa extends Model
 {
     use HasFactory;
 
-    public function empresa()
+    public function empresa($empresa = 1)
     {
+        //Se usuario por admin retorna todas as empresas
+        if ($empresa == 1) {
+            $empresa = '1,3,5,6';
+        } 
         $query = "SELECT
                     EMPRESA.CD_EMPRESA,
                     CASE 
@@ -25,8 +29,7 @@ class Empresa extends Model
                         ELSE 'OUTROS'
                     END NM_EMPRESA
                 FROM EMPRESA
-                WHERE EMPRESA.CD_EMPRESA IN (1, 3, 5, 6)"
-                ;
+                WHERE EMPRESA.CD_EMPRESA IN ($empresa)";
 
         $data = DB::connection('firebird')->select($query);
 

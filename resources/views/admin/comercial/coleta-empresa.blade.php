@@ -290,11 +290,6 @@
 
 @section('css')
     <style>
-        table.dataTable thead tr {
-            background-color: #444B53;
-            color: #ffffff;
-        }
-
         .text-truncate {
             white-space: nowrap;
             overflow: hidden;

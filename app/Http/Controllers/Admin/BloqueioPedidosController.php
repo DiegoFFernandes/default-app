@@ -124,13 +124,9 @@ class BloqueioPedidosController extends Controller
         
         $cd_regiao = "";
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|gerencia')) {
             $cd_regiao = "";
-        } elseif ($this->user->hasRole('gerencia')) {
-            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('CD_REGIAOCOMERCIAL')
-                ->implode(',');
-        }
+        } 
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
@@ -146,9 +142,7 @@ class BloqueioPedidosController extends Controller
         
 
         return DataTables::of($pedidos)
-
             ->addColumn('actions', function ($d) {
-
                 $dataAttrs = [
                     'pedido' => $d->ID,
                     'pedido_palm' => $d->IDPEDIDOMOVEL,

@@ -6,6 +6,7 @@ use App\Http\Controllers\admin\GarantiaController;
 use App\Http\Controllers\Admin\LiberaOrdemComissaoController;
 use App\Http\Controllers\Admin\ProducaoController;
 use App\Http\Controllers\Admin\RegiaoComercialController;
+use App\Http\Controllers\Admin\VendedorController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -68,5 +69,11 @@ Route::middleware(['role:admin'])->group(function () {
         Route::get('get-empresa-geral-regiao', [BloqueioPedidosController::class, 'getColetaGeralRegiao'])->name('get-coleta-empresa-geral-regiao');
         Route::get('get-empresa-geral', [BloqueioPedidosController::class, 'getColetaGeral'])->name('get-coleta-empresa-geral');
         Route::get('get-qtd-coleta', [BloqueioPedidosController::class, 'getQtdColeta'])->name('get-qtd-coleta');
+    });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('vendedor')->group(function () {
+        Route::get('get-search-vendedor', [VendedorController::class, 'searchVendedor'])->name('get-search-vendedor');
     });
 });

@@ -86,7 +86,7 @@ class AcompanhamentoPneu extends Model
             $nm_cliente = $data['nm_cliente'];
             $nm_vendedor = $data['nm_vendedor'];
             $idvendedor = $data['idvendedor'];
-            $grupo_item = implode(',', $data['grupo_item']);           
+            $grupo_item = isset($data['grupo_item']) ? implode(',', $data['grupo_item']) : 0;
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
         }

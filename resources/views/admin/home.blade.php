@@ -20,9 +20,11 @@
                         <h3 class="card-title">View 2.0</h3>
                     </div>
                     <div class="card-body">
-                        @role('admin')
+                        @haspermission('ver-coleta-empresa')
                             <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
                                 style="width: 150px">Coleta Geral</a>
+                        @endhaspermission
+                        @role('admin')
                             <a href="{{ route('analise-faturamento.index') }}" class="btn btn-sm btn-dark mb-1"
                                 style="width: 150px">Faturamento</a>
                             <a href="{{ route('analise-garantia.index') }}" class="btn btn-sm btn-dark mb-1"

@@ -63,7 +63,7 @@
                             <div class="form-group">
                                 <label for="name">Nome:*</label>
                                 <input type="name" name='name' class="form-control" id="name"
-                                    placeholder="Nome usuario" required>
+                                    placeholder="Nome usuario" required disabled>
                             </div>
                         </div>
                         <div class="col-md-12">
@@ -187,6 +187,8 @@
         });
         $('#pessoa').select2({
             placeholder: "Pessoa",
+            theme: 'bootstrap4',
+            width: '100%',            
             allowClear: true,
             minimumInputLength: 2,
             dropdownParent: $('#modal-user'),
