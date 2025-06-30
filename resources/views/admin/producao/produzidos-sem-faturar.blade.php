@@ -174,7 +174,7 @@
 
 @section('css')
     <style>
-
+        
     </style>
 @stop
 
@@ -182,9 +182,9 @@
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge badge-danger">{{ NM_PESSOA }}</span>
-            <table class="table row-border" id="pedido-{{ NR_COLETA }}" style="width:100%">
-                <thead>
-                    <tr>                        
+            <table class="table stripe row-border no-padding" id="pedido-{{ NR_COLETA }}" style="width:100%">
+                <thead style="background-color: #434A51;">
+                    <tr>
                         <th>Expedicinado</th>
                         <th>Nr Ordem</th>
                         <th>Serviço</th>
@@ -242,15 +242,14 @@
                     // This row is already open - close it
                     row.child.hide();
                     tr.removeClass('shown');
-                    // $(this).removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                    $(this).find('i').removeClass('fa-minus-circle').addClass('fa-plus-circle');
                 } else {
                     // Open this row
                     row.child(template(row.data())).show();
-                    initTable(tableId, row.data());
-                    // console.log(row.data());
+                    initTable(tableId, row.data());                    
                     tr.addClass('shown');
-                    // $(this).removeClass('fa-plus-circle').addClass('fa-minus-circle');
-                    tr.next().find('td').addClass('no-padding');
+                    $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');                   
+                    // tr.next().find('td').addClass('no-padding');
                 }
 
             });
@@ -336,9 +335,10 @@
                     "language": {
                         "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                     },
+                    sDom: 't',
                     paging: false,
-                    searching: false,
-                    "ajax": {
+                    searching: true,
+                    ajax: {
                         "url": "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
                         "method": "GET",                        
                         "data": {
@@ -346,25 +346,22 @@
                             'nr_embarque': data.NR_EMBARQUE
                         }
                     },
-                    "columns": [{
-                            "data": "EXPEDICIONADO"
+                    columns: [{
+                            data: "EXPEDICIONADO"
                         },
                         {
-                            "data": "NRORDEMPRODUCAO"
+                            data: "NRORDEMPRODUCAO"
                         },
                         {
-                            "data": "DS_ITEM"
+                            data: "DS_ITEM"
                         },
                         {
-                            "data": "VALOR"
+                            data: "VALOR"
                         }
                     ]
                 });
             }
 
-
-            // Adjust font size for search and length elements
-            $('.dataTables_length, .dataTables_filter').css('font-size', '9px');
         });
     </script>
 @stop

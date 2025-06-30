@@ -101,6 +101,7 @@ class AcompanhamentoPneu extends Model
                         PP.IDVENDEDOR||' - '||V.NM_PESSOA NM_VENDEDOR,
                         EP.CD_REGIAOCOMERCIAL,
                         PPM.DTREGISTROPALM,
+                        PP.HREMISSAO,
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
                         (
@@ -163,6 +164,7 @@ class AcompanhamentoPneu extends Model
                         PP.DTEMISSAO,
                         PP.DTENTREGA,
                         PPM.DTREGISTROPALM,
+                        PP.HREMISSAO,
                         PP.STPEDIDO,  
                         PP.TP_BLOQUEIO,                      
                         TP.DSTIPOPEDIDO,

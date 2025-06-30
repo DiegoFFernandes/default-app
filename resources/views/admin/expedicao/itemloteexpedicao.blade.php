@@ -299,6 +299,7 @@
                             url: "{{ route('delete-item-lote-expedicao') }}",
                             type: 'POST',
                             data: {
+                                _token: "{{ csrf_token() }}",
                                 id: id,
                                 nr_ordem: nrOrdem,
                                 lote: lote,

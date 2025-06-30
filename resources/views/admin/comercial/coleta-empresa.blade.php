@@ -801,8 +801,7 @@
                 columns: [{
                         data: 'actions',
                         name: 'actions',
-                        title: "",
-                        "width": "1%"
+                        title: "Emp",
                     },
                     {
                         data: 'CD_EMPRESA',
@@ -818,10 +817,15 @@
                         visible: false
                     },
                     {
+                        data: 'HREMISSAO',
+                        name: 'HREMISSAO',
+                        title: "Hr Emissão"
+                    },
+                    {
                         data: 'IDPEDIDOMOVEL',
                         name: 'IDPEDIDOMOVEL',
                         visible: true,
-                        title: "Pedido Palm",
+                        title: "Palm",
 
                     },
                     {
@@ -872,11 +876,16 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: [5],
-                    className: 'dt-right',
-                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                }],
-                "order": [6, 'desc'],
+                        targets: [6],
+                        className: 'dt-right',
+                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                    },
+                    {
+                        targets: [3],
+                        className: 'text-center',
+                    }
+                ],
+                "order": [7, 'desc'],
                 footerCallback: function(row, data, start, end, display) {
 
 

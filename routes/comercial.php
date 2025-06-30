@@ -62,7 +62,7 @@ Route::middleware(['permission:ver-analise-garantia'])->group(function () {
     });
 });
 
-Route::middleware(['role:admin'])->group(function () {
+Route::middleware(['permission:ver-coleta-empresa'])->group(function () {
     Route::prefix('coleta')->group(function () {
         Route::get('coleta-empresa-regiao-geral', [BloqueioPedidosController::class, 'coletaGeral'])->name('coleta-empresa-geral');
         Route::get('coleta-empresa-geral', [BloqueioPedidosController::class, 'coletaGeral'])->name('coleta-empresa-geral');
