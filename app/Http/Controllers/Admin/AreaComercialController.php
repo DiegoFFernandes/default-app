@@ -37,7 +37,7 @@ class AreaComercialController extends Controller
 
     public function arrayEmpresa()
     {
-        $empresa = $this->empresa->empresa($this->user->conexao);
+        $empresa = $this->empresa->empresa();
         foreach ($empresa as $e) {
             $array[] = $e->CD_EMPRESA;
         }

@@ -38,4 +38,45 @@ class LoteExpedicao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+
+    public function retornaUltimoID($empresa)
+    {
+        $query = "
+            SELECT FIRST 1
+                E.ID
+            FROM EXPEDICAOLOTEPNEU E
+            WHERE
+                E.IDEMPRESA = $empresa
+            ORDER BY E.ID DESC";
+
+        $data = DB::connection('firebird')->select($query);
+
+        $id = Helper::ConvertFormatText($data)[0]->ID ?? null;
+
+        //retorna o próximo ID baseado no último ID encontrado
+        //se não houver ID, retorna 1
+        return $id ? (int)$id + 1 : 1;
+    }
+
+    public function storeData($idValido, $input)
+    {
+        return DB::transaction(function () use ($idValido, $input) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                    INSERT INTO EXPEDICAOLOTEPNEU (ID, IDEMPRESA, IDVENDEDOR, DSOBSERVACAO, DTLOTE, STLOTE, DTREGISTRO) 
+                    VALUES (
+                        $idValido,
+                        {$input['empresa']},
+                        {$input['vendedor']},
+                        '{$input['observacao']}',
+                        '{$input['emissao']}',
+                        'A',
+                        CURRENT_TIMESTAMP
+                    )";
+
+            return DB::connection('firebird')->statement($query);
+        });
+    }
 }

@@ -166,4 +166,50 @@ class Producao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+    /**
+     * Verifica se a ordem de produção está finalizada no exame final.
+     *
+     * @param int $idOrdem
+     * @return array
+     */
+    public function OrdemFinalizadaExameFinal($idOrdem)
+    {
+        $query = "
+            SELECT
+                EF.IDORDEMPRODUCAORECAP
+            FROM EXAMEFINALPNEU EF
+            WHERE
+                EF.IDORDEMPRODUCAORECAP = $idOrdem
+                AND EF.ST_ETAPA = 'F' ";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
+    public function getOrdemProducaoById($input)
+    {
+        $query = "
+                SELECT
+                    PP.IDEMPRESA,
+                    PP.ID PEDIDO,
+                    PP.IDVENDEDOR|| '-' || V.NM_PESSOA NM_VENDEDOR,
+                    PP.IDPESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                    OPR.ID NRORDEM,
+                    OPR.STORDEM,
+                    OPR.DSOBSERVACAO,
+                    OPR.STEXAMEFINAL,
+                    IPP.IDSERVICOPNEU || '-' || SP.DSSERVICO DSSERVICO
+                FROM ORDEMPRODUCAORECAP OPR
+                INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
+                INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+                INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
+                WHERE
+                    OPR.ID = $input->nr_ordem                   
+                    AND PP.IDEMPRESA = $input->empresa
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
 }

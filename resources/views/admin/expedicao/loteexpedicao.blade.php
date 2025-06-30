@@ -6,7 +6,7 @@
     <section class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-7">
                 <div class="card card-danger card-outline">
                     <div class="card-header">
                         <h3 class="card-title">Lote de Expedição</h3>
@@ -61,7 +61,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row">                                   
+                                <div class="row">
                                     <div class="col-md-12 col-sm-12 col-12">
                                         <div class="form-group mb-2">
                                             <label for="vendedor">Vendedor</label>
@@ -75,8 +75,8 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group mb-2">
-                                            <label for="observacoes">Observações</label>
-                                            <textarea class="form-control form-control-sm" name="observacoes" id="observacoes" rows="2"
+                                            <label for="observacao">Observações</label>
+                                            <textarea class="form-control form-control-sm" name="observacao" id="observacao" rows="2"
                                                 placeholder="Observações"></textarea>
                                         </div>
                                     </div>
@@ -156,9 +156,13 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: 2,
-                    className: 'text-center'
-                }],
+                        targets: [2],
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    }
+                ],
                 order: [
                     [0, 'desc']
                 ],
@@ -209,12 +213,18 @@
                     type: 'GET',
                     data: formData,
                     success: function(response) {
-                        $('#loteExpedicaoModal').modal('hide');
-                        $('#loteExpedicaoTable').DataTable().ajax.reload();
-                        toastr.success('Lote de expedição salvo com sucesso!');
+                        if (response.success) {
+                            $('#loteExpedicaoForm')[0].reset();
+                            $('#loteExpedicaoModal').modal('hide');
+                            $('#loteExpedicaoTable').DataTable().ajax.reload();
+                            msgToastr(response.success, 'success');
+                        }else {
+                            msgToastr(response.errors, 'error');
+                        }
+
                     },
                     error: function(xhr) {
-                        toastr.error('Erro ao salvar lote de expedição.');
+                        msgToastr(xhr.responseJSON.errors, 'error');
                     }
                 });
             });

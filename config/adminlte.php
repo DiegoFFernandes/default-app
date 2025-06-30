@@ -410,6 +410,20 @@ return [
                 ]
             ]
         ],
+        [
+            'text' => 'Expedição',
+            'icon' => 'nav-icon fas fas fa-truck',
+            'url' => '#',
+            'can' => ['ver-expedicao'],
+            'submenu' => [
+                [
+                    'text' => 'Lote de Expedição',
+                    'route' => 'lote-expedicao.index',
+                    
+                ]
+                
+            ]
+        ],
     ],
 
     /*

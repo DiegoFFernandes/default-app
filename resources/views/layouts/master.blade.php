@@ -53,6 +53,9 @@
     <script type="text/javascript" src="https://oss.sheetjs.com/sheetjs/xlsx.full.min.js"></script>
 
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js') }}"></script>
 
@@ -64,6 +67,8 @@
     <script src="{{ asset('vendor/adminlte/dist/js/moment.min.js') }}"></script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script src="{{ asset('vendor/adminlte/dist/js/html5-qrcode.min.js') }}"></script>
 
     <script>
         function msgToastr(msg, classe) {
@@ -86,6 +91,7 @@
             }
             toastr[classe](msg);
         }
+
         function exportarParaExcel(dados, nomeArquivo = "dados.xlsx", nomeAba = "Planilha") {
             // Cria uma nova planilha a partir dos dados (array de objetos)
             const worksheet = XLSX.utils.json_to_sheet(dados);
@@ -114,8 +120,8 @@
             $('#daterange').daterangepicker({
                 autoUpdateInput: false,
             }).attr('readonly', true);
-            
-                      
+
+
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
                     'DD/MM/YYYY'));

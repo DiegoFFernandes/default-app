@@ -11,7 +11,7 @@ class Empresa extends Model
 {
     use HasFactory;
 
-    public function empresa($empresa = 1)
+    public function empresa($empresa=1)
     {
         //Se usuario por admin retorna todas as empresas
         if ($empresa == 1) {

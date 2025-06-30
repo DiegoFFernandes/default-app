@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard')
 
-@section('content_header')
+@section('content')
     <section class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
