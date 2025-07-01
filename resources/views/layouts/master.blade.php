@@ -150,6 +150,7 @@
                 toastr.info("{{ session('info') }}");
             @endif
 
+
             if (window.innerWidth <= 768) { // Tamanho para celulares
                 document.body.classList.remove("sidebar-mini-xs");
                 document.body.classList.add("sidebar-collapse"); // Mantém o menu fechado

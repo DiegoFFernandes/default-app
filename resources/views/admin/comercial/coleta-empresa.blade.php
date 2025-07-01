@@ -206,12 +206,24 @@
                             </div>
                             <div class="modal-body pt-2 pb-1">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-3">
+                                        <label for="dsEmpresa" class="mb-0">Empresa:</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="dsEmpresa"
+                                            readonly>
+                                    </div>
+                                    <div class="col-md-9">
                                         <div class="form-group mb-2">
                                             <label for="nomePessoa" class="mb-0">Pessoa:</label>
                                             <input type="text" class="form-control form-control-sm" id="nomePessoa"
                                                 readonly>
                                         </div>
+                                    </div>                                    
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label for="nomeVendedor" class="mb-0">Vendedor:</label>
+                                        <input type="text" class="form-control form-control-sm mb-2" id="nomeVendedor"
+                                            readonly>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group mb-2">
@@ -470,7 +482,9 @@
 
             }
 
+            $('#dsEmpresa').val($(this).data('empresa'));
             $('#nomePessoa').val($(this).data('nm_pessoa'));
+            $('#nomeVendedor').val($(this).data('nm_vendedor'));
             $('#condicaoDetails').val($(this).data('cond_pagamento'));
             $('#formaDetails').val($(this).data('forma_pagamento'));
             $('#observacaoDetails').val($(this).data('observacao'));

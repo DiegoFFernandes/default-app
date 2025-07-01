@@ -9,8 +9,8 @@
             <div class="col-md-6">
                 <div class="card card-danger card-outline">
                     <div class="card-header">
-                        <span class="text">Adicionar Itens</span><span
-                            class="badge badge-secondary ml-2">{{ $lote }}</span>
+                        <span class="text">Adicionar Itens</span>
+                        <span class="badge badge-secondary ml-2">Lote: {{ $lote }}</span>
                         <div class="card-tools">
                             <button type="button" class="btn btn-danger btn-sm" id="novoLoteExpedicaoBtn" data-toggle="modal"
                                 data-target="#CodigoBarrasModal">
@@ -40,20 +40,20 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="d-none row" id="informationOrdem">
-                                    <div class="col-md-12">
-                                        <div class="form-group mb-2">
-                                            <label for="nm_vendedor">Vendedor</label>
-                                            <input type="text" class="form-control" name="nm_vendedor" id="nm_vendedor"
-                                                placeholder="Vendedor" readonly>
-                                        </div>
+                            </div>
+                            <div class="row d-none" id="informationOrdem">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-2">
+                                        <label for="nm_vendedor">Vendedor</label>
+                                        <input type="text" class="form-control" name="nm_vendedor" id="nm_vendedor"
+                                            placeholder="Vendedor" readonly>
                                     </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group mb-2">
-                                            <label for="nm_servico">Serviço</label>
-                                            <input type="text" class="form-control" name="nm_servico" id="nm_servico"
-                                                placeholder="Serviço" readonly>
-                                        </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group mb-2">
+                                        <label for="nm_servico">Serviço</label>
+                                        <input type="text" class="form-control" name="nm_servico" id="nm_servico"
+                                            placeholder="Serviço" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -70,8 +70,8 @@
             <div class="col-md-6">
                 <div class="card card-danger card-outline">
                     <div class="card-header">
-                        <span class="text">Item Adicionados</span><span
-                            class="badge badge-secondary ml-2">{{ $lote }}</span>
+                        <span class="text">Adicionados</span>
+                        <span id="qtdeAdicionados" class="badge badge-success ml-1"></span>
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
@@ -170,6 +170,10 @@
                 order: [
                     [0, 'desc']
                 ],
+                footerCallback: function(row, data, start, end, display) {
+                    var qtde = data.length;
+                    $('#qtdeAdicionados').text("Total de Pneus: " + (qtde > 0 ? qtde : "0"));
+                }
             });
 
             $('#vendedor').select2({
@@ -307,7 +311,8 @@
                             },
                             success: function(response) {
                                 if (response.success) {
-                                    $('#itemLoteExpedicaoTable').DataTable().ajax.reload();
+                                    $('#itemLoteExpedicaoTable').DataTable().ajax
+                                        .reload();
                                     msgToastr(response.message, 'success');
                                 } else {
                                     msgToastr(response.errors, 'error');

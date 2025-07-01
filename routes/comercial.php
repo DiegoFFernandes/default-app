@@ -6,6 +6,7 @@ use App\Http\Controllers\admin\GarantiaController;
 use App\Http\Controllers\Admin\LiberaOrdemComissaoController;
 use App\Http\Controllers\Admin\ProducaoController;
 use App\Http\Controllers\Admin\RegiaoComercialController;
+use App\Http\Controllers\Admin\SupervisorComercialController;
 use App\Http\Controllers\Admin\VendedorController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,6 +44,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('get-table-regiao-usuario', [RegiaoComercialController::class, 'list'])->name('get-table-regiao-usuario');
         Route::post('edit-regiao-usuario', [RegiaoComercialController::class, 'update'])->name('edit-regiao-usuario');
         Route::delete('regiao-usuario-delete', [RegiaoComercialController::class, 'destroy'])->name('regiao-usuario.delete');
+
+
+        Route::get('supervisor-comercial', [SupervisorComercialController::class, 'index'])->name('supervisor-comercial.index');
+        Route::get('get-supervisor-comercial', [SupervisorComercialController::class, 'create'])->name('get-supervisor-comercial.create');
+        Route::get('get-table-supervisor-usuario', [SupervisorComercialController::class, 'list'])->name('get-table-supervisor-usuario');
+        Route::post('edit-supervisor-usuario', [SupervisorComercialController::class, 'update'])->name('edit-supervisor-usuario');
+        Route::delete('supervisor-usuario-delete', [SupervisorComercialController::class, 'destroy'])->name('supervisor-usuario.delete');
     });
 });
 

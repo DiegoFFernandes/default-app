@@ -144,10 +144,12 @@ class BloqueioPedidosController extends Controller
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
                 $dataAttrs = [
+                    'empresa' => $d->NM_EMPRESA,
                     'pedido' => $d->ID,
                     'pedido_palm' => $d->IDPEDIDOMOVEL,
                     'cd_empresa' => $d->CD_EMPRESA,
                     'nm_pessoa' => $d->PESSOA,
+                    'nm_vendedor' => $d->NM_VENDEDOR,
                     'forma_pagamento' => $d->DS_FORMAPAGTO,
                     'cond_pagamento' => $d->DS_CONDPAGTO,
                     'observacao' => $d->DSOBSERVACAO,

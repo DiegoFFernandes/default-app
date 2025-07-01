@@ -11,8 +11,9 @@ class LoteExpedicao extends Model
 {
     use HasFactory;
 
-    public function ListLoteExpedicao()
+    public function ListLoteExpedicao($lote = 0)
     {
+
         $query = "
             SELECT
                 E.ID LOTE,
@@ -22,10 +23,11 @@ class LoteExpedicao extends Model
                 E.DSOBSERVACAO,
                 E.DTLOTE EMISSAO,
                 CASE
-                WHEN E.STLOTE = 'A' THEN 'ABERTO'
-                WHEN E.STLOTE = 'F' THEN 'FINALIZADO'
-                ELSE E.STLOTE
+                    WHEN E.STLOTE = 'A' THEN 'ABERTO'
+                    WHEN E.STLOTE = 'F' THEN 'FINALIZADO'
+                    ELSE E.STLOTE
                 END SITUACAO,
+                E.STLOTE,
                 E.DTREGISTRO
             FROM EXPEDICAOLOTEPNEU E
             INNER JOIN PESSOA V ON (V.CD_PESSOA = E.IDVENDEDOR)
@@ -33,6 +35,7 @@ class LoteExpedicao extends Model
                 E.DTREGISTRO >= '04.04.2025'
                 AND E.IDEMPRESA = 1
                 AND E.STLOTE NOT IN ('C')
+                " . ($lote == 0 ? '' : " AND E.ID = $lote") . "
             ORDER BY E.DTREGISTRO DESC";
 
         $data = DB::connection('firebird')->select($query);
@@ -78,5 +81,16 @@ class LoteExpedicao extends Model
 
             return DB::connection('firebird')->statement($query);
         });
+    }    
+
+    public function existsLoteExpedicao($idLote, $idEmpresa)
+    {
+        $exists = DB::connection('firebird')
+            ->table('EXPEDICAOLOTEPNEU')
+            ->where('ID', $idLote)
+            ->where('IDEMPRESA', $idEmpresa)
+            ->exists();
+
+        return $exists;
     }
 }
