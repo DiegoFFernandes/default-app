@@ -131,10 +131,18 @@
 @section('js')
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#cd_areacomercial').select2();
-            $('#cd_areacomercial_modal').select2();
-            $('#cd_usuario').select2();
-            $('#cd_usuario_modal').select2();
+            $('#cd_areacomercial').select2({
+                theme: 'bootstrap4'
+            });
+            $('#cd_areacomercial_modal').select2({
+                theme: 'bootstrap4'
+            });
+            $('#cd_usuario').select2({
+                theme: 'bootstrap4'
+            });
+            $('#cd_usuario_modal').select2({
+                theme: 'bootstrap4'
+            });
             $('#btn-vincular').click(function() {
                 let ds_areacomercial = $("#cd_areacomercial option:selected").text()
                 let cd_areacomercial = $('#cd_areacomercial').val();
