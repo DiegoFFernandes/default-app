@@ -5,7 +5,7 @@
     <!-- Main content -->
     <section class="content">
         <div class="row">
-            <div class="col-md-2 col-sm-6 col-12">
+            <div class="col-12 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-success"><a href="#" id="i-finalizados"><i
                                 class="fas fa-check"></i></a></span>
@@ -19,7 +19,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <div class="col-md-2 col-sm-6 col-12">
+            <div class="col-12 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon"><a href="#" id="i-aguardando"><i class="far fa-flag"></i></a></span>
 
@@ -32,7 +32,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <div class="col-md-2 col-sm-6 col-12">
+            <div class="col-12 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-warning"><a href="#" id="i-producao"><i
                                 class="far fa-copy"></i></a></span>
@@ -46,7 +46,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <div class="col-md-2 col-sm-6 col-12">
+            <div class="col-12 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-danger"><a href="#" id="i-bloqueados"><i
                                 class="fas fa-ban"></i></a></span>
@@ -61,7 +61,7 @@
             </div>
             <!-- /.col -->
             <!-- /.col -->
-            <div class="col-md-2 col-sm-6 col-12">
+            <div class="col-12 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><a href="#" id="i-cancelados"><i
                                 class="fas fa-window-close"></i></a></span>
@@ -200,39 +200,13 @@
                                 <hr>
                                 <table class="table stripe compact nowrap" id="pedido-acompanhar"
                                     style="width:100%; font-size:12px">
-                                    <thead>
-                                        <tr>
-                                            <th>Emp</th>
-                                            <th>Emp</th>
-                                            <th>Pedido</th>
-                                            <th>Pedido Palm</th>
-                                            <th>Cliente</th>
-                                            <th>Pneus</th>
-                                            <th>Dt Emissão</th>
-                                            <th>Dt Entrega</th>
-                                            <th>Status</th>
-                                            <th>Tipo Pedido</th>
-                                        </tr>
-                                    </thead>
+
                                 </table>
                             </div>
                             <div class="tab-pane fade" id="bloqueio-pedido" role="tabpanel">
                                 <table class="table stripe compact nowrap" id="bloqueio-pedidos"
                                     style="width:100%; font-size: 12px">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Cliente</th>
-                                            <th>Emp</th>
-                                            <th>Pedido</th>
-                                            <th>Pedido Palm</th>
-                                            <th>Data</th>
-                                            <th>Bloqueio</th>
-                                            <th>Ativo</th>
-                                            <th>Scpc</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
+
                                 </table>
                             </div>
                         </div>
@@ -240,6 +214,7 @@
                     <!-- /.card -->
                 </div>
             </div>
+        </div>
     </section>
 @stop
 
@@ -293,7 +268,7 @@
         var fimData = 0;
         var dados;
 
-        $('#grupo_item').select2({            
+        $('#grupo_item').select2({
             theme: 'bootstrap4',
             width: '100%',
         });
@@ -307,59 +282,77 @@
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
                 },
+                fixedHeader: true,
                 pagingType: "simple",
                 processing: false,
                 serverSide: false,
-                pageLength: 25,
+                pageLength: 100,
                 // responsive: true,
                 scrollX: true,
                 ajax: "{{ route('get-bloqueio-pedidos') }}",
+
+
                 columns: [{
                         data: 'action',
                         name: 'action',
                         "width": "1%",
+                        title: 'Emp'
                     },
                     {
                         data: 'CLIENTE',
                         name: 'CLIENTE',
-                        "width": "5%",
+                        "width": "4%",
+                        title: 'Cliente'
                     },
                     {
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',
                         "width": "1%",
-                        visible: true
+                        title: 'Emp',
+                        visible: false,
                     },
                     {
                         data: 'PEDIDO',
                         name: 'PEDIDO',
                         "width": "1%",
+                        title: 'Pedido',
                         visible: false,
                     },
                     {
                         data: 'MOBILE',
                         name: 'MOBILE',
+                        title: 'Palm',
                         "width": "1%",
                     },
                     {
                         data: 'DATA',
                         name: 'DATA',
+                        title: 'Data'
                     },
                     {
                         data: 'MOTIVO',
                         name: 'MOTIVO',
+                        title: 'Bloqueio'
                     },
                     {
                         data: 'ST_ATIVA',
                         name: 'ST_ATIVA',
+                        title: 'Ativo'
                     },
                     {
                         data: 'ST_SCPC',
                         name: 'ST_SCPC',
+                        title: 'Scpc'
                     },
                     {
                         data: 'STPEDIDO',
                         name: 'STPEDIDO',
+                        title: 'Status'
+                    },
+                    {
+                        data: 'DSTIPOPEDIDO',
+                        name: 'DSTIPOPEDIDO',
+                        title: 'Tipo Pedido'
                     }
                 ],
                 columnDefs: [{
@@ -447,52 +440,63 @@
                         data: dados
                     }
                 },
+
                 columns: [{
                         data: 'actions',
                         name: 'actions',
-                        "width": "1%"
+                        "width": "1%",
+                        title: 'Emp'
                     },
                     {
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',
                         "width": "1%",
-                        visible: false
+                        visible: false,
+                        title: 'Emp'
                     },
                     {
                         data: 'ID',
                         name: 'ID',
-                        visible: true
+                        visible: true,
+                        title: 'Pedido'
                     },
                     {
                         data: 'IDPEDIDOMOVEL',
                         name: 'IDPEDIDOMOVEL',
-                        "width": "10%"
+                        "width": "10%",
+                        title: 'Palm'
                     },
                     {
                         data: 'PESSOA',
                         name: 'PESSOA',
-                        "width": "40%"
+                        "width": "40%",
+                        title: 'Cliente'
                     },
                     {
                         data: 'QTDPNEUS',
                         name: 'QTDPNEUS',
-                        "width": "1%"
+                        "width": "1%",
+                        title: 'Pneus'
                     },
                     {
                         data: 'DTEMISSAO',
                         name: 'DTEMISSAO',
+                        title: 'Dt Emissão'
                     },
                     {
                         data: 'DTENTREGAPED',
                         name: 'DTENTREGAPED',
+                        title: 'Dt Entrega'
                     },
                     {
                         data: 'STPEDIDO',
                         name: 'STPEDIDO',
+                        title: 'Status'
                     },
                     {
                         data: 'DSTIPOPEDIDO',
                         name: 'DSTIPOPEDIDO',
+                        title: 'Tipo Pedido'
                     }
                 ],
                 columnDefs: [{

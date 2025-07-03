@@ -377,6 +377,7 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+
     //Retorna o primeiro nivel da tabela 
     public function getListColetaRegiao($data, $supervisor = null)
     {

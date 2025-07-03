@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap.min.css">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/select.dataTables.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/4.0.3/css/fixedHeader.bootstrap4.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.5.1/css/rowGroup.dataTables.css">
 
 
@@ -44,6 +44,9 @@
     <script src="https://cdn.datatables.net/plug-ins/1.13.4/api/sum().js"></script>
     <script src="https://cdn.datatables.net/plug-ins/1.10.19/dataRender/datetime.js"></script>
     <script src="https://cdn.datatables.net/responsive/3.0.4/js/responsive.dataTables.js"></script>
+
+
+    <script src="https://cdn.datatables.net/fixedheader/4.0.3/js/dataTables.fixedHeader.js"></script>
     <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/dataTables.rowGroup.js"></script>
     <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/rowGroup.dataTables.js"></script>
 

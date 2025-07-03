@@ -86,9 +86,9 @@ class BloqueioPedidosController extends Controller
     }
     public function getBloqueioPedido()
     {
-        if ($this->user->hasRole('admin|diretoria')) {
+        if ($this->user->hasRole('admin|gerencia')) {
             $cd_regiao = "";
-        } elseif ($this->user->hasRole('gerencia')) {
+        } elseif ($this->user->hasRole('supervisor')) {
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
                 ->pluck('CD_REGIAOCOMERCIAL')
                 ->implode(',');
@@ -100,10 +100,13 @@ class BloqueioPedidosController extends Controller
             ->addColumn('action', function ($b) {
                 $button = '<a href="https://api.whatsapp.com/send?phone=+5541985227055&text=
                 Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
-                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success">
+                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
                 <i class="fab fa-whatsapp"></i></a>';
-                $button .= '<button type="button" class="btn btn-info ml-1 popover-lg" data-toggle="popover" title="Detalhes" 
+                $button .= '<button type="button" class="btn btn-info ml-1 btn-xs" data-toggle="popover" title="Detalhes" 
                 data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';
+
+                $button .= " " . $b->CD_EMPRESA;
+
                 return $button;
             })
             ->addColumn('status_cliente', ' ')
@@ -303,7 +306,7 @@ class BloqueioPedidosController extends Controller
             $$pedidos = $this->acompanha->getQtdColeta($this->request, 0);
         } else {
             $pedidos = $this->acompanha->getQtdColeta($this->request, $supervisor);
-        }       
+        }
 
         return response()->json(
             $pedidos
