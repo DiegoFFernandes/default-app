@@ -9,6 +9,7 @@ use App\Models\BloqueioPedido;
 use App\Models\Empresa;
 use App\Models\Item;
 use App\Models\RegiaoComercial;
+use App\Models\SupervisorComercial;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa;
+    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor;
 
     public function __construct(
         Request $request,
@@ -26,6 +27,7 @@ class BloqueioPedidosController extends Controller
         RegiaoComercial $regiao,
         AreaComercial $area,
         AcompanhamentoPneu $acompanha,
+        SupervisorComercial $supervisor,
         Item $item,
         Empresa $empresa
     ) {
@@ -34,6 +36,7 @@ class BloqueioPedidosController extends Controller
         $this->regiao = $regiao;
         $this->area = $area;
         $this->acompanha = $acompanha;
+        $this->supervisor = $supervisor;
         $this->item = $item;
         $this->empresa = $empresa;
 
@@ -53,15 +56,15 @@ class BloqueioPedidosController extends Controller
         $grupo = $this->item->getGroupItem();
         $empresa = $this->empresa->empresa();
 
-        if ($this->user->hasRole('gerencia')) {
+        if ($this->user->hasRole('supervisor')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $find = $this->regiao->findRegiaoUser($this->user->id);
+            $find = $this->supervisor->findSupervisorUser($this->user->id);
             $array = json_decode($find, true);
 
             if (empty($array)) {
-                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+                return Redirect::route('home')->with('warning', 'Usuario com permissão de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
             }
-        } elseif (!$this->user->hasRole('admin|diretoria')) {
+        } elseif (!$this->user->hasRole('admin|gerencia')) {
             $regiaoUsuario = $this->regiao->regiaoPorUsuario($this->user->id);
             foreach ($regiaoUsuario as $r) {
                 $cd_regiao[] = $r->cd_regiaocomercial;
@@ -120,26 +123,33 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
-        // return $this->request->data;
-        
+        $dados = $this->request->data;
         $cd_regiao = "";
 
         if ($this->user->hasRole('admin|gerencia')) {
             $cd_regiao = "";
-        } 
+        }
+        // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
+        $supervisor = self::verifyIfSupervisor();
+
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
 
-        $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao, $this->request->data);
+        if ($supervisor == null) {
+            $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao,  0, $dados);
+        } else {
+            $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao,  $supervisor, $dados);
+        }
+
+
 
         // verifica se cd_empresa e nullo ou e igual a 7
-        if($this->request->filled('cd_empresa') && $this->request->data['cd_empresa'] == '7'){
-           foreach($pedidos as $pedido) {
-               $pedido->CD_EMPRESA = '7';
-           }
+        if ($this->request->filled('cd_empresa') && $dados['cd_empresa'] == '7') {
+            foreach ($pedidos as $pedido) {
+                $pedido->CD_EMPRESA = '7';
+            }
         }
-        
 
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
@@ -177,6 +187,8 @@ class BloqueioPedidosController extends Controller
                 } elseif ($p->STPEDIDO == "EM PRODUCAO     ") {
                     return 'bg-yellow';
                 } elseif ($p->STPEDIDO == "BLOQUEADO       ") {
+                    return 'bg-red';
+                } elseif ($p->STPEDIDO == "SCPC            ") {
                     return 'bg-red';
                 }
             })
@@ -216,12 +228,27 @@ class BloqueioPedidosController extends Controller
         $grupo = $this->item->getGroupItem();
         $empresa = $this->empresa->empresa();
 
-        
+        if ($this->user->hasRole('supervisor')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $find = $this->supervisor->findSupervisorUser($this->user->id);
+            $array = json_decode($find, true);
+
+            if (empty($array)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        }
+
+        if ($this->user->roles->isEmpty()) {
+            return redirect()->route('home')->with('warning', 'Usuário sem função associada. Contate o administrador.');
+        }
+
+
+
         $empresa[] = (object)[
             'CD_EMPRESA' => '7',
             'NM_EMPRESA' => 'Catanduva - Agro'
-        ];            
-         
+        ];
+
         return view('admin.comercial.coleta-empresa', compact(
             'title_page',
             'user_auth',
@@ -232,13 +259,15 @@ class BloqueioPedidosController extends Controller
         ));
     }
     public function getColetaGeralRegiao()
-    {              
-       $pedidos = $this->acompanha->getListColetaRegiao($this->request->data);
-       
-       if($this->request->data['cd_empresa'] == '7'){
-           foreach($pedidos as $pedido) {
-               $pedido->CD_EMPRESA = '7';
-           }
+    {
+        $supervisor = self::verifyIfSupervisor();
+
+        $pedidos = $this->acompanha->getListColetaRegiao($this->request->data, $supervisor ?? null);
+
+        if ($this->request->data['cd_empresa'] == '7') {
+            foreach ($pedidos as $pedido) {
+                $pedido->CD_EMPRESA = '7';
+            }
         }
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
@@ -248,13 +277,17 @@ class BloqueioPedidosController extends Controller
             ->make();
     }
     public function getColetaGeral()
-    {        
-        $pedidos = $this->acompanha->getColetaEmpresa($this->request->data);
-        
-        if($this->request->data['cd_empresa'] == '7'){
-           foreach($pedidos as $pedido) {
-               $pedido->CD_EMPRESA = '7';
-           }
+    {
+        $dados = $this->request->data;
+
+        // $supervisor = self::verifyIfSupervisor();
+
+        $pedidos = $this->acompanha->getColetaEmpresa($dados);
+
+        if ($this->request->data['cd_empresa'] == '7') {
+            foreach ($pedidos as $pedido) {
+                $pedido->CD_EMPRESA = '7';
+            }
         }
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
@@ -265,10 +298,22 @@ class BloqueioPedidosController extends Controller
     }
     public function getQtdColeta()
     {
-        $pedidos = $this->acompanha->getQtdColeta($this->request);
+        $supervisor = self::verifyIfSupervisor();
+        if ($supervisor == null) {
+            $$pedidos = $this->acompanha->getQtdColeta($this->request, 0);
+        } else {
+            $pedidos = $this->acompanha->getQtdColeta($this->request, $supervisor);
+        }       
 
         return response()->json(
             $pedidos
         );
+    }
+    public function verifyIfSupervisor()
+    {
+        if ($this->user->hasRole('supervisor')) {
+            $supervisor = $this->supervisor->seachSupervisor($this->user->id);
+        }
+        return $supervisor->cd_supervisorcomercial ?? null;
     }
 }

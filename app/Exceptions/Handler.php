@@ -60,10 +60,9 @@ class Handler extends ExceptionHandler
 
         // Redireciona se for erro de permissão (usuário logado, mas sem role/permissão)
         if ($exception instanceof UnauthorizedException) {
-            return redirect()->route('login')->withErrors([
-                'Sessão expirada ou acesso não autorizado. Faça login novamente.',
-            ]);
+            return redirect()->route('home')->with(['error' => 'Você não tem permissão para acessar esta página.']);            
         }
+       
 
         return parent::render($request, $exception);
     }

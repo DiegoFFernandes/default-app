@@ -348,6 +348,10 @@ return [
                         [
                             'text' => 'Região Comercial',
                             'route' => 'regiao-comercial.index'
+                        ],
+                        [
+                            'text' => 'Supervisor Comercial',
+                            'route' => 'supervisor-comercial.index'
                         ]
                     ]
 
@@ -368,6 +372,10 @@ return [
                         [
                             'text' => 'Rel. Cobranca',
                             'route' => 'rel-cobranca'
+                        ],
+                        [
+                            'text' => 'Coleta Empresa',
+                            'route' => 'coleta-empresa-geral'
                         ]
                     ],
                 ],
@@ -419,9 +427,9 @@ return [
                 [
                     'text' => 'Lote de Expedição',
                     'route' => 'lote-expedicao.index',
-                    
+
                 ]
-                
+
             ]
         ],
     ],

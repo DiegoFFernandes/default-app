@@ -24,4 +24,5 @@ class Vendedor extends Model
 
         return Helper::ConvertFormatText($data);
     }
+    
 }

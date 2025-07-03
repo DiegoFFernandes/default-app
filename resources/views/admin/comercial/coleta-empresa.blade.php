@@ -505,7 +505,6 @@
             const date = new Date(value);
             return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
         }
-
         function configurarDetalhesLinha(selector, options) {
             $(document).on('click', selector, function() {
                 const tr = $(this).closest('tr');
@@ -530,7 +529,6 @@
                 }
             });
         }
-
         //Função para inicializar a tabela de coleta geral por região
         function initTableColetaGeralRegiao(empresaId, tableId, inicio, fim, tipo) {
 
@@ -672,7 +670,6 @@
             });
             return table;
         }
-
         function initTableColetaVendedor(tableId, data) {
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
@@ -772,15 +769,11 @@
             });
             return table;
         }
-
         function initTablePedidoCliente(tableId, data) {
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
-            const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
-            const teste = $('#click-empresa-' + data.CD_EMPRESA).val();
-            const grupo_item = grupoItem(data.CD_EMPRESA);
-
-            console.log(teste);
+            const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();           
+            const grupo_item = grupoItem(data.CD_EMPRESA);           
 
             dados = {
                 cd_empresa: data.CD_EMPRESA,
@@ -907,7 +900,6 @@
             });
             return table;
         }
-
         function initTableItemPedido(tableId, data) {
 
             return $('#' + tableId).DataTable({
@@ -955,7 +947,6 @@
                 }],
             });
         }
-
         function getQtdColetaDia(cd_empresa) {
             return new Promise(function(resolve, reject) {
                 $.ajax({
@@ -974,7 +965,6 @@
                 });
             });
         };
-
         function grupoItem(cd_empresa) {
             let grupo_item_carga = $('#grupo_item').val();
             let grupo_item_agro = [120, 122, 125, 129];
