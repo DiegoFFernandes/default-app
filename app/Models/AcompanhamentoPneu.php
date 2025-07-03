@@ -67,8 +67,9 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function ListPedidoPneu($cd_regiao, $data)
+    public function ListPedidoPneu($cd_regiao, $supervisor, $data)
     {
+       
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
@@ -78,7 +79,7 @@ class AcompanhamentoPneu extends Model
             $empresa = 0;
             $grupo_item = 0;
             $inicioData = 0;
-            $fimData = 0;
+            $fimData = 0;           
         } else {
             $empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
             $pedido = $data['pedido'];
@@ -88,7 +89,7 @@ class AcompanhamentoPneu extends Model
             $idvendedor = $data['idvendedor'];
             $grupo_item = isset($data['grupo_item']) ? implode(',', $data['grupo_item']) : 0;
             $inicioData = $data['dt_inicial'];
-            $fimData = $data['dt_final'];
+            $fimData = $data['dt_final'];            
         }
 
         $query = "
@@ -110,16 +111,16 @@ class AcompanhamentoPneu extends Model
                         PP.HREMISSAO,
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
-                        (
-                        CASE PP.STPEDIDO
-                            WHEN 'A' THEN 'ATENDIDO'
-                            WHEN 'C' THEN 'CANCELADO'
-                            WHEN 'T' THEN 'EM PRODUCAO'
-                            WHEN 'N' THEN 'AGUARDANDO'
-                            WHEN 'B' THEN 'BLOQUEADO'
-                            WHEN 'P' THEN 'PRODUCAO PARCIAL'
+                        CASE
+                            WHEN PC.ST_SCPC = 'S' THEN 'BLOQUEADO'
+                            WHEN PP.STPEDIDO = 'A' THEN 'ATENDIDO'
+                            WHEN PP.STPEDIDO = 'C' THEN 'CANCELADO'
+                            WHEN PP.STPEDIDO = 'T' THEN 'EM PRODUCAO'
+                            WHEN PP.STPEDIDO = 'N' THEN 'AGUARDANDO'
+                            WHEN PP.STPEDIDO = 'B' THEN 'BLOQUEADO'
+                            WHEN PP.STPEDIDO = 'P' THEN 'PRODUCAO PARCIAL'
                             ELSE PP.STPEDIDO
-                        END) STPEDIDO,
+                        END STPEDIDO,
                         TP.DSTIPOPEDIDO,
                         COUNT(IPP.id) QTDPNEUS,
                         CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO, 
@@ -127,20 +128,21 @@ class AcompanhamentoPneu extends Model
                         CONDPAGTO.DS_CONDPAGTO,
                         CASE
                             WHEN PP.TP_BLOQUEIO = 'F' AND PP.STPEDIDO = 'B' THEN 'FINANCEIRO'
+                            WHEN PC.ST_SCPC = 'S' THEN 'SCPC'
                             WHEN PP.TP_BLOQUEIO = 'C' AND PP.STPEDIDO = 'B' THEN 'COMERCIAL'
                             WHEN PP.TP_BLOQUEIO = 'A' AND PP.STPEDIDO = 'B' THEN 'AMBOS'
                             ELSE 'LIBERADO'
                         END MOTIVO,
                         PP.DSOBSERVACAO,
-                        pp.DSBLOQUEIO
-                        
+                        pp.DSBLOQUEIO,
+                        PC.ST_SCPC
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)                  
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
-                    
+                    LEFT JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
                     INNER JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
                     INNER JOIN FORMAPAGTO ON (FORMAPAGTO.CD_FORMAPAGTO = PP.CDFORMAPAGTO)
 
@@ -148,8 +150,8 @@ class AcompanhamentoPneu extends Model
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
-                       --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
-                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                       " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
+                       -- PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -157,7 +159,8 @@ class AcompanhamentoPneu extends Model
                         " . (($nm_cliente != "") ? "AND PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "  
                         " . (($nm_vendedor != "") ? "AND V.NM_PESSOA LIKE '%$nm_vendedor%'" : "") . "
                         " . (($idvendedor != "") ? "AND PP.IDVENDEDOR IN ($idvendedor)" : "") . "
-                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "   
+                        " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
+                        " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
                         AND PP.STPEDIDO <> 'C'               
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
@@ -177,7 +180,8 @@ class AcompanhamentoPneu extends Model
                         FORMAPAGTO.DS_FORMAPAGTO,
                         CONDPAGTO.DS_CONDPAGTO,
                         PP.DSOBSERVACAO, 
-                        PP.DSBLOQUEIO
+                        PP.DSBLOQUEIO,
+                        PC.ST_SCPC
                         
 
                     ORDER BY PP.IDEMPRESA  
@@ -258,7 +262,6 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-
     //Retorna a quantidade de pedidos por supervisor 
     public function getColetaEmpresa($data)
     {
@@ -268,7 +271,7 @@ class AcompanhamentoPneu extends Model
             $fimData = 0;
         } else {
             $cd_empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
-            
+
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
             $cd_regiaocomercial = $data['cd_regiaocomercial'];
@@ -281,10 +284,10 @@ class AcompanhamentoPneu extends Model
                         PP.IDVENDEDOR || ' - ' || V.NM_PESSOA NM_VENDEDOR,
                         --PC.NM_PESSOA,
                         COUNT(DISTINCT
-                        CASE
-                        WHEN PP.STPEDIDO = 'B' THEN PP.ID
-                        ELSE NULL
-                        END) BLOQUEADAS,
+                            CASE
+                                WHEN PC.ST_SCPC = 'S' OR PP.STPEDIDO = 'B' THEN PP.ID
+                                ELSE NULL
+                            END) BLOQUEADAS,
                         COUNT(DISTINCT PP.ID) QTDPEDIDOS,
                         COUNT(IPP.ID) QTDPNEUS,
                         CAST(SUM(IPP.VLUNITARIO) AS DECIMAL(12,2)) VALOR,
@@ -302,8 +305,8 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
-                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
-                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
+                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiaocomercial != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL = $cd_regiaocomercial" : "") . "
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
@@ -318,7 +321,7 @@ class AcompanhamentoPneu extends Model
         return Helper::ConvertFormatText($data);
     }
     //Retorna a quantidade de coletas dos ultimos 3 dias
-    public function getQtdColeta($data)
+    public function getQtdColeta($data, $supervisor)
     {
         if (is_null($data)) {
             $cd_empresa = 0;
@@ -361,9 +364,11 @@ class AcompanhamentoPneu extends Model
                     FROM PEDIDOPNEU PP
                     INNER JOIN ITEMPEDIDOPNEU IPP ON IPP.IDPEDIDOPNEU = PP.ID
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                    LEFT JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
                     WHERE 
                         PP.DTEMISSAO BETWEEN CURRENT_DATE - 2 AND CURRENT_DATE
                         --PP.DTEMISSAO BETWEEN '04.04.2025' AND '05.04.2025'
+                        " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL = $supervisor" : "") . "
                         AND PP.STPEDIDO <> 'C'
                         AND ITEM.CD_GRUPO IN ($grupo_item)
                         AND PP.IDEMPRESA = $cd_empresa
@@ -372,9 +377,8 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-
     //Retorna o primeiro nivel da tabela 
-    public function getListColetaRegiao($data)
+    public function getListColetaRegiao($data, $supervisor = null)
     {
         if (is_null($data)) {
             $cd_empresa = 0;
@@ -392,10 +396,10 @@ class AcompanhamentoPneu extends Model
                 VENDEDOR.CD_VENDEDORGERAL CD_REGIAOCOMERCIAL,
                 COALESCE(SUPER.NM_PESSOA, 'SEM SUPERVISOR') DS_REGIAOCOMERCIAL,            
                 COUNT(DISTINCT
-                CASE
-                WHEN PP.STPEDIDO = 'B' THEN PP.ID
-                ELSE NULL
-                END) BLOQUEADAS,
+                    CASE
+                        WHEN PC.ST_SCPC = 'S' OR PP.STPEDIDO = 'B' THEN PP.ID
+                        ELSE NULL
+                    END) BLOQUEADAS,
                 COUNT(DISTINCT PP.ID) QTDPEDIDOS,
                 COUNT(IPP.ID) QTDPNEUS,
                 CAST(SUM(IPP.VLUNITARIO) AS DECIMAL(12,2)) VALOR,
@@ -412,8 +416,9 @@ class AcompanhamentoPneu extends Model
             LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             WHERE  
-                --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
-                PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
+                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                " . (($supervisor != null) ? "AND VENDEDOR.CD_VENDEDORGERAL = $supervisor" : "") . "
                 --AND PP.IDVENDEDOR = 18061
                 AND PP.STPEDIDO <> 'C'
                 AND ITEM.CD_GRUPO IN ($grupo_item)

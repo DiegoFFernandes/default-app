@@ -14,10 +14,11 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Supervisor Junsoft</label>
-                                        <select class="form-control select2" id="cd_regiaocomercial" style="width: 100%;">
+                                        <select class="form-control select2" id="cd_supervisorcomercial"
+                                            style="width: 100%;">
                                             <option selected="selected">Selecione</option>
-                                            @foreach ($regiao as $r)
-                                                <option value="{{ $r->CD_REGIAOCOMERCIAL }}">{{ $r->DS_REGIAOCOMERCIAL }}
+                                            @foreach ($supervisor as $s)
+                                                <option value="{{ $s->CD_VENDEDORGERAL }}">{{ $s->NM_SUPERVISOR }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -53,7 +54,7 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <table class="table display table-sm table-font-small" id="table-regiao" style="width: 100%">
+                        <table class="table compact" id="table-supervisor" style="width: 100%">
                             <thead>
                                 <tr>
                                     <th>Cód.</th>
@@ -106,10 +107,10 @@
                         <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
                         <div class="form-group">
                             <label>Supervisor Junsoft</label>
-                            <select class="form-control" name="cd_regiaocomercial_modal" id="cd_regiaocomercial_modal"
-                                style="width: 100%;">
-                                @foreach ($regiao as $r)
-                                    <option value="{{ $r->CD_REGIAOCOMERCIAL }}">{{ $r->DS_REGIAOCOMERCIAL }}
+                            <select class="form-control" name="cd_supervisorcomercial_modal"
+                                id="cd_supervisorcomercial_modal" style="width: 100%;">
+                                @foreach ($supervisor as $s)
+                                    <option value="{{ $s->CD_VENDEDORGERAL }}">{{ $s->NM_SUPERVISOR }}
                                     </option>
                                 @endforeach
                             </select>
@@ -130,10 +131,10 @@
 @section('js')
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#cd_regiaocomercial').select2({
+            $('#cd_supervisorcomercial').select2({
                 theme: 'bootstrap4'
             });
-            $('#cd_regiaocomercial_modal').select2({
+            $('#cd_supervisorcomercial_modal').select2({
                 theme: 'bootstrap4'
             });
             $('#cd_usuario').select2({
@@ -143,16 +144,16 @@
                 theme: 'bootstrap4'
             });
             $('#btn-vincular').click(function() {
-                let ds_regiaocomercial = $("#cd_regiaocomercial option:selected").text();
-                let cd_regiaocomercial = $('#cd_regiaocomercial').val();
+                let ds_supervisorcomercial = $("#cd_supervisorcomercial option:selected").text();
+                let cd_supervisorcomercial = $('#cd_supervisorcomercial').val();
                 let cd_usuario = $('#cd_usuario').val();
                 $.ajax({
                     type: "GET",
-                    url: "{{ route('get-regiao-comercial.create') }}",
+                    url: "{{ route('get-supervisor-comercial.create') }}",
                     data: {
-                        cd_regiaocomercial: cd_regiaocomercial,
+                        cd_supervisorcomercial: cd_supervisorcomercial,
                         cd_usuario: cd_usuario,
-                        ds_regiaocomercial: ds_regiaocomercial
+                        ds_supervisorcomercial: ds_supervisorcomercial
                     },
                     beforeSend: function() {
                         $("#loading").removeClass('hidden');
@@ -165,15 +166,15 @@
                         } else {
                             $('.modal').modal('hide');
                             msgToastr(result.success, 'success');
-                            $('#table-regiao').DataTable().ajax.reload()
+                            $('#table-supervisor').DataTable().ajax.reload()
                         }
                     }
                 });
             });
-            var dataTable = $('#table-regiao').DataTable({
+            var dataTable = $('#table-supervisor').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('get-table-regiao-usuario') }}',
+                ajax: '{{ route('get-table-supervisor-usuario') }}',
                 columns: [{
                         data: 'id',
                         name: 'id'
@@ -188,13 +189,13 @@
                         name: 'name'
                     },
                     {
-                        data: 'cd_regiaocomercial',
-                        name: 'cd_regiaocomercial',
+                        data: 'cd_supervisorcomercial',
+                        name: 'cd_supervisorcomercial',
                         visible: false,
                     },
                     {
-                        data: 'ds_regiaocomercial',
-                        name: 'ds_regiaocomercial'
+                        data: 'ds_supervisorcomercial',
+                        name: 'ds_supervisorcomercial'
                     },
                     {
                         data: 'Actions',
@@ -209,109 +210,108 @@
                 responsive: true,
             });
             //dataTable e um variavel que tras a informação da tabela.
-            $('#table-regiao').on('click', '.btn-edit', function() {
+            $('#table-supervisor').on('click', '.btn-edit', function() {
                 var rowData = dataTable.row($(this).parents('tr')).data();
                 $('#id').val(rowData.id);
-                $('#cd_regiaocomercial_modal').val(rowData.cd_regiaocomercial).trigger('change');
+                $('#cd_supervisor_comercial_modal').val(rowData.cd_supervisor_comercial).trigger('change');
                 $('#cd_usuario_modal').val(rowData.cd_usuario).trigger('change');
                 $('.modal').modal('show');
             });
-            $('.btn-update').click(function() {
-                toastr.info(
-                    "<button type='button' id='confirmationButtonYes' class='btn btn-success clear'>Sim</button>" +
-                    "<button type='button' id='confirmationButtonNo' class='btn btn-primary clear'>Não</button>",
-                    'Você tem certeza que deseja atualizar?', {
-                        closeButton: false,
-                        allowHtml: true,
-                        progressBar: false,
-                        timeOut: 0,
-                        positionClass: "toast-top-center",
-                        onShown: function(toast) {
-                            $("#confirmationButtonYes").click(function() {
-                                let id = $('#id').val(),
-                                    cd_regiaocomercial = $('#cd_regiaocomercial_modal')
-                                    .val(),
-                                    ds_regiaocomercial = $(
-                                        "#cd_regiaocomercial_modal option:selected").text(),
-                                    cd_usuario = $('#cd_usuario_modal').val();
-                                $.ajax({
-                                    type: 'POST',
-                                    url: '{{ route('edit-regiao-usuario') }}',
-                                    data: {
-                                        id: id,
-                                        cd_regiaocomercial: cd_regiaocomercial,
-                                        cd_usuario: cd_usuario,
-                                        ds_regiaocomercial: ds_regiaocomercial,
-                                        _token: $('#token').val(),
-                                    },
-                                    beforeSend: function() {
+            $('.btn-update').click(function() {                
 
-                                    },
-                                    success: function(result) {
-                                        $("#loading").addClass('hidden');
+                Swal.fire({
+                    title: 'Tem certeza?',
+                    text: "Deseja alterar o supervisor " + deleteId + "?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sim, alterar!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let id = $('#id').val(),
+                            cd_supervisor_comercial = $(
+                                '#cd_supervisor_comercial_modal')
+                            .val(),
+                            ds_regiaocomercial = $(
+                                "#cd_supervisor_comercial_modal option:selected")
+                            .text(),
+                            cd_usuario = $('#cd_usuario_modal').val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '{{ route("edit-regiao-usuario") }}',
+                            data: {
+                                id: id,
+                                cd_supervisor_comercial: cd_supervisor_comercial,
+                                cd_usuario: cd_usuario,
+                                ds_regiaocomercial: ds_regiaocomercial,
+                                _token: $('#token').val(),
+                            },
+                            beforeSend: function() {
 
-                                        if (result.errors) {
-                                            msgToastr(result.errors, 'warning');
-                                        } else {
-                                            $('.modal').modal('hide');
-                                            msgToastr(result.success,
-                                                'success');
-                                            $('.modal').modal('hide');
-                                            $('#table-regiao').DataTable().ajax
-                                                .reload();
-                                        }
+                            },
+                            success: function(result) {
+                                $("#loading").addClass('hidden');
 
-                                    }
-                                });
-                            });
-                        }
+                                if (result.errors) {
+                                    msgToastr(result.errors, 'warning');
+                                } else {
+                                    $('.modal').modal('hide');
+                                    msgToastr(result.success,
+                                        'success');
+                                    $('.modal').modal('hide');
+                                    $('#table-supervisor').DataTable()
+                                        .ajax.reload();
+                                }
+
+                            }
+                        });
                     }
-                );
+                });
             });
             //Delete
             var deleteId;
             $('body').on('click', '#getDeleteId', function() {
                 deleteId = $(this).data('id');
-                toastr.info(
-                    "<button type='button' id='confirmationButtonYes' class='btn btn-danger ml-2'>Sim</button> " +
-                    "<button type='button' id='confirmationButtonNo' class='btn btn-primary '>Não</button>",
-                    'Deseja realmente excluir o item ' + deleteId + ' ?', {
-                        closeButton: false,
-                        allowHtml: true,
-                        progressBar: false,
-                        timeOut: 0,
-                        positionClass: "toast-top-center",
-                        onShown: function(toast) {
-                            $("#confirmationButtonYes").click(function() {
-                                $.ajax({
-                                    url: "{{ route('regiao-usuario.delete') }}",
-                                    method: 'DELETE',
-                                    data: {
-                                        id: deleteId,
-                                        "_token": $("[name=csrf-token]").attr(
-                                            "content"),
-                                    },
-                                    beforeSend: function() {
-                                        $("#loading").removeClass('hidden');
-                                    },
-                                    success: function(result) {
-                                        $("#loading").addClass('hidden');
-                                        if (result.errors) {
-                                            msgToastr(result.errors, 'warning');
-                                        } else {
-                                            $('.modal').modal('hide');
-                                            msgToastr(result.success,
-                                                'success');
-                                            $('.modal').modal('hide');
-                                            $('#table-regiao').DataTable().ajax
-                                                .reload();
-                                        }
-                                    }
-                                });
-                            });
-                        }
+
+                Swal.fire({
+                    title: 'Tem certeza?',
+                    text: "Deseja excluir o código " + deleteId + "?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sim, excluir!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('supervisor-usuario.delete') }}",
+                            method: 'DELETE',
+                            data: {
+                                id: deleteId,
+                                "_token": $("[name=csrf-token]").attr(
+                                    "content"),
+                            },
+                            beforeSend: function() {
+                                $("#loading").removeClass('hidden');
+                            },
+                            success: function(result) {
+                                $("#loading").addClass('hidden');
+                                if (result.errors) {
+                                    msgToastr(result.errors, 'warning');
+                                } else {
+                                    $('.modal').modal('hide');
+                                    msgToastr(result.success,
+                                        'success');
+                                    $('.modal').modal('hide');
+                                    $('#table-supervisor').DataTable()
+                                        .ajax
+                                        .reload();
+                                }
+                            }
+                        });
                     }
-                );
+                });
 
             });
 
