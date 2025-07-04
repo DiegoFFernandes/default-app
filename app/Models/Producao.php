@@ -11,7 +11,7 @@ class Producao extends Model
 {
     use HasFactory;
 
-    public function getPneusProduzidosFaturar($cd_regiao = "", $data)
+    public function getPneusProduzidosFaturar($cd_regiao = "",  $supervisor = 0, $data)
     {
 
         if (is_null($data)) {
@@ -49,6 +49,7 @@ class Producao extends Model
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA NM_VENDEDOR
             FROM PEDIDOPNEU PP
+            INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
@@ -82,12 +83,13 @@ class Producao extends Model
                     " . (($nm_vendedor != "") ? "AND V.NM_PESSOA LIKE '%$nm_vendedor%'" : "") . "
                     " . (($inicioData != 0) ? "AND PP.DTEMISSAO >= '$inicioData'" : "") . "
                     " . (($fimData != 0) ? "AND PP.DTEMISSAO <= '$fimData'" : "") . "
+                    " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
                 AND OPR.STEXAMEFINAL <> 'T'
                 AND COALESCE(PD.ST_PEDIDO, 'N') <> 'C'
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND PD.ST_PEDIDO <> 'A'
-                --AND PP.ID IN (75610, 181145, 186604, 169038)
+                AND PP.ID IN (75610, 181145, 186604, 169038)
             GROUP BY NR_EMBARQUE,
                 PP.ID,
                 PP.IDEMPRESA,

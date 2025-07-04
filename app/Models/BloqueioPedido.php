@@ -28,7 +28,7 @@ class BloqueioPedido extends Model
         'VERIFICAR' => '#FFFF99'
     ];
 
-    public function BloqueioPedido($cd_regiao)
+    public function BloqueioPedido($cd_supervisor = 0)
     {
         $query = "
             SELECT (CASE PP.STPEDIDO
@@ -76,6 +76,7 @@ class BloqueioPedido extends Model
             WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
                 AND (PP.STPEDIDO = 'B' OR (PP.STPEDIDO = 'N'
                 AND PE.ST_SCPC = 'S'))
+                ". (($cd_supervisor != 0) ? "AND VE.CD_VENDEDORGERAL = $cd_supervisor" : "") . "
             ORDER BY PP.IDEMPRESA,
                 PP.DTEMISSAO";
 

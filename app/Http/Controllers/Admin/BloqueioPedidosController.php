@@ -10,16 +10,15 @@ use App\Models\Empresa;
 use App\Models\Item;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
-use Helper;
+use App\Services\SupervisorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Yajra\DataTables\DataTables as DataTablesDataTables;
 use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor;
+    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial;
 
     public function __construct(
         Request $request,
@@ -28,6 +27,7 @@ class BloqueioPedidosController extends Controller
         AreaComercial $area,
         AcompanhamentoPneu $acompanha,
         SupervisorComercial $supervisor,
+        SupervisorAuthService $supervisorComercial,
         Item $item,
         Empresa $empresa
     ) {
@@ -37,6 +37,7 @@ class BloqueioPedidosController extends Controller
         $this->area = $area;
         $this->acompanha = $acompanha;
         $this->supervisor = $supervisor;
+        $this->supervisorComercial = $supervisorComercial;
         $this->item = $item;
         $this->empresa = $empresa;
 
@@ -86,15 +87,9 @@ class BloqueioPedidosController extends Controller
     }
     public function getBloqueioPedido()
     {
-        if ($this->user->hasRole('admin|gerencia')) {
-            $cd_regiao = "";
-        } elseif ($this->user->hasRole('supervisor')) {
-            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('CD_REGIAOCOMERCIAL')
-                ->implode(',');
-        }
+        $supervisor = $this->supervisorComercial->getCdSupervisor();
 
-        $bloqueio = $this->bloqueio->BloqueioPedido($cd_regiao);
+        $bloqueio = $this->bloqueio->BloqueioPedido($supervisor);
 
         return DataTables::of($bloqueio)
             ->addColumn('action', function ($b) {
@@ -133,7 +128,7 @@ class BloqueioPedidosController extends Controller
             $cd_regiao = "";
         }
         // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
-        $supervisor = self::verifyIfSupervisor();
+        $supervisor = $this->supervisorComercial->getCdSupervisor();
 
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
@@ -263,7 +258,7 @@ class BloqueioPedidosController extends Controller
     }
     public function getColetaGeralRegiao()
     {
-        $supervisor = self::verifyIfSupervisor();
+        $supervisor = $this->supervisorComercial->getCdSupervisor();
 
         $pedidos = $this->acompanha->getListColetaRegiao($this->request->data, $supervisor ?? null);
 
@@ -283,7 +278,7 @@ class BloqueioPedidosController extends Controller
     {
         $dados = $this->request->data;
 
-        // $supervisor = self::verifyIfSupervisor();
+        // $supervisor = $this->supervisorComercial->getCdSupervisor();
 
         $pedidos = $this->acompanha->getColetaEmpresa($dados);
 
@@ -301,9 +296,9 @@ class BloqueioPedidosController extends Controller
     }
     public function getQtdColeta()
     {
-        $supervisor = self::verifyIfSupervisor();
+        $supervisor = $this->supervisorComercial->getCdSupervisor();
         if ($supervisor == null) {
-            $$pedidos = $this->acompanha->getQtdColeta($this->request, 0);
+            $pedidos = $this->acompanha->getQtdColeta($this->request, 0);
         } else {
             $pedidos = $this->acompanha->getQtdColeta($this->request, $supervisor);
         }

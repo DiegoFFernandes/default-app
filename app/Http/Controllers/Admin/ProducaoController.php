@@ -7,20 +7,22 @@ use App\Models\Empresa;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
+use App\Services\SupervisorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao;
+    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial;
 
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
         Empresa $empresa,
         User $user,
-        Producao $producao
+        Producao $producao,
+        SupervisorAuthService $supervisorComercial
 
     ) {
         $this->request = $request;
@@ -28,6 +30,7 @@ class ProducaoController extends Controller
         $this->user = $user;
         $this->empresa = $empresa;
         $this->producao = $producao;
+        $this->supervisorComercial = $supervisorComercial;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -44,11 +47,11 @@ class ProducaoController extends Controller
         $empresa = $this->empresa->empresa();
         
         $user =  $this->user->getData();
-        $regiao = "";
+        $regiao = "";        
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|gerencia')) {
              $regiao = $this->regiao->regiaoAll();
-        } elseif ($this->user->hasRole('gerencia')) {
+        } elseif ($this->user->hasRole('supervisor')) {
             $regiao = $this->regiao->findRegiaoUser($this->user->id);
         }
 
@@ -68,18 +71,18 @@ class ProducaoController extends Controller
     {
         $cd_regiao = "";
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|gerencia')) {
             $cd_regiao = "";
-        } elseif ($this->user->hasRole('gerencia')) {
-            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('CD_REGIAOCOMERCIAL')
-                ->implode(',');
+            $supervisor = 0;
+        } elseif ($this->user->hasRole('supervisor')) {
+            $cd_regiao = 0;
+            $supervisor = $this->supervisorComercial->getCdSupervisor();
         }
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
 
-        $data = $this->producao->getPneusProduzidosFaturar($cd_regiao, $this->request->data);
+        $data = $this->producao->getPneusProduzidosFaturar($cd_regiao, $supervisor, $this->request->data);
 
         return DataTables::of($data)
             ->addIndexColumn()

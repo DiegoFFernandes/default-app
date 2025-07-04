@@ -21,7 +21,7 @@ Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
     });
 });
 
-Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
+Route::middleware(['auth', 'permission:ver-produzidos-sem-faturar'])->group(function () {
     Route::prefix('producao')->group(function () {
         Route::get('pneus-produzidos-sem-faturar', [ProducaoController::class, 'index'])->name('produzidos-sem-faturar');
         Route::get('get-pneus-produzidos-sem-faturar', [ProducaoController::class, 'getListPneusProduzidosFaturar'])->name('get-pneus-produzidos-sem-faturar');

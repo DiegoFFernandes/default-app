@@ -112,8 +112,8 @@ class AcompanhamentoPneu extends Model
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
                         CASE
-                            WHEN PC.ST_SCPC = 'S' THEN 'BLOQUEADO'
                             WHEN PP.STPEDIDO = 'A' THEN 'ATENDIDO'
+                            WHEN PC.ST_SCPC = 'S' THEN 'BLOQUEADO'
                             WHEN PP.STPEDIDO = 'C' THEN 'CANCELADO'
                             WHEN PP.STPEDIDO = 'T' THEN 'EM PRODUCAO'
                             WHEN PP.STPEDIDO = 'N' THEN 'AGUARDANDO'
