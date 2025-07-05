@@ -217,7 +217,7 @@
                                             <input type="text" class="form-control form-control-sm" id="nomePessoa"
                                                 readonly>
                                         </div>
-                                    </div>                                    
+                                    </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-8">
@@ -314,7 +314,6 @@
         }
 
         div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-
             display: none;
         }
     </style>
@@ -505,6 +504,7 @@
             const date = new Date(value);
             return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
         }
+
         function configurarDetalhesLinha(selector, options) {
             $(document).on('click', selector, function() {
                 const tr = $(this).closest('tr');
@@ -598,6 +598,7 @@
                 pageLength: 25,
                 retrieve: true,
                 scrollY: '400px',
+                scrollX: true,
                 ajax: {
                     url: "{{ route('get-coleta-empresa-geral-regiao') }}",
                     data: {
@@ -605,7 +606,7 @@
                     }
                 },
                 columns: [{
-                        title: "",
+                        title: "#",
                         data: 'actions',
                         name: 'actions',
                         "width": "1%"
@@ -619,8 +620,8 @@
                     },
                     {
                         data: 'DS_REGIAOCOMERCIAL',
-                        title: "Região",
-                        width: "20%",
+                        title: "Supervisor",
+                        // width: "20%",
                         name: 'ID',
                         visible: true
                     },
@@ -628,7 +629,7 @@
                         data: 'BLOQUEADAS',
                         title: "Bloq.",
                         name: 'BLOQUEADAS',
-                        "width": "1%"
+
                     },
                     {
                         data: 'QTDPEDIDOS',
@@ -642,13 +643,13 @@
                         data: 'QTDPNEUS',
                         title: "Pneus",
                         name: 'QTDPNEUS',
-                        "width": "1%"
+
                     },
                     {
                         data: 'VALOR_MEDIO',
                         title: "Vlr Médio",
                         name: 'VALOR_MEDIO',
-                        "width": "1%"
+
                     }
                 ],
                 columnDefs: [{
@@ -670,11 +671,11 @@
             });
             return table;
         }
+
         function initTableColetaVendedor(tableId, data) {
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
-
 
             const grupo_item = grupoItem(data.CD_EMPRESA);
 
@@ -718,7 +719,7 @@
                     {
                         data: 'NM_VENDEDOR',
                         title: "Vendedor",
-                        "width": "15%",
+                        "width": "4%",
                         name: 'ID',
                         visible: true
                     },
@@ -727,15 +728,13 @@
                         title: "Bloq.",
                         name: 'BLOQUEADAS',
                         "width": "1%",
-
                     },
                     {
                         data: 'QTDPEDIDOS',
                         title: "Pedidos",
                         name: 'QTDPEDIDOS',
+                        visible: false,
                         "width": "1%",
-                        visible: false
-
                     },
                     {
                         data: 'QTDPNEUS',
@@ -746,8 +745,8 @@
                     {
                         data: 'VALOR_MEDIO',
                         title: "Vlr Médio",
-                        name: 'VALOR_MEDIO',
-                        "width": "1%"
+                        name: 'VALOR_MEDIO',    
+                        "width": "2%",
                     }
                 ],
                 columnDefs: [{
@@ -755,10 +754,10 @@
                         className: 'dt-right',
                         render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                     },
-                    // {
-                    //     targets: 2, // índice da coluna que você quer truncar
-                    //     className: 'text-truncate'
-                    // }
+                    {
+                        targets: 2, // índice da coluna que você quer truncar
+                        className: 'text-truncate'
+                    }
 
                 ],
 
@@ -769,11 +768,12 @@
             });
             return table;
         }
+
         function initTablePedidoCliente(tableId, data) {
 
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
-            const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();           
-            const grupo_item = grupoItem(data.CD_EMPRESA);           
+            const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
+            const grupo_item = grupoItem(data.CD_EMPRESA);
 
             dados = {
                 cd_empresa: data.CD_EMPRESA,
@@ -900,6 +900,7 @@
             });
             return table;
         }
+
         function initTableItemPedido(tableId, data) {
 
             return $('#' + tableId).DataTable({
@@ -947,6 +948,7 @@
                 }],
             });
         }
+
         function getQtdColetaDia(cd_empresa) {
             return new Promise(function(resolve, reject) {
                 $.ajax({
@@ -965,6 +967,7 @@
                 });
             });
         };
+
         function grupoItem(cd_empresa) {
             let grupo_item_carga = $('#grupo_item').val();
             let grupo_item_agro = [120, 122, 125, 129];

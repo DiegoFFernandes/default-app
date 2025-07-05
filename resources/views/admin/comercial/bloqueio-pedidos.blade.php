@@ -206,7 +206,6 @@
                             <div class="tab-pane fade" id="bloqueio-pedido" role="tabpanel">
                                 <table class="table stripe compact nowrap" id="bloqueio-pedidos"
                                     style="width:100%; font-size: 12px">
-
                                 </table>
                             </div>
                         </div>
@@ -220,7 +219,19 @@
 
 @section('css')
     <style>
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 10%;
+        }        
+        table.dataTable {
+            table-layout: fixed;
+        }
 
+        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+            display: none;
+        }
     </style>
 @endsection
 
@@ -301,7 +312,7 @@
                     {
                         data: 'CLIENTE',
                         name: 'CLIENTE',
-                        "width": "4%",
+                        "width": "2%",
                         title: 'Cliente'
                     },
                     {
@@ -358,7 +369,12 @@
                 columnDefs: [{
                     targets: [5],
                     render: $.fn.dataTable.render.moment('DD/MM/YYYY')
-                }],
+                },{
+                    targets:[1],
+                    className: 'text-truncate'
+                }
+            
+            ],
                 createdRow: (row, data, dataIndex, cells) => {
                     $(cells[7]).css('background-color', data.status_cliente);
                     $(cells[8]).css('background-color', data.status_scpc);

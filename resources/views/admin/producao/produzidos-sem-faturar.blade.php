@@ -260,6 +260,7 @@
                     "language": {
                         "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                     },
+                    fixedHeader: true,
                     "scrollX": true,
                     ajax: {
                         url: "{{ route('get-pneus-produzidos-sem-faturar') }}",
