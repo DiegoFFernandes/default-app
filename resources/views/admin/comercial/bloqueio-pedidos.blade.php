@@ -312,7 +312,7 @@
                     {
                         data: 'CLIENTE',
                         name: 'CLIENTE',
-                        "width": "2%",
+                        "width": "10%",
                         title: 'Cliente'
                     },
                     {
