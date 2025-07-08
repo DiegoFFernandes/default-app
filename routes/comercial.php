@@ -91,5 +91,9 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::prefix('coleta')->group(function () {
         Route::get('coleta-vendedor', [ColetaController::class, 'coleta'])->name('coleta-vendedor');
+        
+        Route::get('get-coleta-vendedor', [ColetaController::class, 'getColeta'])->name('get-coleta-vendedor');
+    
+    
     });
 });

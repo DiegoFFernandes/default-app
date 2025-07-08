@@ -7,30 +7,16 @@
                     <h3 class="card-title">Coletas por Medida Hoje</h3>
                 </div>
                 <div class="card-body">
-                    <table id="coletasMedidasHoje" class="table table-striped table-bordered dt-responsive nowrap"
-                        style="width:100%">
+                    <table id="coletasMedidasHoje" class="table compact table-striped table-bordered nowrap"
+                        style="width:100%; font-size: 12px;">
                         <thead class="bg-dark text-white">
                             <tr>
-                                <th>Codigo</th>
+
                                 <th>Descrição</th>
                                 <th>Qtde</th>
                                 <th>Valor Médio</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>João</td>
-                                <td>Medida A</td>
-                                <td>10</td>
-                                <td>2023-10-01</td>
-                            </tr>
-                            <tr>
-                                <td>Maria</td>
-                                <td>Medida B</td>
-                                <td>5</td>
-                                <td>2023-10-01</td>
-                            </tr>
-                        </tbody>
                     </table>
                 </div>
             </div>
@@ -41,30 +27,15 @@
                     <h3 class="card-title">Coletas por Medida Ontem</h3>
                 </div>
                 <div class="card-body">
-                    <table id="coletasMedidasHoje2" class="table table-striped table-bordered dt-responsive nowrap"
-                        style="width:100%">
+                    <table id="coletasMedidasOntem" class="table table-striped table-bordered nowrap"
+                        style="width:100%; font-size: 12px;">
                         <thead class="bg-dark text-white">
-                            <tr>
-                                <th>Codigo</th>
+                            <tr>                               
                                 <th>Descrição</th>
                                 <th>Qtde</th>
                                 <th>Valor Médio</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>Pedro</td>
-                                <td>Medida C</td>
-                                <td>8</td>
-                                <td>2023-10-02</td>
-                            </tr>
-                            <tr>
-                                <td>Ana</td>
-                                <td>Medida D</td>
-                                <td>12</td>
-                                <td>2023-10-02</td>
-                            </tr>
-                        </tbody>
                     </table>
                 </div>
             </div>
@@ -77,57 +48,61 @@
                     <h3 class="card-title">Coletas por Medida Mês</h3>
                 </div>
                 <div class="card-body">
-                    <table id="coletasPorMedidaMes" class="table table-striped table-bordered dt-responsive nowrap"
-                        style="width:100%">
+                    <table id="coletasMedidasMes" class="table table-striped table-bordered dt-responsive nowrap"
+                        style="width:100%; font-size: 12px;">
                         <thead class="bg-dark text-white">
-                            <tr>
-                                <th>Mês</th>
+                            <tr>                                
                                 <th>Coletas</th>
                                 <th>Total Faturado</th>
                                 <th>Valor Médio</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>Janeiro</td>
-                                <td>150</td>
-                                <td>R$ 15.000,00</td>
-                                <td>R$ 100,00</td>
-                            </tr>
-                            <tr>
-                                <td>Fevereiro</td>
-                                <td>120</td>
-                                <td>R$ 10.800,00</td>
-                                <td>R$ 90,00</td>
-                            </tr>
-                            <tr>
-                                <td>Março</td>
-                                <td>180</td>
-                                <td>R$ 21.600,00</td>
-                                <td>R$ 120,00</td>
-                            </tr>
-                            <tr>
-                                <td>Abril</td>
-                                <td>200</td>
-                                <td>R$ 24.000,00</td>
-                                <td>R$ 120,00</td>
-                            </tr>
-                            <tr>
-                                <td>Maio</td>
-                                <td>170</td>
-                                <td>R$ 18.700,00</td>
-                                <td>R$ 110,00</td>
-                            </tr>
-                            <tr>
-                                <td>Junho</td>
-                                <td>190</td>
-                                <td>R$ 22.800,00</td>
-                                <td>R$ 120,00</td>
-                            </tr>
-                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+@stop
+
+@section('js')
+    <script>
+        $(document).ready(function() {
+            
+            coletaMedida('05.02.2025', '05.02.2025', 'coletasMedidasHoje');
+
+            coletaMedida('04.02.2025', '04.02.2025', 'coletasMedidasOntem');
+
+            coletaMedida('01.02.2025', '28.02.2025', 'coletasMedidasMes');
+
+            function coletaMedida(dt_inicio, dt_fim, idTabela) {
+                $('#' + idTabela).DataTable({
+                    processing: true,
+                    serverSide: false,
+                    ajax: {
+                        method: 'GET',
+                        url: '{{ route('get-coleta-vendedor') }}',
+                        data: {
+                            dt_inicio: dt_inicio,
+                            dt_fim: dt_fim
+                        }
+                    },
+                    columns: [
+
+                        {
+                            data: 'DSMEDIDAPNEU',
+                            name: 'DSMEDIDAPNEU'
+                        },
+                        {
+                            data: 'QTD',
+                            name: 'QTD'
+                        },
+                        {
+                            data: 'PRECO_MEDIA',
+                            name: 'PRECO_MEDIA'
+                        }
+                    ]
+                });
+            }          
+        });
+    </script>
 @stop
