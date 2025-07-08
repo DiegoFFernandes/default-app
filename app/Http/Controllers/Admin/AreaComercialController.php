@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
 use App\Models\Empresa;
 use App\Models\RegiaoComercial;
+use App\Models\SupervisorComercial;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,12 +15,13 @@ use Yajra\DataTables\Facades\DataTables;
 
 class AreaComercialController extends Controller
 {
-    public $request, $regiao, $area, $empresa, $user;
+    public $request, $regiao, $area, $empresa, $user, $supervisorComercial;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
         AreaComercial $area,
         Empresa $empresa,
+        SupervisorComercial $supervisorComercial,
         User $user
 
     ) {
@@ -27,6 +29,7 @@ class AreaComercialController extends Controller
         $this->regiao = $regiao;
         $this->user = $user;
         $this->area = $area;
+        $this->supervisorComercial = $supervisorComercial;
         $this->empresa = $empresa;
 
         $this->middleware(function ($request, $next) {
@@ -45,10 +48,11 @@ class AreaComercialController extends Controller
     }
     public function index()
     {
-        $title_page   = 'Vincular Area Comercial';
+        $title_page   = 'Vincular Supervidor/Coordenador Comercial';
         $user_auth    = $this->user;
         $uri         = $this->request->route()->uri();
         $area = $this->area->areaAll();
+        $supervisorComercial = $this->supervisorComercial->SupervisorAll();
 
         $empresa = $this->arrayEmpresa();
         $user =  $this->user->getData($empresa);
@@ -57,7 +61,8 @@ class AreaComercialController extends Controller
             'user_auth',
             'uri',
             'area',
-            'user'
+            'user',
+            'supervisorComercial'
         ));
     }
     public function create()

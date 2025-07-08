@@ -17,6 +17,8 @@ class Cobranca extends Model
     {
         $query = "          
                 SELECT DISTINCT
+                    V.CD_VENDEDORGERAL,
+                    SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
                     CONTAS.CD_EMPRESA,
                     CONTAS.NR_LANCAMENTO,
                     P.NR_CNPJCPF,
@@ -80,6 +82,8 @@ class Cobranca extends Model
                     ITNV.CD_ITEM = ITN.CD_ITEM)
                 LEFT JOIN PESSOA VEND ON (VEND.CD_PESSOA = COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR))
 
+                LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR))
+                LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
                 LEFT JOIN TIPOVENDEDOR TVEN ON (TVEN.CD_TIPO = ITNV.CD_TIPO)
                 LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = CONTAS.CD_PESSOA AND
                     EP.CD_ENDERECO = 1)
@@ -90,14 +94,14 @@ class Cobranca extends Model
 
                 WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
-                    " . (!empty($cd_regiao) ? "AND RGC.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
+                    " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 18404)
                     AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')   
                 ORDER BY CONTAS.DT_VENCIMENTO;          
              ";
 
-        // $data = DB::connection('firebird')->select($query);
-        // return Helper::ConvertFormatText($data);
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
 
         $key = "contas-1" . Auth::user()->id;
 

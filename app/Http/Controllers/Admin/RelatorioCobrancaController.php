@@ -7,6 +7,7 @@ use App\Models\AreaComercial;
 use App\Models\Cobranca;
 use App\Models\Empresa;
 use App\Models\RegiaoComercial;
+use App\Models\SupervisorComercial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -14,11 +15,12 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
 {
-    public $cobranca, $empresa, $request, $area, $regiao, $user;
+    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
         AreaComercial $area,
+        SupervisorComercial $supervisorComercial,
         Cobranca $cobranca,
         Empresa $empresa
 
@@ -27,6 +29,7 @@ class RelatorioCobrancaController extends Controller
         $this->regiao = $regiao;
         $this->area = $area;
         $this->cobranca = $cobranca;
+        $this->supervisorComercial = $supervisorComercial;
         $this->empresa = $empresa;
 
         $this->middleware(function ($request, $next) {
@@ -103,7 +106,6 @@ class RelatorioCobrancaController extends Controller
     }
     public function getListCobrancaPessoa()
     {
-
         $data = $this->cobranca->clientesInadiplentes($this->request->id);
         return DataTables::of($data)
             ->addColumn('details', function ($d) {
@@ -261,27 +263,34 @@ class RelatorioCobrancaController extends Controller
 
     public function testeCobranca()
     {
-        $regioes_mysql = $this->regiao->RegiaoUsuarioAll()->keyBy('cd_regiaocomercial');
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
 
-        if ($this->user->hasRole('admin|diretoria')) {         
+        if ($this->user->hasRole('admin')) {         
             $cd_regiao = "";
             // $regiao = $this->regiao->regiaoAll();
             // $area = $this->area->areaAll();
         } elseif ($this->user->hasRole('gerencia')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('CD_REGIAOCOMERCIAL')
+            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
+                ->pluck('CD_AREACOMERCIAL')
                 ->implode(',');
             if (empty($cd_regiao)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
             }
-        }
+        } elseif ($this->user->hasRole('supervisor')) {
+           $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+                ->pluck('CD_SUPERVISORCOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        } 
 
         $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao);
 
         foreach ($data as $item) {
             foreach ($regioes_mysql as $regiao) {
-                if ($item->CD_REGIAOCOMERCIAL == $regiao->cd_regiaocomercial) {
+                if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
                     $item->DS_AREACOMERCIAL = $regiao->name;
                 }
             }

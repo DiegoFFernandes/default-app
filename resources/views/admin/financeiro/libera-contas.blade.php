@@ -5,125 +5,119 @@
 @section('content')
     <section class="content">
         <!-- Small boxes (Stat box) -->
-        <div class="row">
+        <div class="content-fluid">
+            <div class="card collapsed-card">
+                <div class="card-header">
+                    <h3 class="card-title">Filtros</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                        </button>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 mb-1">
+                            <input id="filtro-empresa" type="text" class="form-control"
+                                placeholder="Filtrar por Empresa">
+                        </div>
+                        <div class="col-md-4 mb-1">
+                            <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Pessoa">
+                        </div>
+                        <div class="col-md-2 mb-1">
+                            <input id="filtro-docto" type="text" class="form-control"
+                                placeholder="Filtrar por Documento">
+                        </div>
+                        <div class="col-md-2 mb-1">
+                            <input id="filtro-data" type="text" class="form-control"
+                                placeholder="Filtrar por Vencimento">
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div>
+            </div>
+            <div class="card card-danger card-outline card-outline-tabs">
+                <div class="card-header p-0 border-bottom-0">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#pendentes" data-toggle="tab" aria-expanded="true">Aguardando
+                                Analise</a>
+                        <li class="">
+                            <a class="nav-link" href="#vistos" data-toggle="tab" aria-expanded="false">Pendentes
+                                Bloqueados</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" style="padding: 0 10px; font-size: 12px;">
+                        <div class="tab-pane active" id="pendentes">
+                            <table class="table stripe compact" id="table-contas-bloqueadas-pendentes" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>#</th>
+                                        <th>Emp</th>
+                                        <th>Pessoa</th>
+                                        <th>Docto</th>
+                                        <th>Parcelas</th>
+                                        <th>Total</th>
+                                        <th>Emissão</th>
+                                        <th>Vencimento</th>
+                                        <th>Ds Liberacao</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+
+                        </div>
+                        <div class="tab-pane" id="vistos">
+                            <table class="table stripe compact" id="table-contas-bloqueadas-vistos" style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>#</th>
+                                        <th>Emp</th>
+                                        <th>Pessoa</th>
+                                        <th>Docto</th>
+                                        <th>Parcelas</th>
+                                        <th>Total</th>
+                                        <th>Emissão</th>
+                                        <th>Ds Liberacao</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-12">
-                <div class="card collapsed-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Filtros</h3>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
-                            </button>
-                        </div>
+                <div class="form-group">
+                    <label for="liberacao">*Motivo Liberação/Bloqueio</label>
+                    <textarea class="form-control" id="liberacao" rows="2" cols="50"></textarea>
+                </div>
+                <div class="row mb-5">
+                    <div class="col-md-6 col-sm-6" style="padding-top: 10px;">
+                        <button class="btn btn-success btn-sm btn-block btn-aproover" id="">Aprovar</button>
                     </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-2 mb-1">
-                                <input id="filtro-empresa" type="text" class="form-control"
-                                    placeholder="Filtrar por Empresa">
-                            </div>                           
-                            <div class="col-md-4 mb-1">
-                                <input id="filtro-nome" type="text" class="form-control"
-                                    placeholder="Filtrar por Pessoa">
-                            </div>
-                            <div class="col-md-2 mb-1">
-                                <input id="filtro-docto" type="text" class="form-control"
-                                    placeholder="Filtrar por Documento">
-                            </div>
-                            <div class="col-md-2 mb-1">
-                                <input id="filtro-data" type="text" class="form-control"
-                                    placeholder="Filtrar por Vencimento">
-                            </div>
-                        </div>
-                        <!-- /.row -->
+                    <div class="col-md-6 col-sm-6" style="padding-top: 10px;">
+                        <button class="btn btn-primary btn-sm btn-block btn-blocker" id="">Manter
+                            Bloquear</button>
                     </div>
                 </div>
-                <div class="card card-danger card-outline card-outline-tabs">
-                    <div class="card-header p-0 border-bottom-0">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="#pendentes" data-toggle="tab"
-                                    aria-expanded="true">Aguardando
-                                    Analise</a>
-                            <li class="">
-                                <a class="nav-link" href="#vistos" data-toggle="tab" aria-expanded="false">Pendentes
-                                    Bloqueados</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="card-body">
-                        <div class="tab-content" style="padding: 0 10px; font-size: 12px;">
-                            <div class="tab-pane active" id="pendentes">
-                                <table class="table stripe compact" id="table-contas-bloqueadas-pendentes"
-                                    style="width:100%;">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th>#</th>
-                                            <th>Emp</th>
-                                            <th>Pessoa</th>
-                                            <th>Docto</th>
-                                            <th>Parcelas</th>
-                                            <th>Total</th>
-                                            <th>Emissão</th>
-                                            <th>Vencimento</th>
-                                            <th>Ds Liberacao</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-
-                            </div>
-                            <div class="tab-pane" id="vistos">
-                                <table class="table stripe compact" id="table-contas-bloqueadas-vistos" style="width:100%;">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th>#</th>
-                                            <th>Emp</th>
-                                            <th>Pessoa</th>
-                                            <th>Docto</th>
-                                            <th>Parcelas</th>
-                                            <th>Total</th>
-                                            <th>Emissão</th>
-                                            <th>Ds Liberacao</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="liberacao">*Motivo Liberação/Bloqueio</label>
-                        <textarea class="form-control" id="liberacao" rows="2" cols="50"></textarea>
-                    </div>
-                    <div class="row mb-5">
-                        <div class="col-md-6 col-sm-6" style="padding-top: 10px;">
-                            <button class="btn btn-success btn-sm btn-block btn-aproover" id="">Aprovar</button>
-                        </div>
-                        <div class="col-md-6 col-sm-6" style="padding-top: 10px;">
-                            <button class="btn btn-primary btn-sm btn-block btn-blocker" id="">Manter
-                                Bloquear</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
 @stop
 @section('css')
     {{-- Add here extra stylesheets --}}
-    <style>
+    {{-- <style>
         div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 
             display: none;
         }
-    </style>
+    </style> --}}
 @stop
 @section('js')
     <script id="details-item-historico" type="text/x-handlebars-template">
@@ -202,19 +196,21 @@
         var template_vencimento = Handlebars.compile($("#details-vencimento").html());
         var template_centro_resultado = Handlebars.compile($("#details-centro-resultado").html());
 
+        $('#table-contas-bloqueadas-pendentes').DataTable().destroy();
+
         tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
 
 
-        //Cliques nas tabs
-        $('.nav-tabs a[href="#pendentes"]').on('click', function() {
-            $('#table-contas-bloqueadas-pendentes').DataTable().destroy();
-            tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
-        });
+        // //Cliques nas tabs
+        // $('.nav-tabs a[href="#pendentes"]').on('click', function() {
+        //     $('#table-contas-bloqueadas-pendentes').DataTable().destroy();
+        //     tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
+        // });
 
-        $('.nav-tabs a[href="#vistos"]').on('click', function() {
-            $('#table-contas-bloqueadas-vistos').DataTable().destroy();
-            tableContas = initableContas('table-contas-bloqueadas-vistos', 'S');
-        });
+        // $('.nav-tabs a[href="#vistos"]').on('click', function() {
+        //     $('#table-contas-bloqueadas-vistos').DataTable().destroy();
+        //     tableContas = initableContas('table-contas-bloqueadas-vistos', 'S');
+        // });
 
 
         $('tbody').on('click', '.details-control', function() {
@@ -319,14 +315,14 @@
 
         $('#filtro-empresa').on('keyup', function() {
             tableContas.column(2).search(this.value).draw();
-        });        
+        });
         $('#filtro-nome').on('keyup', function() {
             tableContas.column(3).search(this.value).draw();
         });
         $('#filtro-docto').on('keyup', function() {
             tableContas.column(4).search(this.value).draw();
         });
-         $('#filtro-data').on('keyup', function() {
+        $('#filtro-data').on('keyup', function() {
             tableContas.column(8).search(this.value).draw();
         });
 
@@ -492,7 +488,7 @@
                     },
                 ],
                 columnDefs: [{
-                    targets: [7,8],
+                    targets: [7, 8],
                     render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                 }, {
                     targets: [6],

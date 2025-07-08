@@ -342,8 +342,8 @@ return [
                     'can' => ['ver-cadastros'],
                     'submenu' => [
                         [
-                            'text' => 'Area Comercial',
-                            'route' => 'area-comercial.index'
+                            'text' => 'Gerente Comercial',
+                            'route' => 'gerente-comercial.index'
                         ],
                         [
                             'text' => 'Região Comercial',

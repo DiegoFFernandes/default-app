@@ -146,7 +146,7 @@
             tabela = new Tabulator("#tabela-dados", {
                 ajaxURL: "{{ route('teste-cobranca') }}",
                 layout: "fitDataStretch",
-                groupBy: ["DS_AREACOMERCIAL", "DS_REGIAOCOMERCIAL", "NM_VENDEDOR", "NM_PESSOA"],
+                groupBy: ["DS_AREACOMERCIAL", "NM_SUPERVISOR", "NM_VENDEDOR", "NM_PESSOA"],
                 groupHeader: [
                     // Primeiro nível: DS_AREACOMERCIAL (agrupamento manual)
                     function(value, count, data, group) {

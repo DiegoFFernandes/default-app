@@ -4,7 +4,7 @@
     "start_url": "/",
     "background_color": "#FFFFFF",
     "description": "Aplicativo para gerenciamento de pneus",
-    "display": "fullscreen",
+    "display": "standalone",
     "theme_color": "#FFFFFF",
     "icons": [
         {

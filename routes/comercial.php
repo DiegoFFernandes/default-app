@@ -33,7 +33,7 @@ Route::middleware(['auth', 'permission:ver-produzidos-sem-faturar'])->group(func
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('cadastro')->group(function () {
 
-        Route::get('area-comercial', [AreaComercialController::class, 'index'])->name('area-comercial.index');
+        Route::get('gerente-comercial', [AreaComercialController::class, 'index'])->name('gerente-comercial.index');
         Route::get('get-area-comercial', [AreaComercialController::class, 'create'])->name('get-area-comercial.create');
         Route::get('get-table-area-usuario', [AreaComercialController::class, 'list'])->name('get-table-area-usuario');
         Route::post('edit-area-usuario', [AreaComercialController::class, 'update'])->name('edit-area-usuario');

@@ -124,4 +124,6 @@ class RegiaoComercial extends Model
             ->get();
     }
 
+    
+
 }

@@ -14,11 +14,11 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Area Junsoft</label>
+                                        <label>Supervisores Junsoft</label>
                                         <select class="form-control select2" id="cd_areacomercial" style="width: 100%;">
                                             <option selected="selected">Selecione</option>
-                                            @foreach ($area as $r)
-                                                <option value="{{ $r->CD_AREACOMERCIAL }}">{{ $r->DS_AREACOMERCIAL }}
+                                            @foreach ($supervisorComercial as $r)
+                                                <option value="{{ $r->CD_VENDEDORGERAL }}">{{ $r->NM_SUPERVISOR }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -26,7 +26,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label>Usúarios Dashboard</label>
+                                        <label>Gerencia Dashboard</label>
                                         <select class="form-control select2" id="cd_usuario" style="width: 100%; ">
                                             <option selected="selected">Selecione</option>
                                             @foreach ($user as $u)
@@ -50,7 +50,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header with-border">
-                        <h3 class="card-title">Areas Associadas</h3>
+                        <h3 class="card-title">Supervisores Associados</h3>
                     </div>
                     <!-- /.box-header -->
                     <div class="card-body">
@@ -59,9 +59,9 @@
                                 <tr>
                                     <th>Cód.</th>
                                     <th>Cd. Usúario</th>
-                                    <th>Usúario</th>
+                                    <th>Gerente</th>
                                     <th>Cd. Area</th>
-                                    <th>Area</th>
+                                    <th>Supervisor</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -94,7 +94,7 @@
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label>Úsuário Dashboard Junsoft</label>
+                                <label>Gerente Dashboard</label>
                                 <select class="form-control" name="cd_usuario_modal" id="cd_usuario_modal"
                                     style="width: 100%">
                                     @foreach ($user as $u)
@@ -106,11 +106,11 @@
                         <div class="col-md-12">
                             <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
                             <div class="form-group">
-                                <label>Area Junsoft</label>
+                                <label>Supervisor Junsoft</label>
                                 <select class="form-control" name="cd_areacomercial_modal" id="cd_areacomercial_modal"
                                     style="width: 100%;">
-                                    @foreach ($area as $r)
-                                        <option value="{{ $r->CD_AREACOMERCIAL }}">{{ $r->DS_AREACOMERCIAL }}
+                                    @foreach ($supervisorComercial as $r)
+                                        <option value="{{ $r->CD_VENDEDORGERAL }}">{{ $r->NM_SUPERVISOR }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -131,10 +131,18 @@
 @section('js')
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#cd_areacomercial').select2();
-            $('#cd_areacomercial_modal').select2();
-            $('#cd_usuario').select2();
-            $('#cd_usuario_modal').select2();
+            $('#cd_areacomercial').select2({
+                theme: "bootstrap4"
+            });
+            $('#cd_areacomercial_modal').select2({
+                theme: "bootstrap4"
+            });
+            $('#cd_usuario').select2({
+                theme: "bootstrap4"
+            });
+            $('#cd_usuario_modal').select2({
+                theme: "bootstrap4"
+            });
             $('#btn-vincular').click(function() {
                 let ds_areacomercial = $("#cd_areacomercial option:selected").text()
                 let cd_areacomercial = $('#cd_areacomercial').val();
@@ -209,55 +217,51 @@
                 $('.modal').modal('show');
             });
             $('.btn-update').click(function() {
-                toastr.warning(
-                    "<button type='button' id='confirmationButtonYes' class='btn btn-success clear'>Sim</button>" +
-                    "<button type='button' id='confirmationButtonNo' class='btn btn-primary clear'>Não</button>",
-                    'Você tem certeza que deseja atualizar?', {
-                        closeButton: false,
-                        allowHtml: true,
-                        progressBar: false,
-                        timeOut: 0,
-                        positionClass: "toast-top-center",
-                        onShown: function(toast) {
-                            $("#confirmationButtonYes").click(function() {
-                                let id = $('#id').val(),
-                                    cd_areacomercial = $('#cd_areacomercial_modal').val(),
-                                    ds_areacomercial = $(
-                                        "#cd_areacomercial_modal option:selected").text(),
-                                    cd_usuario = $('#cd_usuario_modal').val();
+                let id = $('#id').val();
+                Swal.fire({
+                    title: 'Tem certeza?',
+                    text: "Deseja editar " + id + "?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sim, editar!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let cd_areacomercial = $('#cd_areacomercial_modal').val(),
+                            ds_areacomercial = $(
+                                "#cd_areacomercial_modal option:selected").text(),
+                            cd_usuario = $('#cd_usuario_modal').val();
 
-                                // console.log(cd_areacomercial);
-                                $.ajax({
-                                    type: 'POST',
-                                    url: '{{ route('edit-area-usuario') }}',
-                                    data: {
-                                        id: id,
-                                        cd_areacomercial: cd_areacomercial,
-                                        cd_usuario: cd_usuario,
-                                        ds_areacomercial: ds_areacomercial,
-                                        _token: $('#token').val(),
-                                    },
-                                    beforeSend: function() {
-                                        $("#loading").removeClass('hidden');
-                                    },
-                                    success: function(result) {
-                                        $("#loading").addClass('hidden');
-                                        if (result.errors) {
-                                            msgToastr(result.errors, 'warning');
-                                        } else {
-                                            $('.modal').modal('hide');
-                                            msgToastr(result.success,
-                                                'success');
-                                            $('#table-area').DataTable().ajax
-                                                .reload();
-                                        }
+                        $.ajax({
+                            type: 'POST',
+                            url: '{{ route('edit-area-usuario') }}',
+                            data: {
+                                id: id,
+                                cd_areacomercial: cd_areacomercial,
+                                cd_usuario: cd_usuario,
+                                ds_areacomercial: ds_areacomercial,
+                                _token: $('#token').val(),
+                            },
+                            beforeSend: function() {
+                                $("#loading").removeClass('hidden');
+                            },
+                            success: function(result) {
+                                $("#loading").addClass('hidden');
+                                if (result.errors) {
+                                    msgToastr(result.errors, 'warning');
+                                } else {
+                                    $('.modal').modal('hide');
+                                    msgToastr(result.success,
+                                        'success');
+                                    $('#table-area').DataTable().ajax
+                                        .reload();
+                                }
 
-                                    }
-                                });
-                            });
-                        }
+                            }
+                        });
                     }
-                );
+                });
 
 
             });
