@@ -90,10 +90,25 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('coleta')->group(function () {
-        Route::get('coleta-vendedor', [ColetaController::class, 'coleta'])->name('coleta-vendedor');
-        
-        Route::get('get-coleta-vendedor', [ColetaController::class, 'getColeta'])->name('get-coleta-vendedor');
-    
-    
+        Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');       
+        Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas'); 
+    });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('coleta')->group(function () {
+        Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
+    });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('coleta')->group(function () {
+        Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
+    });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('coleta')->group(function () {
+        Route::get('vendedor', [ColetaController::class, 'vendedor'])->name('vendedor');
     });
 });

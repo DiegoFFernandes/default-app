@@ -27,9 +27,9 @@ class ColetaController extends Controller
         });
     }
 
-    public function coleta()
+    public function coletaMedidas()
     {        
-        return view('admin.comercial.coleta-vendedor');
+        return view('admin.comercial.coleta-medidas');
     }
 
     public function getColeta()
@@ -42,5 +42,20 @@ class ColetaController extends Controller
         return Datatables::of($data)->make('true');
 
         
+    }
+
+    public function coleta()
+    {
+        return view('admin.comercial.coleta');
+    }
+
+    public function coletaVendedor()
+    {
+        return view('admin.comercial.coleta-vendedor');
+    }
+
+    public function vendedor()
+    {
+        return view('admin.comercial.vendedor');
     }
 }

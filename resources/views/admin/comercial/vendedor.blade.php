@@ -8,23 +8,22 @@
             <div class="col-12 mb-3">
                 <div class="card card-outline card-danger">
                     <div class="card-header">
-                        <h3 class="card-title">Coletas Por Vendedor / Mês</h3>
+                        <h3 class="card-title">Acompanhamento Mês Atual</h3>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive h-100">
-                            <table id="coletasPorVendedorMes"
-                                class="table compact table-font-small table-striped table-bordered nowrap"
+                            <table id="acompanhamentoMesAtual" class="table compact table-font-small table-striped table-bordered nowrap"
                                 style="width:100%; font-size: 12px;">
                                 <thead class="bg-dark text-white">
                                     <tr>
-                                        <th>Vendedores</th>
-                                        <th>Coletas</th>
-                                        <th>Valor Médio</th>
-                                        <th>Faturados</th>
-                                        <th>Recusados</th>
-                                        <th>Faturado Mês Ant.</th>
-                                        <th>Valor Médio Mês Ant.</th>
-                                        <th>Posição</th>
+                                        <th>Vendedor</th>
+                                        <th>Pneus Coletados</th>
+                                        <th>Qtde Prod.</th>
+                                        <th>Recusado</th>
+                                        <th>Qtde Fat.</th>
+                                        <th>VI Fat</th>
+                                        <th>Coleta Mês Ant.</th>
+                                        <th>Qtde Fat Mês Ant.</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -32,19 +31,17 @@
                     </div>
                 </div>
             </div>
-        </div>
-        </div>
     </section>
 @stop
 
 @section('js')
     <script>
         $(document).ready(function() {
-            if ($.fn.DataTable.isDataTable('#coletasPorVendedorMes')) {
-                $('#coletasPorVendedorMes').DataTable().destroy();
+            if ($.fn.DataTable.isDataTable('#acompanhamentoMesAtual')) {
+                $('#acompanhamentoMesAtual').DataTable().destroy();
             }
 
-            $('#coletasPorVendedorMes').DataTable({
+            $('#acompanhamentoMesAtual').DataTable({
                 processing: true,
                 serverSide: false,
                 language: {
