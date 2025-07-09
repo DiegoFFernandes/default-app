@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Helper;
 
 class PedidoPneu extends Model
 {
@@ -34,5 +35,27 @@ class PedidoPneu extends Model
 
             return DB::connection('firebird')->statement($query);
         });
+    }
+
+    static function getPedidoPneu($dt_inicio = null, $dt_fim = null){
+
+       $query = "
+            SELECT
+                MP.DSMEDIDAPNEU,
+                COUNT(*) QTD,
+                SUM(IPP.VLUNITARIO) / COUNT(*) PRECO_MEDIA
+            FROM PEDIDOPNEU PP
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = PP.ID)
+            INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
+            INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+            INNER JOIN MEDIDAPNEU MP ON (MP.ID = PNEU.IDMEDIDAPNEU)
+            WHERE
+                PP.DTEMISSAO BETWEEN '$dt_inicio' AND '$dt_inicio'
+                AND PP.IDEMPRESA = 1
+            GROUP BY MP.DSMEDIDAPNEU";    
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
     }
 }
