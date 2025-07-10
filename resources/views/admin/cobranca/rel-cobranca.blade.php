@@ -61,7 +61,7 @@
                         <input id="filtro-cnpj" type="text" class="form-control" placeholder="Filtrar por CNPJ">
                     </div>
                     <div class="col-md-4 mb-2">
-                        <input id="filtro-regiao" type="text" class="form-control" placeholder="Filtrar por Região">
+                        <input id="filtro-supervisor" type="text" class="form-control" placeholder="Filtrar por Supervisor">
                     </div>
                     <div class="col-md-4 mb-2">
                         <input id="daterange" type="text" class="form-control" placeholder="Filtrar por Vencimento">
@@ -307,13 +307,13 @@
             tabela.setFilter("NR_CNPJCPF", "like", valor);
             tableFiltred();
         });
-        // Filtro por Região
-        document.getElementById("filtro-regiao").addEventListener("keyup", function() {
+        // Filtro por Supervisor
+        document.getElementById("filtro-supervisor").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
-            tabela.setFilter("DS_REGIAOCOMERCIAL", "like", valor);
+            tabela.setFilter("NM_SUPERVISOR", "like", valor);
             tableFiltred();
         });
-        // Filtro por Região
+        // Filtro por Vendedor
         document.getElementById("filtro-vendedor").addEventListener("keyup", function() {
             const valor = this.value.toLowerCase();
             tabela.setFilter("NM_VENDEDOR", "like", valor);

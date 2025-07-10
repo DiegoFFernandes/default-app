@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\ColetaController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'role:admin|gerencia'])->group(function () {
+Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
     Route::prefix('libera-ordem-comercial')->group(function () {
         Route::get('index', [LiberaOrdemComissaoController::class, 'index'])->name('libera-ordem-comissao.index');
 
@@ -90,25 +90,10 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('coleta')->group(function () {
-        Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');       
-        Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas'); 
-    });
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('coleta')->group(function () {
+        Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');
+        Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas');
         Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
-    });
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('coleta')->group(function () {
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
-    });
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('coleta')->group(function () {
         Route::get('vendedor', [ColetaController::class, 'vendedor'])->name('vendedor');
     });
 });

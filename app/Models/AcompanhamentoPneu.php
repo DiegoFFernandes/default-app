@@ -150,8 +150,8 @@ class AcompanhamentoPneu extends Model
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
-                       --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
-                       PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                       " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
+                       --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -418,7 +418,7 @@ class AcompanhamentoPneu extends Model
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             WHERE  
                 " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
-                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '04.02.2025'
                 " . (($supervisor != null) ? "AND VENDEDOR.CD_VENDEDORGERAL = $supervisor" : "") . "
                 --AND PP.IDVENDEDOR = 18061
                 AND PP.STPEDIDO <> 'C'

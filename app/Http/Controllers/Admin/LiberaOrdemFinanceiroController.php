@@ -43,7 +43,7 @@ class LiberaOrdemFinanceiroController extends Controller
         $exploder         = explode('/', $this->request->route()->uri());
         $uri = ucfirst($exploder[0]);
 
-        if ($this->user->hasRole('gerencia')) {
+        if ($this->user->hasRole('gerente comercial')) {
             $find = $this->regiao->findRegiaoUser($this->user->id);
 
             $area = Helper::is_empty_object($find);
@@ -94,7 +94,7 @@ class LiberaOrdemFinanceiroController extends Controller
 
         if ($this->user->hasRole('admin|diretoria')) {
             $cd_regiao = "";
-        } elseif ($this->user->hasRole('gerencia')) {
+        } elseif ($this->user->hasRole('gerente comercial')) {
             // Criar condição caso o usuario for gerente mais não estiver associado no painel
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
                 ->pluck('CD_REGIAOCOMERCIAL')

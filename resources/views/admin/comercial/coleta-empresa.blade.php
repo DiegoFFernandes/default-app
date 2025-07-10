@@ -663,13 +663,15 @@
                     }
 
                 ],
-
                 footerCallback: function(row, data, start, end, display) {
-
 
                 }
             });
-            return table;
+            
+
+            $('#acompanhamento-' + empresaId).on('xhr.dt', function(e, settings, json, xhr) {
+                
+            });
         }
 
         function initTableColetaVendedor(tableId, data) {
@@ -745,7 +747,7 @@
                     {
                         data: 'VALOR_MEDIO',
                         title: "Vlr Médio",
-                        name: 'VALOR_MEDIO',    
+                        name: 'VALOR_MEDIO',
                         "width": "2%",
                     }
                 ],

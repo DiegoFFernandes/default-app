@@ -36,8 +36,9 @@ class ColetaController extends Controller
     {
         $dt_inicio = $this->request->dt_inicio;
         $dt_fim = $this->request->dt_fim;
-        
-        $data = $this->coleta->getPedidoPneu($dt_inicio, $dt_fim);
+        $cd_empresa = $this->request->cd_empresa;
+
+        $data = $this->coleta->getPedidoPneu($dt_inicio, $dt_fim, $cd_empresa);
 
         return Datatables::of($data)->make('true');
 

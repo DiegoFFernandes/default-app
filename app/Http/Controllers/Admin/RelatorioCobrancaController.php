@@ -66,7 +66,7 @@ class RelatorioCobrancaController extends Controller
             $cd_regiao = "";
             // $regiao = $this->regiao->regiaoAll();
             // $area = $this->area->areaAll();
-        } elseif ($this->user->hasRole('gerencia')) {
+        } elseif ($this->user->hasRole('gerente comercial')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
             $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
                 ->pluck('CD_REGIAOCOMERCIAL')
@@ -126,7 +126,7 @@ class RelatorioCobrancaController extends Controller
         $cd_empresa = $this->setEmpresa($cd_empresa);
         $cd_regiao = $this->request->cd_regiao;
 
-        if ($this->user->hasRole('gerencia|coordenador|admin')) {
+        if ($this->user->hasRole('gerente comercial|coordenador|admin')) {
             if ($this->request->cd_area != "") {
                 $cd_area = implode(",", $this->request->cd_area);
             } else {
@@ -269,7 +269,7 @@ class RelatorioCobrancaController extends Controller
             $cd_regiao = "";
             // $regiao = $this->regiao->regiaoAll();
             // $area = $this->area->areaAll();
-        } elseif ($this->user->hasRole('gerencia')) {
+        } elseif ($this->user->hasRole('gerente comercial')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
             $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
                 ->pluck('CD_AREACOMERCIAL')

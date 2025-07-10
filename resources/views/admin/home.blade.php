@@ -42,6 +42,10 @@
                             <a href={{ route('bloqueio-pedidos') }} class="btn btn-sm btn-dark mb-1"
                                 style="width: 150px">Acompanha Pedidos</a>
                         @endhaspermission
+                        @haspermission('ver-analise-faturamento')
+                            <a href={{ route('analise-faturamento.index') }} class="btn btn-sm btn-dark mb-1"
+                                style="width: 150px">Análise Faturista</a>
+                        @endhaspermission
                     </div>
                 </div>
             </div>

@@ -11,6 +11,7 @@ use App\Models\Item;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use App\Services\SupervisorAuthService;
+use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -65,7 +66,7 @@ class BloqueioPedidosController extends Controller
             if (empty($array)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
             }
-        } elseif (!$this->user->hasRole('admin|gerencia')) {
+        } elseif (!$this->user->hasRole('admin|gerente comercial')) {
             $regiaoUsuario = $this->regiao->regiaoPorUsuario($this->user->id);
             foreach ($regiaoUsuario as $r) {
                 $cd_regiao[] = $r->cd_regiaocomercial;
@@ -75,6 +76,7 @@ class BloqueioPedidosController extends Controller
                 return redirect()->back()->with('warning', 'Usuario com permissão mais sem vinculo com região, fale com o Administrador do sistema!');
             }
         }
+
 
         return view('admin.comercial.bloqueio-pedidos', compact(
             'title_page',
@@ -124,7 +126,7 @@ class BloqueioPedidosController extends Controller
         $dados = $this->request->data;
         $cd_regiao = "";
 
-        if ($this->user->hasRole('admin|gerencia')) {
+        if ($this->user->hasRole('admin|gerente comercial')) {
             $cd_regiao = "";
         }
         // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
@@ -297,10 +299,25 @@ class BloqueioPedidosController extends Controller
     public function getQtdColeta()
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();
+
         if ($supervisor == null) {
             $pedidos = $this->acompanha->getQtdColeta($this->request, 0);
         } else {
             $pedidos = $this->acompanha->getQtdColeta($this->request, $supervisor);
+        }
+
+        if (Helper::is_empty_object($pedidos)) {
+
+            $pedidos[0] = [
+                'IDEMPRESA' => $this->request->cd_empresa,
+                "QTDPNEUS_HOJE" => "0",
+                "QTDPEDIDOS_ONTEM" => "0",
+                "QTDPNEUS_ONTEM" => "0",
+                "QTDPEDIDOS_ANTEONTEM" => "0",
+                "QTDPNEUS_ANTEONTEM" => "0"
+            ];
+
+            return response()->json($pedidos);
         }
 
         return response()->json(

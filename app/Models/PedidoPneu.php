@@ -37,13 +37,13 @@ class PedidoPneu extends Model
         });
     }
 
-    static function getPedidoPneu($dt_inicio = null, $dt_fim = null){
+    static function getPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null){
 
        $query = "
             SELECT
                 MP.DSMEDIDAPNEU,
                 COUNT(*) QTD,
-                SUM(IPP.VLUNITARIO) / COUNT(*) PRECO_MEDIA
+                CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO
             FROM PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = PP.ID)
             INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
@@ -51,8 +51,8 @@ class PedidoPneu extends Model
             INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
             INNER JOIN MEDIDAPNEU MP ON (MP.ID = PNEU.IDMEDIDAPNEU)
             WHERE
-                PP.DTEMISSAO BETWEEN '$dt_inicio' AND '$dt_inicio'
-                AND PP.IDEMPRESA = 1
+                PP.DTEMISSAO BETWEEN '$dt_inicio' AND '$dt_fim'
+                AND PP.IDEMPRESA = $cd_empresa
             GROUP BY MP.DSMEDIDAPNEU";    
         $dados = DB::connection('firebird')->select($query);
 
