@@ -97,7 +97,6 @@
             let inicioData = null;
             let fimData = null;
 
-            // Inicializa o daterangepicker com o formato DD.MM.YYYY
             $('#daterange').daterangepicker({
                 locale: {
                     format: 'DD.MM.YYYY'
@@ -105,7 +104,7 @@
                 autoUpdateInput: false
             });
 
-            // Evento ao aplicar o filtro do daterangepicker
+            // Evento ao aplicar o filtro de data
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD.MM.YYYY') + ' - ' + picker.endDate.format(
                     'DD.MM.YYYY'));
@@ -214,7 +213,7 @@
                 });
             }
 
-            // Evento do botão Buscar
+           //Busca os dados ao clicar no botão "Buscar novos"
             $('#submit-seach').on('click', function() {
                 const empresa = $('#filtro-empresa').val();
 
