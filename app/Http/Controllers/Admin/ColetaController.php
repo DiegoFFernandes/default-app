@@ -59,4 +59,19 @@ class ColetaController extends Controller
     {
         return view('admin.comercial.vendedor');
     }
+
+    public function coletaProducao()
+    {
+        return view('admin.comercial.coleta-producao');
+    }
+
+    public function fichasAbertas()
+    {
+        return view('admin.comercial.fichas-abertas');
+    }
+
+    public function inadimplenciaVendedor()
+    {
+        return view('admin.comercial.inadimplencia-vendedor');
+    }
 }

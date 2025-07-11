@@ -95,5 +95,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
         Route::get('vendedor', [ColetaController::class, 'vendedor'])->name('vendedor');
+        Route::get('coleta-producao', [ColetaController::class, 'coletaProducao'])->name('coleta-producao');
+        Route::get('fichas-abertas', [ColetaController::class, 'fichasAbertas'])->name('fichas-abertas');
+        Route::get('inadimplencia-vendedor', [ColetaController::class, 'inadimplenciaVendedor'])->name('inadimplencia-vendedor');
     });
 });

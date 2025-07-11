@@ -6,33 +6,30 @@
     <section class="content">
         <div class="row">
             <div class="col-12 mb-3">
-                <div class="card card-outline card-danger">
+                <div class="card card-outline card-danger h-100 d-flex flex-column">
                     <div class="card-header">
                         <h3 class="card-title">Coletas Por Vendedor / Mês</h3>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive h-100">
-                            <table id="coletasPorVendedorMes"
-                                class="table compact table-font-small table-striped table-bordered nowrap"
-                                style="width:100%; font-size: 12px;">
-                                <thead class="bg-dark text-white">
-                                    <tr>
-                                        <th>Vendedores</th>
-                                        <th>Coletas</th>
-                                        <th>Valor Médio</th>
-                                        <th>Faturados</th>
-                                        <th>Recusados</th>
-                                        <th>Faturado Mês Ant.</th>
-                                        <th>Valor Médio Mês Ant.</th>
-                                        <th>Posição</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+                    <div class="card-body flex-grow-1 overflow-auto">
+                        <table id="coletasPorVendedorMes"
+                            class="table compact table-font-small table-striped table-bordered nowrap"
+                            style="width: 100%; font-size: 12px;">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                                    <th>Vendedores</th>
+                                    <th>Coletas</th>
+                                    <th>Valor Médio</th>
+                                    <th>Faturados</th>
+                                    <th>Recusados</th>
+                                    <th>Faturado Mês Ant.</th>
+                                    <th>Valor Médio Mês Ant.</th>
+                                    <th>Posição</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     </section>
 @stop

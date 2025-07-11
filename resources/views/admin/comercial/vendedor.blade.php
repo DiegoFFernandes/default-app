@@ -12,7 +12,8 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive h-100">
-                            <table id="acompanhamentoMesAtual" class="table compact table-font-small table-striped table-bordered nowrap"
+                            <table id="acompanhamentoMesAtual"
+                                class="table compact table-font-small table-striped table-bordered nowrap"
                                 style="width:100%; font-size: 12px;">
                                 <thead class="bg-dark text-white">
                                     <tr>
