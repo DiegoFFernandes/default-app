@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="content">
-        <div class="card card-outline card-danger collapsed-card">
+        <div class="card card-outline card-dark collapsed-card">
             <div class="card-header">
                 <h3 class="card-title">Filtros:</h3>
                 <div class="card-tools">
@@ -16,7 +16,7 @@
             <!-- /.card-header -->
             <div class="card-body" style="display: none">
                 <div class="row">
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <select id="filtro-empresa" class="form-control">
                             <option value="" disabled selected>Filtrar por Empresa</option>
                             <option value="1">Cambe</option>
@@ -31,7 +31,8 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
                                 </div>
-                                <input type="text" class="form-control float-right" id="daterange"  placeholder="Filtrar por Datas">
+                                <input type="text" class="form-control float-right" id="daterange"
+                                    placeholder="Filtrar por Datas">
                             </div>
                             <!-- /.input group -->
                         </div>
@@ -46,15 +47,39 @@
         </div>
         <div class="row d-flex" style="align-items: stretch;">
             <div class="col-12 col-lg-8 mb-3 d-flex flex-column">
-                <div class="card card-outline card-danger flex-fill">
-                    <div class="card-header">
-                        <h3 class="card-title">Producao X Executor</h3>
+                <div class="card card-dark card-outline card-outline-tabs">
+                    <div class="card-header p-0 border-bottom-0">
+                        <ul class="nav nav-tabs" id="custom-tabs-four-tab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="exame-inicial" data-toggle="pill" href="#exame-inicial"
+                                    role="tab" aria-controls="exame-inicial" aria-selected="true">Exame Inicial</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="raspa" data-toggle="pill" href="#raspa" role="tab"
+                                    aria-controls="raspa" aria-selected="false">Raspa</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="prep-banda" data-toggle="pill" href="#prep-banda" role="tab"
+                                    aria-controls="prep-banda" aria-selected="false">Prep. Banda</a>
+                            </li>
+                        </ul>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="executorEtapas" class="table compact table-bordered table-striped"
-                                style="font-size: 12px;">
-                            </table>
+                        <div class="tab-content" id="custom-tabs-four-tabContent">
+                            <div class="tab-pane fade show active" id="exame-inicial" role="tabpanel"
+                                aria-labelledby="exame-inicial">
+                                <div class="table-responsive">
+                                    <table id="executorEtapas" class="table compact table-bordered table-striped"
+                                        style="font-size: 12px;">
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="raspa" role="tabpanel" aria-labelledby="raspa">
+                                <!-- Conteúdo da aba Raspa -->
+                            </div>
+                            <div class="tab-pane fade" id="prep-banda" role="tabpanel" aria-labelledby="prep-banda">
+                                <!-- Conteúdo da aba Prep. Banda -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,33 +119,14 @@
     <script>
         $(document).ready(function() {
 
-            let inicioData = null;
-            let fimData = null;
-
-            $('#daterange').daterangepicker({
-                locale: {
-                    format: 'DD.MM.YYYY'
-                },
-                autoUpdateInput: false
-            });
-
-            // Evento ao aplicar o filtro de data
-            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('DD.MM.YYYY') + ' - ' + picker.endDate.format(
-                    'DD.MM.YYYY'));
-                inicioData = picker.startDate.format('DD.MM.YYYY') + ' 00:00';
-                fimData = picker.endDate.format('DD.MM.YYYY') + ' 23:59';
-            });
-
-            // Evento ao cancelar o filtro
-            $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
-                $(this).val('');
-                inicioData = null;
-                fimData = null;
-            });
-
+            let inicioData = moment().format('DD.MM.YYYY 00:00');
+            let fimData = moment().format('DD.MM.YYYY 23:59');
             // Variável global da tabela
             let tabela;
+
+            const datasSelecionadas = initDateRangePicker();
+
+            initTable(1, inicioData, fimData);
 
             // Função para iniciar/reiniciar a DataTable
             function initTable(cdempresa, dtinicio, dtfim) {
@@ -131,6 +137,7 @@
                 tabela = $('#executorEtapas').DataTable({
                     processing: true,
                     serverSide: true,
+                    pageLength: 100,
                     language: {
                         url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                     },
@@ -144,66 +151,94 @@
                         type: 'GET'
                     },
                     columns: [{
-                            data: 'DT_FIM',
-                            name: 'DT_FIM',
-                            title: 'Finalização'
-                        },
-                        {
                             data: 'IDEMPRESA',
                             name: 'IDEMPRESA',
-                            title: 'Empresa'
-                        },
+                            title: 'Emp',
+                            "width": '1%',
+                        },                        
                         {
                             data: 'NM_EXECUTOR',
-                            name: 'NM_EXECUTOR',
-                            title: 'Executor'
+                            name: 'NM_EXECUTOR',                            
+                            title: 'Executor',
+                            "width": '10%',
                         },
                         {
                             data: 'EXAME_INI',
                             name: 'EXAME_INI',
-                            title: 'Exame Inicial'
+                            title: 'Exame Inicial',
+                            "width": '3%',
+                        },
+                         {
+                            data: 'EXAME_INI',
+                            name: 'EXAME_INI',
+                            title: 'Meta',
+                            "width": '3%',
+                        },
+                        {
+                            data: 'DT_FIM',
+                            name: 'DT_FIM',
+                            "width": '2%',
+                            title: 'Finalização'
                         },
                         {
                             data: 'RASPA',
                             name: 'RASPA',
-                            title: 'Raspagem'
+                            title: 'Raspagem',
+                            visible: false
                         },
                         {
                             data: 'PREPBANDA',
                             name: 'PREPBANDA',
-                            title: 'Prep. Banda'
+                            title: 'Prep. Banda',
+                            visible: false
+
                         },
                         {
                             data: 'ESCAREACAO',
                             name: 'ESCAREACAO',
-                            title: 'Escareação'
+                            title: 'Escareação',
+                            visible: false
                         },
                         {
                             data: 'LIMPEZAMANCHAO',
                             name: 'LIMPEZAMANCHAO',
-                            title: 'Limpeza Manchão'
+                            title: 'Limpeza Manchão',
+                            visible: false
                         },
                         {
                             data: 'APLICOLA',
                             name: 'APLICOLA',
-                            title: 'Cola'
+                            title: 'Cola',
+                            visible: false
+
                         },
                         {
                             data: 'EMBORRACHAMENTO',
                             name: 'EMBORRACHAMENTO',
-                            title: 'Emborrachamento'
+                            title: 'Emborrachamento',
+                            visible: false
                         },
                         {
                             data: 'VULCANIZACAO',
                             name: 'VULCANIZACAO',
-                            title: 'Vulcanização'
+                            title: 'Vulcanização',
+                            visible: false
                         },
                         {
                             data: 'EXAMEFINAL',
                             name: 'EXAMEFINAL',
-                            title: 'Exame Final'
+                            title: 'Exame Final',
+                            visible: false
                         }
                     ],
+                    columnDefs: [{
+                        targets: 4,
+                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                    }],
+                    order: [
+                        [4, 'asc']
+                    ],
+
                     drawCallback: function(settings) {
                         let dadosPaginaAtual = this.api().rows({
                             page: 'current'
@@ -213,17 +248,23 @@
                 });
             }
 
-           //Busca os dados ao clicar no botão "Buscar novos"
+            //Busca os dados ao clicar no botão "Buscar novos"
             $('#submit-seach').on('click', function() {
+
+                const inicioData = datasSelecionadas.getInicio() + ' 00:00';
+                const fimData = datasSelecionadas.getFim() + ' 23:59';
+
                 const empresa = $('#filtro-empresa').val();
 
                 if (!empresa) {
-                    alert('Selecione uma empresa!');
+                    msgToastr('Selecione uma empresa para continuar.',
+                        'warning');
                     return;
                 }
 
-                if (!inicioData || !fimData) {
-                    alert('Selecione o período!');
+                if (datasSelecionadas.getInicio() == 0 || datasSelecionadas.getFim() == 0) {
+                    msgToastr('Selecione o período para continuar.',
+                        'warning');
                     return;
                 }
 

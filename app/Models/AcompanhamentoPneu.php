@@ -67,16 +67,15 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function ListPedidoPneu($cd_regiao, $supervisor, $data)
-    {
+    public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data)
+    {        
        
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
             $nm_cliente = "";
             $nm_vendedor = "";
-            $idvendedor = "";
-            $empresa = 0;
+            $idvendedor = "";            
             $grupo_item = 0;
             $inicioData = 0;
             $fimData = 0;           

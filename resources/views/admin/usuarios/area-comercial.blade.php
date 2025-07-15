@@ -8,6 +8,9 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Gerente Comercial x Supervisor Comercial</h3>
+                    </div>
                     <!-- /.box-header -->
                     <div class="card-body">
                         <div class="col-md-12">
@@ -50,7 +53,7 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header with-border">
-                        <h3 class="card-title">Supervisores Associados</h3>
+                        <h3 class="card-title">Associados</h3>
                     </div>
                     <!-- /.box-header -->
                     <div class="card-body">

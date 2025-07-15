@@ -60,7 +60,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
+
     <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/pt-BR.js"></script>
 
 
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.js') }}"></script>
@@ -73,42 +75,11 @@
 
     <script src="{{ asset('vendor/adminlte/dist/js/html5-qrcode.min.js') }}"></script>
 
+
     <script>
-        function msgToastr(msg, classe) {
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": true,
-                "positionClass": "toast-bottom-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "3000",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
-            toastr[classe](msg);
-        }
 
-        function exportarParaExcel(dados, nomeArquivo = "dados.xlsx", nomeAba = "Planilha") {
-            // Cria uma nova planilha a partir dos dados (array de objetos)
-            const worksheet = XLSX.utils.json_to_sheet(dados);
-
-            // Cria o workbook (arquivo Excel)
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, nomeAba);
-
-            // Faz o download do arquivo
-            XLSX.writeFile(workbook, nomeArquivo);
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
+            
+        document.addEventListener("DOMContentLoaded", function() {            
 
             $('#phone').inputmask({
                 mask: ['(99)9999-9999', '(99)99999-9999']
@@ -160,5 +131,7 @@
             }
         });
     </script>
-   
+
+    {{-- Script de Funções --}}
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js') }}"></script>
 @endpush

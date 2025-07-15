@@ -229,9 +229,7 @@
             table-layout: fixed;
         }
 
-        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-            display: none;
-        }
+        
     </style>
 @endsection
 
