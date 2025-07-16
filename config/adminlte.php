@@ -341,8 +341,12 @@ return [
                     'url' => '#',
                     'can' => ['ver-cadastros'],
                     'submenu' => [
+                         [
+                            'text' => 'Ger. Unidade',
+                            'route' => 'gerente-unidade.index'
+                        ],
                         [
-                            'text' => 'Gerente Comercial',
+                            'text' => 'Ger. Comercial x Supervisor',
                             'route' => 'gerente-comercial.index'
                         ],
                         [
@@ -350,7 +354,7 @@ return [
                             'route' => 'regiao-comercial.index'
                         ],
                         [
-                            'text' => 'Supervisor Comercial',
+                            'text' => 'Supervisor x Usuario',
                             'route' => 'supervisor-comercial.index'
                         ]
                     ]

@@ -248,24 +248,13 @@
             var tableUsuario = null;
             var tableNaoProcedente = null;
             var inicioData = 0;
-            var fimData = 0;
+            var fimData = 0;            
 
-            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
-                    'DD/MM/YYYY'));
-                inicioData = picker.startDate.format('MM/DD/YYYY');
-                fimData = picker.endDate.format('MM/DD/YYYY');
-            });
-            $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
-                $(this).val("");
-                inicioData = 0;
-                fimData = 0;
-            });
+            const datasSelecionadas = initDateRangePicker();           
 
+            initTablePrimary(inicioData, fimData);
 
-            initTablePrimary();
-
-            function initTablePrimary() {
+            function initTablePrimary(inicioData, fimData) {
                 tableAnalise = $('#tabela-garantia').DataTable({
                     language: {
                         "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
@@ -700,8 +689,8 @@
             // Filtro por Região
             document.getElementById("submit-seach").addEventListener("click", function() {
                 $('#tabela-garantia').DataTable().destroy();
-                initTablePrimary();
 
+                initTablePrimary(datasSelecionadas.getInicio(), datasSelecionadas.getFim());
             });
 
         });

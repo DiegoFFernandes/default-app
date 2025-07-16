@@ -11,15 +11,14 @@ class Producao extends Model
 {
     use HasFactory;
 
-    public function getPneusProduzidosFaturar($cd_regiao = "",  $supervisor = 0, $data)
+    public function getPneusProduzidosFaturar($empresa = 0, $cd_regiao = "",  $supervisor = 0, $data)
     {
-
+        
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
             $nm_cliente = "";
-            $nm_vendedor = "";
-            $empresa = 0;
+            $nm_vendedor = "";            
             $grupo_item = 0;
             $inicioData = 0;
             $fimData = 0;
@@ -33,6 +32,7 @@ class Producao extends Model
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
         }
+        
         $query = "
             SELECT DISTINCT
                 COALESCE(OCP.NR_EMBARQUE, 'SEM EMBARQUE') AS NR_EMBARQUE,

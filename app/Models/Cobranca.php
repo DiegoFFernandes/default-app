@@ -13,7 +13,7 @@ class Cobranca extends Model
 {
     use HasFactory;
 
-    public function AreaRegiaoInadimplentes($cd_regiao)
+    public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = null)
     {
         $query = "          
                 SELECT DISTINCT                    
@@ -92,6 +92,7 @@ class Cobranca extends Model
                     --AND CONTAS.CD_PESSOA = 11625
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
+                    " . (!empty($cd_empresa) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
                     --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 18404)
                     AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')   
                 ORDER BY CONTAS.DT_VENCIMENTO;          

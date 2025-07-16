@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Config;
+use Illuminate\Contracts\Validation\Validator;
 
 class Helper
 {
@@ -48,5 +49,14 @@ class Helper
         // 2025-03-03 16:08:50
         // Utiliza a classe de Carbon para converter ao formato de data ou hora desejado
         return Carbon\Carbon::createFromFormat('Y-m-d', $value)->format('d/m/Y');
+    }
+    public static function formatErrorsAsHtml(Validator $validator)
+    {
+        $error = '<ul>';
+        foreach ($validator->errors()->all() as $e) {
+            $error .= '<li>' . $e . '</li>';
+        }
+        $error .= '</ul>';
+        return response()->json(['errors' => $error]);
     }
 }

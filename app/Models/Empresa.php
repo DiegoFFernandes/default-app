@@ -11,12 +11,12 @@ class Empresa extends Model
 {
     use HasFactory;
 
-    public function empresa($empresa=1)
+    public function empresa($empresa = 0)
     {
         //Se usuario por admin retorna todas as empresas
-        if ($empresa == 1) {
+        if ($empresa == 0) {
             $empresa = '1,3,5,6';
-        } 
+        }
         $query = "SELECT
                     EMPRESA.CD_EMPRESA,
                     CASE 

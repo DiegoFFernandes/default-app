@@ -25,10 +25,7 @@
                                         <th>Status</th>
                                         <th>#</th>
                                     </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
+                                </thead>                               
                             </table>
                         </div>
                     </div>
@@ -54,7 +51,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label for="pessoa">Pesquisar Pessoa:</label>
-                                <select name='pessoa' class="form-control" id="pessoa" style="width: 100%">
+                                <select name='pessoa' class="form-control" id="pessoa" data-modal="#modal-user" style="width: 100%">
                                     <option value=""></option>
                                 </select>
                             </div>
@@ -135,7 +132,14 @@
 @stop
 
 @section('js')
-    <script>
+    <script>     
+
+        const routes = {
+            searchPessoa: "{{ route('usuario.search-pessoa') }}",
+        }
+
+        initSelect2Pessoa('#pessoa', routes.searchPessoa, '#modal-user');
+
         $('#table-user').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json'
@@ -178,47 +182,14 @@
                 },
             ]
         });
+
         $('#add-user').click(function() {
             $('.modal-title').text('Adicionar usuário');
             $('#modal-user').modal('show');
             $('#btn-save').removeClass('d-none');
             $('#btn-update').addClass('d-none');
-
         });
-        $('#pessoa').select2({
-            placeholder: "Pessoa",
-            theme: 'bootstrap4',
-            width: '100%',            
-            allowClear: true,
-            minimumInputLength: 2,
-            dropdownParent: $('#modal-user'),
-            ajax: {
-                url: " {{ route('usuario.search-pessoa') }}",
-                dataType: 'json',
-                delay: 250,
-                processResults: function(data) {
-                    return {
-                        results: $.map(data, function(item) {
-                            return {
-                                text: item.NM_PESSOA,
-                                id: item.ID,
-                                email: item.DS_EMAIL,
-                                tipopessoa: item.CD_TIPOPESSOA,
-                                phone: item.NR_CELULAR
-                            }
-                        })
-
-                    };
-                },
-                cache: true
-            }
-        }).change(function(el) {
-            var data = $(el.target).select2('data');
-            $('#name').val(data[0].text);
-            $('#email').val(data[0].email);
-            $('#ds_tipopessoa').val(data[0].tipopessoa);
-            $('#phone').val(data[0].phone);
-        });
+        
         $('#table-user').on('click', '.btn-editar', function(e) {
             $('.modal-title').text('Editar usuário');
             var rowData = $('#table-user').DataTable().row($(this).parents('tr')).data();
@@ -236,13 +207,11 @@
         $('#btn-save').click(function(e) {
             dataUser("{{ route('usuario.create.do') }}", 1);
         });
-
         $('#btn-update').click(function() {
             dataUser("{{ route('usuario.update') }}"), 2;
         });
 
         function dataUser(route, action) {
-            // e.preventDefault();
             // Captura os valores
             const id_user = $('#id_user').val();
             const name = $('#name').val().trim();
@@ -330,5 +299,5 @@
             });
 
         });
-    </script>
+    </script>    
 @stop

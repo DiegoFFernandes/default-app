@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
 use App\Models\Cobranca;
 use App\Models\Empresa;
+use App\Models\GerenteUnidade;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use Illuminate\Http\Request;
@@ -15,21 +16,22 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
 {
-    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial;
+    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
         AreaComercial $area,
         SupervisorComercial $supervisorComercial,
         Cobranca $cobranca,
-        Empresa $empresa
-
+        Empresa $empresa,
+        GerenteUnidade $gerenteUnidade
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
         $this->area = $area;
         $this->cobranca = $cobranca;
         $this->supervisorComercial = $supervisorComercial;
+        $this->gerenteUnidade = $gerenteUnidade;
         $this->empresa = $empresa;
 
         $this->middleware(function ($request, $next) {
@@ -284,9 +286,14 @@ class RelatorioCobrancaController extends Controller
             if (empty($cd_regiao)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
             }
-        } 
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        }
 
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao);
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa);
 
         foreach ($data as $item) {
             foreach ($regioes_mysql as $regiao) {

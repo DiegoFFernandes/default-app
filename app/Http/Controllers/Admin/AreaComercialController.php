@@ -48,7 +48,7 @@ class AreaComercialController extends Controller
     }
     public function index()
     {
-        $title_page   = 'Vincular Supervidor/Coordenador Comercial';
+        $title_page   = 'Vincular Supervisor/Coordenador Comercial';
         $user_auth    = $this->user;
         $uri         = $this->request->route()->uri();
         $area = $this->area->areaAll();

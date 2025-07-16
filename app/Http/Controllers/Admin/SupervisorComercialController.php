@@ -70,7 +70,6 @@ class SupervisorComercialController extends Controller
         }
         return response()->json(['errors' => 'Houve algum erro ao vincular!']);
     }
-
     public function _validate($request)
     {
         return $request->validate(

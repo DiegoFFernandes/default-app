@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\RegiaoComercialController;
 use App\Http\Controllers\Admin\SupervisorComercialController;
 use App\Http\Controllers\Admin\VendedorController;
 use App\Http\Controllers\Admin\ColetaController;
+use App\Http\Controllers\Admin\GerenteUnidadeController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -52,6 +53,13 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('get-table-supervisor-usuario', [SupervisorComercialController::class, 'list'])->name('get-table-supervisor-usuario');
         Route::post('edit-supervisor-usuario', [SupervisorComercialController::class, 'update'])->name('edit-supervisor-usuario');
         Route::delete('supervisor-usuario-delete', [SupervisorComercialController::class, 'destroy'])->name('supervisor-usuario.delete');
+
+
+        Route::get('gerente-unidade', [GerenteUnidadeController::class, 'index'])->name('gerente-unidade.index');
+        Route::post('create-gerente-unidade', [GerenteUnidadeController::class, 'create'])->name('gerente-unidade.create');
+        Route::get('get-table-gerente-usuario', [GerenteUnidadeController::class, 'list'])->name('get-table-gerente-usuario');
+        Route::get('edit-gerente-unidade', [GerenteUnidadeController::class, 'update'])->name('edit-gerente-unidade');
+        Route::delete('gerente-unidade-delete', [GerenteUnidadeController::class, 'destroy'])->name('gerente-unidade.delete');
     });
 });
 

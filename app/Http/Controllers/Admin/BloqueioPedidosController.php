@@ -7,6 +7,7 @@ use App\Models\AcompanhamentoPneu;
 use App\Models\AreaComercial;
 use App\Models\BloqueioPedido;
 use App\Models\Empresa;
+use App\Models\GerenteUnidade;
 use App\Models\Item;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
@@ -19,7 +20,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial;
+    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial, $gerenteUnidade;
 
     public function __construct(
         Request $request,
@@ -29,6 +30,7 @@ class BloqueioPedidosController extends Controller
         AcompanhamentoPneu $acompanha,
         SupervisorComercial $supervisor,
         SupervisorAuthService $supervisorComercial,
+        GerenteUnidade $gerenteUnidade,
         Item $item,
         Empresa $empresa
     ) {
@@ -39,6 +41,7 @@ class BloqueioPedidosController extends Controller
         $this->acompanha = $acompanha;
         $this->supervisor = $supervisor;
         $this->supervisorComercial = $supervisorComercial;
+        $this->gerenteUnidade = $gerenteUnidade;
         $this->item = $item;
         $this->empresa = $empresa;
 
@@ -66,18 +69,12 @@ class BloqueioPedidosController extends Controller
             if (empty($array)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
             }
-        } elseif (!$this->user->hasRole('admin|gerente comercial')) {
-            $regiaoUsuario = $this->regiao->regiaoPorUsuario($this->user->id);
-            foreach ($regiaoUsuario as $r) {
-                $cd_regiao[] = $r->cd_regiaocomercial;
-            }
-            //verifica se o usuario tem permissão mais ainda nao foi associado região para ele e retorna com mensagem!
-            if (empty($cd_regiao)) {
-                return redirect()->back()->with('warning', 'Usuario com permissão mais sem vinculo com região, fale com o Administrador do sistema!');
-            }
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+            $empresa = $this->empresa->empresa($cd_empresa);
         }
-
-
         return view('admin.comercial.bloqueio-pedidos', compact(
             'title_page',
             'user_auth',
@@ -90,8 +87,14 @@ class BloqueioPedidosController extends Controller
     public function getBloqueioPedido()
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();
+        $empresa = 0;
 
-        $bloqueio = $this->bloqueio->BloqueioPedido($supervisor);
+        if ($this->user->hasRole('gerente unidade')) {
+            $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        }
+        $bloqueio = $this->bloqueio->BloqueioPedido($empresa, $supervisor);
 
         return DataTables::of($bloqueio)
             ->addColumn('action', function ($b) {
@@ -125,9 +128,16 @@ class BloqueioPedidosController extends Controller
     {
         $dados = $this->request->data;
         $cd_regiao = "";
+        $empresa = 0;
 
         if ($this->user->hasRole('admin|gerente comercial')) {
             $cd_regiao = "";
+            $empresa = 0;
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
         }
         // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
         $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -137,12 +147,10 @@ class BloqueioPedidosController extends Controller
         }
 
         if ($supervisor == null) {
-            $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao,  0, $dados);
+            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao,  0, $dados);
         } else {
-            $pedidos = $this->acompanha->ListPedidoPneu($cd_regiao,  $supervisor, $dados);
+            $pedidos = $this->acompanha->ListPedidoPneu(0,  $cd_regiao,  $supervisor, $dados);
         }
-
-
 
         // verifica se cd_empresa e nullo ou e igual a 7
         if ($this->request->filled('cd_empresa') && $dados['cd_empresa'] == '7') {
@@ -238,16 +246,25 @@ class BloqueioPedidosController extends Controller
             }
         }
 
-        if ($this->user->roles->isEmpty()) {
-            return redirect()->route('home')->with('warning', 'Usuário sem função associada. Contate o administrador.');
-        }
-
-
-
+        //faz a inclusão da empresa catanduva - agro numero 7 e ficticio não existente no banco de dados
         $empresa[] = (object)[
             'CD_EMPRESA' => '7',
             'NM_EMPRESA' => 'Catanduva - Agro'
         ];
+
+
+        //Caso for gerente de unidade, busca a empresa vinculada ao gerente, e mostra somente os dados dessa empresa
+        if ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+            $empresa = $this->empresa->empresa($cd_empresa);
+        }
+
+        if ($this->user->roles->isEmpty()) {
+            return redirect()->route('home')->with('warning', 'Usuário sem função associada. Contate o administrador.');
+        }
 
         return view('admin.comercial.coleta-empresa', compact(
             'title_page',
