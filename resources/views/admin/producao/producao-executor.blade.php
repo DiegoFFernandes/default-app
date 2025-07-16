@@ -4,43 +4,43 @@
 
 @section('content')
     <section class="content">
-        <div class="card card-outline card-dark collapsed-card">
+        <div class="card card-outline card-dark">
             <div class="card-header">
                 <h3 class="card-title">Filtros:</h3>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                        <i class="fas fa-minus"></i>
                     </button>
                 </div>
             </div>
-            <!-- /.card-header -->
-            <div class="card-body" style="display: none">
+            <div class="card-body">
                 <div class="row">
-                    <div class="col-md-2">
-                        <select id="filtro-empresa" class="form-control">
-                            <option value="" disabled selected>Filtrar por Empresa</option>
-                            <option value="1">Cambe</option>
-                            <option value="3">Osvaldo Cruz</option>
-                            <option value="5">Ponta Grossa</option>
-                            <option value="6">Catanduva</option>
-                        </select>
+                    <div class="col-12 col-md-2 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="filtro-empresa">Empresa:</label>
+                            <select id="filtro-empresa" class="form-control mt-1">
+                                <option value="">Selecione a empresa</option>
+                                <option value="1">Cambe</option>
+                                <option value="3">Osvaldo Cruz</option>
+                                <option value="5">Ponta Grossa</option>
+                                <option value="6">Catanduva</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <div class="input-group">
+                    <div class="col-12 col-md-4 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="daterange">Data:</label>
+                            <div class="input-group mt-1">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
                                 </div>
-                                <input type="text" class="form-control float-right" id="daterange"
-                                    placeholder="Filtrar por Datas">
+                                <input type="text" class="form-control" id="daterange" placeholder="Selecione a Data">
                             </div>
-                            <!-- /.input group -->
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-danger btn-block float-right" id="submit-seach">Buscar</button>
+                    <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
                     </div>
-                    <!-- /.row -->
                 </div>
             </div>
         </div>
@@ -66,8 +66,8 @@
                                     aria-controls="escareacao" aria-selected="false">Escareação</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="limpeza-manchao" data-toggle="pill" href="#limpeza-manchao"
-                                    role="tab" aria-controls="limpeza-manchao" aria-selected="false">Limpeza Manchão</a>
+                                <a class="nav-link" id="limpeza-manchao" data-toggle="pill" href="#limpeza-manchao" role="tab" 
+                                aria-controls="limpeza-manchao" aria-selected="false">Limp. Manchão</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="cola" data-toggle="pill" href="#cola" role="tab"
@@ -158,7 +158,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </section>
 @stop
@@ -167,9 +166,37 @@
 
     <style>
         .nav-tabs .nav-link {
-            font-size: 13px;
-            padding: 6px 10px;
+            font-size: 15px;
+            padding: 7px 7px;
             white-space: nowrap;
+        }
+
+        .form-control:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.6);
+        }
+
+        .btn-primary {
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.6);
+        }
+
+        /*Garante que os cards lateriais nao quebrem o layout */
+        .col-lg-8.d-flex.flex-column>.card,
+        .col-lg-4.d-flex.flex-column>.card {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+
+
+        #custom-tabs-four-tabContent,
+        #resumo-tabs-content {
+            min-height: 350px;
         }
     </style>
 @stop
