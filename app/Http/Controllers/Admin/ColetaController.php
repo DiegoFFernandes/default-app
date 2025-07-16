@@ -74,4 +74,14 @@ class ColetaController extends Controller
     {
         return view('admin.comercial.inadimplencia-vendedor');
     }
+
+    public function resumoCarga()
+    {
+        return view('admin.comercial.resumo-carga');
+    }
+
+    public function producaoIndicadores()
+    {
+        return view('admin.comercial.producao-indicadores');
+    }
 }
