@@ -33,7 +33,8 @@ class ExecutorEtapaController extends Controller
 
     public function producaoExecutorEtapa()
     {
-        return view('admin.producao.producao-executor');
+        $empresas = $this->empresa->empresa();
+        return view('admin.producao.producao-executor', compact('empresas'));
     }
 
 

@@ -11,7 +11,7 @@ class LiberaOrdemComercial extends Model
 {
     use HasFactory;
 
-    public function listOrdensBloqueadas($cd_regiao, $pedidos)
+    public function listOrdensBloqueadas($cd_regiao = 0, $pedidos = 0)
     {
         $query = "
                 SELECT
@@ -48,8 +48,8 @@ class LiberaOrdemComercial extends Model
                 WHERE PP.STPEDIDO IN ('B')
                     AND PP.IDTIPOPEDIDO <> 2
                     AND PP.TP_BLOQUEIO <> 'F'
-                    " . (($cd_regiao != "") ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
-                    " . (($pedidos != "") ? "and pp.id in ($pedidos)" : "and pp.id = 0") . "
+                    --" . (($cd_regiao != 0) ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
+                    --" . (($pedidos != 0) ? "and pp.id in ($pedidos)" : "and pp.id = 0") . "
                     --and ipb.iditempedidopneu = 466381                    
                 GROUP BY PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
@@ -92,11 +92,15 @@ class LiberaOrdemComercial extends Model
                 WHEN ITP.VL_PRECO = 0 THEN 1
                 ELSE ITP.VL_PRECO
                 END)) AS NUMERIC(15,2)) PC_DESCONTO,
-                ITP.CD_TABPRECO
+                ITP.CD_TABPRECO,
+
+                IPB.PC_COMISSAO,
+                IPB.VL_COMISSAO
             FROM
                 PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-                --inner join itempedidopneuborracheiro ipb on (ipb.iditempedidopneu = ipp.id)
+            INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
+                                                            AND IPB.CD_TIPO = 1)
             INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
             LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = 1
                                     AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)

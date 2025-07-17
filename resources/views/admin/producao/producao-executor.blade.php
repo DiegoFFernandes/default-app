@@ -19,11 +19,9 @@
                         <div class="form-group mb-0">
                             <label for="filtro-empresa">Empresa:</label>
                             <select id="filtro-empresa" class="form-control mt-1">
-                                <option value="">Selecione a empresa</option>
-                                <option value="1">Cambe</option>
-                                <option value="3">Osvaldo Cruz</option>
-                                <option value="5">Ponta Grossa</option>
-                                <option value="6">Catanduva</option>
+                               @foreach ($empresas as $empresa)
+                                   <option value="{{ $empresa->CD_EMPRESA }}">{{ $empresa->NM_EMPRESA }}</option>
+                               @endforeach
                             </select>
                         </div>
                     </div>
@@ -88,6 +86,8 @@
                         </ul>
                     </div>
                     <div class="card-body">
+                        <span class="badge badge-danger badge-empresa">Cambé</span>
+                         <span class="badge badge-danger badge-periodo">Periodo:</span>
                         <div class="tab-content" id="custom-tabs-four-tabContent">
                             <div class="tab-pane fade show active" id="exame-inicial" role="tabpanel"
                                 aria-labelledby="exame-inicial">
@@ -209,6 +209,9 @@
             let inicioData = moment().format('DD.MM.YYYY 00:00');
             let fimData = moment().format('DD.MM.YYYY 23:59');
 
+            $('.badge-periodo').text(`Periodo: ${inicioData} - ${fimData}`);
+            $('.empresa').text('Cambé');
+
             // Variável global da tabela
             let tabela;
 
@@ -226,6 +229,7 @@
             };
 
             const datasSelecionadas = initDateRangePicker();
+            
 
             initTable(1, inicioData, fimData);
 
@@ -236,8 +240,8 @@
                 }
 
                 tabela = $('#executorEtapas').DataTable({
-                    processing: true,
-                    serverSide: true,
+                    processing: false,
+                    serverSide: false,
                     pageLength: 100,
                     language: {
                         url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"

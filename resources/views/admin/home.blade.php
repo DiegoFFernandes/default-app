@@ -19,33 +19,47 @@
                     <div class="card-header">
                         <h3 class="card-title">View 2.0</h3>
                     </div>
-                    <div class="card-body">
-                        @haspermission('ver-coleta-empresa')
-                            <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
-                                style="width: 150px">Coleta Geral</a>
-                        @endhaspermission
-                        @role('admin')
-                            <a href="{{ route('analise-faturamento.index') }}" class="btn btn-sm btn-dark mb-1"
-                                style="width: 150px">Faturamento</a>
-                            <a href="{{ route('analise-garantia.index') }}" class="btn btn-sm btn-dark mb-1"
-                                style="width: 150px">Garantia</a>
-                        @endrole
-                        @haspermission('ver-produzidos-sem-faturar')
-                            <a href={{ route('produzidos-sem-faturar') }} class="btn btn-sm btn-dark mb-1"
-                                style="width: 150px">Produzidos P/ Faturar</a>
-                        @endhaspermission
-                        @haspermission('ver-rel-cobranca')
-                            <a href={{ route('rel-cobranca') }} class="btn btn-sm btn-dark mb-1" style="width: 150px">Relatório
-                                Cobranca</a>
-                        @endhaspermission
-                        @haspermission('ver-pedidos-coletados-acompanhamento')
-                            <a href={{ route('bloqueio-pedidos') }} class="btn btn-sm btn-dark mb-1"
-                                style="width: 150px">Acompanha Pedidos</a>
-                        @endhaspermission
-                        @haspermission('ver-analise-faturamento')
-                            <a href={{ route('analise-faturamento.index') }} class="btn btn-sm btn-dark mb-1"
-                                style="width: 150px">Análise Faturista</a>
-                        @endhaspermission
+                    <div class="card-body row">
+                        <div class="col-md-12">
+                            <p>Comercial</p>
+                            @haspermission('ver-coleta-empresa')
+                                <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Coleta Geral</a>
+                            @endhaspermission
+                            @role('admin')
+                                <a href="{{ route('analise-faturamento.index') }}" class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Faturamento</a>
+                                <a href="{{ route('analise-garantia.index') }}" class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Garantia</a>
+                            @endrole
+                            @haspermission('ver-produzidos-sem-faturar')
+                                <a href={{ route('produzidos-sem-faturar') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Produzidos P/ Faturar</a>
+                            @endhaspermission
+
+                            @haspermission('ver-pedidos-coletados-acompanhamento')
+                                <a href={{ route('bloqueio-pedidos') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Acompanha Pedidos</a>
+                            @endhaspermission
+                            @haspermission('ver-analise-faturamento')
+                                <a href={{ route('analise-faturamento.index') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Análise Faturista</a>
+                            @endhaspermission
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <p>Cobrança</p>
+                            @haspermission('ver-rel-cobranca')
+                                <a href={{ route('rel-cobranca') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Relatório Cobranca</a>
+                            @endhaspermission
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <p>Produção</p>
+                            @haspermission('ver-producao')
+                                <a href={{ route('executor-etapas.index') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Executor x Produção</a>
+                            @endhaspermission
+                        </div>
                     </div>
                 </div>
             </div>

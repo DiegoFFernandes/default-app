@@ -267,12 +267,14 @@ class RelatorioCobrancaController extends Controller
     {
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
 
-        if ($this->user->hasRole('admin')) {         
+        if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
+            $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
             // $area = $this->area->areaAll();
         } elseif ($this->user->hasRole('gerente comercial')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $cd_empresa = 0;
             $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
                 ->pluck('CD_AREACOMERCIAL')
                 ->implode(',');
@@ -280,7 +282,8 @@ class RelatorioCobrancaController extends Controller
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
             }
         } elseif ($this->user->hasRole('supervisor')) {
-           $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+            $cd_empresa = 0;
+            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
                 ->pluck('CD_SUPERVISORCOMERCIAL')
                 ->implode(',');
             if (empty($cd_regiao)) {

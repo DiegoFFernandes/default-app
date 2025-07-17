@@ -43,16 +43,15 @@ class LiberaOrdemComissaoController extends Controller
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
 
-        if ($this->user->hasRole('gerente comercial')) {
-            $find = $this->regiao->findRegiaoUser($this->user->id);
+        // if ($this->user->hasRole('gerente comercial')) {
+        //     $find = $this->regiao->findRegiaoUser($this->user->id);
 
-            $area = Helper::is_empty_object($find);
-            if ($area) {
-                session()->flash('warning', 'Usuário com função de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
-                return redirect()->back();
-            }
-        }
-
+        //     $area = Helper::is_empty_object($find);
+        //     if ($area) {
+        //         session()->flash('warning', 'Usuário com função de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+        //         return redirect()->back();
+        //     }
+        // }
 
         return view('admin.comercial.libera-ordem', compact(
             'title_page',
@@ -62,47 +61,8 @@ class LiberaOrdemComissaoController extends Controller
     }
 
     public function getListOrdemBloqueadas()
-    {
-        $id = 0;
-        // $localizacao = Helper::VerifyRegion($this->user->conexao);
-        $dados = $this->libera->listPneusOrdensBloqueadas($id);
-
-        $result = [];
-
-        foreach ($dados as $item) {
-            $pedido = $item->PEDIDO;
-            $pc_desconto = $item->PC_DESCONTO;
-
-            if (!isset($result[$pedido])) {
-                $result[$pedido] = [
-                    'PEDIDO' => $pedido,
-                    'PC_DESCONTO' => []
-                ];
-            }
-
-            $result[$pedido]['PC_DESCONTO'][] = $pc_desconto;
-        }
-
-        $result = array_values($result);
-        $pedidos_geral = [];
-
-        foreach ($result as $item) {
-            $pedidos_geral[] = $item['PEDIDO'];
-        }
-        $pedidos = array_unique($pedidos_geral);
-        //Serealize os pedidos separando em (,)
-        $pedidos = implode(",", $pedidos);
-
-        if ($this->user->hasRole('admin|diretoria')) {
-            $cd_regiao = "";
-        } elseif ($this->user->hasRole('gerente comercial')) {
-            // Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('CD_REGIAOCOMERCIAL')
-                ->implode(',');
-        }
-
-        $data = $this->libera->listOrdensBloqueadas($cd_regiao, $pedidos);
+    {        
+        $data = $this->libera->listOrdensBloqueadas();
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {

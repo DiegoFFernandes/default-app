@@ -53,7 +53,7 @@ class ProducaoController extends Controller
         $regiao = "";
 
         if ($this->user->hasRole('admin|gerente comercial')) {
-            
+             $regiao = $this->regiao->regiaoAll();            
         } elseif ($this->user->hasRole('supervisor')) {
             $regiao = $this->regiao->findRegiaoUser($this->user->id);
         } elseif ($this->user->hasRole('gerente unidade')) {            
