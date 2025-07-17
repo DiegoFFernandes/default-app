@@ -4,44 +4,43 @@
 
 @section('content')
     <section class="content">
-        <div class="card card-outline card-dark collapsed-card">
+        <div class="card card-outline card-dark">
             <div class="card-header">
                 <h3 class="card-title">Filtros:</h3>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                        <i class="fas fa-minus"></i>
                     </button>
                 </div>
             </div>
-            <!-- /.card-header -->
-            <div class="card-body" style="display: none">
+            <div class="card-body">
                 <div class="row">
-                    <div class="col-md-2">
-                        <select id="filtro-empresa" class="form-control">
-                            <option value="" disabled selected>Filtrar por Empresa</option>
-                            <option value="1">Cambe</option>
-                            <option value="3">Osvaldo Cruz</option>
-                            <option value="5">Ponta Grossa</option>
-                            <option value="6">Catanduva</option>
-                        </select>
+                    <div class="col-12 col-md-2 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="filtro-empresa">Empresa:</label>
+                            <select id="filtro-empresa" class="form-control mt-1">
+                                <option value="">Selecione a empresa</option>
+                                <option value="1">Cambe</option>
+                                <option value="3">Osvaldo Cruz</option>
+                                <option value="5">Ponta Grossa</option>
+                                <option value="6">Catanduva</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <div class="input-group">
+                    <div class="col-12 col-md-4 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="daterange">Data:</label>
+                            <div class="input-group mt-1">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
                                 </div>
-                                <input type="text" class="form-control float-right" id="daterange"
-                                    placeholder="Filtrar por Datas">
+                                <input type="text" class="form-control" id="daterange" placeholder="Selecione a Data">
                             </div>
-                            <!-- /.input group -->
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-primary btn-block float-right" id="submit-seach">Buscar
-                            novos</button>
+                    <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
                     </div>
-                    <!-- /.row -->
                 </div>
             </div>
         </div>
@@ -62,6 +61,30 @@
                                 <a class="nav-link" id="prep-banda" data-toggle="pill" href="#prep-banda" role="tab"
                                     aria-controls="prep-banda" aria-selected="false">Prep. Banda</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="escareacao" data-toggle="pill" href="#escareacao" role="tab"
+                                    aria-controls="escareacao" aria-selected="false">Escareação</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="limpeza-manchao" data-toggle="pill" href="#limpeza-manchao" role="tab" 
+                                aria-controls="limpeza-manchao" aria-selected="false">Limp. Manchão</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="cola" data-toggle="pill" href="#cola" role="tab"
+                                    aria-controls="cola" aria-selected="false">Cola</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="emborrachamento" data-toggle="pill" href="#emborrachamento"
+                                    role="tab" aria-controls="emborrachamento" aria-selected="false">Emborrachamento</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="vulcanizacao" data-toggle="pill" href="#vulcanizacao"
+                                    role="tab" aria-controls="vulcanizacao" aria-selected="false">Vulcanização</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="exame-final" data-toggle="pill" href="#exame-final"
+                                    role="tab" aria-controls="exame-final" aria-selected="false">Exame Final</a>
+                            </li>
                         </ul>
                     </div>
                     <div class="card-body">
@@ -80,38 +103,102 @@
                             <div class="tab-pane fade" id="prep-banda" role="tabpanel" aria-labelledby="prep-banda">
                                 <!-- Conteúdo da aba Prep. Banda -->
                             </div>
+                            <div class="tab-pane fade" id="escareacao" role="tabpanel" aria-labelledby="escareacao">
+                                <!-- Conteúdo da aba Escareação -->
+                            </div>
+                            <div class="tab-pane fade" id="limpeza-manchao" role="tabpanel"
+                                aria-labelledby="limpeza-manchao">
+                                <!-- Conteúdo da aba Limpeza-manchão -->
+                            </div>
+                            <div class="tab-pane fade" id="emborrachamento" role="tabpanel"
+                                aria-labelledby="emborrachamento">
+                                <!-- Conteúdo da aba Emborrachamento -->
+                            </div>
+                            <div class="tab-pane fade" id="vulcanizacao" role="tabpanel" aria-labelledby="vulcanizacao">
+                                <!-- Conteúdo da aba Vulcanização -->
+                            </div>
+                            <div class="tab-pane fade" id="exame-final" role="tabpanel" aria-labelledby="exame-final">
+                                <!-- Conteúdo da aba Exame Final -->
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-12 col-lg-4 mb-3 d-flex flex-column">
-                <div class="card card-outline card-danger flex-fill mb-3">
-                    <div class="card-header">
-                        <h3 class="card-title">Resumo por Setor</h3>
+                <div class="card card-danger card-outline card-outline-tabs flex-fill">
+                    <div class="card-header p-0 border-bottom-0">
+                        <ul class="nav nav-tabs" id="resumo-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="resumo-setor-tab" data-toggle="pill" href="#resumo-setor"
+                                    role="tab" aria-controls="resumo-setor" aria-selected="true">Resumo por Setor</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="resumo-executor-tab" data-toggle="pill" href="#resumo-executor"
+                                    role="tab" aria-controls="resumo-executor" aria-selected="false">Resumo por Executor</a>
+                            </li>
+                        </ul>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="setorResumo" class="table compact table-bordered table-striped"
-                                style="font-size: 12px;">
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-outline card-danger flex-fill">
-                    <div class="card-header">
-                        <h3 class="card-title">Resumo por Executor</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="executorResumo" class="table compact table-bordered table-striped"
-                                style="font-size: 12px;">
-                            </table>
+                        <div class="tab-content" id="resumo-tabs-content">
+                            <div class="tab-pane fade show active" id="resumo-setor" role="tabpanel"
+                                aria-labelledby="resumo-setor-tab">
+                                <div class="table-responsive">
+                                    <table id="setorResumo" class="table compact table-bordered table-striped"
+                                        style="font-size: 12px;"></table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="resumo-executor" role="tabpanel"
+                                aria-labelledby="resumo-executor-tab">
+                                <div class="table-responsive">
+                                    <table id="executorResumo" class="table compact table-bordered table-striped"
+                                        style="font-size: 12px;"></table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+@stop
+
+@section('css')
+
+    <style>
+        .nav-tabs .nav-link {
+            font-size: 15px;
+            padding: 7px 7px;
+            white-space: nowrap;
+        }
+
+        .form-control:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 8px rgba(74, 144, 226, 0.6);
+        }
+
+        .btn-primary {
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.6);
+        }
+
+        /*Garante que os cards lateriais nao quebrem o layout */
+        .col-lg-8.d-flex.flex-column>.card,
+        .col-lg-4.d-flex.flex-column>.card {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+
+
+        #custom-tabs-four-tabContent,
+        #resumo-tabs-content {
+            min-height: 350px;
+        }
+    </style>
 @stop
 
 
@@ -121,8 +208,22 @@
 
             let inicioData = moment().format('DD.MM.YYYY 00:00');
             let fimData = moment().format('DD.MM.YYYY 23:59');
+
             // Variável global da tabela
             let tabela;
+
+            // Mapeia o id de cada aba
+            const columnMapping = {
+                'exame-inicial': [2, 3],
+                'raspa': [4, 5],
+                'prep-banda': [6, 7],
+                'escareacao': [8, 9],
+                'limpeza-manchao': [10, 11],
+                'cola': [12, 13],
+                'emborrachamento': [14, 15],
+                'vulcanizacao': [16, 17],
+                'exame-final': [18, 19]
+            };
 
             const datasSelecionadas = initDateRangePicker();
 
@@ -155,10 +256,10 @@
                             name: 'IDEMPRESA',
                             title: 'Emp',
                             "width": '1%',
-                        },                        
+                        },
                         {
                             data: 'NM_EXECUTOR',
-                            name: 'NM_EXECUTOR',                            
+                            name: 'NM_EXECUTOR',
                             title: 'Executor',
                             "width": '10%',
                         },
@@ -168,28 +269,39 @@
                             title: 'Exame Inicial',
                             "width": '3%',
                         },
-                         {
+                        {
                             data: 'EXAME_INI',
                             name: 'EXAME_INI',
                             title: 'Meta',
                             "width": '3%',
                         },
                         {
-                            data: 'DT_FIM',
-                            name: 'DT_FIM',
-                            "width": '2%',
-                            title: 'Finalização'
+                            data: 'RASPA',
+                            name: 'RASPA',
+                            title: 'Raspagem',
+                            "width": '3%',
+                            visible: false
                         },
                         {
                             data: 'RASPA',
                             name: 'RASPA',
-                            title: 'Raspagem',
+                            title: 'Meta',
+                            width: '3%',
                             visible: false
                         },
                         {
                             data: 'PREPBANDA',
                             name: 'PREPBANDA',
                             title: 'Prep. Banda',
+                            "width": '3%',
+                            visible: false
+
+                        },
+                        {
+                            data: 'PREPBANDA',
+                            name: 'PREPBANDA',
+                            title: 'Meta',
+                            width: '3%',
                             visible: false
 
                         },
@@ -197,48 +309,101 @@
                             data: 'ESCAREACAO',
                             name: 'ESCAREACAO',
                             title: 'Escareação',
+                            "width": '3%',
+                            visible: false
+                        },
+                        {
+                            data: 'ESCAREACAO',
+                            name: 'ESCAREACAO',
+                            title: 'Meta',
+                            width: '3%',
                             visible: false
                         },
                         {
                             data: 'LIMPEZAMANCHAO',
                             name: 'LIMPEZAMANCHAO',
                             title: 'Limpeza Manchão',
+                            "width": '3%',
+                            visible: false
+                        },
+                        {
+                            data: 'LIMPEZAMANCHAO',
+                            name: 'LIMPEZAMANCHAO',
+                            title: 'Meta',
+                            width: '3%',
                             visible: false
                         },
                         {
                             data: 'APLICOLA',
                             name: 'APLICOLA',
                             title: 'Cola',
+                            "width": '3%',
                             visible: false
 
+                        },
+                        {
+                            data: 'APLICOLA',
+                            name: 'APLICOLA',
+                            title: 'Meta',
+                            width: '3%',
+                            visible: false
                         },
                         {
                             data: 'EMBORRACHAMENTO',
                             name: 'EMBORRACHAMENTO',
                             title: 'Emborrachamento',
+                            "width": '3%',
+                            visible: false
+                        },
+                        {
+                            data: 'EMBORRACHAMENTO',
+                            name: 'EMBORRACHAMENTO',
+                            title: 'Meta',
+                            width: '3%',
                             visible: false
                         },
                         {
                             data: 'VULCANIZACAO',
                             name: 'VULCANIZACAO',
                             title: 'Vulcanização',
+                            "width": '3%',
+                            visible: false
+                        },
+                        {
+                            data: 'VULCANIZACAO',
+                            name: 'VULCANIZACAO',
+                            title: 'Meta',
+                            width: '3%',
                             visible: false
                         },
                         {
                             data: 'EXAMEFINAL',
                             name: 'EXAMEFINAL',
                             title: 'Exame Final',
+                            "width": '3%',
                             visible: false
-                        }
+                        },
+                        {
+                            data: 'EXAMEFINAL',
+                            name: 'EXAMEFINAL',
+                            title: 'Meta',
+                            width: '3%',
+                            visible: false
+                        },
+                        {
+                            data: 'DT_FIM',
+                            name: 'DT_FIM',
+                            title: 'Finalização',
+                            "width": '2%',
+                        },
                     ],
                     columnDefs: [{
-                        targets: 4,
+                        targets: 20,
                         render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                     }],
                     order: [
-                        [4, 'asc']
+                        [20, 'asc']
                     ],
-
                     drawCallback: function(settings) {
                         let dadosPaginaAtual = this.api().rows({
                             page: 'current'
@@ -247,6 +412,18 @@
                     }
                 });
             }
+
+            // Mostrar colunas corretas ao trocar de aba
+            $('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
+                const aba = $(e.target).attr('id');
+                const colunas = columnMapping[aba];
+
+                if (tabela && colunas) {
+                    tabela.columns([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+                        .visible(false);
+                    tabela.columns(colunas).visible(true);
+                }
+            });
 
             //Busca os dados ao clicar no botão "Buscar novos"
             $('#submit-seach').on('click', function() {
@@ -275,7 +452,8 @@
             let tabelaResumoExecutor = $('#executorResumo').DataTable({
                 columns: [{
                         title: 'Executor',
-                        data: 'executor'
+                        data: 'executor',
+                        width: '50%'
                     },
                     {
                         title: 'Total Produzido',
@@ -293,7 +471,8 @@
             let tabelaResumoSetor = $('#setorResumo').DataTable({
                 columns: [{
                         title: 'Setor',
-                        data: 'setor'
+                        data: 'setor',
+                        width: '50%'
                     },
                     {
                         title: 'Total Produção',

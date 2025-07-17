@@ -98,10 +98,15 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('coleta')->group(function () {
+        Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
         Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');
         Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas');
-        Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
         Route::get('vendedor', [ColetaController::class, 'vendedor'])->name('vendedor');
+        Route::get('coleta-producao', [ColetaController::class, 'coletaProducao'])->name('coleta-producao');
+        Route::get('fichas-abertas', [ColetaController::class, 'fichasAbertas'])->name('fichas-abertas');
+        Route::get('inadimplencia-vendedor', [ColetaController::class, 'inadimplenciaVendedor'])->name('inadimplencia-vendedor');
+        Route::get('resumo-carga', [ColetaController::class, 'resumoCarga'])->name('resumo-carga');
+        Route::get('producao-indicadores', [ColetaController::class, 'producaoIndicadores'])->name('producao-indicadores');
     });
 });
