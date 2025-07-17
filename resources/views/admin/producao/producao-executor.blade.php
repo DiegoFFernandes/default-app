@@ -19,9 +19,9 @@
                         <div class="form-group mb-0">
                             <label for="filtro-empresa">Empresa:</label>
                             <select id="filtro-empresa" class="form-control mt-1">
-                               @foreach ($empresas as $empresa)
-                                   <option value="{{ $empresa->CD_EMPRESA }}">{{ $empresa->NM_EMPRESA }}</option>
-                               @endforeach
+                                @foreach ($empresas as $empresa)
+                                    <option value="{{ $empresa->CD_EMPRESA }}">{{ $empresa->NM_EMPRESA }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -64,8 +64,8 @@
                                     aria-controls="escareacao" aria-selected="false">Escareação</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="limpeza-manchao" data-toggle="pill" href="#limpeza-manchao" role="tab" 
-                                aria-controls="limpeza-manchao" aria-selected="false">Limp. Manchão</a>
+                                <a class="nav-link" id="limpeza-manchao" data-toggle="pill" href="#limpeza-manchao"
+                                    role="tab" aria-controls="limpeza-manchao" aria-selected="false">Limp. Manchão</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="cola" data-toggle="pill" href="#cola" role="tab"
@@ -86,8 +86,8 @@
                         </ul>
                     </div>
                     <div class="card-body">
-                        <span class="badge badge-danger badge-empresa">Cambé</span>
-                         <span class="badge badge-danger badge-periodo">Periodo:</span>
+                        <span class="badge badge-danger badge-empresa">Empresa:</span>
+                        <span class="badge badge-danger badge-periodo">Periodo:</span>
                         <div class="tab-content" id="custom-tabs-four-tabContent">
                             <div class="tab-pane fade show active" id="exame-inicial" role="tabpanel"
                                 aria-labelledby="exame-inicial">
@@ -192,8 +192,6 @@
             flex-grow: 1;
         }
 
-
-
         #custom-tabs-four-tabContent,
         #resumo-tabs-content {
             min-height: 350px;
@@ -208,9 +206,7 @@
 
             let inicioData = moment().format('DD.MM.YYYY 00:00');
             let fimData = moment().format('DD.MM.YYYY 23:59');
-
-            $('.badge-periodo').text(`Periodo: ${inicioData} - ${fimData}`);
-            $('.empresa').text('Cambé');
+            let abaAtiva = 'exame-inicial';
 
             // Variável global da tabela
             let tabela;
@@ -229,7 +225,7 @@
             };
 
             const datasSelecionadas = initDateRangePicker();
-            
+
 
             initTable(1, inicioData, fimData);
 
@@ -240,7 +236,7 @@
                 }
 
                 tabela = $('#executorEtapas').DataTable({
-                    processing: false,
+                    processing: true,
                     serverSide: false,
                     pageLength: 100,
                     language: {
@@ -253,7 +249,34 @@
                             dt_inicio: dtinicio,
                             dt_fim: dtfim
                         },
-                        type: 'GET'
+                        type: 'GET',
+                        //filtro para não mostrar colunas com valores zerados
+                        dataSrc: function(json) {
+                            return json.data.filter(item => {
+                                switch (abaAtiva) {
+                                    case 'exame-inicial':
+                                        return Number(item.EXAME_INI) > 0;
+                                    case 'raspa':
+                                        return Number(item.RASPA) > 0;
+                                    case 'prep-banda':
+                                        return Number(item.PREPBANDA) > 0;
+                                    case 'escareacao':
+                                        return Number(item.ESCAREACAO) > 0;
+                                    case 'limpeza-manchao':
+                                        return Number(item.LIMPEZAMANCHAO) > 0;
+                                    case 'cola':
+                                        return Number(item.APLICOLA) > 0;
+                                    case 'emborrachamento':
+                                        return Number(item.EMBORRACHAMENTO) > 0;
+                                    case 'vulcanizacao':
+                                        return Number(item.VULCANIZACAO) > 0;
+                                    case 'exame-final':
+                                        return Number(item.EXAMEFINAL) > 0;
+                                    default:
+                                        return true;
+                                }
+                            });
+                        }
                     },
                     columns: [{
                             data: 'IDEMPRESA',
@@ -421,11 +444,21 @@
             $('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
                 const aba = $(e.target).attr('id');
                 const colunas = columnMapping[aba];
+                abaAtiva = aba; 
 
                 if (tabela && colunas) {
+
+                    //esconde a tabela para não carregar a tabela com valores zerados
+                    $('#executorEtapas').hide();
+
                     tabela.columns([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
                         .visible(false);
                     tabela.columns(colunas).visible(true);
+
+                    //recarrega a tabela sem valorezes redados
+                    tabela.ajax.reload(() => {
+                        $('#executorEtapas').fadeIn(100); //tempo de animação na volta da tabela
+                    });
                 }
             });
 
@@ -435,7 +468,8 @@
                 const inicioData = datasSelecionadas.getInicio() + ' 00:00';
                 const fimData = datasSelecionadas.getFim() + ' 23:59';
 
-                const empresa = $('#filtro-empresa').val();
+                const empresa = $('#filtro-empresa').val();// puxa o código da empresa
+                const empresaNome = $('#filtro-empresa option:selected').text();//puxa o nome da empresa
 
                 if (!empresa) {
                     msgToastr('Selecione uma empresa para continuar.',
@@ -448,6 +482,12 @@
                         'warning');
                     return;
                 }
+
+                // automatiza o  badge-danger da empresa 
+                $('.badge-empresa').text(`Empresa: ${empresaNome}`);
+                // automatiza o  badge-danger do periodo e formata o valor 
+                $('.badge-periodo').text(`Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`);
+
 
                 initTable(empresa, inicioData, fimData);
             });
