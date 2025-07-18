@@ -74,23 +74,34 @@ class LiberaOrdemComissaoController extends Controller
 
     public function getListPneusOrdemBloqueadas($id)
     {
-
         $data = $this->libera->listPneusOrdensBloqueadas($id);
-
         return DataTables::of($data)->make(true);
     }
+
+    public function getCalculaComissao()
+    {       
+        $item_pedido = $this->libera->listPneusOrdensBloqueadas(0, $this->request->item_pedido);
+
+        $data = $this->libera->calculaComissao($item_pedido, $this->request->venda);
+
+        return response()->json($data);
+    }
+
     public function saveLiberaPedido()
     {
-        $pedido = $this->pedido->verifyIfExists($this->request->pedido);
-        $pedido ? "True" : "False";
+        return $pedido = $this->pedido->verifyIfExists($this->request->pedido);
+        
 
-        $data = $this->libera->listOrdensBloqueadas("", $this->request->pedido);
+        $data = $this->libera->listOrdensBloqueadas(0, $this->request->pedido);
 
         $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' / (Dash - ' . $this->user->name . ') Obs: ' . $this->request->liberacao;
 
+       
         foreach ($this->request->pneus as $pneu) {
             $this->libera->updateValueItempedidoPneu($pneu);
         }
+
+       
 
         if ($data[0]->TP_BLOQUEIO == "C") //Se bloqueio for igual a Comercial
         {

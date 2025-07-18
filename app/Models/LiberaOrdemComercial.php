@@ -11,7 +11,7 @@ class LiberaOrdemComercial extends Model
 {
     use HasFactory;
 
-    public function listOrdensBloqueadas($cd_regiao = 0, $pedidos = 0)
+    public function listOrdensBloqueadas($cd_regiao = 0, $pedidos = 0, $iditempedidopneu = 0)
     {
         $query = "
                 SELECT
@@ -48,9 +48,9 @@ class LiberaOrdemComercial extends Model
                 WHERE PP.STPEDIDO IN ('B')
                     AND PP.IDTIPOPEDIDO <> 2
                     AND PP.TP_BLOQUEIO <> 'F'
-                    --" . (($cd_regiao != 0) ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
-                    --" . (($pedidos != 0) ? "and pp.id in ($pedidos)" : "and pp.id = 0") . "
-                    --and ipb.iditempedidopneu = 466381                    
+                    " . (($cd_regiao != 0) ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
+                    " . (($pedidos != 0) ? "and pp.id in ($pedidos)" : "") . "
+                    " . (($iditempedidopneu != 0) ? "and ipb.iditempedidopneu = $iditempedidopneu" : "") . "
                 GROUP BY PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
                     PP.IDEMPRESA,
@@ -69,7 +69,7 @@ class LiberaOrdemComercial extends Model
 
         return Helper::ConvertFormatText($data);
     }
-    public function listPneusOrdensBloqueadas($id)
+    public function listPneusOrdensBloqueadas($id = 0, $iditempedidopneu = 0)
     {
         $query = "
                 SELECT
@@ -81,9 +81,11 @@ class LiberaOrdemComercial extends Model
                 PP.DTEMISSAO,
                 CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) PESSOA,
                 I.CD_SUBGRUPO,
+                PP.IDVENDEDOR CD_VENDEDOR,
                 CAST(PV.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) VENDEDOR,
                 IPP.NRSEQCRIACAO SEQ,
                 PP.IDPEDIDOMOVEL,
+                I.CD_ITEM,
                 I.DS_ITEM,
                 IPP.VLUNITARIO VL_VENDA,
                 CAST(ITP.VL_PRECO AS NUMERIC(15,2)) VL_PRECO,
@@ -102,14 +104,15 @@ class LiberaOrdemComercial extends Model
             INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
                                                             AND IPB.CD_TIPO = 1)
             INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
-            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = 1
-                                    AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
+            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = IPP.IDTABPRECO
+                                            AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
             WHERE                
                 PP.STPEDIDO IN ('B') AND
                 PP.TP_BLOQUEIO <> 'F'
-                " . (($id <> 0) ? " and pp.id = '" . $id . "'" : "") . "";
+                " . (($id <> 0) ? " and pp.id = '" . $id . "'" : "") . "
+                 " . (($iditempedidopneu != 0) ? "and ipb.iditempedidopneu = $iditempedidopneu" : "") . ";";
 
         $data = DB::connection('firebird')->select($query);
 
@@ -154,5 +157,28 @@ class LiberaOrdemComercial extends Model
                 DB::connection('firebird')->statement($query);
             }
         });
+    }
+
+    public function calculaComissao($input, $venda){
+
+        // dd($input[0]);
+
+        $cd_empresa = $input[0]->EMP;
+        $cd_item = $input[0]->CD_ITEM;
+        $cd_vendedor = $input[0]->CD_VENDEDOR;
+        $cd_movimentacao = 20;
+        $cd_tabpreco = $input[0]->CD_TABPRECO;
+        $cd_preco_venda = $venda;
+        $cd_preco_tabela = $input[0]->VL_PRECO;
+
+        $query = "
+        SELECT
+            CAST(C.V_PC_COMISSAO AS NUMERIC(15,2)) PC_COMISSAO,
+            CAST(C.V_VL_COMISSAO AS NUMERIC(15,2)) VL_COMISSAO
+        FROM CALCULA_COMISSAO($cd_empresa, $cd_vendedor, NULL, $cd_item, $cd_movimentacao, NULL, $cd_tabpreco, NULL, $cd_preco_venda, NULL, $cd_preco_tabela) C";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
     }
 }

@@ -19,7 +19,8 @@ Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
 
         Route::get('get-ordem-bloqueadas-comercial', [LiberaOrdemComissaoController::class, 'getListOrdemBloqueadas'])->name('get-ordens-bloqueadas-comercial');
         Route::get('get-pneus-ordem-bloqueadas-comercial/{id}', [LiberaOrdemComissaoController::class, 'getListPneusOrdemBloqueadas'])->name('get-pneus-ordens-bloqueadas-comercial');
-        Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
+        Route::get('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
+        Route::get('get-calcula-comissao', [LiberaOrdemComissaoController::class, 'getCalculaComissao'])->name('get-calcula-comissao');
     });
 });
 
@@ -99,6 +100,9 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::prefix('coleta')->group(function () {
         Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
+        Route::get('get-coleta-geral', [ColetaController::class, 'getColetaGeral'])->name('get-coleta-geral');
+
+
         Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');
         Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas');
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');

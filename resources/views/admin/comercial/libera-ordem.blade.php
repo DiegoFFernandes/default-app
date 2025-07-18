@@ -58,19 +58,19 @@
                             <div class="col-4 col-md-4">
                                 <div class="form-group">
                                     <label for="nr_pedido">Pedido</label>
-                                    <input class="form-control nr_pedido" type="text" readonly>
+                                    <input class="form-control form-control-sm nr_pedido" type="text" readonly>
                                 </div>
                             </div>
                             <div class="col-8 col-md-8">
                                 <div class="form-group">
                                     <label for="pessoa">Pessoa</label>
-                                    <input id="" class="form-control pessoa" type="text" readonly>
+                                    <input id="" class="form-control form-control-sm pessoa" type="text" readonly>
                                 </div>
                             </div>
                             <div class="col-12 col-md-12">
                                 <div class="form-group">
                                     <label for="vendedor">Vendedor</label>
-                                    <input id="" class="form-control vendedor" type="text" readonly>
+                                    <input id="" class="form-control form-control-sm vendedor" type="text" readonly>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
             }
 
             .form-control {
-                font-size: 12px;
+                font-size: 13px;
             }
         }
 
@@ -248,18 +248,14 @@
                 //obtem os dados de toda a tabela, para fazer o update no banco            
                 pneus = table_item_pedido.rows().data().toArray();
             }
-
-            console.log(pneus);
-
-            return false;
             $.ajax({
                 url: "{{ route('save-libera-pedido') }}",
-                method: 'post',
+                method: 'get',
                 data: {
                     _token: $("[name=csrf-token]").attr("content"),
                     pedido: $('.nr_pedido').val(),
                     liberacao: $('.liberacao').val(),
-                    pneus: dataTable
+                    pneus: pneus
                 },
                 beforeSend: function() {
                     $("#loading").removeClass('invisible');
@@ -286,22 +282,39 @@
             });
         });
 
+        let debounceTimer; // armazena o timer de debounce
         $('#card-container').on('input', '.input-venda', function() {
             const input = $(this);
 
-            console.log(input);
+            clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
 
-            const venda = parseFloat(input.val()) || 0;
-            const preco = parseFloat(input.data('preco')) || 0;
+            // Vai esperar 500ms antes de fazer a requisição
+            debounceTimer = setTimeout(() => {
+                const venda = parseFloat(input.val()) || 0;
+                const item_pedido = input.closest('.card-body').find('.input-id-item').val() || 0;
+                const preco = input.closest('.card-body').find('.input-preco').val() || 0;
 
-            let desconto = 0;
-            if (preco > 0) {
-                desconto = 100 - (venda * 100) / preco;
-            }
 
-            
+                $.get('{{ route('get-calcula-comissao') }}', {
+                    item_pedido: item_pedido,
+                    venda: venda
+                }, function(data) {
 
-            input.closest('.card-body').find('.percentual').val(desconto.toFixed(2));
+                    // console.log(parseFloat(data[0].VL_COMISSAO).toFixed(2));
+
+                    let desconto = 0;
+                    let commissao = 0;
+
+                    if (preco > 0) {
+                        desconto = 100 - (venda * 100) / preco;                        
+                    }
+
+                    input.closest('.card-body').find('.percentual').val(desconto.toFixed(2));
+                    input.closest('.card-body').find('.vl-comissao').val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
+                    input.closest('.card-body').find('.percentual-comissao').val(parseFloat(data[0].PC_COMISSAO).toFixed(2));
+                });
+            }, 1000); // 1000ms de debounce
+
         });
 
         function initTable(tableId, data) {
@@ -420,6 +433,8 @@
             data.forEach(item => {
                 const card = $(`                       
                             <div class="card-body shadow-sm p-3">
+                                <input type="hidden" class="input-id-item" value="${item.ID}" />
+                                <input type="hidden" class="input-empresa" value="${item.EMPRESA}" />
                                 <div class="row">
                                     <div class="col-8 col-md-8">
                                         <div class="form-group mb-0">                                  
@@ -431,7 +446,7 @@
                                     </div>
                                     <div class="col-4 col-md-4">
                                         <div class="form-group mb-0">                                  
-                                            <label>Desconto:</label> 
+                                            <label>% Desc</label> 
                                             <input type="text" 
                                                 class="form-control form-control-sm percentual"
                                                 value="${parseFloat(item.PC_DESCONTO).toFixed(2)}" readonly />                                    
@@ -440,29 +455,29 @@
                                 
                                     <div class="col-8 col-md-8">
                                         <div class="form-group mb-0">    
-                                            <label>Venda:</label>                                
+                                            <label>Venda</label>                                
                                             <input type="number"
                                                 class="form-control form-control-sm input-venda"
                                                 style="width: 100px;"
-                                                value="${parseFloat(item.VL_VENDA).toFixed(2)}"
-                                                data-preco="${item.VL_PRECO}"
-                                                data-id="${item.ID}" />
+                                                value="${parseFloat(item.VL_VENDA).toFixed(2)}"                                               
+                                                data-id="${item.ID}" 
+                                                data-pccomissao="${item.PC_COMISSAO}"
+                                                />
                                         </div>
                                     </div>
                                     <div class="col-4 col-md-4">
                                         <div class="form-group mb-0">
-                                            <label>Tabela: </label>
+                                            <label>Tabela</label>
                                             <input type="number"
-                                                class="form-control form-control-sm"
-                                                
+                                                class="form-control form-control-sm input-preco"                                                
                                                 value="${parseFloat(item.VL_PRECO).toFixed(2)}" readonly/>
                                         </div>  
                                     </div>  
                                     <div class="col-8 col-md-8">
                                     <div class="form-group mb-0">
-                                        <label>Comissão:</label>
+                                        <label>Comissão</label>
                                         <input type="number"
-                                            class="form-control form-control-sm"
+                                            class="form-control form-control-sm vl-comissao"
                                             style="width: 100px;"
                                             value="${parseFloat(item.VL_COMISSAO).toFixed(2)}" readonly/>
                                     </div>
@@ -471,8 +486,7 @@
                                         <div class="form-group mb-0">
                                             <label>% Comissao</label>
                                             <input type="number"
-                                            class="form-control form-control-sm"
-                                            
+                                            class="form-control form-control-sm percentual-comissao"                                            
                                             value="${parseFloat(item.PC_COMISSAO).toFixed(2)}" readonly/>
                                         </div>
                                     </div>

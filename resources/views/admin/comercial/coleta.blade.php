@@ -85,17 +85,10 @@
                 <div class="tab-content" id="tabContentColetas">
                     <div class="tab-pane fade show active" id="painel-vendedor" role="tabpanel"
                         aria-labelledby="tab-vendedor">
-                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
                             <table id="coletasVendedorHoje"
                                 class="table compact table-font-small table-striped table-bordered nowrap"
                                 style="width:100%; font-size: 12px;">
-                                <thead class="bg-dark text-white">
-                                    <tr>
-                                        <th>Vendedor</th>
-                                        <th>Qtd</th>
-                                        <th>Valor médio</th>
-                                    </tr>
-                                </thead>
                             </table>
                         </div>
                     </div>
@@ -110,8 +103,7 @@
                             <canvas id="coletaPorDesenho"></canvas>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="painel-coletaMedida" role="tabpanel"
-                        aria-labelledby="tab-coletaMedida">
+                    <div class="tab-pane fade" id="painel-coletaMedida" role="tabpanel" aria-labelledby="tab-coletaMedida">
                         <div>
                             <canvas id="coletaPorMedida"></canvas>
                         </div>
@@ -147,8 +139,33 @@
                 processing: true,
                 serverSide: false,
                 language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json"
                 },
+                ajax: {
+                    url: "{{ route('get-coleta-geral') }}",
+                    type: 'GET',
+                    data: function(d) {
+                        d.dt_inicial = '01.02.2025';
+                        d.dt_final = '05.02.2025';
+                        d.cd_empresa = 1; // Ajuste conforme necessário
+                    }
+                },
+                columns: [{
+                        data: 'NM_VENDEDOR',
+                        name: 'NM_VENDEDOR',
+                        title: 'Vendedor'
+                    },
+                    {
+                        data: 'QTDPNEUS',
+                        name: 'QTDPNEUS',
+                        title: 'Quantidade'
+                    },
+                    {
+                        data: 'VALOR_MEDIO',
+                        name: 'VALOR_MEDIO',
+                        title: 'Valor Médio'
+                    }
+                ],
             });
         });
     </script>
