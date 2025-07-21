@@ -13,7 +13,7 @@ use App\Http\Controllers\Admin\GerenteUnidadeController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
+Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(function () {
     Route::prefix('libera-ordem-comercial')->group(function () {
         Route::get('index', [LiberaOrdemComissaoController::class, 'index'])->name('libera-ordem-comissao.index');
 

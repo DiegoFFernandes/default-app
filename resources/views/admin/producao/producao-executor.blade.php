@@ -134,7 +134,8 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="resumo-executor-tab" data-toggle="pill" href="#resumo-executor"
-                                    role="tab" aria-controls="resumo-executor" aria-selected="false">Resumo por Executor</a>
+                                    role="tab" aria-controls="resumo-executor" aria-selected="false">Resumo por
+                                    Executor</a>
                             </li>
                         </ul>
                     </div>
@@ -207,6 +208,9 @@
             let inicioData = moment().format('DD.MM.YYYY 00:00');
             let fimData = moment().format('DD.MM.YYYY 23:59');
             let abaAtiva = 'exame-inicial';
+
+            $('.badge-periodo').text(`Periodo: ${inicioData} - ${fimData}`);
+            $('.badge-empresa').text('Empresa: Cambé')
 
             // Variável global da tabela
             let tabela;
@@ -444,7 +448,7 @@
             $('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
                 const aba = $(e.target).attr('id');
                 const colunas = columnMapping[aba];
-                abaAtiva = aba; 
+                abaAtiva = aba;
 
                 if (tabela && colunas) {
 
@@ -468,8 +472,8 @@
                 const inicioData = datasSelecionadas.getInicio() + ' 00:00';
                 const fimData = datasSelecionadas.getFim() + ' 23:59';
 
-                const empresa = $('#filtro-empresa').val();// puxa o código da empresa
-                const empresaNome = $('#filtro-empresa option:selected').text();//puxa o nome da empresa
+                const empresa = $('#filtro-empresa').val(); // puxa o código da empresa
+                const empresaNome = $('#filtro-empresa option:selected').text(); //puxa o nome da empresa
 
                 if (!empresa) {
                     msgToastr('Selecione uma empresa para continuar.',
@@ -486,7 +490,9 @@
                 // automatiza o  badge-danger da empresa 
                 $('.badge-empresa').text(`Empresa: ${empresaNome}`);
                 // automatiza o  badge-danger do periodo e formata o valor 
-                $('.badge-periodo').text(`Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`);
+                $('.badge-periodo').text(
+                    `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
+                    );
 
 
                 initTable(empresa, inicioData, fimData);
