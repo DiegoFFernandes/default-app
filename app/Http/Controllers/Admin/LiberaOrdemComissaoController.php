@@ -120,10 +120,19 @@ class LiberaOrdemComissaoController extends Controller
 
         //Verifica se o usuario e supervisor e se o status comercial é G (Gerente)
         //Caso verdadeiro, ajusta os valores mas mantem a ordem bloqueada até liberação do gerente
-        if ($this->user->hasRole('supervisor') && $data[0]->ST_COMERCIAL == 'G' && $data[0]->TP_BLOQUEIO == 'C') {
-            return response()->json(['warning' => 'Feita atualização de comissão, favor aguardar liberação do Gerente!']);
+        $registro = $data[0] ?? null;
+
+        if (
+            $this->user->hasRole('supervisor') &&
+            $registro &&
+            $registro->ST_COMERCIAL === 'G' &&
+            in_array($registro->TP_BLOQUEIO, ['C', 'A'])
+        ) {
+            return response()->json([
+                'warning' => 'Feita atualização de comissão, favor aguardar liberação do Gerente!'
+            ]);
         }
-        
+
 
         if ($data[0]->TP_BLOQUEIO == "C") //Se bloqueio for igual a Comercial
         {

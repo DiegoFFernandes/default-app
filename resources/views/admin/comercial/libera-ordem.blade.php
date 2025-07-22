@@ -45,7 +45,8 @@
                                     <input id="" class="form-control form-control-sm vendedor" type="text"
                                         readonly>
                                     <blockquote class="quote-danger d-none">
-                                        <small class="form-text text-muted">Apenas o Coordenador libera. Edição permitida.</small>
+                                        <small class="form-text text-muted">Apenas o Coordenador libera. Edição
+                                            permitida.</small>
                                     </blockquote>
 
                                 </div>
@@ -106,6 +107,15 @@
             [id^="card-pedido"] {
                 display: none;
             }
+        }
+
+        .input-destaque {
+            background-color: #218838 !important;
+            /* vermelho claro */
+            border: 1px solid #1e7e34 !important;
+            /* borda vermelha */
+            transition: background-color 0.5s ease;
+            color: #fff !important;
         }
     </style>
 @stop
@@ -334,11 +344,24 @@
                         desconto = 100 - (venda * 100) / preco;
                     }
 
-                    input.closest('.card-body').find('.percentual').val(desconto.toFixed(2));
-                    input.closest('.card-body').find('.vl-comissao').val(parseFloat(data[0]
-                        .VL_COMISSAO).toFixed(2));
-                    input.closest('.card-body').find('.percentual-comissao').val(parseFloat(data[0]
-                        .PC_COMISSAO).toFixed(2));
+                    const percentual = input.closest('.card-body').find('.percentual');
+                    const vlComissao = input.closest('.card-body').find('.vl-comissao');
+                    const percentualComissao = input.closest('.card-body').find(
+                        '.percentual-comissao');
+
+                    percentual.val(desconto.toFixed(2));
+                    vlComissao.val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
+                    percentualComissao.val(parseFloat(data[0].PC_COMISSAO).toFixed(2));
+
+                    // Aplica destaque
+                    [percentual, vlComissao, percentualComissao].forEach(el => {
+                        el.addClass('input-destaque');                        
+                    });
+
+                    // 👉 Aplica foco visual (danger) ao input editado
+                    input.addClass('is-valid');
+
+
                 });
             }, 1000); // 1000ms de debounce
 
@@ -458,9 +481,9 @@
             const container = $('#' + containerId);
             container.empty(); // Limpa antes
 
-            if(data[0].ST_COMERCIAL == 'G') {
+            if (data[0].ST_COMERCIAL == 'G') {
                 $('.quote-danger').removeClass('d-none');
-            }else{
+            } else {
                 $('.quote-danger').addClass('d-none');
             }
             data.forEach(item => {
