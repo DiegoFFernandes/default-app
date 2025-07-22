@@ -289,7 +289,7 @@
             }
             $.ajax({
                 url: "{{ route('save-libera-pedido') }}",
-                method: 'get',
+                method: 'post',
                 data: {
                     _token: $("[name=csrf-token]").attr("content"),
                     pedido: $('.nr_pedido').val(),

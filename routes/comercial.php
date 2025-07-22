@@ -19,7 +19,7 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
 
         Route::get('get-ordem-bloqueadas-comercial', [LiberaOrdemComissaoController::class, 'getListOrdemBloqueadas'])->name('get-ordens-bloqueadas-comercial');
         Route::get('get-pneus-ordem-bloqueadas-comercial/{id}', [LiberaOrdemComissaoController::class, 'getListPneusOrdemBloqueadas'])->name('get-pneus-ordens-bloqueadas-comercial');
-        Route::get('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
+        Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
         Route::get('get-calcula-comissao', [LiberaOrdemComissaoController::class, 'getCalculaComissao'])->name('get-calcula-comissao');
     });
 });

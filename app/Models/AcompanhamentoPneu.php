@@ -26,8 +26,8 @@ class AcompanhamentoPneu extends Model
         $query = "
                 SELECT
                     CAST(O_DS_ETAPA AS VARCHAR(200) CHARACTER SET UTF8) AS O_DS_ETAPA,
-                    O_HR_ENTRADA,
-                    O_HR_SAIDA,
+                    CAST(O_DT_ENTRADA || ' ' || O_HR_ENTRADA AS timestamp) DT_ENTRADA,
+                    CAST(O_DT_SAIDA || ' ' || O_HR_SAIDA AS timestamp) DT_SAIDA,
                     CAST(O_NM_USUARIO AS VARCHAR(200) CHARACTER SET UTF8) AS O_NM_USUARIO,
                     CAST(O_DS_COMPLEMENTOETAPA AS VARCHAR(1000) CHARACTER SET UTF8) AS O_DS_COMPLEMENTOETAPA,
                     O_DT_ENTRADA,
