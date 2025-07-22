@@ -37,9 +37,29 @@ class PedidoPneu extends Model
         });
     }
 
-    static function getPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null){
+    static function updateDescontoMaior10($pedido)
+    {
+        if (empty($pedido)) {
+            return;
+        }
 
-       $query = "
+        return DB::transaction(function () use ($pedido) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                UPDATE PEDIDOPNEU PP
+                    SET PP.ST_COMERCIAL = 'G'
+                WHERE PP.ID in ($pedido)";
+
+            return DB::connection('firebird')->statement($query);
+        });
+    }
+
+    static function getPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null)
+    {
+
+        $query = "
             SELECT
                 MP.DSMEDIDAPNEU,
                 COUNT(*) QTD,
@@ -53,7 +73,7 @@ class PedidoPneu extends Model
             WHERE
                 PP.DTEMISSAO BETWEEN '$dt_inicio' AND '$dt_fim'
                 AND PP.IDEMPRESA = $cd_empresa
-            GROUP BY MP.DSMEDIDAPNEU";    
+            GROUP BY MP.DSMEDIDAPNEU";
         $dados = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($dados);

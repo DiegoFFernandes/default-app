@@ -10,38 +10,10 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Pedidos Bloqueados</h3>
+                <span class="float-right badge bg-warning">Coordenador</span>
             </div>
             <div class="card-body">
                 <table class="table stripe compact table-font-small" style="width:100%" id="table-ordem-block">
-                    <thead>
-                        <tr>
-                            <th>Emp</th>
-                            <th></th>
-                            <th>Pedido</th>
-                            <th>Cliente</th>
-                            <th>Qtd</th>
-                            <th>Vendedor</th>
-                            <th>Tabela S/N</th>
-                            <th>Validade</th>
-                            {{-- <th>Comissão</th>
-                            <th>% Comissão</th> --}}
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                    <tfoot>
-                        <tr>
-                            <th>Emp</th>
-                            <th></th>
-                            <th class="text-center">Pedido</th>
-                            <th>Cliente</th>
-                            <th>Qtd</th>
-                            <th>Vendedor</th>
-                            <th>Tabela S/N</th>
-                            <th>Validade</th>
-                            {{-- <th>Comissão</th>
-                            <th>% Comissão</th> --}}
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         </div>
@@ -52,7 +24,6 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-body">
-
                     <div class="col-md-12">
                         <div class="row">
                             <div class="col-4 col-md-4">
@@ -64,13 +35,20 @@
                             <div class="col-8 col-md-8">
                                 <div class="form-group">
                                     <label for="pessoa">Pessoa</label>
-                                    <input id="" class="form-control form-control-sm pessoa" type="text" readonly>
+                                    <input id="" class="form-control form-control-sm pessoa" type="text"
+                                        readonly>
                                 </div>
                             </div>
                             <div class="col-12 col-md-12">
                                 <div class="form-group">
                                     <label for="vendedor">Vendedor</label>
-                                    <input id="" class="form-control form-control-sm vendedor" type="text" readonly>
+                                    <input id="" class="form-control form-control-sm vendedor" type="text"
+                                        readonly>
+                                    <blockquote class="quote-danger d-none">
+                                        <small class="form-text text-muted">Apenas o Coordenador libera. Edição
+                                            permitida.</small>
+                                    </blockquote>
+
                                 </div>
                             </div>
                         </div>
@@ -103,6 +81,14 @@
 
 @section('css')
     <style>
+        table.dataTable {
+            table-layout: fixed;
+        }
+
+        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             #table-item-pedido_wrapper {
                 display: none !important;
@@ -121,6 +107,15 @@
             [id^="card-pedido"] {
                 display: none;
             }
+        }
+
+        .input-destaque {
+            background-color: #218838 !important;
+            /* vermelho claro */
+            border: 1px solid #1e7e34 !important;
+            /* borda vermelha */
+            transition: background-color 0.5s ease;
+            color: #fff !important;
         }
     </style>
 @stop
@@ -144,36 +139,47 @@
             columns: [{
                     data: "actions",
                     name: "actions",
+                    "width": "2%",
+                    title: "",
                 },
                 {
                     data: 'EMP',
                     name: 'EMP',
-                    // "width": "1%",
+                    "width": "1%",
                     visible: false,
+                    title: 'Emp'
                 }, {
                     data: 'PEDIDO',
-                    name: 'PEDIDO'
+                    "width": "6%",
+                    name: 'PEDIDO',
+                    title: 'Pedido'
                 },
                 {
                     data: 'PESSOA',
-                    name: 'PESSOA'
+                    name: 'PESSOA',
+
+                    title: 'Cliente'
                 }, {
                     data: 'QTDPNEUS',
-                    name: 'QTDPNEUS'
+                    name: 'QTDPNEUS',
+                    title: 'Pneus'
                 }, {
                     data: 'VENDEDOR',
                     name: 'VENDEDOR',
+                    title: 'Vendedor',
                     visible: true
                 },
                 {
                     data: 'TABPRECO',
                     name: 'TABPRECO',
+                    title: 'Tabela',
                     visible: true
                 },
                 {
                     data: 'DT_VALIDADE',
                     name: 'DT_VALIDADE',
-                    visible: true
+                    title: 'Validade',
+                    visible: false
                 }
             ],
             order: [2, 'asc']
@@ -200,10 +206,8 @@
             var tr = $(this).closest('tr');
             var row = table_item_pedido.row(tr);
             var rowData = row.data();
-
             var valorCellVenda = tr.find('td').eq(1);
-            var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2); // ← usa o dado puro
-            var valorTabela = parseFloat(rowData.VL_PRECO).toFixed(2); // ← usa o dado puro
+            var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
 
             if (!valorCellVenda.find('input').length) {
                 valorCellVenda.html(
@@ -214,14 +218,45 @@
                 input.focus();
                 input.select();
 
-                input.on('blur', function() {
-                    var newValue = parseFloat($(this).val()).toFixed(2);
-                    var newPercent = parseFloat((100 - (newValue * 100) / valorTabela)).toFixed(2);
+                input.on('blur', function(e) {
+                    clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
 
-                    rowData.VL_VENDA = parseFloat(newValue);
-                    rowData.PC_DESCONTO = parseFloat(newPercent);
+                    // Vai esperar 500ms antes de fazer a requisição
+                    debounceTimer = setTimeout(() => {
+                        const venda = parseFloat($(this).val()) || 0;
+                        const preco = rowData.VL_PRECO || 0;
 
-                    row.data(rowData).draw(); // ← desenha com formatação automática do render
+                        $.get('{{ route('get-calcula-comissao') }}', {
+                            item_pedido: rowData.ID,
+                            venda: venda
+                        }, function(data) {
+
+                            console.log(data);
+
+                            let desconto = 0;
+                            let commissao = 0;
+
+                            if (preco > 0) {
+                                desconto = 100 - (venda * 100) / preco;
+                            }
+
+                            rowData.VL_VENDA = parseFloat(venda).toFixed(2);
+                            rowData.PC_DESCONTO = parseFloat(desconto).toFixed(2);
+                            rowData.VL_COMISSAO = parseFloat(data[0].VL_COMISSAO).toFixed(
+                                2);
+                            rowData.PC_COMISSAO = parseFloat(data[0].PC_COMISSAO).toFixed(
+                                2);
+                            row.data(rowData).draw();
+                        });
+                    }, 500); // 500ms de debounce
+
+                });
+
+                input.on('keydown', function(e) {
+                    if (e.which === 13) { // Enter
+                        e.preventDefault(); // evita quebra de linha
+                        $(this).blur(); // força o blur, que chama a função de atualização
+                    }
                 });
             }
         });
@@ -234,14 +269,18 @@
                 $('.input-venda').each(function() {
                     const card = $(this).closest('.card');
                     const vl_venda = parseFloat($(this).val());
-                    const vl_preco = parseFloat($(this).data('preco'));
+                    const vl_preco = card.find('.input-preco').val();
                     const desconto = parseFloat((100 - (vl_venda * 100) / vl_preco)).toFixed(2);
+                    const pc_comissao = card.find('.percentual-comissao').val();
+                    const vl_comissao = card.find('.vl-comissao').val();
 
                     pneus.push({
                         ID: $(this).data('id'),
                         VL_VENDA: vl_venda,
                         VL_PRECO: vl_preco,
-                        PC_DESCONTO: desconto
+                        VL_COMISSAO: vl_comissao,
+                        PC_DESCONTO: desconto,
+                        PC_COMISSAO: pc_comissao
                     });
                 })
             } else {
@@ -250,7 +289,7 @@
             }
             $.ajax({
                 url: "{{ route('save-libera-pedido') }}",
-                method: 'get',
+                method: 'post',
                 data: {
                     _token: $("[name=csrf-token]").attr("content"),
                     pedido: $('.nr_pedido').val(),
@@ -288,30 +327,41 @@
 
             clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
 
-            // Vai esperar 500ms antes de fazer a requisição
             debounceTimer = setTimeout(() => {
                 const venda = parseFloat(input.val()) || 0;
                 const item_pedido = input.closest('.card-body').find('.input-id-item').val() || 0;
                 const preco = input.closest('.card-body').find('.input-preco').val() || 0;
-
 
                 $.get('{{ route('get-calcula-comissao') }}', {
                     item_pedido: item_pedido,
                     venda: venda
                 }, function(data) {
 
-                    // console.log(parseFloat(data[0].VL_COMISSAO).toFixed(2));
-
                     let desconto = 0;
                     let commissao = 0;
 
                     if (preco > 0) {
-                        desconto = 100 - (venda * 100) / preco;                        
+                        desconto = 100 - (venda * 100) / preco;
                     }
 
-                    input.closest('.card-body').find('.percentual').val(desconto.toFixed(2));
-                    input.closest('.card-body').find('.vl-comissao').val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
-                    input.closest('.card-body').find('.percentual-comissao').val(parseFloat(data[0].PC_COMISSAO).toFixed(2));
+                    const percentual = input.closest('.card-body').find('.percentual');
+                    const vlComissao = input.closest('.card-body').find('.vl-comissao');
+                    const percentualComissao = input.closest('.card-body').find(
+                        '.percentual-comissao');
+
+                    percentual.val(desconto.toFixed(2));
+                    vlComissao.val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
+                    percentualComissao.val(parseFloat(data[0].PC_COMISSAO).toFixed(2));
+
+                    // Aplica destaque
+                    [percentual, vlComissao, percentualComissao].forEach(el => {
+                        el.addClass('input-destaque');                        
+                    });
+
+                    // 👉 Aplica foco visual (danger) ao input editado
+                    input.addClass('is-valid');
+
+
                 });
             }, 1000); // 1000ms de debounce
 
@@ -362,7 +412,7 @@
                     {
                         data: 'VL_VENDA',
                         name: 'VL_VENDA',
-                        width: '2%',
+                        // width: '2%',
                         render: $.fn.dataTable.render.number('.', ',', 2),
                         title: 'Venda'
                     },
@@ -430,6 +480,12 @@
         function renderizarCards(data, containerId) {
             const container = $('#' + containerId);
             container.empty(); // Limpa antes
+
+            if (data[0].ST_COMERCIAL == 'G') {
+                $('.quote-danger').removeClass('d-none');
+            } else {
+                $('.quote-danger').addClass('d-none');
+            }
             data.forEach(item => {
                 const card = $(`                       
                             <div class="card-body shadow-sm p-3">

@@ -561,27 +561,32 @@
                         "orderable": false,
                         "searchable": false,
                         "data": 'null',
-                        "defaultContent": '<span class="right mr-2"><i class="fas fa-plus-square"></i></span>',
+                        "defaultContent": '<span class="right mr-2"><i class="btn-detalhes fas fa-plus-circle"></i></span>',
                         "width": "1%"
                     },
                     {
                         data: 'NRSEQUENCIA',
-                        name: 'NRSEQUENCIA'
+                        name: 'NRSEQUENCIA',
+                        "width": "2%",
                     },
                     {
                         data: 'NRORDEM',
-                        name: 'NRORDEM'
+                        name: 'NRORDEM',
+                        "width": "3%",
                     },
                     {
                         data: 'DSSERVICO',
-                        name: 'DSSERVICO'
+                        name: 'DSSERVICO',
+                        "width": "20%",
                     },
                     {
                         data: 'VLUNITARIO',
-                        name: 'VLUNITARIO'
+                        name: 'VLUNITARIO',
+                        width: "5%",
                     }, {
                         data: 'STORDEM',
-                        name: 'STORDEM',
+                        name: 'STORDEM',    
+                        "width": "2%",
                     },
                 ]
             });
@@ -595,13 +600,13 @@
                 // This row is already open - close it
                 row_item.child.hide();
                 tr_item.removeClass('shown');
-                $(this).find('i').removeClass('fa-minus-square').addClass('fa-plus-square');
+                $(this).find('i').removeClass('fa-minus-circle').addClass('fa-plus-circle');
             } else {
                 // Open this row
                 row_item.child(details_item_pedido(row_item.data())).show();
                 initTableItemPedido(tableId, row_item.data());
                 tr_item.addClass('shown');
-                $(this).find('i').removeClass('fa-plus-square').addClass('fa-minus-square');
+                $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');
                 tr_item.next().find('td').addClass('no-padding');
             }
         });
@@ -626,12 +631,18 @@
                         name: 'O_NM_USUARIO'
                     },
                     {
-                        data: 'entrada',
-                        name: 'entrada'
+                        data: 'DT_ENTRADA',
+                        name: 'DT_ENTRADA',
+                        render: function(data, type, row) {
+                            return moment(data).format('DD/MM/YYYY HH:mm');
+                        }
                     },
                     {
-                        data: 'saida',
-                        name: 'saida'
+                        data: 'DT_SAIDA',
+                        name: 'DT_SAIDA',
+                        render: function(data, type, row) {
+                            return moment(data).format('DD/MM/YYYY HH:mm');
+                        }
                     },
                     {
                         data: 'O_DS_COMPLEMENTOETAPA',
@@ -639,9 +650,11 @@
                     },
                     {
                         data: 'O_ST_RETRABALHO',
-                        name: 'O_ST_RETRABALHO'
+                        name: 'O_ST_RETRABALHO',
+                        width: "2%",
                     },
                 ],
+                order: [[3, 'asc']]
 
             });
         }

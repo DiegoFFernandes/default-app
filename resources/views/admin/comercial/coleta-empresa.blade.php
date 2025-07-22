@@ -721,7 +721,7 @@
                     {
                         data: 'NM_VENDEDOR',
                         title: "Vendedor",
-                        "width": "4%",
+                        "width": "10%",
                         name: 'ID',
                         visible: true
                     },

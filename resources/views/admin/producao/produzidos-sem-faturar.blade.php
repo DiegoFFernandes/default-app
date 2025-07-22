@@ -142,21 +142,7 @@
                 <div class="card card-primary">
                     <div class="card-body">
                         <table id="produzidosTable" class="table table-bordered table-striped table-font-small compact">
-                            <thead>
-                                <tr>
-                                    <th>Emp</th>
-                                    <th>Nr Embarque</th>
-                                    <th>Pedido</th>
-                                    <th>Pessoa</th>
-                                    <th>Valor</th>
-                                    <th>Pneus</th>
-                                    <th>Vendedor</th>
-                                    <th>Expedicionado</th>
-                                    <th>Data Entrega</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
+                            
                             <tfoot>
                                 <tr>
                                     <th colspan="5" style="text-align: right;"></th>
@@ -270,30 +256,41 @@
                         }
                     },
                     "columns": [{
-                            "data": "CD_EMPRESA"
+                            "data": "CD_EMPRESA",
+                            title: "Emp",
                         },
                         {
-                            "data": "NR_EMBARQUE"
+                            "data": "NR_EMBARQUE",
+                            title: "Embarque"
                         },
                         {
-                            "data": "NR_COLETA"
+                            "data": "NR_COLETA",
+                            title: "Coleta"
                         },
                         {
-                            "data": "NM_PESSOA"
+                            "data": "NM_PESSOA",
+                            title: "Cliente"
                         },
                         {
-                            "data": "VALOR"
+                            "data": "VALOR",
+                            title: "Valor"
                         },
                         {
-                            "data": "PNEUS"
+                            "data": "PNEUS",
+                            title: "Pneus"
                         },
                         {
                             "data": "NM_VENDEDOR",
+                            title: "Vendedor"
                         },
                         {
-                            "data": "EXPEDICIONADO"
-                        }, {
-                            "data": "DTENTREGA"
+                            "data": "EXPEDICIONADO",
+                            title: "Expedicionado",
+                        },
+                        {
+                            "data": "DTENTREGA",
+                            title: "Data Entrega",
+                            "visible": false
                         }
                     ],
                     "columnDefs": [{
@@ -348,17 +345,29 @@
                         }
                     },
                     columns: [{
-                            data: "EXPEDICIONADO"
+                            data: "EXPEDICIONADO",
+                            title: "Expedicionado"
                         },
                         {
-                            data: "NRORDEMPRODUCAO"
+                            data: "NRORDEMPRODUCAO",
+                            title: "Nr Ordem Produção"
                         },
                         {
-                            data: "DS_ITEM"
+                            data: "DS_ITEM",
+                            title: "Descrição do Item"
                         },
                         {
-                            data: "VALOR"
+                            data: "VALOR",
+                            title: "Valor"
+                        },
+                        {
+                            data: "DTFIM",
+                            title: "Data",
+                            render: function(data) {
+                                return moment(data).format('DD/MM/YYYY HH:mm');
+                            }
                         }
+
                     ]
                 });
             }

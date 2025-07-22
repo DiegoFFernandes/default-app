@@ -216,14 +216,6 @@ class BloqueioPedidosController extends Controller
         // return $nrordem;
         $detalhe_ordem = $this->acompanha->BuscaSetores($nrordem);
         return DataTables::of($detalhe_ordem)
-            ->addColumn('entrada', function ($d) {
-                return \Carbon\Carbon::createFromFormat('Y-m-d', $d->O_DT_ENTRADA)
-                    ->format('d/m/Y') . ' ' . $d->O_HR_ENTRADA;
-            })
-            ->addColumn('saida', function ($d) {
-                return \Carbon\Carbon::createFromFormat('Y-m-d', $d->O_DT_SAIDA)
-                    ->format('d/m/Y') . ' ' . $d->O_HR_SAIDA;
-            })
             ->make();
     }
     public function coletaGeral()
@@ -288,7 +280,7 @@ class BloqueioPedidosController extends Controller
         }
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
-                return '<span class="details-control-vendedor mr-2"><i class="fas fa-plus-circle"></i></span> ';
+                return '<span class="btn-detalhes details-control-vendedor mr-2"><i class="fas fa-plus-circle"></i></span> ';
             })
             ->rawColumns(['actions'])
             ->make();
@@ -308,7 +300,7 @@ class BloqueioPedidosController extends Controller
         }
         return DataTables::of($pedidos)
             ->addColumn('actions', function ($d) {
-                return '<span class="details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span>';
+                return '<span class="btn-detalhes details-control-pedido mr-2"><i class="fas fa-plus-circle"></i></span>';
             })
             ->rawColumns(['actions'])
             ->make();
