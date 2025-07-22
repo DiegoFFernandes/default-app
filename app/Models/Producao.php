@@ -128,7 +128,8 @@ class Producao extends Model
                                                             MAX(IPP2.NRSEQUENCIA)
                                                         FROM ITEMPEDIDOPNEU IPP2
                                                         WHERE
-                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NRORDEMPRODUCAO
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NRORDEMPRODUCAO,
+                EF.DTFIM                                            
             FROM PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
