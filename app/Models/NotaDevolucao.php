@@ -19,7 +19,8 @@ class NotaDevolucao extends Model
                     ORIGEM.CD_EMPRESA,
                     P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
                     --D.NR_LANCTOORIG,
-                    ORIGEM.dt_emissao, origem.dt_fornecedor,
+                    ORIGEM.DT_EMISSAO,
+                    ORIGEM.DT_FORNECEDOR,
                     COALESCE(ORIGEM.NR_NOTAFISCAL, ORIGEM.NR_NOTAFOR) NOTA_ENTRADA,
                     COALESCE(DESTINO.NR_NOTAFISCAL, DESTINO.NR_NOTAFOR) NOTA_SAIDA,
                     --D.TP_NOTAORIG,
@@ -33,12 +34,11 @@ class NotaDevolucao extends Model
                     --D.CD_ITEMDEST,
                     --D.PS_DEVOLUCAO,
                     ITEMORIGEM.QT_ITEMNOTA QT_ENTRADA,
-                    D.QT_DEVOLUCAO QT_SAIDA,
-                    (ITEMORIGEM.QT_ITEMNOTA - D.QT_DEVOLUCAO) DEVOLVER
+                    COALESCE(D.QT_DEVOLUCAO, 0) QT_SAIDA,
+                    (ITEMORIGEM.QT_ITEMNOTA - COALESCE(D.QT_DEVOLUCAO, 0)) DEVOLVER
                     --D.VL_DEVOLUCAO
                     --D.DT_REGISTRO
                 FROM NOTA ORIGEM
-
 
                 LEFT JOIN ITEMNOTA ITEMORIGEM ON (ORIGEM.CD_EMPRESA = ITEMORIGEM.CD_EMPRESA
                     AND ORIGEM.NR_LANCAMENTO = ITEMORIGEM.NR_LANCAMENTO
@@ -52,7 +52,6 @@ class NotaDevolucao extends Model
                     AND D.TP_NOTAORIG = ORIGEM.TP_NOTA
                     AND D.CD_SERIEORIG = ORIGEM.CD_SERIE
                     AND ITEMORIGEM.CD_ITEM = D.CD_ITEMDEST)
-
 
                 LEFT JOIN NOTA DESTINO ON (D.CD_EMPRDEST = DESTINO.CD_EMPRESA
                     AND D.NR_LANCTODEST = DESTINO.NR_LANCAMENTO
@@ -70,9 +69,10 @@ class NotaDevolucao extends Model
                     --AND P.CD_PESSOA = 83924
                     AND ORIGEM.ST_NOTA NOT IN ('C')
                     AND ORIGEM.DT_EMISSAO >= '01.03.2025'
-                    --AND ORIGEM.cd_empresa = 1
+                    AND ORIGEM.CD_EMPRESA = 1
                     -- AND ORIGEM.nr_notafor = 115943
-                    --AND (ITEMORIGEM.QT_ITEMNOTA - D.QT_DEVOLUCAO) > 0";
+                    AND ITEMORIGEM.QT_ITEMNOTA - COALESCE(D.QT_DEVOLUCAO, 0) > 0
+                ORDER BY ORIGEM.DT_EMISSAO";
 
           $data = DB::connection('firebird')->select($query);   
           
