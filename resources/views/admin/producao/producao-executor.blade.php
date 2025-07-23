@@ -36,6 +36,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-12 col-md-4 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="filtro-executor">Executor:</label>
+                            <select id="filtro-executor" class="form-control mt-1">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
                         <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
                     </div>
@@ -65,7 +73,8 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="limpeza-manchao" data-toggle="pill" href="#limpeza-manchao"
-                                    role="tab" aria-controls="limpeza-manchao" aria-selected="false">Limp. Manchão</a>
+                                    role="tab" aria-controls="limpeza-manchao" aria-selected="false">Limp.
+                                    Manchão</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="cola" data-toggle="pill" href="#cola" role="tab"
@@ -73,7 +82,8 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="emborrachamento" data-toggle="pill" href="#emborrachamento"
-                                    role="tab" aria-controls="emborrachamento" aria-selected="false">Emborrachamento</a>
+                                    role="tab" aria-controls="emborrachamento"
+                                    aria-selected="false">Emborrachamento</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="vulcanizacao" data-toggle="pill" href="#vulcanizacao"
