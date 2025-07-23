@@ -105,22 +105,24 @@
                     <div class="card-body">
                         <div class="mb-3">
                         </div>
-                        <table id="acompanhaNotaFiscal"
-                            class="table compact table-font-small table-striped table-bordered nowrap"
-                            style="width:100%; font-size: 12px;">
-                            <thead class="bg-dark text-white">
-                                <tr>
-                                    <th>Cd_Empresa</th>
-                                    <th>Pessoa</th>
-                                    <th>Nota de Entrada</th>
-                                    <th>Nota de Saída</th>
-                                    <th>Descrição</th>
-                                    <th>Qtde de Entrada</th>
-                                    <th>Qtde de Saída</th>
-                                    <th>Saldo</th>
-                                </tr>
-                            </thead>
-                        </table>
+                        <div class="table-responsive">
+                            <table id="acompanhaNotaFiscal"
+                                class="table compact table-font-small table-striped table-bordered nowrap"
+                                style="width:100%; font-size: 12px;">
+                                <thead class="bg-dark text-white">
+                                    <tr>
+                                        <th>Emp</th>
+                                        <th>Pessoa</th>
+                                        <th>Nota de Entrada</th>
+                                        <th>Nota de Saída</th>
+                                        <th>Descrição</th>
+                                        <th>Qtde de Entrada</th>
+                                        <th>Qtde de Saída</th>
+                                        <th>Saldo</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -152,86 +154,136 @@
         .btn-primary:hover {
             box-shadow: 0 4px 12px rgba(0, 123, 255, 0.6);
         }
+
+        table#acompanhaNotaFiscal {
+            width: 100%;
+        }
+
+        #acompanhaNotaFiscal td,
+        #acompanhaNotaFiscal th {
+            padding: 4px 6px;
+        }
     </style>
 
 @stop
 
 @section('js')
     <script>
-        function atualizarInfoBoxes(dados) {
-            let totalEntrada = 0;
-            let totalSaida = 0;
-
-            dados.forEach(item => {
-                totalEntrada += parseInt(item.QT_ENTRADA) || 0;
-                totalSaida += parseInt(item.QT_SAIDA) || 0;
-            });
-            const saldo = totalEntrada - totalSaida;
-
-            $('#pneus-entrada').text(totalEntrada);
-            $('#pneus-saida').text(totalSaida);
-            $('#saldo-devolucao').text(saldo);
-        }
         $(document).ready(function() {
-            $.ajax({
-                url: '{{ route('get-nota-devolucao.index') }}',
-                type: 'GET',
-                success: function(data) {
-                    const dataFixa = '2025-03-07';
-                    const dadosFiltrados = data.filter(item => item.DT_EMISSAO && item.DT_EMISSAO.startsWith(dataFixa));atualizarInfoBoxes(dadosFiltrados);
 
-                    $('#acompanhaNotaFiscal').DataTable({
-                        processing: true,
-                        serverSide: false,
-                        data: dadosFiltrados, // Agora deve ter dados!
-                        columns: [{
-                                data: 'CD_EMPRESA',
-                                name: 'CD_EMPRESA'
-                            },
-                            {
-                                data: 'NM_PESSOA',
-                                name: 'NM_PESSOA'
-                            },
-                            {
-                                data: 'NOTA_ENTRADA',
-                                name: 'NOTA_ENTRADA'
-                            },
-                            {
-                                data: 'NOTA_SAIDA',
-                                name: 'NOTA_SAIDA'
-                            },
-                            {
-                                data: 'DS_ITEM',
-                                name: 'DS_ITEM'
-                            },
-                            {
-                                data: 'QT_ENTRADA',
-                                name: 'QT_ENTRADA'
-                            },
-                            {
-                                data: 'QT_SAIDA',
-                                name: 'QT_SAIDA'
-                            },
-                            {
-                                data: null,
-                                name: 'SALDO',
-                                render: function(data, type, row) {
-                                    const entrada = parseInt(row.QT_ENTRADA) || 0;
-                                    const saida = parseInt(row.QT_SAIDA) || 0;
-                                    const saldo = entrada - saida;
-                                    return saldo;
-                                }
-                            },
-                        ],
-                        language: {
-                            url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-                        },
-                        pageLength: 100
-                    });
-                },
-                error: function(xhr) {
-                    console.error('Erro ao carregar os dados:', xhr);
+            let idTabela = 'acompanhaNotaFiscal';
+            let dt_inicio = moment().format('YYYY-MM-DD');
+
+            function acompanhaNotaFiscal(dt_inicio, dt_fim) {
+                if ($.fn.DataTable.isDataTable('#' + idTabela)) {
+                    $('#' + idTabela).DataTable().destroy();
                 }
+
+                $('#' + idTabela).DataTable({
+                    language: {
+                        url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                    },
+                    pageLength: 100,
+                    processing: true,
+                    serverSide: false,
+                    paging: true,
+                    searching: true,
+                    ajax: {
+                        method: 'GET',
+                        url: '{{ route('get-nota-devolucao.index') }}',
+                        data: {
+                            dt_inicio: dt_inicio,
+                            dt_fim: dt_fim,
+                        },
+                        dataSrc: function(json) {
+                            let totalEntrada = 0;
+                            let totalSaida = 0;
+
+                            let filtered = json.filter(item => {
+                                let dataItem = moment(item.DT_EMISSAO);
+                                return dataItem.isBetween(dt_inicio, dt_fim, 'day', '[]');
+
+                            });
+
+                            filtered.forEach(item => {
+                                totalEntrada += parseInt(item.QT_ENTRADA) || 0;
+                                totalSaida += parseInt(item.QT_SAIDA) || 0;
+                            });
+
+                            // atualiza os info-boxs de acordo com o filtro da tabela
+                            $('#pneus-entrada').text(totalEntrada);
+                            $('#pneus-saida').text(totalSaida);
+                            $('#saldo-devolucao').text(totalEntrada - totalSaida);
+
+                            return filtered;
+                        }
+                    },
+                    columns: [{
+                            data: 'CD_EMPRESA',
+                            name: 'CD_EMPRESA',
+                            width: '3%'
+                        },
+                        {
+                            data: 'NM_PESSOA',
+                            name: 'NM_PESSOA',
+                            width: '10%'
+                        },
+                        {
+                            data: 'NOTA_ENTRADA',
+                            name: 'NOTA_ENTRADA',
+                            width: '5%'
+
+                        },
+                        {
+                            data: 'NOTA_SAIDA',
+                            name: 'NOTA_SAIDA',
+                            width: '5%'
+
+                        },
+                        {
+                            data: 'DS_ITEM',
+                            name: 'DS_ITEM',
+                            width: '8%'
+                        },
+                        {
+                            data: 'QT_ENTRADA',
+                            name: 'QT_ENTRADA',
+                            width: '8%'
+
+                        },
+                        {
+                            data: 'QT_SAIDA',
+                            name: 'QT_SAIDA',
+                            width: '8%'
+
+                        },
+                        {
+                            data: null,
+                            name: 'SALDO',
+                            width: '1%',
+
+                            render: function(data, type, row) {
+                                const entrada = parseInt(row.QT_ENTRADA) || 0;
+                                const saida = parseInt(row.QT_SAIDA) || 0;
+                                return entrada - saida;
+                            }
+                        }
+                    ]
+                });
+            }
+
+            //ao carregar a tabela inicia com o dia atual
+            let hoje = moment().format('YYYY-MM-DD');
+            acompanhaNotaFiscal(hoje, hoje);
+
+            //inicia a tabela de acordo com o filtro
+            $('#submit-seach').on('click', function() {
+                let range = $('#daterange').val();
+                let [dataInicio, dataFim] = range.split(' - ');
+                let dt_inicio = moment(dataInicio, 'DD/MM/YYYY').format('YYYY-MM-DD');
+                let dt_fim = moment(dataFim, 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+                acompanhaNotaFiscal(dt_inicio, dt_fim);
             });
         });
     </script>
