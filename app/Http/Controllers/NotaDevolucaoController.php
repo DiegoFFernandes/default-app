@@ -30,8 +30,7 @@ class NotaDevolucaoController extends Controller
         $title_page = 'Nota Devolução';
         $user_auth = auth()->user();
         $empresa = $user_auth->empresa;        
-
-        return view('admin.nota-devolucao.index', compact('title_page', 'user_auth', 'empresa'));
+        return view('admin.comercial.nota-devolucao');
     }
 
     public function getNotaDevolucao()
