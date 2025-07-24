@@ -83,7 +83,7 @@ class ProducaoController extends Controller
         if ($this->user->hasRole('admin|gerente comercial')) {
             $cd_regiao = "";
             $supervisor = 0;
-            $cd_empresa = "";
+            $cd_empresa = 0;
         } elseif ($this->user->hasRole('supervisor')) {
             $cd_regiao = "";
             $cd_empresa = 0;

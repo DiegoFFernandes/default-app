@@ -50,11 +50,8 @@
                             <div class="col-12 col-md-2 mb-2">
                                 <div class="form-group mb-0">
                                     <label for="filtro-empresa">Empresa:</label>
-                                    <select id="filtro-Empresa" class="form-control mt-1">
-                                        @foreach ($empresas as $e)
-                                            <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA }}</option>
-                                        @endforeach
-                                    </select>
+                                    <input type="text" class="form-control mt-1" id="filtro-Empresa"
+                                        placeholder="Nome da Empresa">
                                 </div>
                             </div>
                             <div class="col-12 col-md-4 mb-2">
@@ -91,11 +88,12 @@
                                     <input type="text" class="form-control mt-1" id="filtro-produto"
                                         placeholder="Nome ou Código do Produto">
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
-                            </div>
+                            </div>                           
                         </div>
+                    </div>
+                    <div class="card-footer">
+                        <button id="reset-filters" class="btn btn-sm btn-secondary float-right">Limpar Filtros</button>
+                        <button id="submit-seach" class="btn btn-sm btn-primary float-right mr-2">Pesquisar</button>                        
                     </div>
                 </div>
             </div>
@@ -250,31 +248,39 @@
 
             $('#filtro-cliente').on('keyup change', function() {
                 const valor = $(this).val().toLowerCase();
-                table.search(valor).draw();
+                table.column(2).search(valor).draw();
             });
 
             $('#filtro-produto').on('keyup change', function() {
                 const valor = $(this).val();
-                table.search(valor).draw();
+                table.column(6).search(valor).draw();
             });
 
             $('#filtro-Empresa').on('keyup change', function() {
-                const valor = $('#filtro-Empresa').val();
-                table.search(valor).draw();
+                const valor = $(this).val().toLowerCase();
+                table.column(1).search(valor).draw();
             });
 
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 const startDate = picker.startDate.format('YYYY-MM-DD');
                 const endDate = picker.endDate.format('YYYY-MM-DD');
-                table.draw();
+                table.column(4).search(startDate + '|' + endDate, true, false).draw();
             });
             
             $('#filtro-nota-entrada').on('keyup change', function() {
                 const valor = $(this).val();
-                table.search(valor).draw();
+                table.column(3).search(valor).draw();
             });
             $('#submit-seach').on('click', function() {
                 table.draw();
+            });
+            $('#reset-filters').on('click', function() {
+                $('#filtro-cliente').val('');
+                $('#filtro-produto').val('');
+                $('#filtro-Empresa').val('');
+                $('#daterange').val('');
+                $('#filtro-nota-entrada').val('');
+                table.search('').columns().search('').draw();
             });
 
             // Atualiza as informações dos InfoBoxes
