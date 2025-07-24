@@ -4,12 +4,68 @@
 @section('content')
     <!-- Main content -->
     <section class="content">
-        <div class="card card-outline card-dark">
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coleta Hoje</span>
+                        <span id="coleta-hoje" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Média Hoje</span>
+                        <span id="media-hoje" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coleta Ontem</span>
+                        <span id="coleta-ontem" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Média Ontem</span>
+                        <span id="media-ontem" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coleta Mês</span>
+                        <span id="coleta-mes" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Média Mês</span>
+                        <span id="media-mes" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card collapsed-card">
             <div class="card-header">
                 <h3 class="card-title">Filtros:</h3>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
+                        <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
@@ -22,6 +78,13 @@
                                 <option value="1" selected>Cambe</option>
                                 <option value="3">Osvaldo Cruz</option>
                                 <option value="5">Ponta Grossa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-2 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="filtro-medida">Medida:</label>
+                            <select id="filtro-medidas" class="form-control mt-1">
                             </select>
                         </div>
                     </div>
@@ -123,6 +186,15 @@
 
 @section('css')
     <style>
+        .info-box-text {
+            font-size: 14px;
+        }
+
+        .info-box-number {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
         .nav-tabs .nav-link {
             font-size: 15px;
             padding: 7px 15px;
@@ -194,7 +266,43 @@
                             }
                         }
                     ],
+                    drawCallback: function(settings) {
+                        var api = this.api();
 
+                        let totalColeta = 0;
+                        let somaValorPonderado = 0;
+
+                        api.rows({search: 'applied'}).data().each(function(d){
+                            let quantidade = parseInt(d.QTD) || 0;
+                            let valorMedio = parseFloat(d.VALOR_MEDIO) || 0;
+
+                            totalColeta += quantidade;
+                            somaValorPonderado += quantidade * valorMedio;
+                        });
+
+                        const mediaGeral = totalColeta > 0 ? somaValorPonderado / totalColeta : 0;
+
+                        //atualiza os info-box
+                        if (idTabela === 'coletasMedidasHoje') {
+                            $('#coleta-hoje').text(totalColeta);
+                            $('#media-hoje').text(mediaGeral.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL'
+                            }));
+                        } else if (idTabela === 'coletasMedidasOntem') {
+                            $('#coleta-ontem').text(totalColeta);
+                            $('#media-ontem').text(mediaGeral.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL'
+                            }));
+                        } else if (idTabela === 'coletasMedidasMes') {
+                            $('#coleta-mes').text(totalColeta);
+                            $('#media-mes').text(mediaGeral.toLocaleString('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL'
+                            }));
+                        }
+                    }
                 });
             }
 
