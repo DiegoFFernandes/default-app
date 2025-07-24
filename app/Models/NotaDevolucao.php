@@ -17,6 +17,15 @@ class NotaDevolucao extends Model
         $query = "
                SELECT DISTINCT
                     ORIGEM.CD_EMPRESA,
+                    CASE 
+                        WHEN ORIGEM.CD_EMPRESA = 1 THEN 'Cambe'
+                        WHEN ORIGEM.CD_EMPRESA = 2 THEN '2'
+                        WHEN ORIGEM.CD_EMPRESA = 3 THEN 'Osvaldo Cruz'
+                        WHEN ORIGEM.CD_EMPRESA = 4 THEN '4'
+                        WHEN ORIGEM.CD_EMPRESA = 5 THEN 'Ponta Grossa'
+                        WHEN ORIGEM.CD_EMPRESA = 6 THEN 'Catanduva'
+                        ELSE 'OUTROS'
+                    END NM_EMPRESA,
                     P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
                     --D.NR_LANCTOORIG,
                     ORIGEM.DT_EMISSAO,
@@ -35,7 +44,7 @@ class NotaDevolucao extends Model
                     --D.PS_DEVOLUCAO,
                     ITEMORIGEM.QT_ITEMNOTA QT_ENTRADA,
                     COALESCE(D.QT_DEVOLUCAO, 0) QT_SAIDA,
-                    (ITEMORIGEM.QT_ITEMNOTA - COALESCE(D.QT_DEVOLUCAO, 0)) DEVOLVER
+                    (ITEMORIGEM.QT_ITEMNOTA - COALESCE(D.QT_DEVOLUCAO, 0)) SALDO
                     --D.VL_DEVOLUCAO
                     --D.DT_REGISTRO
                 FROM NOTA ORIGEM
@@ -69,7 +78,7 @@ class NotaDevolucao extends Model
                     --AND P.CD_PESSOA = 83924
                     AND ORIGEM.ST_NOTA NOT IN ('C')
                     AND ORIGEM.DT_EMISSAO >= '01.03.2025'
-                    AND ORIGEM.CD_EMPRESA = 1
+                    --AND ORIGEM.CD_EMPRESA = 1
                     -- AND ORIGEM.nr_notafor = 115943
                     AND ITEMORIGEM.QT_ITEMNOTA - COALESCE(D.QT_DEVOLUCAO, 0) > 0
                 ORDER BY ORIGEM.DT_EMISSAO";

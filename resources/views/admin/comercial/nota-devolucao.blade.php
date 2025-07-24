@@ -50,12 +50,11 @@
                             <div class="col-12 col-md-2 mb-2">
                                 <div class="form-group mb-0">
                                     <label for="filtro-empresa">Empresa:</label>
-                                    <select id="filtro-Empresa" class="form-control mt-1">
-                                        <option value="1" selected>Todos</option>
-                                    </select>
+                                    <input type="text" class="form-control mt-1" id="filtro-Empresa"
+                                        placeholder="Nome da Empresa">
                                 </div>
                             </div>
-                            <div class="col-12 col-md-2 mb-2">
+                            <div class="col-12 col-md-4 mb-2">
                                 <div class="form-group mb-0">
                                     <label for="daterange">Data:</label>
                                     <div class="input-group mt-1">
@@ -69,32 +68,32 @@
                             </div>
                             <div class="col-12 col-md-2 mb-2">
                                 <div class="form-group mb-0">
-                                    <label for="filtro-notas-entrada">Nota de Entrada:</label>
-                                    <select id="filtro-notas-entrada" class="form-control mt-1">
-                                        <option value="1" selected>Todas</option>
-                                    </select>
+                                    <label for="filtro-nota-entrada">Nota de Entrada:</label>
+                                    <input type="text" class="form-control mt-1" id="filtro-nota-entrada"
+                                        placeholder="Nota de Entrada">
                                 </div>
-                            </div>
-                            <div class="col-12 col-md-2 mb-2">
-                                <div class="form-group mb-0">
-                                    <label for="filtro-cliente">Cliente:</label>
-                                    <select id="filtro-cliente" class="form-control mt-1">
-                                        <option value="1" selected>Todos</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-2 mb-2">
-                                <div class="form-group mb-0">
-                                    <label for="filtro-produto">Produto:</label>
-                                    <select id="filtro-produto" class="form-control mt-1">
-                                        <option value="1" selected>Todos</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-12 col-md-4 mb-2">
+                                <div class="form-group mb-0">
+                                    <label for="filtro-cliente">Cliente:</label>
+                                    <input type="text" class="form-control mt-1" id="filtro-cliente"
+                                        placeholder="Nome ou Código do Cliente">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4 mb-2">
+                                <div class="form-group mb-0">
+                                    <label for="filtro-produto">Produto:</label>
+                                    <input type="text" class="form-control mt-1" id="filtro-produto"
+                                        placeholder="Nome ou Código do Produto">
+                                </div>
+                            </div>                           
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button id="reset-filters" class="btn btn-sm btn-secondary float-right">Limpar Filtros</button>
+                        <button id="submit-seach" class="btn btn-sm btn-primary float-right mr-2">Pesquisar</button>                        
                     </div>
                 </div>
             </div>
@@ -105,24 +104,10 @@
                     <div class="card-body">
                         <div class="mb-3">
                         </div>
-                        <div class="table-responsive">
-                            <table id="acompanhaNotaFiscal"
-                                class="table compact table-font-small table-striped table-bordered nowrap"
-                                style="width:100%; font-size: 12px;">
-                                <thead class="bg-dark text-white">
-                                    <tr>
-                                        <th>Emp</th>
-                                        <th>Pessoa</th>
-                                        <th>Nota de Entrada</th>
-                                        <th>Nota de Saída</th>
-                                        <th>Descrição</th>
-                                        <th>Qtde de Entrada</th>
-                                        <th>Qtde de Saída</th>
-                                        <th>Saldo</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+                        <table id="acompanhaNotaFiscal"
+                            class="table compact table-font-small table-striped table-bordered nowrap"
+                            style="width:100%; font-size: 12px;">
+                        </table>
                     </div>
                 </div>
             </div>
@@ -155,14 +140,6 @@
             box-shadow: 0 4px 12px rgba(0, 123, 255, 0.6);
         }
 
-        table#acompanhaNotaFiscal {
-            width: 100%;
-        }
-
-        #acompanhaNotaFiscal td,
-        #acompanhaNotaFiscal th {
-            padding: 4px 6px;
-        }
     </style>
 
 @stop
@@ -171,119 +148,147 @@
     <script>
         $(document).ready(function() {
 
-            let idTabela = 'acompanhaNotaFiscal';
-            let dt_inicio = moment().format('YYYY-MM-DD');
+            // const routes = {
+            //     searchPessoa: "{{ route('usuario.search-pessoa') }}",
+            // }
 
-            function acompanhaNotaFiscal(dt_inicio, dt_fim) {
-                if ($.fn.DataTable.isDataTable('#' + idTabela)) {
-                    $('#' + idTabela).DataTable().destroy();
-                }
+            // initSelect2Pessoa('#pessoa', routes.searchPessoa);
+            var table = [];
 
-                $('#' + idTabela).DataTable({
+            const datasSelecionadas = initDateRangePicker();
+
+            initTable();
+
+            function initTable(dados = null) {
+                table = $('#acompanhaNotaFiscal').DataTable({
+                    processing: true,
+                    serverSide: false,
+                    responsive: true,
+                    pagingType: "simple",                    
+                    autoWidth: true,
                     language: {
                         url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                     },
-                    pageLength: 100,
-                    processing: true,
-                    serverSide: false,
-                    paging: true,
-                    searching: true,
+                    pageLength: 20,
                     ajax: {
-                        method: 'GET',
                         url: '{{ route('get-nota-devolucao.index') }}',
-                        data: {
-                            dt_inicio: dt_inicio,
-                            dt_fim: dt_fim,
-                        },
-                        dataSrc: function(json) {
-                            let totalEntrada = 0;
-                            let totalSaida = 0;
-
-                            let filtered = json.filter(item => {
-                                let dataItem = moment(item.DT_EMISSAO);
-                                return dataItem.isBetween(dt_inicio, dt_fim, 'day', '[]');
-
-                            });
-
-                            filtered.forEach(item => {
-                                totalEntrada += parseInt(item.QT_ENTRADA) || 0;
-                                totalSaida += parseInt(item.QT_SAIDA) || 0;
-                            });
-
-                            // atualiza os info-boxs de acordo com o filtro da tabela
-                            $('#pneus-entrada').text(totalEntrada);
-                            $('#pneus-saida').text(totalSaida);
-                            $('#saldo-devolucao').text(totalEntrada - totalSaida);
-
-                            return filtered;
-                        }
                     },
                     columns: [{
                             data: 'CD_EMPRESA',
                             name: 'CD_EMPRESA',
-                            width: '3%'
+                            title: 'Código Empresa',
+                            visible: false
+                        },
+                        {
+                            data: 'NM_EMPRESA',
+                            name: 'NM_EMPRESA',
+                            title: 'Empresa'
                         },
                         {
                             data: 'NM_PESSOA',
                             name: 'NM_PESSOA',
-                            width: '10%'
+                            title: 'Pessoa',
+                        },
+                        {
+                            data: 'DT_EMISSAO',
+                            name: 'DT_EMISSAO',
+                            title: 'Data de Emissão',
+                            render: function(data, type, row) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
                         },
                         {
                             data: 'NOTA_ENTRADA',
                             name: 'NOTA_ENTRADA',
-                            width: '5%'
-
+                            title: 'Nota de Entrada'
                         },
                         {
                             data: 'NOTA_SAIDA',
                             name: 'NOTA_SAIDA',
-                            width: '5%'
-
+                            title: 'Nota de Saída'
                         },
                         {
                             data: 'DS_ITEM',
                             name: 'DS_ITEM',
-                            width: '8%'
+                            title: 'Descrição'
                         },
                         {
                             data: 'QT_ENTRADA',
                             name: 'QT_ENTRADA',
-                            width: '8%'
-
+                            title: 'Qtde de Entrada'
                         },
                         {
                             data: 'QT_SAIDA',
                             name: 'QT_SAIDA',
-                            width: '8%'
-
+                            title: 'Qtde de Saída'
                         },
                         {
-                            data: null,
+                            data: 'SALDO',
                             name: 'SALDO',
-                            width: '1%',
+                            title: 'Saldo',
+                        },
+                    ],
 
-                            render: function(data, type, row) {
-                                const entrada = parseInt(row.QT_ENTRADA) || 0;
-                                const saida = parseInt(row.QT_SAIDA) || 0;
-                                return entrada - saida;
-                            }
-                        }
-                    ]
                 });
             }
 
-            //ao carregar a tabela inicia com o dia atual
-            let hoje = moment().format('YYYY-MM-DD');
-            acompanhaNotaFiscal(hoje, hoje);
+            function atualizarInfoBoxes(dados) {
+                let totalEntrada = 0;
+                let totalSaida = 0;
 
-            //inicia a tabela de acordo com o filtro
+                dados.forEach(item => {
+                    totalEntrada += parseInt(item.QT_ENTRADA) || 0;
+                    totalSaida += parseInt(item.QT_SAIDA) || 0;
+                });
+                const saldo = totalEntrada - totalSaida;
+
+                $('#pneus-entrada').text(totalEntrada);
+                $('#pneus-saida').text(totalSaida);
+                $('#saldo-devolucao').text(saldo);
+            }
+
+            $('#filtro-cliente').on('keyup change', function() {
+                const valor = $(this).val().toLowerCase();
+                table.column(2).search(valor).draw();
+            });
+
+            $('#filtro-produto').on('keyup change', function() {
+                const valor = $(this).val();
+                table.column(6).search(valor).draw();
+            });
+
+            $('#filtro-Empresa').on('keyup change', function() {
+                const valor = $(this).val().toLowerCase();
+                table.column(1).search(valor).draw();
+            });
+
+            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+                const startDate = picker.startDate.format('YYYY-MM-DD');
+                const endDate = picker.endDate.format('YYYY-MM-DD');
+                table.column(4).search(startDate + '|' + endDate, true, false).draw();
+            });
+            
+            $('#filtro-nota-entrada').on('keyup change', function() {
+                const valor = $(this).val();
+                table.column(3).search(valor).draw();
+            });
             $('#submit-seach').on('click', function() {
-                let range = $('#daterange').val();
-                let [dataInicio, dataFim] = range.split(' - ');
-                let dt_inicio = moment(dataInicio, 'DD/MM/YYYY').format('YYYY-MM-DD');
-                let dt_fim = moment(dataFim, 'DD/MM/YYYY').format('YYYY-MM-DD');
+                table.draw();
+            });
+            $('#reset-filters').on('click', function() {
+                $('#filtro-cliente').val('');
+                $('#filtro-produto').val('');
+                $('#filtro-Empresa').val('');
+                $('#daterange').val('');
+                $('#filtro-nota-entrada').val('');
+                table.search('').columns().search('').draw();
+            });
 
-                acompanhaNotaFiscal(dt_inicio, dt_fim);
+            // Atualiza as informações dos InfoBoxes
+            table.on('draw', function() {
+                atualizarInfoBoxes(table.rows({
+                    search: 'applied'
+                }).data().toArray());
             });
         });
     </script>
