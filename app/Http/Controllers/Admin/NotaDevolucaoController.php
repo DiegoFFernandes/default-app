@@ -1,16 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Models\NotaDevolucao;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class NotaDevolucaoController extends Controller
 {
 
     public $empresa, $request, $user, $devolucao;
+
     public function __construct(
         Request $request,
         Empresa $empresa,
@@ -20,6 +24,7 @@ class NotaDevolucaoController extends Controller
         $this->request = $request;
         $this->empresa = $empresa;
         $this->devolucao = $notaDevolucao;
+        $this->empresa = $empresa;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -29,21 +34,20 @@ class NotaDevolucaoController extends Controller
     {
         $title_page = 'Nota Devolução';
         $user_auth = auth()->user();
-        $empresa = $user_auth->empresa;        
-        return view('admin.comercial.nota-devolucao');
+        $empresas = $this->empresa->empresa();
+
+        return view('admin.comercial.nota-devolucao', compact(
+            'title_page',
+            'user_auth',
+            'empresas'
+        ));
     }
 
     public function getNotaDevolucao()
     {
-       return $data = $this->devolucao->getNotaDevolucao();
+        $data = $this->devolucao->getNotaDevolucao();
 
-        return datatables()->of($data)
-            ->addColumn('DTFIM', function ($data) {
-                return date('d/m/Y H:i', strtotime($data->DTFIM));
-            })
-            ->addColumn('VALOR', function ($data) {
-                return number_format($data->VALOR, 2, ',', '.');
-            })
+        return DataTables::of($data)
             ->make(true);
     }
 }

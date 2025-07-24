@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\NotaDevolucaoController;
+use App\Http\Controllers\Admin\NotaDevolucaoController;
 use Illuminate\Support\Facades\Route;
 
 

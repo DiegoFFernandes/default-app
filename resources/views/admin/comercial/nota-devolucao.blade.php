@@ -51,11 +51,13 @@
                                 <div class="form-group mb-0">
                                     <label for="filtro-empresa">Empresa:</label>
                                     <select id="filtro-Empresa" class="form-control mt-1">
-                                        <option value="1" selected>Todos</option>
+                                        @foreach ($empresas as $e)
+                                            <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-2 mb-2">
+                            <div class="col-12 col-md-4 mb-2">
                                 <div class="form-group mb-0">
                                     <label for="daterange">Data:</label>
                                     <div class="input-group mt-1">
@@ -69,26 +71,25 @@
                             </div>
                             <div class="col-12 col-md-2 mb-2">
                                 <div class="form-group mb-0">
-                                    <label for="filtro-notas-entrada">Nota de Entrada:</label>
-                                    <select id="filtro-notas-entrada" class="form-control mt-1">
-                                        <option value="1" selected>Todas</option>
-                                    </select>
+                                    <label for="filtro-nota-entrada">Nota de Entrada:</label>
+                                    <input type="text" class="form-control mt-1" id="filtro-nota-entrada"
+                                        placeholder="Nota de Entrada">
                                 </div>
                             </div>
-                            <div class="col-12 col-md-2 mb-2">
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-4 mb-2">
                                 <div class="form-group mb-0">
                                     <label for="filtro-cliente">Cliente:</label>
-                                    <select id="filtro-cliente" class="form-control mt-1">
-                                        <option value="1" selected>Todos</option>
-                                    </select>
+                                    <input type="text" class="form-control mt-1" id="filtro-cliente"
+                                        placeholder="Nome ou Código do Cliente">
                                 </div>
                             </div>
-                            <div class="col-12 col-md-2 mb-2">
+                            <div class="col-12 col-md-4 mb-2">
                                 <div class="form-group mb-0">
                                     <label for="filtro-produto">Produto:</label>
-                                    <select id="filtro-produto" class="form-control mt-1">
-                                        <option value="1" selected>Todos</option>
-                                    </select>
+                                    <input type="text" class="form-control mt-1" id="filtro-produto"
+                                        placeholder="Nome ou Código do Produto">
                                 </div>
                             </div>
                             <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
@@ -108,18 +109,6 @@
                         <table id="acompanhaNotaFiscal"
                             class="table compact table-font-small table-striped table-bordered nowrap"
                             style="width:100%; font-size: 12px;">
-                            <thead class="bg-dark text-white">
-                                <tr>
-                                    <th>Cd_Empresa</th>
-                                    <th>Pessoa</th>
-                                    <th>Nota de Entrada</th>
-                                    <th>Nota de Saída</th>
-                                    <th>Descrição</th>
-                                    <th>Qtde de Entrada</th>
-                                    <th>Qtde de Saída</th>
-                                    <th>Saldo</th>
-                                </tr>
-                            </thead>
                         </table>
                     </div>
                 </div>
@@ -158,80 +147,141 @@
 
 @section('js')
     <script>
-        function atualizarInfoBoxes(dados) {
-            let totalEntrada = 0;
-            let totalSaida = 0;
-
-            dados.forEach(item => {
-                totalEntrada += parseInt(item.QT_ENTRADA) || 0;
-                totalSaida += parseInt(item.QT_SAIDA) || 0;
-            });
-            const saldo = totalEntrada - totalSaida;
-
-            $('#pneus-entrada').text(totalEntrada);
-            $('#pneus-saida').text(totalSaida);
-            $('#saldo-devolucao').text(saldo);
-        }
         $(document).ready(function() {
-            $.ajax({
-                url: '{{ route('get-nota-devolucao.index') }}',
-                type: 'GET',
-                success: function(data) {
-                    const dataFixa = '2025-03-07';
-                    const dadosFiltrados = data.filter(item => item.DT_EMISSAO && item.DT_EMISSAO.startsWith(dataFixa));atualizarInfoBoxes(dadosFiltrados);
 
-                    $('#acompanhaNotaFiscal').DataTable({
-                        processing: true,
-                        serverSide: false,
-                        data: dadosFiltrados, // Agora deve ter dados!
-                        columns: [{
-                                data: 'CD_EMPRESA',
-                                name: 'CD_EMPRESA'
-                            },
-                            {
-                                data: 'NM_PESSOA',
-                                name: 'NM_PESSOA'
-                            },
-                            {
-                                data: 'NOTA_ENTRADA',
-                                name: 'NOTA_ENTRADA'
-                            },
-                            {
-                                data: 'NOTA_SAIDA',
-                                name: 'NOTA_SAIDA'
-                            },
-                            {
-                                data: 'DS_ITEM',
-                                name: 'DS_ITEM'
-                            },
-                            {
-                                data: 'QT_ENTRADA',
-                                name: 'QT_ENTRADA'
-                            },
-                            {
-                                data: 'QT_SAIDA',
-                                name: 'QT_SAIDA'
-                            },
-                            {
-                                data: null,
-                                name: 'SALDO',
-                                render: function(data, type, row) {
-                                    const entrada = parseInt(row.QT_ENTRADA) || 0;
-                                    const saida = parseInt(row.QT_SAIDA) || 0;
-                                    const saldo = entrada - saida;
-                                    return saldo;
-                                }
-                            },
-                        ],
-                        language: {
-                            url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+            // const routes = {
+            //     searchPessoa: "{{ route('usuario.search-pessoa') }}",
+            // }
+
+            // initSelect2Pessoa('#pessoa', routes.searchPessoa);
+            var table = [];
+
+            const datasSelecionadas = initDateRangePicker();
+
+            initTable();
+
+            function initTable(dados = null) {
+                table = $('#acompanhaNotaFiscal').DataTable({
+                    processing: true,
+                    serverSide: false,
+                    responsive: true,
+                    pagingType: "simple",                    
+                    autoWidth: true,
+                    language: {
+                        url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                    },
+                    pageLength: 20,
+                    ajax: {
+                        url: '{{ route('get-nota-devolucao.index') }}',
+                    },
+                    columns: [{
+                            data: 'CD_EMPRESA',
+                            name: 'CD_EMPRESA',
+                            title: 'Código Empresa',
+                            visible: false
                         },
-                        pageLength: 100
-                    });
-                },
-                error: function(xhr) {
-                    console.error('Erro ao carregar os dados:', xhr);
-                }
+                        {
+                            data: 'NM_EMPRESA',
+                            name: 'NM_EMPRESA',
+                            title: 'Empresa'
+                        },
+                        {
+                            data: 'NM_PESSOA',
+                            name: 'NM_PESSOA',
+                            title: 'Pessoa',
+                        },
+                        {
+                            data: 'DT_EMISSAO',
+                            name: 'DT_EMISSAO',
+                            title: 'Data de Emissão',
+                            render: function(data, type, row) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                        },
+                        {
+                            data: 'NOTA_ENTRADA',
+                            name: 'NOTA_ENTRADA',
+                            title: 'Nota de Entrada'
+                        },
+                        {
+                            data: 'NOTA_SAIDA',
+                            name: 'NOTA_SAIDA',
+                            title: 'Nota de Saída'
+                        },
+                        {
+                            data: 'DS_ITEM',
+                            name: 'DS_ITEM',
+                            title: 'Descrição'
+                        },
+                        {
+                            data: 'QT_ENTRADA',
+                            name: 'QT_ENTRADA',
+                            title: 'Qtde de Entrada'
+                        },
+                        {
+                            data: 'QT_SAIDA',
+                            name: 'QT_SAIDA',
+                            title: 'Qtde de Saída'
+                        },
+                        {
+                            data: 'SALDO',
+                            name: 'SALDO',
+                            title: 'Saldo',
+                        },
+                    ],
+
+                });
+            }
+
+            function atualizarInfoBoxes(dados) {
+                let totalEntrada = 0;
+                let totalSaida = 0;
+
+                dados.forEach(item => {
+                    totalEntrada += parseInt(item.QT_ENTRADA) || 0;
+                    totalSaida += parseInt(item.QT_SAIDA) || 0;
+                });
+                const saldo = totalEntrada - totalSaida;
+
+                $('#pneus-entrada').text(totalEntrada);
+                $('#pneus-saida').text(totalSaida);
+                $('#saldo-devolucao').text(saldo);
+            }
+
+            $('#filtro-cliente').on('keyup change', function() {
+                const valor = $(this).val().toLowerCase();
+                table.search(valor).draw();
+            });
+
+            $('#filtro-produto').on('keyup change', function() {
+                const valor = $(this).val();
+                table.search(valor).draw();
+            });
+
+            $('#filtro-Empresa').on('keyup change', function() {
+                const valor = $('#filtro-Empresa').val();
+                table.search(valor).draw();
+            });
+
+            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+                const startDate = picker.startDate.format('YYYY-MM-DD');
+                const endDate = picker.endDate.format('YYYY-MM-DD');
+                table.draw();
+            });
+            
+            $('#filtro-nota-entrada').on('keyup change', function() {
+                const valor = $(this).val();
+                table.search(valor).draw();
+            });
+            $('#submit-seach').on('click', function() {
+                table.draw();
+            });
+
+            // Atualiza as informações dos InfoBoxes
+            table.on('draw', function() {
+                atualizarInfoBoxes(table.rows({
+                    search: 'applied'
+                }).data().toArray());
             });
         });
     </script>

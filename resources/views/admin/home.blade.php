@@ -53,13 +53,22 @@
                                     style="width: 150px">Relatório Cobranca</a>
                             @endhaspermission
                         </div>
-                        <div class="col-md-12 mt-2">
-                            <p>Produção</p>
-                            @haspermission('ver-producao')
+                        @haspermission('ver-producao')
+                            <div class="col-md-12 mt-2">
+                                <p>Produção</p>
                                 <a href={{ route('executor-etapas.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Executor x Produção</a>
-                            @endhaspermission
-                        </div>
+                            </div>
+                        @endhaspermission
+                        @hasrole('admin')
+                            <div class="col-md-12 mt-2">
+                                <p>Faturamento</p>
+                                <a href={{ route('nota-devolucao.index') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Nota Devolução</a>
+
+                            </div>
+                        @endhasrole
+
                     </div>
                 </div>
             </div>

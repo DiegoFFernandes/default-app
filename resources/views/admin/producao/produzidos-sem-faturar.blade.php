@@ -142,7 +142,7 @@
                 <div class="card card-primary">
                     <div class="card-body">
                         <table id="produzidosTable" class="table table-bordered table-striped table-font-small compact">
-                            
+
                             <tfoot>
                                 <tr>
                                     <th colspan="5" style="text-align: right;"></th>
@@ -160,7 +160,7 @@
 
 @section('css')
     <style>
-        
+
     </style>
 @stop
 
@@ -232,9 +232,9 @@
                 } else {
                     // Open this row
                     row.child(template(row.data())).show();
-                    initTable(tableId, row.data());                    
+                    initTable(tableId, row.data());
                     tr.addClass('shown');
-                    $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');                   
+                    $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');
                     // tr.next().find('td').addClass('no-padding');
                 }
 
@@ -288,9 +288,12 @@
                             title: "Expedicionado",
                         },
                         {
-                            "data": "DTENTREGA",
-                            title: "Data Entrega",
-                            "visible": false
+                            "data": "DTFIM",
+                            render: function(data) {
+                                return moment(data).format('DD/MM/YYYY HH:mm');
+                            },
+                            title: "Data",
+                            "visible": true
                         }
                     ],
                     "columnDefs": [{
@@ -338,7 +341,7 @@
                     searching: true,
                     ajax: {
                         "url": "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
-                        "method": "GET",                        
+                        "method": "GET",
                         "data": {
                             'pedido': data.NR_COLETA,
                             'nr_embarque': data.NR_EMBARQUE
