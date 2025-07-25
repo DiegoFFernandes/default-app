@@ -103,6 +103,8 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="mb-3">
+                            <span class="badge badge-warning">Devolução Parcial</span>
+                            <span class="badge border">Devolução Total</span>
                         </div>
                         <table id="acompanhaNotaFiscal"
                             class="table compact table-font-small table-striped table-bordered nowrap"

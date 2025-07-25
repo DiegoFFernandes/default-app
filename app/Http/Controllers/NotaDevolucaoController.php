@@ -1,20 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Models\NotaDevolucao;
-use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Yajra\DataTables\Facades\DataTables;
 
 class NotaDevolucaoController extends Controller
 {
 
     public $empresa, $request, $user, $devolucao;
-
     public function __construct(
         Request $request,
         Empresa $empresa,
@@ -24,7 +20,6 @@ class NotaDevolucaoController extends Controller
         $this->request = $request;
         $this->empresa = $empresa;
         $this->devolucao = $notaDevolucao;
-        $this->empresa = $empresa;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -34,25 +29,20 @@ class NotaDevolucaoController extends Controller
     {
         $title_page = 'Nota Devolução';
         $user_auth = auth()->user();
-        $empresas = $this->empresa->empresa();
-
-        return view('admin.comercial.nota-devolucao', compact(
-            'title_page',
-            'user_auth',
-            'empresas'
-        ));
+        $empresa = $user_auth->empresa;        
+        return view('admin.comercial.nota-devolucao');
     }
 
     public function getNotaDevolucao()
     {
-        $data = $this->devolucao->getNotaDevolucao();
+       return $data = $this->devolucao->getNotaDevolucao();
 
-        return DataTables::of($data)
-
-            ->setRowClass(function($d){
-                if($d->SALDO < $d->QT_ENTRADA){
-                    return 'bg-warning';
-                }
+        return datatables()->of($data)
+            ->addColumn('DTFIM', function ($data) {
+                return date('d/m/Y H:i', strtotime($data->DTFIM));
+            })
+            ->addColumn('VALOR', function ($data) {
+                return number_format($data->VALOR, 2, ',', '.');
             })
             ->make(true);
     }
