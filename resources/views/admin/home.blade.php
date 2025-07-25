@@ -46,13 +46,13 @@
                                     style="width: 150px">Análise Faturista</a>
                             @endhaspermission
                         </div>
+                        @haspermission('ver-rel-cobranca')
                         <div class="col-md-12 mt-2">
-                            <p>Cobrança</p>
-                            @haspermission('ver-rel-cobranca')
+                            <p>Cobrança</p>                           
                                 <a href={{ route('rel-cobranca') }} class="btn btn-sm btn-dark mb-1"
-                                    style="width: 150px">Relatório Cobranca</a>
-                            @endhaspermission
+                                    style="width: 150px">Relatório Cobranca</a>                            
                         </div>
+                        @endhaspermission
                         @haspermission('ver-producao')
                             <div class="col-md-12 mt-2">
                                 <p>Produção</p>
@@ -60,14 +60,14 @@
                                     style="width: 150px">Executor x Produção</a>
                             </div>
                         @endhaspermission
-                        @hasrole('admin')
+                        @haspermission('ver-nota-devolucao')
                             <div class="col-md-12 mt-2">
                                 <p>Faturamento</p>
                                 <a href={{ route('nota-devolucao.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Nota Devolução</a>
 
                             </div>
-                        @endhasrole
+                        @endhaspermission
 
                     </div>
                 </div>

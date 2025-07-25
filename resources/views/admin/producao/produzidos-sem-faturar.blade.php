@@ -17,7 +17,7 @@
                 </div>
             </div>
 
-
+            @hasrole('admin|supervisor|gerente unidade|gerente comercial')
             <div class="col-md-4 col-sm-4 col-xs-6">
                 <div class="info-box">
                     <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-dollar-sign"></i></span>
@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </div>
-
+            @endhasrole
 
             <div class="col-md-4 col-sm-4 col-xs-6">
                 <div class="info-box">
@@ -271,10 +271,12 @@
                             "data": "NM_PESSOA",
                             title: "Cliente"
                         },
+                        @hasrole('admin')
                         {
                             "data": "VALOR",
                             title: "Valor"
                         },
+                        @endhasrole
                         {
                             "data": "PNEUS",
                             title: "Pneus"

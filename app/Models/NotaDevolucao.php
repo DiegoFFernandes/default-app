@@ -77,7 +77,7 @@ class NotaDevolucao extends Model
                     --AND ORIGEM.NR_LANCAMENTO = 2405
                     --AND P.CD_PESSOA = 83924
                     AND ORIGEM.ST_NOTA NOT IN ('C')
-                    AND ORIGEM.DT_EMISSAO >= '01.03.2025'
+                    AND ORIGEM.DT_EMISSAO >= '18.07.2025'
                     --AND ORIGEM.CD_EMPRESA = 1
                     -- AND ORIGEM.nr_notafor = 115943
                     AND ITEMORIGEM.QT_ITEMNOTA - COALESCE(D.QT_DEVOLUCAO, 0) > 0

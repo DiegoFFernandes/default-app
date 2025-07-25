@@ -50,13 +50,13 @@ class ProducaoController extends Controller
         $empresa = $this->empresa->empresa();
 
         $user =  $this->user->getData();
-        $regiao = "";
+        $regiao = $this->regiao->regiaoAll();
 
         if ($this->user->hasRole('admin|gerente comercial')) {
-             $regiao = $this->regiao->regiaoAll();            
+            $regiao = $this->regiao->regiaoAll();
         } elseif ($this->user->hasRole('supervisor')) {
             $regiao = $this->regiao->findRegiaoUser($this->user->id);
-        } elseif ($this->user->hasRole('gerente unidade')) {            
+        } elseif ($this->user->hasRole('gerente unidade')) {
             $regiao = $this->regiao->regiaoAll();
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
@@ -79,6 +79,8 @@ class ProducaoController extends Controller
     public function getListPneusProduzidosFaturar()
     {
         $cd_regiao = "";
+        $supervisor = 0;
+        $cd_empresa = 0;
 
         if ($this->user->hasRole('admin|gerente comercial')) {
             $cd_regiao = "";
@@ -90,10 +92,10 @@ class ProducaoController extends Controller
             $supervisor = $this->supervisorComercial->getCdSupervisor();
         } elseif ($this->user->hasRole('gerente unidade')) {
             $cd_regiao = "";
-            $supervisor = 0;            
+            $supervisor = 0;
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
-                ->implode(',');           
+                ->implode(',');
         }
 
         if (!empty($this->request->data['regiao'])) {
@@ -129,7 +131,6 @@ class ProducaoController extends Controller
     {
         $nr_embarque = $this->request->get('nr_embarque');
         $pedido = $this->request->get('pedido');
-
 
         if ($nr_embarque == 'SEM EMBARQUE') {
             $nr_embarque = 0;
