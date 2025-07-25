@@ -95,4 +95,9 @@ class ColetaController extends Controller
     {
         return view('admin.comercial.producao-indicadores');
     }
+
+    public function producaoCarga()
+    {
+        return view('admin.comercial.producao-carga');
+    }
 }

@@ -218,6 +218,7 @@
             let inicioData = moment().format('DD.MM.YYYY 00:00');
             let fimData = moment().format('DD.MM.YYYY 23:59');
             let abaAtiva = 'exame-inicial';
+            let todosSetores = [];
 
             $('.badge-periodo').text(`Periodo: ${inicioData} - ${fimData}`);
             $('.badge-empresa').text('Empresa: Cambé')
@@ -266,6 +267,15 @@
                         type: 'GET',
                         //filtro para não mostrar colunas com valores zerados
                         dataSrc: function(json) {
+                            todosSetores = json.data.map(item => {
+                                item.TOTAL_GERAL = Number(item.EXAME_INI) + Number(item.RASPA) +
+                                    Number(item.PREPBANDA) + Number(item.ESCAREACAO) + Number(
+                                        item.LIMPEZAMANCHAO) + Number(item.APLICOLA) + Number(
+                                        item.EMBORRACHAMENTO) + Number(item.VULCANIZACAO) +
+                                    Number(item.EXAMEFINAL);
+                                return item;
+                            });
+
                             return json.data.filter(item => {
                                 switch (abaAtiva) {
                                     case 'exame-inicial':
@@ -446,10 +456,7 @@
                         [20, 'asc']
                     ],
                     drawCallback: function(settings) {
-                        let dadosPaginaAtual = this.api().rows({
-                            page: 'current'
-                        }).data().toArray();
-                        gerarResumo(dadosPaginaAtual);
+                          gerarResumo(todosSetores);
                     }
                 });
             }
@@ -502,7 +509,7 @@
                 // automatiza o  badge-danger do periodo e formata o valor 
                 $('.badge-periodo').text(
                     `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
-                    );
+                );
 
 
                 initTable(empresa, inicioData, fimData);
