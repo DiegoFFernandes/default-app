@@ -271,7 +271,7 @@
                             "data": "NM_PESSOA",
                             title: "Cliente"
                         },
-                        @hasrole('admin')
+                        @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                         {
                             "data": "VALOR",
                             title: "Valor"
@@ -355,16 +355,18 @@
                         },
                         {
                             data: "NRORDEMPRODUCAO",
-                            title: "Nr Ordem Produção"
+                            title: "Nr Ordem"
                         },
                         {
                             data: "DS_ITEM",
-                            title: "Descrição do Item"
+                            title: "Descrição"
                         },
+                        @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                         {
-                            data: "VALOR",
+                            "data": "VALOR",
                             title: "Valor"
                         },
+                        @endhasrole
                         {
                             data: "DTFIM",
                             title: "Data",
