@@ -61,7 +61,8 @@
                         <input id="filtro-cnpj" type="text" class="form-control" placeholder="Filtrar por CNPJ">
                     </div>
                     <div class="col-md-4 mb-2">
-                        <input id="filtro-supervisor" type="text" class="form-control" placeholder="Filtrar por Supervisor">
+                        <input id="filtro-supervisor" type="text" class="form-control"
+                            placeholder="Filtrar por Supervisor">
                     </div>
                     <div class="col-md-4 mb-2">
                         <input id="daterange" type="text" class="form-control" placeholder="Filtrar por Vencimento">
@@ -144,36 +145,94 @@
 
         function carregaDados() {
             tabela = new Tabulator("#tabela-dados", {
-                ajaxURL: "{{ route('teste-cobranca') }}",
+                ajaxURL: "{{ route('get-relatorio-cobranca') }}",
                 layout: "fitDataStretch",
                 groupBy: ["DS_AREACOMERCIAL", "NM_SUPERVISOR", "NM_VENDEDOR", "NM_PESSOA"],
                 groupHeader: [
-                    // Primeiro nível: DS_AREACOMERCIAL (agrupamento manual)
+                    // Primeiro nível: Gerente Comercial (agrupamento manual)
                     function(value, count, data, group) {
-                        let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
-                        // let titulos = dados
-                        //     .filter(d => d.DS_AREACOMERCIAL === value)
-                        //     .reduce((sum, d) => sum + parseFloat(d.TITULOS || 0), 0);
-                        // return `${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} `;
+                        let atrasos = data.filter(d => d.NR_DIAS > 0).length;
+                        let pc_atrasos = (atrasos / data.length * 100).toFixed(2);
+                        let total_atrasos = data.reduce((sum, row) => sum + (row.NR_DIAS > 0 ? Number(row
+                            .VL_SALDO || 0) : 0), 0);
+                        let receberMaior61dias = data[0]?.RECEBERMAIOR61DIASGERENTECOMERCIAL || 0;
+                        let liquidadoMaior61dias = data[0]?.LIQUIDADOMAIOR61DIASGERENTECOMERCIAL || 0;
+                        let saldoMaior61dias = receberMaior61dias - liquidadoMaior61dias;
+                        let pcMaior61dias = (100 - (liquidadoMaior61dias / receberMaior61dias * 100) || 0)
+                            .toFixed(2);
 
-                        return `<div style=" display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
-                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </div>`;
+                        let receberMenor60dias = data[0]?.RECEBERMENOR60DIASGERENTECOMERCIAL || 0;
+                        let liquidadoMenor60dias = data[0]?.LIQUIDADOMENOR60DIASGERENTECOMERCIAL || 0;
+                        let saldoMenor60dias = receberMenor60dias - liquidadoMenor60dias;
+                        let pcMenor60dias = (100 - (liquidadoMenor60dias / receberMenor60dias * 100) || 0)
+                            .toFixed(2);
+
+                        let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
+
+
+                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                                    <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
+                                    <div class="d-inline-block float-right">ATRASOS - ${pc_atrasos}% (R$ ${total_atrasos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">INADIMPL. 61 a 120 DIAS - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+
+                                    <div class="d-inline-block float-right mr-4">INADIMPL. 1 a 60 DIAS - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+
+                                </div>`;
 
                     },
                     // Segundo nível: DS_REGIAOCOMERCIAL
                     function(value, count, data, group) {
+                        let atrasos = data.filter(d => d.NR_DIAS > 0).length;
+                        let pc_atrasos = (atrasos / data.length * 100).toFixed(2);
+                        let total_atrasos = data.reduce((sum, row) => sum + (row.NR_DIAS > 0 ? Number(row
+                            .VL_SALDO || 0) : 0), 0);
+                        let receberMaior61dias = data[0]?.RECEBERMAIOR61DIAS_SUPERVISOR || 0;
+                        let liquidadoMaior61dias = data[0]?.LIQUIDADOMAIOR61DIAS_SUPERVISOR || 0;
+                        let saldoMaior61dias = receberMaior61dias - liquidadoMaior61dias;
+                        let pcMaior61dias = (100 - (liquidadoMaior61dias / receberMaior61dias * 100) || 0)
+                            .toFixed(2);
+
+                        let receberMenor60dias = data[0]?.RECEBERMENOR60DIAS_SUPERVISOR || 0;
+                        let liquidadoMenor60dias = data[0]?.LIQUIDADOMENOR60DIAS_SUPERVISOR || 0;
+                        let saldoMenor60dias = receberMenor60dias - liquidadoMenor60dias;
+                        let pcMenor60dias = (100 - (liquidadoMenor60dias / receberMenor60dias * 100) || 0)
+                            .toFixed(2);
+
                         let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
-                        return `<div style=" display:inline-block; width:97%; background-color:#6c757d; color:white; padding:5px; font-weight:bold;">
-                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </div>`;
+
+                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                                    <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
+                                    <div class="d-inline-block float-right">ATRASOS - ${pc_atrasos}% (R$ ${total_atrasos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">INADIMPL. 61 a 120 DIAS - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
+                                    <div class="d-inline-block float-right mr-4">INADIMPL. 1 a 60 DIAS - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                </div>`;
 
                     },
+                    // Terceiro nível: NM_VENDEDOR
                     function(value, count, data, group) {
+                        let atrasos = data.filter(d => d.NR_DIAS > 0).length;
+                        let pc_atrasos = (atrasos / data.length * 100).toFixed(2);
+                        let total_atrasos = data.reduce((sum, row) => sum + (row.NR_DIAS > 0 ? Number(row
+                            .VL_SALDO || 0) : 0), 0);
+                        let receberMaior61dias = data[0]?.RECEBERMAIOR61DIAS_VENDEDOR || 0;
+                        let liquidadoMaior61dias = data[0]?.LIQUIDADOMAIOR61DIAS_VENDEDOR || 0;
+                        let saldoMaior61dias = receberMaior61dias - liquidadoMaior61dias;
+                        let pcMaior61dias = (100 - (liquidadoMaior61dias / receberMaior61dias * 100) || 0)
+                            .toFixed(2);
+
+                        let receberMenor60dias = data[0]?.RECEBERMENOR60DIAS_SUPERVISOR || 0;
+                        let liquidadoMenor60dias = data[0]?.LIQUIDADOMENOR60DIAS_SUPERVISOR || 0;
+                        let saldoMenor60dias = receberMenor60dias - liquidadoMenor60dias;
+                        let pcMenor60dias = (100 - (liquidadoMenor60dias / receberMenor60dias * 100) || 0)
+                            .toFixed(2);
+
                         let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
-                        return `<div style=" display:inline-block; width:97%; background-color:#adb5bd; color:black; padding:5px; font-weight:bold;">
-                                ${value} - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                            </div>`;
+                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                                    <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
+                                    <div class="d-inline-block float-right">ATRASOS - ${pc_atrasos}% (R$ ${total_atrasos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">INADIMPL. 61 a 120 DIAS - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
+                                    <div class="d-inline-block float-right mr-4">INADIMPL. 1 a 60 DIAS - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                </div>`;;
                     },
                     function(value, count, data, group) {
                         let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
@@ -439,7 +498,7 @@
                 };
             });
 
-            console.log(datasets);
+
 
 
             ChartData = {
@@ -474,7 +533,7 @@
                         }
                     }
                 },
-                
+
             });
         }
     </script>

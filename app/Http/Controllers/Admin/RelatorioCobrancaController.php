@@ -263,9 +263,9 @@ class RelatorioCobrancaController extends Controller
         return "R$ " . $total_;
     }
 
-    public function testeCobranca()
+    public function getRelatorioCobranca()
     {
-        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+
 
         if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
@@ -296,16 +296,119 @@ class RelatorioCobrancaController extends Controller
                 ->implode(',');
         }
 
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa);
+        $receber_liquidada = self::getRecebimentoLiquidado();
 
-        foreach ($data as $item) {
+        $indexado = [
+            'vendedor' => [],
+            'supervisor' => [],
+            'gerente_comercial' => []
+        ];
+        //Indexa os valores de recebimento e liquidação por vendedor e supervisor
+        foreach ($receber_liquidada as $r) {
+            $codigoSupervisor = $r->CD_VENDEDORGERAL;
+            $codigoVendedor = $r->CD_VENDEDOR;
+
+            $valorRecebidoMaior61dias = floatval($r->RECEBERMAIOR61DIAS ?? 0);
+            $liquidadaoMaior61dias = floatval($r->LIQUIDADOMAIOR61DIAS ?? 0);
+            $receberMenor60dias = floatval($r->RECEBERMENOR60DIAS ?? 0);
+            $liquidadoMenor60dias = floatval($r->LIQUIDADOMENOR60DIAS ?? 0);
+
+            if (!isset($indexado['vendedor'][$codigoVendedor])) {
+                $indexado['vendedor'][$codigoVendedor] = [
+                    'valor_receber_maior_61_dias' => 0,
+                    'liquidado_maior_61_dias' => 0,
+
+                    'valor_receber_menor_60_dias' => 0,
+                    'liquidado_menor_60_dias' => 0
+                ];
+            }
+            $indexado['vendedor'][$codigoVendedor]['valor_receber_maior_61_dias'] += $valorRecebidoMaior61dias;
+            $indexado['vendedor'][$codigoVendedor]['liquidado_maior_61_dias'] += $liquidadaoMaior61dias;
+            $indexado['vendedor'][$codigoVendedor]['valor_receber_menor_60_dias'] += $receberMenor60dias;
+            $indexado['vendedor'][$codigoVendedor]['liquidado_menor_60_dias'] += $liquidadoMenor60dias;
+
+            if (!isset($indexado['supervisor'][$codigoSupervisor])) {
+                $indexado['supervisor'][$codigoSupervisor] = [
+                    'valor_receber_maior_61_dias' => 0,
+                    'liquidado_maior_61_dias' => 0,
+
+                    'valor_receber_menor_60_dias' => 0,
+                    'liquidado_menor_60_dias' => 0
+                ];
+            }
+            $indexado['supervisor'][$codigoSupervisor]['valor_receber_maior_61_dias'] += $valorRecebidoMaior61dias;
+            $indexado['supervisor'][$codigoSupervisor]['liquidado_maior_61_dias'] += $liquidadaoMaior61dias;
+            $indexado['supervisor'][$codigoSupervisor]['valor_receber_menor_60_dias'] += $receberMenor60dias;
+            $indexado['supervisor'][$codigoSupervisor]['liquidado_menor_60_dias'] += $liquidadoMenor60dias;
+        }
+
+
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+
+        //faz a indexação dos valores por gerente comercial
+        $gerente = [];
+        foreach ($receber_liquidada as $r) {
             foreach ($regioes_mysql as $regiao) {
-                if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
-                    $item->DS_AREACOMERCIAL = $regiao->name;
+                if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+                    $nome = $regiao->name;
+                    $valorRecebidoMaior61dias = floatval($r->RECEBERMAIOR61DIAS ?? 0);
+                    $liquidadaoMaior61dias = floatval($r->LIQUIDADOMAIOR61DIAS ?? 0);
+                    $valorRecebidoMenor60dias = floatval($r->RECEBERMENOR60DIAS ?? 0);
+                    $liquidadaoMenor60dias = floatval($r->LIQUIDADOMENOR60DIAS ?? 0);
+
+                    if (!isset($gerente[$nome])) {
+                        $gerente[$nome] = [
+                            'valor_receber_maior_61_dias' => 0,
+                            'liquidado_maior_61_dias' => 0,
+                            'valor_receber_menor_60_dias' => 0,
+                            'liquidado_menor_60_dias' => 0
+                        ];
+                    }
+                    $gerente[$nome]['valor_receber_maior_61_dias'] += $valorRecebidoMaior61dias;
+                    $gerente[$nome]['liquidado_maior_61_dias'] += $liquidadaoMaior61dias;
+                    $gerente[$nome]['valor_receber_menor_60_dias'] += $valorRecebidoMenor60dias;
+                    $gerente[$nome]['liquidado_menor_60_dias'] += $liquidadaoMenor60dias;
                 }
             }
         }
 
+        //Faz a indexação das regiões codigo do supervisor e nome do gerente comercial
+        $regioesIndexadas = [];
+        foreach ($regioes_mysql as $regiao) {
+            $regioesIndexadas[$regiao->cd_areacomercial] = $regiao->name;
+        }
+
+
+        //Busca os dados de cobrança com as informações de vencimento, valor, etc.
+        //e adiciona os valores de recebimento maior que 61 dias e o nome da
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa);
+
+        foreach ($data as $item) {
+            $codigoSupervisor = $item->CD_VENDEDORGERAL;
+            $nomeRegiao = $regioesIndexadas[$codigoSupervisor] ?? null;
+            $item->DS_AREACOMERCIAL = $nomeRegiao;
+
+            $item->RECEBERMAIOR61DIAS_VENDEDOR = $indexado['vendedor'][$item->CD_VENDEDOR]['valor_receber_maior_61_dias'] ?? 0;
+            $item->LIQUIDADOMAIOR61DIAS_VENDEDOR = $indexado['vendedor'][$item->CD_VENDEDOR]['liquidado_maior_61_dias'] ?? 0;
+            $item->RECEBERMENOR60DIAS_VENDEDOR = $indexado['vendedor'][$item->CD_VENDEDOR]['valor_receber_menor_60_dias'] ?? 0;
+            $item->LIQUIDADOMENOR60DIAS_VENDEDOR = $indexado['vendedor'][$item->CD_VENDEDOR]['liquidado_menor_60_dias'] ?? 0;
+
+            $item->RECEBERMAIOR61DIAS_SUPERVISOR = $indexado['supervisor'][$codigoSupervisor]['valor_receber_maior_61_dias'] ?? 0;
+            $item->LIQUIDADOMAIOR61DIAS_SUPERVISOR = $indexado['supervisor'][$codigoSupervisor]['liquidado_maior_61_dias'] ?? 0;
+            $item->RECEBERMENOR60DIAS_SUPERVISOR = $indexado['supervisor'][$codigoSupervisor]['valor_receber_menor_60_dias'] ?? 0;
+            $item->LIQUIDADOMENOR60DIAS_SUPERVISOR = $indexado['supervisor'][$codigoSupervisor]['liquidado_menor_60_dias'] ?? 0;
+
+            $item->RECEBERMAIOR61DIASGERENTECOMERCIAL = $gerente[$nomeRegiao]['valor_receber_maior_61_dias'] ?? 0;
+            $item->LIQUIDADOMAIOR61DIASGERENTECOMERCIAL = $gerente[$nomeRegiao]['liquidado_maior_61_dias'] ?? 0;
+            $item->RECEBERMENOR60DIASGERENTECOMERCIAL = $gerente[$nomeRegiao]['valor_receber_menor_60_dias'] ?? 0;
+            $item->LIQUIDADOMENOR60DIASGERENTECOMERCIAL = $gerente[$nomeRegiao]['liquidado_menor_60_dias'] ?? 0;
+        }
+
         return response()->json($data);
+    }
+
+    public function getRecebimentoLiquidado()
+    {
+        return $this->cobranca->getRecebimentoLiquidado();
     }
 }

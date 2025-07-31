@@ -22,6 +22,7 @@ class Cobranca extends Model
                     CONTAS.CD_EMPRESA,
                     CONTAS.NR_LANCAMENTO,
                     P.NR_CNPJCPF,
+                    CONTAS.CD_PESSOA,
                     CONTAS.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
                     --CONTAS.DS_OBSERVACAO,
                     CONTAS.CD_TIPOCONTA || ' ' || TIPOCONTA.DS_TIPOCONTA TIPOCONTA,
@@ -50,6 +51,7 @@ class Cobranca extends Model
                     IIF(CONTAS.ST_CARTORIO = 'N' AND CONTAS.DT_VENCIMENTO <= CURRENT_DATE AND CONTAS.ST_INCOBRAVEL <> 'S', CONTAS.VL_SALDO, 0) VL_VENCIDO,
                     IIF(CONTAS.ST_CARTORIO = 'N' AND CONTAS.DT_VENCIMENTO > CURRENT_DATE AND CONTAS.ST_INCOBRAVEL <> 'S', CONTAS.VL_SALDO, 0) VL_AVENCER,
                     VEND.NM_PESSOA NM_VENDEDOR,
+                    VEND.CD_PESSOA CD_VENDEDOR,
                     (COALESCE(CONTAS.VL_SALDO, 0) + COALESCE(CJ.O_VL_JURO, 0)) VL_TOTALSOMA,
                     (COALESCE(CONTAS.VL_DOCUMENTO, 0) - COALESCE(CONTAS.VL_SALDO, 0) + COALESCE(MP.O_VL_JURO, 0) - COALESCE(MP.O_VL_DESCONTO, 0)) VL_LIQUIDOSOMA,
                     COALESCE(RGC.CD_REGIAOCOMERCIAL, 99) CD_REGIAOCOMERCIAL,
@@ -89,11 +91,11 @@ class Cobranca extends Model
                 LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
                 LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
                 WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
-                    --AND CONTAS.CD_PESSOA = 11625
+                    --AND CONTAS.CD_PESSOA in (11283, 18106)
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
-                    --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 18404)
+                    --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 57623, 20336)
                     AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')   
                 ORDER BY CONTAS.DT_VENCIMENTO;          
              ";
@@ -187,6 +189,66 @@ class Cobranca extends Model
                 AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
             ORDER BY C.VL_SALDO DESC     
                 ";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
+
+    public function getRecebimentoLiquidado()
+    {
+        $query = "
+            SELECT DISTINCT
+                CONTAS.CD_EMPRESA,
+                CONTAS.CD_PESSOA,
+                CONTAS.NR_LANCAMENTO,
+                CONTAS.NR_DOCUMENTO,
+                CONTAS.NR_PARCELA,
+                V.CD_VENDEDORGERAL,
+                SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
+                VEND.CD_PESSOA CD_VENDEDOR,
+                VEND.NM_PESSOA NM_VENDEDOR,
+                CONTAS.DT_VENCIMENTO,
+                CASE
+                WHEN CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 61 THEN CONTAS.VL_DOCUMENTO
+                END RECEBERMAIOR61DIAS,
+                CASE
+                WHEN CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 61 THEN CONTAS.VL_DOCUMENTO - CONTAS.VL_SALDO
+                END LIQUIDADOMAIOR61DIAS,
+                CASE
+                WHEN CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 1 THEN CONTAS.VL_DOCUMENTO
+                END RECEBERMENOR60DIAS,
+                CASE
+                WHEN CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 60 AND CURRENT_DATE - 1 THEN CONTAS.VL_DOCUMENTO - CONTAS.VL_SALDO
+                END LIQUIDADOMENOR60DIAS
+            FROM CONTAS
+            LEFT JOIN NOTA NT ON (NT.CD_EMPRESA = CONTAS.CD_EMPRESA
+                AND NT.NR_LANCAMENTO = CONTAS.NR_LANCTONOTA
+                AND NT.TP_NOTA = CONTAS.TP_CONTAS
+                AND NT.CD_SERIE = CONTAS.CD_SERIE)
+            LEFT JOIN ITEMNOTA ITN ON (ITN.CD_EMPRESA = NT.CD_EMPRESA
+                AND ITN.NR_LANCAMENTO = NT.NR_LANCAMENTO
+                AND ITN.TP_NOTA = NT.TP_NOTA
+                AND ITN.CD_SERIE = NT.CD_SERIE)
+            LEFT JOIN ITEMNOTAVENDEDOR ITNV ON (ITNV.CD_EMPRESA = ITN.CD_EMPRESA
+                AND ITNV.NR_LANCAMENTO = ITN.NR_LANCAMENTO
+                AND ITNV.TP_NOTA = ITN.TP_NOTA
+                AND ITNV.CD_SERIE = ITN.CD_SERIE
+                AND ITNV.CD_ITEM = ITN.CD_ITEM
+                AND ITNV.CD_TIPO = 1)
+            LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = CONTAS.CD_PESSOA
+                AND EP.CD_ENDERECO = 1)
+            LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = COALESCE(COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR), EP.CD_VENDEDOR))
+            LEFT JOIN PESSOA VEND ON (VEND.CD_PESSOA = V.CD_VENDEDOR)
+            LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
+                --LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
+                --LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
+            WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
+                --AND CONTAS.CD_PESSOA in (11283, 18106)
+                --AND CONTAS.nr_lancamento = 248188
+                AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
+                --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 57623, 20336)
+                AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
