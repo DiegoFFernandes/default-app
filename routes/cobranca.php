@@ -19,6 +19,7 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         Route::get('get-recebimento-liquidado', [RelatorioCobrancaController::class, 'getRecebimentoLiquidado'])->name('get-recebimento-liquidado');
 
 
+
     });
     
 });

@@ -11,7 +11,7 @@ class Comissao extends Model
 {
     use HasFactory;
 
-    public function comissaoFaturamento(){
+    public function getComissaoFaturamento(){
         $query = "
                 SELECT DISTINCT
                     N.CD_EMPRESA,
@@ -48,7 +48,7 @@ class Comissao extends Model
                 LEFT JOIN ITEMTABPRECO I ON (I.CD_TABPRECO = INF.CD_TABPRECO
                     AND I.CD_ITEM = INF.CD_ITEM)
                 LEFT JOIN TABPRECO TP ON (TP.CD_TABPRECO = I.CD_TABPRECO)
-                WHERE N.DT_EMISSAO BETWEEN DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO DATEADD(-6 MONTH TO CURRENT_DATE)) AND 'TODAY'
+                WHERE N.DT_EMISSAO BETWEEN DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO DATEADD(-3 MONTH TO CURRENT_DATE)) AND 'TODAY'
                     --and inf.vl_unitario > 0
                     AND N.TP_NOTA = 'S'
                     --and infv.cd_tipo = '1'

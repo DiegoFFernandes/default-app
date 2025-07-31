@@ -9,9 +9,11 @@ use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use JeroenNoten\LaravelAdminLte\View\Components\Tool\Datatable;
 use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
@@ -410,5 +412,26 @@ class RelatorioCobrancaController extends Controller
     public function getRecebimentoLiquidado()
     {
         return $this->cobranca->getRecebimentoLiquidado();
+    }
+
+    public function getRecebimentoLiquidadoProvisorio()
+    {
+
+        $data = $this->cobranca->getRecebimentoLiquidado();
+
+        return Datatables::of($data)
+            ->addColumn('RECEBERMAIOR61DIAS', function ($data) {
+                return number_format($data->RECEBERMAIOR61DIAS, 2, ',', '.');
+            })
+            ->addColumn('LIQUIDADOMAIOR61DIAS', function ($data) {
+                return number_format($data->LIQUIDADOMAIOR61DIAS, 2, ',', '.');
+            })
+            ->addColumn('RECEBERMENOR60DIAS', function ($data) {
+                return number_format($data->RECEBERMENOR60DIAS, 2, ',', '.');
+            })
+            ->addColumn('LIQUIDADOMENOR60DIAS', function ($data) {
+                return number_format($data->LIQUIDADOMENOR60DIAS, 2, ',', '.');
+            })
+            ->make(true);
     }
 }
