@@ -224,6 +224,19 @@
             font-size: 15px;
             padding: 7px 15px;
         }
+
+        @media (max-width: 576px) {
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-tabs .nav-item {
+                flex-shrink: 0;
+            }
+        }
     </style>
 @stop
 
@@ -619,7 +632,8 @@
                 $('#submit-seach').on('click', function() {
 
                     const empresa = $('#filtro-empresa').val(); // puxa o código da empresa
-                    const empresaNome = $('#filtro-empresa option:selected').text(); //puxa o nome da empresa
+                    const empresaNome = $('#filtro-empresa option:selected')
+                .text(); //puxa o nome da empresa
 
                     if (!empresa) {
                         msgToastr('Selecione uma empresa para continuar.',

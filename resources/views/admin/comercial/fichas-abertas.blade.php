@@ -5,7 +5,7 @@
     <!-- Main content -->
     <section class="content">
         <div class="row">
-            <div class="col-3">
+            <div class="col-12 col-sm-6 col-md-3 mb-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="fas fa-hourglass-start"></i></span>
                     <div class="info-box-content">
@@ -14,7 +14,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-sm-6 col-md-3 mb-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-warning"><i class="fas fa-hourglass-half"></i></span>
                     <div class="info-box-content">
@@ -23,7 +23,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-sm-6 col-md-3 mb-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-orange"><i class="fas fa-exclamation-circle"></i></span>
                     <div class="info-box-content">
@@ -32,7 +32,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-3">
+            <div class="col-12 col-sm-6 col-md-3 mb-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-danger"><i class="fas fa-bell"></i></span>
                     <div class="info-box-content">
@@ -117,6 +117,8 @@
             }
 
             $('#ordensAbertas').DataTable({
+                responsive: true,
+                scrollX: true,
                 processing: true,
                 serverSide: false,
                 language: {

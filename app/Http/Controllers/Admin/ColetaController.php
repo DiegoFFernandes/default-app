@@ -100,4 +100,18 @@ class ColetaController extends Controller
     {
         return view('admin.comercial.producao-carga');
     }
+
+    public function pneusEtapasExecutar()
+    {
+        return view('admin.comercial.pneus-etapa-executar');
+    }
+    public function pneusParados()
+    {
+        return view('admin.comercial.parados-mais-quatro-horas');
+    }
+
+    public function exameInicialCobertura()
+    {
+        return view('admin.comercial.exame-inicia-cobertura');
+    }
 }
