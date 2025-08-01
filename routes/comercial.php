@@ -116,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('inadimplencia-vendedor', [ColetaController::class, 'inadimplenciaVendedor'])->name('inadimplencia-vendedor');
         Route::get('resumo-carga', [ColetaController::class, 'resumoCarga'])->name('resumo-carga');
         Route::get('producao-indicadores', [ColetaController::class, 'producaoIndicadores'])->name('producao-indicadores');
+        Route::get('producao-carga', [ColetaController::class, 'producaoCarga'])->name('producao-carga');
 
         
     });

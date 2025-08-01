@@ -3,7 +3,6 @@
 
 @section('content')
     <section class="content">
-        {{-- ===== INFO-BOXES PRINCIPAIS ===== --}}
         <div class="row">
             <div class="col-12 col-sm-6 col-md-3 mb-3">
                 <div class="info-box">
@@ -42,7 +41,47 @@
                 </div>
             </div>
         </div>
-        {{-- ===== ÁREAS COM ABAS PRINCIPAIS ===== --}}
+        <!-- Filtro (mudar de acordo com a nescessidade da página) -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card collapsed-card">
+                    <div class="card-header">
+                        <h5 class="card-title">Filtros</h5>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-12 col-md-2 mb-2">
+                                <div class="form-group mb-0">
+                                    <label for="filtro-empresa">Empresa:</label>
+                                    <select id="filtro-empresa" class="form-control mt-1">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4 mb-2">
+                                <div class="form-group mb-0">
+                                    <label for="daterange">Data:</label>
+                                    <div class="input-group mt-1">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                                        </div>
+                                        <input type="text" class="form-control" id="daterange"
+                                            placeholder="Selecione a Data">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-12">
                 <div class="card card-dark card-outline card-outline-tabs mt-3">
@@ -53,72 +92,45 @@
                                     role="tab">Ordens Abertas</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" id="produzir-tab" data-toggle="pill" href="#produzir"
+                                    role="tab">Produzir/Cliente</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" id="producao-tab" data-toggle="pill" href="#producao"
                                     role="tab">Produção</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="etapa-tab" data-toggle="pill" href="#etapa" role="tab">Etapas
-                                    de Produção</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="relatorio-tab" data-toggle="pill" href="#relatorio"
-                                    role="tab">Relatório</a>
+                                <a class="nav-link" id="ultimos6-tab" data-toggle="pill" href="#ultimos6"
+                                    role="tab">Últimos 6 meses</a>
                             </li>
                         </ul>
                     </div>
                     <div class="card-body">
                         <div class="tab-content" id="main-tabs-content">
-                            {{-- ORDENS ABERTAS --}}
                             <div class="tab-pane fade show active" id="ordens" role="tabpanel">
                                 <div class="card-body p-2">
                                     <div class="table-responsive">
                                         <table id="ordensAbertas" class="table table-sm table-striped table-bordered"
                                             style="width:100%; font-size: 12px;">
                                             <thead class="bg-dark text-white">
-                                                <tr>
-                                                    <th>Op</th>
-                                                    <th>Data</th>
-                                                    <th>Medida</th>
-                                                    <th>Marca</th>
-                                                    <th>Desenho</th>
-                                                    <th>Vendedor</th>
-                                                    <th>Cliente</th>
-                                                    <th>Ult. Etapa</th>
-                                                    <th>Data/Hora</th>
-                                                </tr>
                                             </thead>
                                         </table>
                                     </div>
                                 </div>
                             </div>
-                            {{-- PRODUÇÃO --}}
+                            <div class="tab-pane fade" id="produzir" role="tabpanel">
+                                <div class="card-body p-2">
+                                    <!-- tabela sobre qtd a produzir  -->
+                                </div>
+                            </div>
                             <div class="tab-pane fade" id="producao" role="tabpanel">
-
+                                <div class="card-body p-2">
+                                    <!-- grafico sobre a produção -->
+                                </div>
                             </div>
-                            {{-- ETAPAS DE PRODUÇÃO --}}
-                            <div class="tab-pane fade" id="etapa" role="tabpanel">
-
-                            </div>
-                            {{-- RELATÓRIO --}}
-                            <div class="tab-pane fade" id="relatorio" role="tabpanel">
-                                <div class="card card-outline card-dark mt-3">
-                                    <div class="card-header">
-                                        <h3 class="card-title">Comparativo de Etapas</h3>
-                                    </div>
-                                    <div class="card-body p-2">
-                                        <div class="table-responsive">
-                                            <table id="comparativo" class="table table-sm table-striped table-bordered"
-                                                style="width:100%; font-size: 12px;">
-                                                <thead class="bg-dark text-white">
-                                                    <tr>
-                                                        <th>Etapa</th>
-                                                        <th>Hoje</th>
-                                                        <th>Ontem</th>
-                                                    </tr>
-                                                </thead>
-                                            </table>
-                                        </div>
-                                    </div>
+                            <div class="tab-pane fade" id="ultimos6" role="tabpanel">
+                                <div class="card-body p-2">
+                                    <!-- grafico ultimos 6 meses -->
                                 </div>
                             </div>
                         </div>

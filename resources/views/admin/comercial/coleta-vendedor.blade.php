@@ -4,6 +4,44 @@
 @section('content')
     <!-- Main content -->
     <section class="content">
+        <div class="row">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-success"><i class="fas fa-truck"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Coletas</span>
+                        <span id="coleta-hoje" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Valor Médio</span>
+                        <span id="media-hoje" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Faturados</span>
+                        <span id="media-hoje" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Recusados</span>
+                        <span id="media-hoje" class="info-box-number">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Filtro (mudar de acordo com a nescessidade da página) -->
         <div class="row">
             <div class="col-12">
@@ -22,6 +60,14 @@
                                 <div class="form-group mb-0">
                                     <label for="filtro-empresa">Empresa:</label>
                                     <select id="filtro-empresa" class="form-control mt-1">
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-2 mb-2">
+                                <div class="form-group mb-0">
+                                    <label for="filtro-vendedor">Vendedor:</label>
+                                    <select id="filtro-vendedor" class="form-control mt-1">
 
                                     </select>
                                 </div>

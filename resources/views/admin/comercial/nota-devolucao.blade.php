@@ -141,6 +141,7 @@
         .btn-primary:hover {
             box-shadow: 0 4px 12px rgba(0, 123, 255, 0.6);
         }
+
     </style>
 
 @stop
