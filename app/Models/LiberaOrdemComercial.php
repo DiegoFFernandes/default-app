@@ -214,7 +214,7 @@ class LiberaOrdemComercial extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function updateDescontoMaior10()
+    public function updateDescontoMaior20()
     {
 
         $pneus = self::listPneusOrdensBloqueadas(0, 0, 0) ?? [];
@@ -223,13 +223,13 @@ class LiberaOrdemComercial extends Model
             return;
         }
 
-        $pedidoDescontoMaior10 = collect($pneus)
-            ->filter(fn($p) => $p->PC_DESCONTO > 10)
+        $pedidoDescontoMaior20 = collect($pneus)
+            ->filter(fn($p) => $p->PC_DESCONTO > 20)
             ->pluck('PEDIDO')
             ->values()
             ->unique()
             ->implode(',');
 
-        return PedidoPneu::updateDescontoMaior10($pedidoDescontoMaior10);
+        return PedidoPneu::updateDescontoMaior20($pedidoDescontoMaior20);
     }
 }

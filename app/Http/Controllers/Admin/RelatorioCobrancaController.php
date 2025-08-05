@@ -298,7 +298,7 @@ class RelatorioCobrancaController extends Controller
                 ->implode(',');
         }
 
-        $receber_liquidada = self::getRecebimentoLiquidado();
+        $receber_liquidada = self::RecebimentoLiquidado();
 
         $indexado = [
             'vendedor' => [],
@@ -409,29 +409,31 @@ class RelatorioCobrancaController extends Controller
         return response()->json($data);
     }
 
-    public function getRecebimentoLiquidado()
+    public function RecebimentoLiquidado()
     {
         return $this->cobranca->getRecebimentoLiquidado();
     }
 
-    public function getRecebimentoLiquidadoProvisorio()
+    public function getRecebimentoLiquidado()
     {
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+        //Faz a indexação das regiões codigo do supervisor e nome do gerente comercial
+        $regioesIndexadas = [];
+        foreach ($regioes_mysql as $regiao) {
+            $regioesIndexadas[$regiao->cd_areacomercial] = $regiao->name;
+        }
+        $data = self::RecebimentoLiquidado();
 
-        $data = $this->cobranca->getRecebimentoLiquidado();
+
+        foreach ($data as $item) {
+            $codigoSupervisor = $item->CD_VENDEDORGERAL;
+            $nomeRegiao = $regioesIndexadas[$codigoSupervisor] ?? null;
+            $item->DS_AREACOMERCIAL = $nomeRegiao;
+        }
+
+        return response()->json($data);
 
         return Datatables::of($data)
-            ->addColumn('RECEBERMAIOR61DIAS', function ($data) {
-                return number_format($data->RECEBERMAIOR61DIAS, 2, ',', '.');
-            })
-            ->addColumn('LIQUIDADOMAIOR61DIAS', function ($data) {
-                return number_format($data->LIQUIDADOMAIOR61DIAS, 2, ',', '.');
-            })
-            ->addColumn('RECEBERMENOR60DIAS', function ($data) {
-                return number_format($data->RECEBERMENOR60DIAS, 2, ',', '.');
-            })
-            ->addColumn('LIQUIDADOMENOR60DIAS', function ($data) {
-                return number_format($data->LIQUIDADOMENOR60DIAS, 2, ',', '.');
-            })
             ->make(true);
     }
 }
