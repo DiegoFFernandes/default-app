@@ -72,8 +72,8 @@ class LiberaOrdemComissaoController extends Controller
             }
         }
 
-        // Atualiza o desconto maior que 10% para Gerente fazer a liberação
-        $this->libera->updateDescontoMaior10();
+        // Atualiza o desconto maior que 20% para Gerente fazer a liberação
+        $this->libera->updateDescontoMaior20();
 
         $data = $this->libera->listOrdensBloqueadas(0, 0, 0, $supervisor);
 

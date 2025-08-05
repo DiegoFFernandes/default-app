@@ -37,7 +37,7 @@ class PedidoPneu extends Model
         });
     }
 
-    static function updateDescontoMaior10($pedido)
+    static function updateDescontoMaior20($pedido)
     {
         if (empty($pedido)) {
             return;

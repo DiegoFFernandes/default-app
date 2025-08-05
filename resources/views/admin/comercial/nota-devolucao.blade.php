@@ -163,7 +163,7 @@
 
             function initTable(dados = null) {
                 table = $('#acompanhaNotaFiscal').DataTable({
-                    processing: true,
+                    processing: false,
                     serverSide: false,
                     responsive: true,
                     pagingType: "simple",                    
