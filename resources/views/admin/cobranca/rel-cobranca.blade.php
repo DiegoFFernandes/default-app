@@ -151,7 +151,6 @@
                             <div class="tab-pane fade" id="painel-inadimplencia" role="tabpanel"
                                 aria-labelledby="tab-inadimplencia">
                                 <div class="card-body p-2">
-
                                     <div class="form-check form-switch mb-3 border-bottom ">
                                         <input class="form-check-input" type="checkbox" id="checkSaldo"
                                             name="checkSaldo">
@@ -159,12 +158,23 @@
                                             devedor</label>
                                     </div>
                                     <div id="tabela-inadimplencia" class="table table-bordered table-hover text-sm"></div>
+                                    <div class="card mt-3">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Inadimplência</h3>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <div style="position: relative; width: 100%;">
+                                                <canvas id="grafico-inadimplencia"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="painel-cheques-cartao" role="tabpanel"
                                 aria-labelledby="tab-cheques-cartao">
                                 <div class="card-body p-2">
-                                    
+
                                 </div>
                             </div>
                         </div>
@@ -186,12 +196,15 @@
 
 @section('js')
     <script>
-        var dados = [];
+        //var dados = [];
+        let dados = [];
         var tabelaRelatorioCobranca = null;
-        var tabelaInadimplencia = null;
+        //var tabelaInadimplencia = null;
+        let tabelaInadimplencia;
         var inicioData = 0;
         var fimData = 0;
         var ChartContasMes;
+
 
         carregaDadosRelatorioCobranca();
 
@@ -829,11 +842,158 @@
 
                     atualizaDados(dados); // Atualiza os dados iniciais
 
+                    gerarGraficoInadimplencia(dados) //gera o gráfico de inadimplência
 
                     return response;
                 },
             });
+            tabelaInadimplencia.on("groupClick", function(e, group) {
+                if (group.getField() === "NM_SUPERVISOR") {
+                    const supervisor = group.getKey();
+                    filtrarGraficoPorSupervisor(supervisor); //filtra de acordo com o supervisor
+                } else {
+                    gerarGraficoInadimplencia(dados);
+                }
+            });
         });
+
+        // função para filtrar o gráfico de inadimplência por supervisor
+        function filtrarGraficoPorSupervisor(supervisorSelecionado) {
+            const dadosFiltrados = dados.filter(item => item.NM_SUPERVISOR === supervisorSelecionado);
+            gerarGraficoInadimplencia(dadosFiltrados);
+        }
+
+        function gerarGraficoInadimplencia(dados) {
+            const vendedores = {};
+
+            dados.forEach(item => {
+                const vendedor = item.NM_VENDEDOR || 'Não informado';
+
+                const inad60 = (parseFloat(item.RECEBERMENOR60DIAS || 0) - parseFloat(item.LIQUIDADOMENOR60DIAS ||
+                    0));
+                const inad120 = (parseFloat(item.RECEBERMAIOR61DIAS || 0) - parseFloat(item.LIQUIDADOMAIOR61DIAS ||
+                    0));
+
+                if (!vendedores[vendedor]) {
+                    vendedores[vendedor] = {
+                        inad60: 0,
+                        inad120: 0
+                    };
+                }
+
+                vendedores[vendedor].inad60 += inad60;
+                vendedores[vendedor].inad120 += inad120;
+            });
+
+            const labels = [];
+            const dados60 = [];
+            const dados120 = [];
+
+            Object.entries(vendedores).forEach(([nome, inad]) => {
+                if (inad.inad60 !== 0 || inad.inad120 !== 0) {
+                    labels.push(nome);
+                    dados60.push(inad.inad60);
+                    dados120.push(inad.inad120);
+                }
+            });
+
+            // ajustar a altura do gráfico dinamicamente
+            const alturaPorBarra = 40; //altura de cada barra
+            const alturaAdicional = 100; // espaço para o título e legendas
+
+            // calcula a altura para o grafico
+            let alturaCalculada = (labels.length * alturaPorBarra) + alturaAdicional;
+
+            // altura minima em caso de poucos dados
+            if (alturaCalculada < 300) {
+                alturaCalculada = 300;
+            }
+
+            //aplica a altura calculada ao container do gráfico
+            const canvas = document.getElementById('grafico-inadimplencia');
+            const containerDoGrafico = canvas.parentNode;
+            containerDoGrafico.style.height = alturaCalculada + 'px';
+
+
+            // cria o grafico
+            const ctx = canvas.getContext('2d');
+
+            // verifica se já existe um gráfico e o destrói antes de criar um novo
+            if (window.meuGraficoInadimplencia) {
+                window.meuGraficoInadimplencia.destroy();
+            }
+
+            window.meuGraficoInadimplencia = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                            label: '01 a 60 dias',
+                            data: dados60,
+                            backgroundColor: '#4f5d75'
+                        },
+                        {
+                            label: '61 a 120 dias',
+                            data: dados120,
+                            backgroundColor: '#2d3142'
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y', // gráfico horizontal
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Inadimplência por Vendedor'
+                        },
+                        tooltip: {
+                            enabled: false // dasativa o tooltip
+                        },
+                        datalabels: {
+                            anchor: 'center',
+                            align: 'center',
+                            color: '#fff',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR', {
+                                    minimumFractionDigits: 2
+                                });
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            type: 'logarithmic', // para mostrar as barras com valores pequenos
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString('pt-BR', { 
+                                        minimumFractionDigits: 2 //formata valor do eixo x (desativado atualmente)
+                                    });
+                                }
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                autoSkip: false,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
 
         document.getElementById("checkSaldo").addEventListener("change", function() {
             if (this.checked) {

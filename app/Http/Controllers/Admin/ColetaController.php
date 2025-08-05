@@ -114,4 +114,19 @@ class ColetaController extends Controller
     {
         return view('admin.comercial.exame-inicia-cobertura');
     }
+
+    public function exameInicial()
+    {
+        return view('admin.comercial.exame-inicial');
+    }
+
+    public function retrabalho()
+    {
+        return view('admin.comercial.retrabalho');
+    }
+
+    public function inventario()
+    {
+        return view('admin.comercial.inventario');
+    }
 }
