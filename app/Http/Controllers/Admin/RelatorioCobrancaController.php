@@ -267,8 +267,6 @@ class RelatorioCobrancaController extends Controller
 
     public function getRelatorioCobranca()
     {
-
-
         if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
             $cd_empresa = 0;
@@ -296,6 +294,20 @@ class RelatorioCobrancaController extends Controller
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        }
+        // Busca os dados de cobranca de cheque e cartão de credito todas em aberto
+        if ($this->request->tela == 2) {
+
+            $tela = $this->request->tela;
+            $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+            $regioesIndexadas = self::regioesIndexada($regioes_mysql);
+            $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa, $tela);
+
+            foreach ($data as $item) {
+                $codigoSupervisor = $item->CD_VENDEDORGERAL;
+                $nomeRegiao = $regioesIndexadas[$codigoSupervisor] ?? null;
+                $item->DS_AREACOMERCIAL = $nomeRegiao;
+            }
         }
 
         $receber_liquidada = self::RecebimentoLiquidado();
@@ -375,10 +387,7 @@ class RelatorioCobrancaController extends Controller
         }
 
         //Faz a indexação das regiões codigo do supervisor e nome do gerente comercial
-        $regioesIndexadas = [];
-        foreach ($regioes_mysql as $regiao) {
-            $regioesIndexadas[$regiao->cd_areacomercial] = $regiao->name;
-        }
+        $regioesIndexadas = self::regioesIndexada($regioes_mysql);
 
 
         //Busca os dados de cobrança com as informações de vencimento, valor, etc.
@@ -435,5 +444,15 @@ class RelatorioCobrancaController extends Controller
 
         return Datatables::of($data)
             ->make(true);
+    }
+
+    public function regioesIndexada($regioes_mysql)
+    {
+        //Faz a indexação das regiões codigo do supervisor e nome do gerente comercial
+        $regioesIndexadas = [];
+        foreach ($regioes_mysql as $regiao) {
+            $regioesIndexadas[$regiao->cd_areacomercial] = $regiao->name;
+        }
+        return $regioesIndexadas;
     }
 }

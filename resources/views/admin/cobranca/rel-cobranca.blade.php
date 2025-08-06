@@ -158,17 +158,23 @@
                                             devedor</label>
                                     </div>
                                     <div id="tabela-inadimplencia" class="table table-bordered table-hover text-sm"></div>
-                                    <div class="card mt-3">
-                                        <div class="card-header">
-                                            <h3 class="card-title">Inadimplência</h3>
-                                        </div>
-                                        <div class="card-body p-2">
-                                            <div style="position: relative; width: 100%;">
-                                                <canvas id="grafico-inadimplencia"></canvas>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-lg-4">
+                                            <div class="col-lg-12">
+                                                Grafico de pizza
+                                            </div>
+                                            <div class="col-lg-12">
+                                                Grafico de Pizza
                                             </div>
                                         </div>
-                                    </div>
+                                        <div class="col-lg-8">
 
+                                            <canvas id="grafico-inadimplencia"></canvas>
+
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="painel-cheques-cartao" role="tabpanel"
@@ -191,6 +197,19 @@
         .tabulator .tabulator-row:nth-child(even) {
             background-color: inherit !important;
         }
+
+        .tabulator .tabulator-cell {
+            font-size: 13px;
+        }
+
+        .tabulator .tabulator-header {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .tabulator .tabulator-group {
+            font-size: 13px;
+        }
     </style>
 @stop
 
@@ -206,11 +225,16 @@
         var ChartContasMes;
 
 
-        carregaDadosRelatorioCobranca();
+        carregaDadosRelatorioCobranca(1);
 
-        function carregaDadosRelatorioCobranca() {
+        // tela = 1 - Relatório Cobrança
+        // tela = 2 - Cartão Cheque
+        function carregaDadosRelatorioCobranca(tela = 1) {
             tabela = new Tabulator("#tabela-relatorio-cobranca", {
                 ajaxURL: "{{ route('get-relatorio-cobranca') }}",
+                ajaxParams:{
+                    tela: tela
+                },
                 layout: "fitDataStretch",
                 groupBy: ["DS_AREACOMERCIAL", "NM_SUPERVISOR", "NM_VENDEDOR", "NM_PESSOA"],
                 groupHeader: [
@@ -236,12 +260,12 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
-                                    <div class="d-inline-block float-right mr-4">Inadimp. 61 a 120 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
+                                    <div class="d-inline-block float-right mr-4">Inadimp. 61 a 240 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
                                     <div class="d-inline-block float-right mr-4">Atrasos 1 a 60 Dias - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                 </div>`;
 
                     },
-                    // Segundo nível: DS_REGIAOCOMERCIAL
+                    // Segundo nível: SUPERVISOR
                     function(value, count, data, group) {
                         let atrasos = data.filter(d => d.NR_DIAS > 0).length;
                         let pc_atrasos = (atrasos / data.length * 100).toFixed(2);
@@ -263,7 +287,7 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
-                                    <div class="d-inline-block float-right mr-4">Inadimp. 61 a 120 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
+                                    <div class="d-inline-block float-right mr-4">Inadimp. 61 a 240 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
                                     <div class="d-inline-block float-right mr-4">Atrasos 1 a 60 Dias - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                 </div>`;
 
@@ -280,8 +304,8 @@
                         let pcMaior61dias = (100 - (liquidadoMaior61dias / receberMaior61dias * 100) || 0)
                             .toFixed(2);
 
-                        let receberMenor60dias = data[0]?.RECEBERMENOR60DIAS_SUPERVISOR || 0;
-                        let liquidadoMenor60dias = data[0]?.LIQUIDADOMENOR60DIAS_SUPERVISOR || 0;
+                        let receberMenor60dias = data[0]?.RECEBERMENOR60DIAS_VENDEDOR || 0;
+                        let liquidadoMenor60dias = data[0]?.LIQUIDADOMENOR60DIAS_VENDEDOR || 0;
                         let saldoMenor60dias = receberMenor60dias - liquidadoMenor60dias;
                         let pcMenor60dias = (100 - (liquidadoMenor60dias / receberMenor60dias * 100) || 0)
                             .toFixed(2);
@@ -290,7 +314,7 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
-                                    <div class="d-inline-block float-right mr-4">Inadimp. 61 a 120 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
+                                    <div class="d-inline-block float-right mr-4">Inadimp. 61 a 240 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
                                     <div class="d-inline-block float-right mr-4">Atrasos 1 a 60 Dias - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                 </div>`;
                     },
@@ -642,6 +666,10 @@
 
         });
 
+        $('#tab-relatorio-cobranca').click(function() {
+            carregaDadosRelatorioCobranca();
+        });
+
         $('#tab-inadimplencia').click(function() {
             tabelaInadimplencia = new Tabulator("#tabela-inadimplencia", {
                 ajaxURL: "{{ route('get-recebimento-liquidado') }}",
@@ -671,8 +699,8 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} R$ (${saldoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                     
-                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 120 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
-                                    <div class="d-inline-block float-right mr-4">Rec. 61 a 120 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">Liq. 61 a 240 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 240 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Liq. ate 60 dias (R$ ${liquidadoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Atra. ate 60 dias (R$ ${receberMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                 </div>`;
@@ -700,8 +728,8 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} R$ (${saldoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                     
-                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 120 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
-                                    <div class="d-inline-block float-right mr-4">Rec. 61 a 120 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">Liq. 61 a 240 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 240 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Liq. ate 60 dias (R$ ${liquidadoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Atra. ate 60 dias (R$ ${receberMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                 </div>`;
@@ -729,8 +757,8 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} R$ (${saldoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                     
-                                    <div class="d-inline-block float-right mr-4">Liq. 61 a 120 dias: R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 120 dias: R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                                    <div class="d-inline-block float-right mr-4">Liq. 61 a 240 dias: R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 240 dias: R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                                     <div class="d-inline-block float-right mr-4">Liq. ate 60 dias: R$ ${liquidadoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                                     <div class="d-inline-block float-right mr-4">Atra. ate 60 dias: R$ ${receberMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                                 </div>`;
@@ -759,8 +787,8 @@
 
                         return `<div style="display:inline-block; width:97%; background-color:${bgSaldo}; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} R$ (${saldoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                     
-                                    <div class="d-inline-block float-right mr-4">Liq. 61 a 120 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
-                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 120 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">Liq. 61 a 240 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
+                                    <div class="d-inline-block float-right mr-4">Inad. 61 a 240 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Liq. ate 60 dias (R$ ${liquidadoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Atra. ate 60 dias (R$ ${receberMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                 </div>`;
@@ -815,7 +843,7 @@
                         }
                     },
                     {
-                        title: "Inadim. 61 a 120 dias",
+                        title: "Inadim. 61 a 240 dias",
                         field: "RECEBERMAIOR61DIAS",
                         hozAlign: "left",
                         formatter: "money",
@@ -826,7 +854,7 @@
                             precision: 2
                         }
                     }, {
-                        title: "Liquidado 61 a 120 dias",
+                        title: "Liquidado 61 a 240 dias",
                         field: "LIQUIDADOMAIOR61DIAS",
                         hozAlign: "center",
                         formatter: "money",
@@ -848,8 +876,10 @@
                 },
             });
             tabelaInadimplencia.on("groupClick", function(e, group) {
-                if (group.getField() === "NM_SUPERVISOR") {
+                if (group.getField() === "DS_AREACOMERCIAL") {
                     const supervisor = group.getKey();
+
+                    console.log(supervisor);
                     filtrarGraficoPorSupervisor(supervisor); //filtra de acordo com o supervisor
                 } else {
                     gerarGraficoInadimplencia(dados);
@@ -859,41 +889,41 @@
 
         // função para filtrar o gráfico de inadimplência por supervisor
         function filtrarGraficoPorSupervisor(supervisorSelecionado) {
-            const dadosFiltrados = dados.filter(item => item.NM_SUPERVISOR === supervisorSelecionado);
+            const dadosFiltrados = dados.filter(item => item.DS_AREACOMERCIAL === supervisorSelecionado);
             gerarGraficoInadimplencia(dadosFiltrados);
         }
 
         function gerarGraficoInadimplencia(dados) {
-            const vendedores = {};
+            const supervisores = {};
 
             dados.forEach(item => {
-                const vendedor = item.NM_VENDEDOR || 'Não informado';
+                const supervisor = item.NM_SUPERVISOR || 'Não informado';
 
                 const inad60 = (parseFloat(item.RECEBERMENOR60DIAS || 0) - parseFloat(item.LIQUIDADOMENOR60DIAS ||
                     0));
-                const inad120 = (parseFloat(item.RECEBERMAIOR61DIAS || 0) - parseFloat(item.LIQUIDADOMAIOR61DIAS ||
+                const inad240 = (parseFloat(item.RECEBERMAIOR61DIAS || 0) - parseFloat(item.LIQUIDADOMAIOR61DIAS ||
                     0));
 
-                if (!vendedores[vendedor]) {
-                    vendedores[vendedor] = {
+                if (!supervisores[supervisor]) {
+                    supervisores[supervisor] = {
                         inad60: 0,
-                        inad120: 0
+                        inad240: 0
                     };
                 }
 
-                vendedores[vendedor].inad60 += inad60;
-                vendedores[vendedor].inad120 += inad120;
+                supervisores[supervisor].inad60 += inad60;
+                supervisores[supervisor].inad240 += inad240;
             });
 
             const labels = [];
             const dados60 = [];
-            const dados120 = [];
+            const dados240 = [];
 
-            Object.entries(vendedores).forEach(([nome, inad]) => {
-                if (inad.inad60 !== 0 || inad.inad120 !== 0) {
+            Object.entries(supervisores).forEach(([nome, inad]) => {
+                if (inad.inad60 !== 0 || inad.inad240 !== 0) {
                     labels.push(nome);
                     dados60.push(inad.inad60);
-                    dados120.push(inad.inad120);
+                    dados240.push(inad.inad240);
                 }
             });
 
@@ -928,14 +958,14 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                            label: '01 a 60 dias',
+                            label: 'Atrasados',
                             data: dados60,
-                            backgroundColor: '#4f5d75'
+                            backgroundColor: '#343a40'
                         },
                         {
-                            label: '61 a 120 dias',
-                            data: dados120,
-                            backgroundColor: '#2d3142'
+                            label: 'Inadimplentes',
+                            data: dados240,
+                            backgroundColor: '#dc3545'
                         }
                     ]
                 },
@@ -949,7 +979,7 @@
                         },
                         title: {
                             display: true,
-                            text: 'Inadimplência por Vendedor'
+                            text: 'Inadimplência por Supervisor'
                         },
                         tooltip: {
                             enabled: false // dasativa o tooltip
@@ -975,7 +1005,7 @@
                             beginAtZero: false,
                             ticks: {
                                 callback: function(value) {
-                                    return 'R$ ' + value.toLocaleString('pt-BR', { 
+                                    return 'R$ ' + value.toLocaleString('pt-BR', {
                                         minimumFractionDigits: 2 //formata valor do eixo x (desativado atualmente)
                                     });
                                 }

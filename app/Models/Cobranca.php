@@ -13,9 +13,9 @@ class Cobranca extends Model
 {
     use HasFactory;
 
-    public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0)
+    public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0, $tela = 1)
     {
-        $query = "          
+       $query = "          
                 SELECT DISTINCT                    
                     V.CD_VENDEDORGERAL,
                     SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
@@ -96,16 +96,17 @@ class Cobranca extends Model
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
                     --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 57623, 20336)
-                    AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')   
-                ORDER BY CONTAS.DT_VENCIMENTO;          
-             ";
+                    " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                ORDER BY CONTAS.DT_VENCIMENTO;
+             ";        
 
-        $data = DB::connection('firebird')->select($query);
-        return Helper::ConvertFormatText($data);
+        if ($tela == 1) {
+            $key = "relatorioCobranca-2" . Auth::user()->id;
+        } else {
+            $key = "relatorioCobrancaCartaoCheque-2" . Auth::user()->id;
+        }
 
-        $key = "contas-1" . Auth::user()->id;
-
-        return Cache::remember($key, now()->addMinutes(2), function () use ($query) {
+        return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
             $data = DB::connection('firebird')->select($query);
             return Helper::ConvertFormatText($data);
         });
@@ -251,7 +252,11 @@ class Cobranca extends Model
                 AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
-        $data = DB::connection('firebird')->select($query);
-        return Helper::ConvertFormatText($data);
+        $key = "recebimentoLiquidadoAll-1" . Auth::user()->id;
+
+        return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+        });
     }
 }
