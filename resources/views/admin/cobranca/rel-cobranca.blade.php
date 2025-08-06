@@ -163,10 +163,10 @@
                                     <div class="row">
                                         <div class="col-lg-4">
                                             <div class="col-lg-12">
-                                                Grafico de pizza
+                                                <canvas id="grafico-pizza-atrasado"></canvas>
                                             </div>
-                                            <div class="col-lg-12">
-                                                Grafico de Pizza
+                                            <div class="col-lg-12  mt-3">
+                                                <canvas id="grafico-pizza-inadimplente"></canvas>
                                             </div>
                                         </div>
                                         <div class="col-lg-8">
@@ -232,7 +232,7 @@
         function carregaDadosRelatorioCobranca(tela = 1) {
             tabela = new Tabulator("#tabela-relatorio-cobranca", {
                 ajaxURL: "{{ route('get-relatorio-cobranca') }}",
-                ajaxParams:{
+                ajaxParams: {
                     tela: tela
                 },
                 layout: "fitDataStretch",
@@ -872,6 +872,8 @@
 
                     gerarGraficoInadimplencia(dados) //gera o gráfico de inadimplência
 
+                    gerarGraficosPizza(dados); // gera os gráficos de pizza
+
                     return response;
                 },
             });
@@ -1018,6 +1020,123 @@
                                     size: 12
                                 }
                             }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+        function gerarGraficosPizza(dados) {
+
+            // grafico de inadimplentes 01 a 60 dias
+            let totalAReceber60 = 0; 
+            let totalLiquidado60 = 0;
+
+            dados.forEach(item => {
+                totalAReceber60 += parseFloat(item.RECEBERMENOR60DIAS || 0);
+                totalLiquidado60 += parseFloat(item.LIQUIDADOMENOR60DIAS || 0);
+            });
+
+            //calcula o saldo pendente e ajusta para não ser zero
+            const saldoPendente60 = totalAReceber60 - totalLiquidado60;
+            const saldoAjustado = saldoPendente60 > 0 ? saldoPendente60 : 0.01;
+
+            const ctx1 = document.getElementById('grafico-pizza-atrasado').getContext('2d');
+            if (window.graficoPizza1) window.graficoPizza1.destroy();
+
+            window.graficoPizza1 = new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: [
+                        `Recebido`,
+                        `Pendente`
+                    ],
+                    datasets: [{
+                        data: [totalLiquidado60, saldoAjustado],
+                        backgroundColor: ['#343a40', '#dc3545'],
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                             text: `Atrasados`
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            formatter: function(value, context) {
+                                const percent = ((value / totalAReceber60) * 100).toFixed(1);
+                                const formattedValue = value.toLocaleString('pt-BR', {
+                                    minimumFractionDigits: 2
+                                });
+                                return `R$ ${formattedValue}\n(${percent}%)`;
+                            },
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+           // grafico de inadimplentes 61 a 240 dias
+            let totalAReceber61a240 = 0;
+            let totalLiquidado61a240 = 0;
+
+            dados.forEach(item => {
+                totalAReceber61a240 += parseFloat(item.RECEBERMAIOR61DIAS || 0);
+                totalLiquidado61a240 += parseFloat(item.LIQUIDADOMAIOR61DIAS || 0);
+            });
+
+            // calcula o saldo pendente e ajusta para não ser zero
+            const saldoPendente61a240 = totalAReceber61a240 - totalLiquidado61a240;
+            const saldoAjustado61a240 = saldoPendente61a240 > 0 ? saldoPendente61a240 : 0.01;
+
+            const ctx2 = document.getElementById('grafico-pizza-inadimplente').getContext('2d');
+            if (window.graficoPizza2) window.graficoPizza2.destroy();
+
+            window.graficoPizza2 = new Chart(ctx2, {
+                type: 'pie',
+                data: {
+                    labels: ['Recebido', 'Pendente'],
+                    datasets: [{
+                        data: [totalLiquidado61a240, saldoAjustado61a240],
+                        backgroundColor: ['#343a40', '#dc3545'],
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: `Inadimplentes`
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 12
+                            },
+                            formatter: function(value, context) {
+                                const percent = ((value / totalAReceber61a240) * 100).toFixed(1);
+                                const formattedValue = value.toLocaleString('pt-BR', {
+                                    minimumFractionDigits: 2
+                                });
+                                return `R$ ${formattedValue}\n(${percent}%)`;
+                            },
                         }
                     }
                 },
