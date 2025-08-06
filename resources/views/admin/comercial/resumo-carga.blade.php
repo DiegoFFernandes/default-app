@@ -110,9 +110,22 @@
                             <div class="tab-pane fade show active" id="ordens" role="tabpanel">
                                 <div class="card-body p-2">
                                     <div class="table-responsive">
-                                        <table id="ordensAbertas" class="table table-sm table-striped table-bordered"
+                                        <table id="ordensAbertas"
+                                            class="table compact table-font-small table-striped table-bordered nowrap"
                                             style="width:100%; font-size: 12px;">
                                             <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <td></td>
+                                                    <td>OP</td>
+                                                    <td>Data</td>
+                                                    <td>Medida</td>
+                                                    <td>Marca</td>
+                                                    <td>Desenho</td>
+                                                    <td>Vendedor</td>
+                                                    <td>Cliente</td>
+                                                    <td>Ult. Etapa</td>
+                                                    <td>Data/Hora</td>
+                                                </tr>
                                             </thead>
                                         </table>
                                     </div>
@@ -120,7 +133,20 @@
                             </div>
                             <div class="tab-pane fade" id="produzir" role="tabpanel">
                                 <div class="card-body p-2">
-                                    <!-- tabela sobre qtd a produzir  -->
+                                    <div class="table-responsive">
+                                        <table id="qtdCliente"
+                                            class="table compact table-font-small table-striped table-bordered nowrap"
+                                            style="width:100%; font-size: 12px;">
+                                            <thead class="bg-dark text-white">
+                                                <tr>
+                                                    <td>Pessoa</td>
+                                                    <td>Emissão</td>
+                                                    <td>Entrega</td>
+                                                    <td>Qtde</td>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="producao" role="tabpanel">
@@ -151,6 +177,19 @@
             font-weight: bold;
             font-size: 18px;
         }
+
+        @media (max-width: 576px) {
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-tabs .nav-item {
+                flex-shrink: 0;
+            }
+        }
     </style>
 @stop
 
@@ -158,13 +197,11 @@
 @section('js')
     <script>
         $(document).ready(function() {
-            $('#ordensAbertas, #comparativo, #qtdCliente').DataTable({
+            $('#ordensAbertas, #qtdCliente').DataTable({
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                 }
             });
-
-            $('#main-tabs a:first').tab('show');
         });
     </script>
 @stop

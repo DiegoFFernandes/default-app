@@ -88,6 +88,17 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-12 col-md-4 mb-2">
+                        <div class="form-group mb-0">
+                            <label for="daterange">Data:</label>
+                            <div class="input-group mt-1">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                                </div>
+                                <input type="text" class="form-control" id="daterange" placeholder="Selecione a Data">
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
                         <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
                     </div>
@@ -116,6 +127,12 @@
                                 <a class="nav-link" id="tab-medidasMes" data-toggle="pill" href="#painel-medidasMes"
                                     role="tab" aria-controls="painel-medidasMes" aria-selected="false">
                                     Coleta por Medida Mês
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-medidasPersonalizada" data-toggle="pill" href="#painel-medidasPersonalizada"
+                                    role="tab" aria-controls="painel-medidasPersonalizada" aria-selected="false">
+                                    Coleta por Medida Personalizada
                                 </a>
                             </li>
                         </ul>
@@ -176,6 +193,24 @@
                                     </table>
                                 </div>
                             </div>
+                            <div class="tab-pane fade" id="painel-medidasPersonalizada" role="tabpanel"
+                                aria-labelledby="tab-medidasPersonalizada">
+                                <div class="table-responsive">
+                                    <span class="badge badge-danger badge-empresa">Empresa:</span>
+                                    <span class="badge badge-danger badge-periodo badge-personalizado">Periodo:</span>
+                                    <table id="coletasmedidasPersonalizada"
+                                        class="table compact table-font-small table-striped table-bordered nowrap"
+                                        style="width:100%; font-size: 12px;">
+                                        <thead class="bg-dark text-white">
+                                            <tr>
+                                                <th>Descrição</th>
+                                                <th>Qtde</th>
+                                                <th>Valor Médio</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -199,6 +234,19 @@
             font-size: 15px;
             padding: 7px 15px;
         }
+
+        @media (max-width: 576px) {
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-tabs .nav-item {
+                flex-shrink: 0;
+            }
+        }
     </style>
 @stop
 
@@ -210,6 +258,7 @@
             let nomeEmpresa = $('#filtro-empresa option:selected').text();
 
             //datas das tabelas
+            const datasSelecionadas = initDateRangePicker();
             let hoje = moment().format('DD.MM.YYYY');
             let ontem = moment().subtract(1, 'days').format('DD.MM.YYYY');
             let primeiroDiaMes = moment().startOf('month').format('DD.MM.YYYY');
@@ -220,6 +269,7 @@
             $('.badge-hoje').text(`Período: ${hoje}`);
             $('.badge-ontem').text(`Período: ${ontem}`);
             $('.badge-mes').text(`Período: ${primeiroDiaMes} - ${ultimoDiaMes}`);
+            $('.badge-personalizado').text(`Período: ${primeiroDiaMes} - ${ultimoDiaMes}`);
 
             function coletaMedida(dt_inicio, dt_fim, idTabela, cd_empresa) {
                 if ($.fn.DataTable.isDataTable('#' + idTabela)) {
@@ -272,7 +322,9 @@
                         let totalColeta = 0;
                         let somaValorPonderado = 0;
 
-                        api.rows({search: 'applied'}).data().each(function(d){
+                        api.rows({
+                            search: 'applied'
+                        }).data().each(function(d) {
                             let quantidade = parseInt(d.QTD) || 0;
                             let valorMedio = parseFloat(d.VALOR_MEDIO) || 0;
 
@@ -309,6 +361,7 @@
             coletaMedida(hoje, hoje, 'coletasMedidasHoje', cd_empresa);
             coletaMedida(ontem, ontem, 'coletasMedidasOntem', cd_empresa);
             coletaMedida(primeiroDiaMes, ultimoDiaMes, 'coletasMedidasMes', cd_empresa);
+            coletaMedida(hoje, hoje, 'coletasmedidasPersonalizada', cd_empresa);
 
             //ajusta a tabela para o tamanho da aba
             $('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
@@ -320,14 +373,31 @@
                 cd_empresa = $('#filtro-empresa').val();
                 nomeEmpresa = $('#filtro-empresa option:selected').text();
 
+                //pega as datas do filtro
+                const inicioRaw = datasSelecionadas.getInicio();
+                const fimRaw = datasSelecionadas.getFim();
+
+                if (!inicioRaw || !fimRaw) {
+                    msgToastr('Selecione o período para continuar.',
+                        'warning');
+                    return;
+                }
+
+                const inicioData = moment(inicioRaw, 'MM/DD/YYYY').format('DD.MM.YYYY');
+                const fimData = moment(fimRaw, 'MM/DD/YYYY').format('DD.MM.YYYY');
+
+                //inicia a tabela com o filtro de data
+                
                 $('.badge-empresa').text(`Empresa: ${nomeEmpresa}`);
                 $('.badge-hoje').text(`Período: ${hoje}`);
                 $('.badge-ontem').text(`Período: ${ontem}`);
                 $('.badge-mes').text(`Período: ${primeiroDiaMes} - ${ultimoDiaMes}`);
-
+                $('.badge-personalizado').text(`Período: ${inicioData} - ${fimData}`);
+                
                 coletaMedida(hoje, hoje, 'coletasMedidasHoje', cd_empresa);
                 coletaMedida(ontem, ontem, 'coletasMedidasOntem', cd_empresa);
                 coletaMedida(primeiroDiaMes, ultimoDiaMes, 'coletasMedidasMes', cd_empresa);
+                coletaMedida(inicioData, fimData, 'coletasmedidasPersonalizada', cd_empresa);
             });
         });
     </script>

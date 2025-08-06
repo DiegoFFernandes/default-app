@@ -5,7 +5,7 @@
     <!-- Main content -->
     <section class="content">
         <div class="row">
-            <div class="col-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="fas fa-clipboard-list"></i></span>
                     <div class="info-box-content">
@@ -14,45 +14,45 @@
                     </div>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-orange"><i class="fas fa-tools"></i></span>
+                    <span class="info-box-icon bg-info"><i class="fas fa-tools"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Raspagem</span>
                         <span class="info-box-number">0</span>
                     </div>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-orange"><i class="fas fa-wrench"></i></span>
+                    <span class="info-box-icon bg-info"><i class="fas fa-wrench"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Escareação</span>
                         <span class="info-box-number">0</span>
                     </div>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-orange"><i class="fas fa-wind"></i></span>
+                    <span class="info-box-icon bg-info"><i class="fas fa-wind"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Encimento</span>
                         <span class="info-box-number">0</span>
                     </div>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-orange"><i class="fas fa-dot-circle"></i></span>
+                    <span class="info-box-icon bg-info"><i class="fas fa-dot-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Emborrachamento</span>
                         <span class="info-box-number">0</span>
                     </div>
                 </div>
             </div>
-            <div class="col-2">
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2 mb-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-success"><i class="fas fa-clipboard-check"></i></span>
+                    <span class="info-box-icon bg-info"><i class="fas fa-clipboard-check"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Exame Final</span>
                         <span class="info-box-number">0</span>

@@ -94,7 +94,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-8">
+            <div class="col-12 col-lg-8 mb-3">
                 <div class="card card-dark card-outline card-outline-tabs">
                     <div class="card-header p-0 border-bottom-0 d-flex justify-content-between align-items-center">
                         <ul class="nav nav-tabs m-0" id="coletaTabs" role="tablist" style="flex-grow:1">
@@ -126,7 +126,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-lg-4 mb-3">
                 <div class="card card-dark card-outline card-outline-tabs">
                     <div class="card-header p-0 border-bottom-0">
                         <ul class="nav nav-tabs m-0" id="outrasColetasTabs" role="tablist" style="flex-grow:1">
@@ -184,6 +184,7 @@
             }
 
             $('#coletasVendedorHoje').DataTable({
+                responsive:true,
                 processing: true,
                 serverSide: false,
                 language: {

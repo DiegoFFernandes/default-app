@@ -34,7 +34,7 @@
             </div>
             <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
                 <div class="info-box">
-                    <span class="info-box-icon bg-info"><i class="fas fa-dollar-sign"></i></span>
+                    <span class="info-box-icon bg-danger"><i class="fas fa-times-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Recusados</span>
                         <span id="media-hoje" class="info-box-number">0</span>
@@ -138,6 +138,7 @@
             }
 
             $('#coletasPorVendedorMes').DataTable({
+                responsive: true,
                 processing: true,
                 serverSide: false,
                 language: {

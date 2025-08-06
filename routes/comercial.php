@@ -119,5 +119,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('producao-carga', [ColetaController::class, 'producaoCarga'])->name('producao-carga');
 
         
+        Route::get('pneus-etapas-executar',[ColetaController::class, 'pneusEtapasExecutar'])->name('pneus-etapas-executar');
+        Route::get('pneus-parados-quatro-horas', [ColetaController::class, 'pneusParados'])->name('pneus-parados-quatro-horas');
+        Route::get('exame-inicial-cobertura', [ColetaController::class, 'exameInicialCobertura'])->name('exame-inicial-cobertura');
+        Route::get('exame-inicial', [ColetaController::class, 'exameInicial'])->name('exame-inicial');
+        Route::get('retrabalho', [ColetaController::class, 'retrabalho'])->name('retrabalho');
+        Route::get('inventario', [ColetaController::class, 'inventario'])->name('inventario');
     });
 });

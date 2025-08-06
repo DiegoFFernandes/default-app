@@ -7,12 +7,12 @@
         <!-- Filtro (mudar de acordo com a nescessidade da página) -->
         <div class="row">
             <div class="col-12">
-                <div class="card">
+                <div class="card collapsed-card">
                     <div class="card-header">
                         <h5 class="card-title">Filtros</h5>
                         <div class="card-tools">
                             <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-minus"></i>
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
@@ -81,4 +81,24 @@
             </div>
         </div>
     </section>
+@stop
+
+@section('css')
+
+    <style>
+        @media (max-width: 576px) {
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-tabs .nav-item {
+                flex-shrink: 0;
+            }
+        }
+    </style>
+
+
 @stop
