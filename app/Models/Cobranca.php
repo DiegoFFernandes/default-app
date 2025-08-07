@@ -15,8 +15,9 @@ class Cobranca extends Model
 
     public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0, $tela = 1)
     {
-       $query = "          
-                SELECT DISTINCT                    
+        $query = "          
+                SELECT DISTINCT 
+                    CONTAS.CD_FORMAPAGTO,                   
                     V.CD_VENDEDORGERAL,
                     SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
                     CONTAS.CD_EMPRESA,
@@ -98,12 +99,12 @@ class Cobranca extends Model
                     --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 57623, 20336)
                     " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 ORDER BY CONTAS.DT_VENCIMENTO;
-             ";        
+             ";
 
         if ($tela == 1) {
-            $key = "relatorioCobranca-2" . Auth::user()->id;
+            $key = "relatorioCobranca-3" . Auth::user()->id;
         } else {
-            $key = "relatorioCobrancaCartaoCheque-2" . Auth::user()->id;
+            $key = "relatorioCobrancaCartaoCheque-3" . Auth::user()->id;
         }
 
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
@@ -195,10 +196,11 @@ class Cobranca extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getRecebimentoLiquidado()
+    public function getRecebimentoLiquidado($tela = 1)
     {
         $query = "
             SELECT DISTINCT
+                CONTAS.CD_FORMAPAGTO,
                 CONTAS.CD_EMPRESA,
                 CONTAS.CD_PESSOA||'-'||P.NM_PESSOA NM_PESSOA,
                 CONTAS.NR_LANCAMENTO,
@@ -249,10 +251,15 @@ class Cobranca extends Model
                 --AND CONTAS.nr_lancamento = 248188
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
                 --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 57623, 20336)
-                AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
-        $key = "recebimentoLiquidadoAll-1" . Auth::user()->id;
+
+        if ($tela == 1) {
+            $key = "recebimentoLiquidado-3" . Auth::user()->id;
+        } else {
+            $key = "recebimentoLiquidadoCartaoCheque-3" . Auth::user()->id;
+        }
 
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
             $data = DB::connection('firebird')->select($query);

@@ -119,8 +119,8 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="tab-cheques-cartao" data-toggle="pill"
-                                    href="#painel-cheques-cartao" role="tab" aria-controls="painel-cheques-cartao"
+                                <a class="nav-link" id="tab-cartao-cheque" data-toggle="pill"
+                                    href="#painel-cartao-cheque" role="tab" aria-controls="painel-cartao-cheque"
                                     aria-selected="false">
                                     Cheques e Cartão
                                 </a>
@@ -132,6 +132,15 @@
                             <div class="tab-pane fade show active" id="painel-relatorio-cobranca" role="tabpanel"
                                 aria-labelledby="tab-relatorio-cobranca">
                                 <div class="card-body p-2">
+                                    {{-- <div class="d-flex flex-wrap gap-4 align-items-center mb-3 border-bottom pb-2">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="checkCartaoCheque"
+                                                name="checkCartaoCheque">
+                                            <label class="form-check-label" for="checkCartaoCheque">
+                                                Exibir apenas com cartão ou cheque
+                                            </label>
+                                        </div>
+                                    </div> --}}
                                     <div class="list-cobranca">
                                         <div id="tabela-relatorio-cobranca"
                                             class="table table-bordered table-hover text-sm"></div>
@@ -151,12 +160,25 @@
                             <div class="tab-pane fade" id="painel-inadimplencia" role="tabpanel"
                                 aria-labelledby="tab-inadimplencia">
                                 <div class="card-body p-2">
-                                    <div class="form-check form-switch mb-3 border-bottom ">
-                                        <input class="form-check-input" type="checkbox" id="checkSaldo"
-                                            name="checkSaldo">
-                                        <label class="form-check-label" for="checkSaldo">Exibir apenas com saldo
-                                            devedor</label>
+                                    <div class="d-flex flex-wrap gap-4 align-items-center mb-3 border-bottom pb-2">
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" id="checkSaldo"
+                                                name="checkSaldo">
+                                            <label class="form-check-label" for="checkSaldo">
+                                                Exibir apenas com saldo devedor
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check form-switch m-0 ml-3">
+                                            <input class="form-check-input" type="checkbox" id="checkCartaoCheque"
+                                                name="checkCartaoCheque">
+                                            <label class="form-check-label" for="checkCartaoCheque">
+                                                Exibir apenas com cartão ou cheque
+                                            </label>
+                                        </div>
                                     </div>
+
+
                                     <div id="tabela-inadimplencia" class="table table-bordered table-hover text-sm"></div>
                                 </div>
                                 <div class="card-body">
@@ -170,17 +192,15 @@
                                             </div>
                                         </div>
                                         <div class="col-lg-8">
-
                                             <canvas id="grafico-inadimplencia"></canvas>
-
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="painel-cheques-cartao" role="tabpanel"
-                                aria-labelledby="tab-cheques-cartao">
+                            <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
+                                aria-labelledby="tab-cartao-cheque">
                                 <div class="card-body p-2">
-
+                                    <div id="tabela-cartao-cheque" class="table table-bordered table-hover text-sm"></div>
                                 </div>
                             </div>
                         </div>
@@ -219,18 +239,18 @@
         let dados = [];
         var tabelaRelatorioCobranca = null;
         //var tabelaInadimplencia = null;
-        let tabelaInadimplencia;
+        var tabelaInadimplencia;
         var inicioData = 0;
         var fimData = 0;
         var ChartContasMes;
 
 
-        carregaDadosRelatorioCobranca(1);
+        carregaDadosRelatorioCobranca(1, 'tabela-relatorio-cobranca');
 
         // tela = 1 - Relatório Cobrança
         // tela = 2 - Cartão Cheque
-        function carregaDadosRelatorioCobranca(tela = 1) {
-            tabela = new Tabulator("#tabela-relatorio-cobranca", {
+        function carregaDadosRelatorioCobranca(tela = 1, idTabela) {
+            tabela = new Tabulator(`#${idTabela}`, {
                 ajaxURL: "{{ route('get-relatorio-cobranca') }}",
                 ajaxParams: {
                     tela: tela
@@ -285,7 +305,7 @@
 
                         let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
 
-                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                        return `<div style="display:inline-block; width:97%; background-color:#495057; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
                                     <div class="d-inline-block float-right mr-4">Inadimp. 61 a 240 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
                                     <div class="d-inline-block float-right mr-4">Atrasos 1 a 60 Dias - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
@@ -312,7 +332,7 @@
 
                         let total = data.reduce((sum, row) => sum + Number(row.VL_SALDO || 0), 0);
 
-                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                        return `<div style="display:inline-block; width:97%; background-color:#6c757d; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} (R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div> 
                                     <div class="d-inline-block float-right mr-4">Inadimp. 61 a 240 Dias - ${pcMaior61dias}% (R$ ${saldoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                
                                     <div class="d-inline-block float-right mr-4">Atrasos 1 a 60 Dias - ${pcMenor60dias}% (R$ ${saldoMenor60dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
@@ -391,7 +411,7 @@
 
                     atualizaDados(dados); // Atualiza os dados iniciais
 
-
+                    // configurarFiltroCheckbox("checkCartaoCheque", tabela, aplicarFiltro);
                     return response;
                 },
             });
@@ -442,6 +462,7 @@
             const supervisor = document.getElementById("filtro-supervisor").value.toLowerCase();
             const nr_cnpj = document.getElementById("filtro-cnpj").value.toLowerCase();
             const vendedor = document.getElementById("filtro-vendedor").value.toLowerCase();
+            const cartaoCheque = document.getElementById("checkCartaoCheque").checked;
 
             // console.log(inicioData, fimData);
 
@@ -490,6 +511,13 @@
                     field: "NM_VENDEDOR",
                     type: "like",
                     value: vendedor
+                });
+            }
+            if (cartaoCheque) {
+                filtros.push({
+                    field: "CD_FORMAPAGTO",
+                    type: "in",
+                    value: ["CC", "CH"]
                 });
             }
 
@@ -667,7 +695,7 @@
         });
 
         $('#tab-relatorio-cobranca').click(function() {
-            carregaDadosRelatorioCobranca();
+            carregaDadosRelatorioCobranca(1, 'tabela-relatorio-cobranca');
         });
 
         $('#tab-inadimplencia').click(function() {
@@ -726,7 +754,7 @@
 
                         let saldoTotal = saldoMenor60dias + saldoMaior61dias;
 
-                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                        return `<div style="display:inline-block; width:97%; background-color:#495057; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} R$ (${saldoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                     
                                     <div class="d-inline-block float-right mr-4">Liq. 61 a 240 dias (R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
                                     <div class="d-inline-block float-right mr-4">Inad. 61 a 240 dias (R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>
@@ -755,7 +783,7 @@
 
                         let saldoTotal = saldoMenor60dias + saldoMaior61dias;
 
-                        return `<div style="display:inline-block; width:97%; background-color:#343a40; color:white; padding:5px; font-weight:bold;">
+                        return `<div style="display:inline-block; width:97%; background-color:#6c757d; color:white; padding:5px; font-weight:bold;">
                                     <div class="d-inline-block mr-4">${value} R$ (${saldoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</div>                                     
                                     <div class="d-inline-block float-right mr-4">Liq. 61 a 240 dias: R$ ${liquidadoMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                                     <div class="d-inline-block float-right mr-4">Inad. 61 a 240 dias: R$ ${receberMaior61dias.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
@@ -872,7 +900,17 @@
 
                     gerarGraficoInadimplencia(dados) //gera o gráfico de inadimplência
 
-                    gerarGraficosPizza(dados); // gera os gráficos de pizza
+
+                    // Da para reaproveitar a função para gerar os gráficos de pizza
+                    // Gráfico: 01 a 60 dias
+                    const totais60 = calcularTotais(dados, 'RECEBERMENOR60DIAS',
+                        'LIQUIDADOMENOR60DIAS');
+                    criarGraficoPizza('grafico-pizza-atrasado', 'Atrasados', totais60);
+
+                    // Gráfico: 61 a 240 dias
+                    const totais61a240 = calcularTotais(dados, 'RECEBERMAIOR61DIAS',
+                        'LIQUIDADOMAIOR61DIAS');
+                    criarGraficoPizza('grafico-pizza-inadimplente', 'Inadimplentes', totais61a240);
 
                     return response;
                 },
@@ -887,6 +925,12 @@
                     gerarGraficoInadimplencia(dados);
                 }
             });
+
+            configurarFiltroCheckbox("checkSaldo", tabelaInadimplencia, filtroSaldo);
+        });
+
+        $('#tab-cartao-cheque').click(function() {
+            carregaDadosRelatorioCobranca(2, 'tabela-cartao-cheque');
         });
 
         // função para filtrar o gráfico de inadimplência por supervisor
@@ -1026,89 +1070,40 @@
                 plugins: [ChartDataLabels]
             });
         }
-        function gerarGraficosPizza(dados) {
 
-            // grafico de inadimplentes 01 a 60 dias
-            let totalAReceber60 = 0; 
-            let totalLiquidado60 = 0;
-
-            dados.forEach(item => {
-                totalAReceber60 += parseFloat(item.RECEBERMENOR60DIAS || 0);
-                totalLiquidado60 += parseFloat(item.LIQUIDADOMENOR60DIAS || 0);
-            });
-
-            //calcula o saldo pendente e ajusta para não ser zero
-            const saldoPendente60 = totalAReceber60 - totalLiquidado60;
-            const saldoAjustado = saldoPendente60 > 0 ? saldoPendente60 : 0.01;
-
-            const ctx1 = document.getElementById('grafico-pizza-atrasado').getContext('2d');
-            if (window.graficoPizza1) window.graficoPizza1.destroy();
-
-            window.graficoPizza1 = new Chart(ctx1, {
-                type: 'pie',
-                data: {
-                    labels: [
-                        `Recebido`,
-                        `Pendente`
-                    ],
-                    datasets: [{
-                        data: [totalLiquidado60, saldoAjustado],
-                        backgroundColor: ['#343a40', '#dc3545'],
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                             text: `Atrasados`
-                        },
-                        datalabels: {
-                            color: '#fff',
-                            font: {
-                                weight: 'bold',
-                                size: 12
-                            },
-                            formatter: function(value, context) {
-                                const percent = ((value / totalAReceber60) * 100).toFixed(1);
-                                const formattedValue = value.toLocaleString('pt-BR', {
-                                    minimumFractionDigits: 2
-                                });
-                                return `R$ ${formattedValue}\n(${percent}%)`;
-                            },
-                        }
-                    }
-                },
-                plugins: [ChartDataLabels]
-            });
-
-           // grafico de inadimplentes 61 a 240 dias
-            let totalAReceber61a240 = 0;
-            let totalLiquidado61a240 = 0;
+        function calcularTotais(dados, campoReceber, campoLiquidado) {
+            let totalReceber = 0;
+            let totalLiquidado = 0;
 
             dados.forEach(item => {
-                totalAReceber61a240 += parseFloat(item.RECEBERMAIOR61DIAS || 0);
-                totalLiquidado61a240 += parseFloat(item.LIQUIDADOMAIOR61DIAS || 0);
+                totalReceber += parseFloat(item[campoReceber] || 0);
+                totalLiquidado += parseFloat(item[campoLiquidado] || 0);
             });
 
-            // calcula o saldo pendente e ajusta para não ser zero
-            const saldoPendente61a240 = totalAReceber61a240 - totalLiquidado61a240;
-            const saldoAjustado61a240 = saldoPendente61a240 > 0 ? saldoPendente61a240 : 0.01;
+            const saldoPendente = totalReceber - totalLiquidado;
+            const saldoAjustado = saldoPendente > 0 ? saldoPendente : 0.01;
 
-            const ctx2 = document.getElementById('grafico-pizza-inadimplente').getContext('2d');
-            if (window.graficoPizza2) window.graficoPizza2.destroy();
+            return {
+                totalReceber,
+                totalLiquidado,
+                saldoAjustado
+            };
+        };
 
-            window.graficoPizza2 = new Chart(ctx2, {
+        function criarGraficoPizza(canvasId, titulo, totais) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
+                window[canvasId].destroy();
+            }
+
+            // Cria novo gráfico e armazena
+            window[canvasId] = new Chart(ctx, {
                 type: 'pie',
                 data: {
                     labels: ['Recebido', 'Pendente'],
                     datasets: [{
-                        data: [totalLiquidado61a240, saldoAjustado61a240],
+                        data: [totais.totalLiquidado, totais.saldoAjustado],
                         backgroundColor: ['#343a40', '#dc3545'],
                         borderColor: '#fff'
                     }]
@@ -1122,7 +1117,7 @@
                         },
                         title: {
                             display: true,
-                            text: `Inadimplentes`
+                            text: titulo
                         },
                         datalabels: {
                             color: '#fff',
@@ -1130,8 +1125,8 @@
                                 weight: 'bold',
                                 size: 12
                             },
-                            formatter: function(value, context) {
-                                const percent = ((value / totalAReceber61a240) * 100).toFixed(1);
+                            formatter: (value) => {
+                                const percent = ((value / totais.totalReceber) * 100).toFixed(1);
                                 const formattedValue = value.toLocaleString('pt-BR', {
                                     minimumFractionDigits: 2
                                 });
@@ -1142,15 +1137,22 @@
                 },
                 plugins: [ChartDataLabels]
             });
-        }
+        };
 
-        document.getElementById("checkSaldo").addEventListener("change", function() {
-            if (this.checked) {
-                tabelaInadimplencia.addFilter(filtroSaldo);
-            } else {
-                tabelaInadimplencia.clearFilter(true);
-            }
-        });
+
+
+        function configurarFiltroCheckbox(checkboxId, tabela, filtroCallback) {
+            const checkbox = document.getElementById(checkboxId);
+            if (!checkbox) return;
+
+            checkbox.addEventListener("change", function() {
+                if (this.checked) {
+                    tabela.addFilter(filtroCallback);
+                } else {
+                    tabela.clearFilter(true);
+                }
+            });
+        }
 
         function filtroSaldo(data) {
 
