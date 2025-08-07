@@ -145,6 +145,7 @@
                                         <div id="tabela-relatorio-cobranca"
                                             class="table table-bordered table-hover text-sm"></div>
                                     </div>
+                                    <button id="btnReset" class="btn btn-secondary btn-sm mb-3">Voltar ao início</button>
                                     <div class="card">
                                         <div class="card-header">
                                             <h3 class="card-title">Contas Mensais</h3>
@@ -243,6 +244,8 @@
         var inicioData = 0;
         var fimData = 0;
         var ChartContasMes;
+        let supervisorSelecionado = null; // supervisor filtrado
+        const gruposExpandidos = new Set(); // para controlar grupos expandidos
 
 
         carregaDadosRelatorioCobranca(1, 'tabela-relatorio-cobranca');
@@ -415,7 +418,41 @@
                     return response;
                 },
             });
+            tabela.on("groupClick", function(e, group) {
+                const field = group.getField();
+                const value = group.getKey();
+
+                if (field === "NM_SUPERVISOR") {
+                    if (supervisorSelecionado !== value) {
+                        //aplica o filtro quando clicado no supervisor
+                        supervisorSelecionado = value;
+                        tabela.setFilter("NM_SUPERVISOR", "=", value);
+                        const dadosFiltrados = dados.filter(d => d.NM_SUPERVISOR === value);
+                        atualizaDados(dadosFiltrados);
+
+                        // garante que não está expandido ainda
+                        gruposExpandidos.delete(value);
+                    } else if (!gruposExpandidos.has(value)) {
+                        // expande o grupo mostrando os vendedorese
+                        gruposExpandidos.add(value);
+                    } else {
+                        // fecha grupo e limpa filtro
+                        gruposExpandidos.delete(value);
+                        supervisorSelecionado = null;
+                        tabela.clearFilter();
+                        atualizaDados(dados);
+                    }
+                }
+            });
         }
+
+        //limpa o evento groupClick
+        document.getElementById("btnReset").addEventListener("click", function() {
+            supervisorSelecionado = null;
+            gruposExpandidos.clear();
+            tabela.clearFilter();
+            atualizaDados(dados);
+        });
 
         function atualizaDados(dados) {
             let totalGeral = dados.reduce((sum, d) => sum + parseFloat(d.VL_SALDO || 0), 0);
