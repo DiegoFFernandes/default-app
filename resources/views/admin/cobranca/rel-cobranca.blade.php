@@ -267,7 +267,7 @@
         var ChartContasMes;
         var ChartContasMestab2; // para o grafico da tab2 
         let gerenteSelecionado = null; // gerente filtrado
-        let supervisorSelecionadoInadimplencia = null;
+        let gerenteSelecionadoInadimplencia = null; //gerente da tab inadimplência
 
 
         carregaDadosRelatorioCobranca(1, 'tabela-relatorio-cobranca');
@@ -1030,11 +1030,11 @@
             tabelaInadimplencia.on("groupVisibilityChanged", function(group, visible) {
                 if (group.getField() !== "DS_AREACOMERCIAL") return;
 
-                const supervisor = group.getKey();
+                const gerente = group.getKey();
 
                 if (visible) {
                     if (gerenteSelecionadoInadimplencia && gerenteSelecionadoInadimplencia !==
-                        supervisor) {
+                        gerente) {
                         const prev = tabelaInadimplencia.getGroups().find(g => g.getKey() ===
                             gerenteSelecionadoInadimplencia);
                         if (prev) {
@@ -1042,10 +1042,10 @@
                         }
                     }
 
-                    gerenteSelecionadoInadimplencia = supervisor;
-                    filtrarGraficoPorSupervisor(supervisor);
+                    gerenteSelecionadoInadimplencia = gerente;
+                    filtrarGraficoPorSupervisor(gerente);
                 } else {
-                    if (gerenteSelecionadoInadimplencia === supervisor) {
+                    if (gerenteSelecionadoInadimplencia === gerente) {
                         gerenteSelecionadoInadimplencia = null;
                         gerarGraficoInadimplencia(dados); // gráfico completo
                     }
