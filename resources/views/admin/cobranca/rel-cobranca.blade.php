@@ -145,9 +145,14 @@
                                         <div id="tabela-relatorio-cobranca"
                                             class="table table-bordered table-hover text-sm"></div>
                                     </div>
+
                                     <div class="card">
                                         <div class="card-header">
                                             <h3 class="card-title">Contas Mensais</h3>
+                                            <div class="float-right mb-3">
+                                                <button id="btnReset" class="btn btn-danger btn-sm mb-3 "><i
+                                                        class="fas fa-retweet"></i></button>
+                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div style="height: auto">
@@ -177,22 +182,24 @@
                                             </label>
                                         </div>
                                     </div>
-
-
                                     <div id="tabela-inadimplencia" class="table table-bordered table-hover text-sm"></div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-lg-4">
-                                            <div class="col-lg-12">
-                                                <canvas id="grafico-pizza-atrasado"></canvas>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-lg-4">
+                                                <div class="col-lg-12">
+                                                    <canvas id="grafico-pizza-atrasado"></canvas>
+                                                </div>
+                                                <div class="col-lg-12  mt-3">
+                                                    <canvas id="grafico-pizza-inadimplente"></canvas>
+                                                </div>
                                             </div>
-                                            <div class="col-lg-12  mt-3">
-                                                <canvas id="grafico-pizza-inadimplente"></canvas>
+                                            <div class="col-lg-8">
+                                                <div class="float-right">
+                                                    <button id="refresh-inadimplencia" class="btn btn-danger btn-sm"><i
+                                                            class="fas fa-retweet"></i></button>
+                                                </div>
+                                                <canvas id="grafico-inadimplencia"></canvas>
                                             </div>
-                                        </div>
-                                        <div class="col-lg-8">
-                                            <canvas id="grafico-inadimplencia"></canvas>
                                         </div>
                                     </div>
                                 </div>
@@ -200,7 +207,22 @@
                             <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
                                 aria-labelledby="tab-cartao-cheque">
                                 <div class="card-body p-2">
-                                    <div id="tabela-cartao-cheque" class="table table-bordered table-hover text-sm"></div>
+                                    <div id="tabela-cartao-cheque" class="table table-bordered table-hover text-sm">
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Contas Mensais</h3>
+                                            <div class="float-right mb-3">
+                                                <button id="resetTela2" class="btn btn-danger btn-sm mb-3 "><i
+                                                        class="fas fa-retweet"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="height: auto">
+                                                <canvas id="grafico2" height="50"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -243,6 +265,9 @@
         var inicioData = 0;
         var fimData = 0;
         var ChartContasMes;
+        var ChartContasMestab2; // para o grafico da tab2 
+        let gerenteSelecionado = null; // gerente filtrado
+        let supervisorSelecionadoInadimplencia = null;
 
 
         carregaDadosRelatorioCobranca(1, 'tabela-relatorio-cobranca');
@@ -415,7 +440,69 @@
                     return response;
                 },
             });
+            tabela.on("groupVisibilityChanged", function(group, visible) {
+                // DS_AREACOMERCIAL
+                if (group.getField() !== "DS_AREACOMERCIAL") return;
+
+                const key = group.getKey();
+
+                if (visible) {
+                    // fecha o gerente anterior se abrir um novo sem fechar o anterior
+                    if (gerenteSelecionado && gerenteSelecionado !== key) {
+                        const prev = tabela.getGroups().find(g => g.getKey() === gerenteSelecionado);
+                        if (prev) {
+                            prev.hide(); // colapsa o grupo anterior
+                        }
+                    }
+
+                    gerenteSelecionado = key;
+                    const dadosFiltrados = dados.filter(d => d.DS_AREACOMERCIAL === key);
+                    atualizaDados(dadosFiltrados);
+                } else {
+                    // se clicar a segunda vez no mesmo grupo, fecha e reseta a tabela
+                    if (gerenteSelecionado === key) {
+                        gerenteSelecionado = null;
+                        atualizaDados(dados);
+                    }
+                }
+            });
         }
+
+        document.getElementById("resetTela2").addEventListener("click", function() {
+            // limpa seleção
+            gerenteSelecionado = null;
+
+            // fecha todos os grupos visíveis
+            tabela.getGroups().forEach(group => {
+                if (group.isVisible()) {
+                    group.hide();
+                }
+            });
+
+            // limpa filtros
+            tabela.clearFilter();
+
+            // atualiza gráfico completo
+            atualizaDados(dados);
+        });
+
+        document.getElementById("btnReset").addEventListener("click", function() {
+            // limpa seleção
+            gerenteSelecionado = null;
+
+            // fecha todos os grupos visíveis
+            tabela.getGroups().forEach(group => {
+                if (group.isVisible()) {
+                    group.hide();
+                }
+            });
+
+            // limpa filtros
+            tabela.clearFilter();
+
+            // atualiza gráfico completo
+            atualizaDados(dados);
+        });
 
         function atualizaDados(dados) {
             let totalGeral = dados.reduce((sum, d) => sum + parseFloat(d.VL_SALDO || 0), 0);
@@ -569,7 +656,7 @@
                     backgroundColor: 'rgba(60,141,188,0.4)'
                 },
                 {
-                    borderColor: 'rgba(2220, 53, 69,1)', // Cinza
+                    borderColor: 'rgba(220, 53, 69,1)', // Cinza
                     backgroundColor: 'rgba(220, 53, 69,0.4)'
                 }
             ];
@@ -638,6 +725,29 @@
                     }
                 },
 
+            });
+
+            //grafico da tela 2 
+            const ctx1 = document.getElementById('grafico2').getContext('2d');
+            if (typeof ChartContasMestab2 !== 'undefined') {
+                ChartContasMestab2.destroy();
+            }
+            ChartContasMestab2 = new Chart(ctx1, {
+                type: 'bar',
+                data: ChartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                },
             });
         }
 
@@ -905,6 +1015,8 @@
                     // Gráfico: 01 a 60 dias
                     const totais60 = calcularTotais(dados, 'RECEBERMENOR60DIAS',
                         'LIQUIDADOMENOR60DIAS');
+
+
                     criarGraficoPizza('grafico-pizza-atrasado', 'Atrasados', totais60);
 
                     // Gráfico: 61 a 240 dias
@@ -915,15 +1027,47 @@
                     return response;
                 },
             });
-            tabelaInadimplencia.on("groupClick", function(e, group) {
-                if (group.getField() === "DS_AREACOMERCIAL") {
-                    const supervisor = group.getKey();
+            tabelaInadimplencia.on("groupVisibilityChanged", function(group, visible) {
+                if (group.getField() !== "DS_AREACOMERCIAL") return;
 
-                    console.log(supervisor);
-                    filtrarGraficoPorSupervisor(supervisor); //filtra de acordo com o supervisor
+                const supervisor = group.getKey();
+
+                if (visible) {
+                    if (gerenteSelecionadoInadimplencia && gerenteSelecionadoInadimplencia !==
+                        supervisor) {
+                        const prev = tabelaInadimplencia.getGroups().find(g => g.getKey() ===
+                            gerenteSelecionadoInadimplencia);
+                        if (prev) {
+                            prev.hide();
+                        }
+                    }
+
+                    gerenteSelecionadoInadimplencia = supervisor;
+                    filtrarGraficoPorSupervisor(supervisor);
                 } else {
-                    gerarGraficoInadimplencia(dados);
+                    if (gerenteSelecionadoInadimplencia === supervisor) {
+                        gerenteSelecionadoInadimplencia = null;
+                        gerarGraficoInadimplencia(dados); // gráfico completo
+                    }
                 }
+            });
+
+            document.getElementById("refresh-inadimplencia").addEventListener("click", function() {
+                // resetar seleção
+                gerenteSelecionadoInadimplencia = null;
+
+                // fechar todos os grupos abertos na tabela
+                tabelaInadimplencia.getGroups().forEach(group => {
+                    if (group.isVisible()) {
+                        group.hide();
+                    }
+                });
+
+                // limpar filtros
+                tabelaInadimplencia.clearFilter();
+
+                // atualizar gráfico completo
+                gerarGraficoInadimplencia(dados);
             });
 
             configurarFiltroCheckbox("checkSaldo", tabelaInadimplencia, filtroSaldo);
@@ -934,9 +1078,21 @@
         });
 
         // função para filtrar o gráfico de inadimplência por supervisor
-        function filtrarGraficoPorSupervisor(supervisorSelecionado) {
-            const dadosFiltrados = dados.filter(item => item.DS_AREACOMERCIAL === supervisorSelecionado);
+        function filtrarGraficoPorSupervisor(gerenteSelecionado, cargoSelecionado) {
+            const dadosFiltrados = dados.filter(item => item.DS_AREACOMERCIAL === gerenteSelecionado);
             gerarGraficoInadimplencia(dadosFiltrados);
+
+            const totais60 = calcularTotais(dadosFiltrados, 'RECEBERMENOR60DIAS', 'LIQUIDADOMENOR60DIAS');
+
+
+            criarGraficoPizza('grafico-pizza-atrasado', 'Atrasados', totais60);
+
+            const totais61a240 = calcularTotais(dadosFiltrados, 'RECEBERMAIOR61DIAS',
+                'LIQUIDADOMAIOR61DIAS');
+            criarGraficoPizza('grafico-pizza-inadimplente', 'Inadimplentes', totais61a240);
+
+
+
         }
 
         function gerarGraficoInadimplencia(dados) {
