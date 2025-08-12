@@ -15,7 +15,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-                            <table id="table-user" class="table">
+                            <table id="table-user" class="table compact">
                                 <thead>
                                     <tr>
                                         <th>Id</th>

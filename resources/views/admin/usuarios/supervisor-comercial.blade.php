@@ -9,68 +9,92 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="col-md-12">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Supervisor Junsoft</label>
-                                        <select class="form-control select2" id="cd_supervisorcomercial"
-                                            style="width: 100%;">
-                                            <option selected="selected">Selecione</option>
-                                            @foreach ($supervisor as $s)
-                                                <option value="{{ $s->CD_VENDEDORGERAL }}">{{ $s->NM_SUPERVISOR }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Supervisor Junsoft</label>
+                                    <select class="form-control select2" id="cd_supervisorcomercial" style="width: 100%;">
+                                        <option selected="selected">Selecione</option>
+                                        @foreach ($supervisor as $s)
+                                            <option value="{{ $s->CD_VENDEDORGERAL }}">{{ $s->NM_SUPERVISOR }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="col-md-6">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Usúarios Dashboard</label>
+                                    <select class="form-control select2" id="cd_usuario" style="width: 100%; ">
+                                        <option selected="selected">Selecione</option>
+                                        @foreach ($user as $u)
+                                            <option value="{{ $u->id }}">{{ strtoupper($u->name) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>Libera Acima Param?</label>
                                     <div class="form-group">
-                                        <label>Usúarios Dashboard</label>
-                                        <select class="form-control select2" id="cd_usuario" style="width: 100%; ">
-                                            <option selected="selected">Selecione</option>
-                                            @foreach ($user as $u)
-                                                <option value="{{ $u->id }}">{{ strtoupper($u->name) }}</option>
-                                            @endforeach
-                                        </select>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="radio3" name="radio"
+                                                value="1">
+                                            <label class="form-check-label" for="radio3">Sim</label><br>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" id="radio4" name="radio"
+                                                value="0" checked>
+                                            <label class="form-check-label" for="radio4">Não</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-2" align="center" style="padding-top: 24px">
+                            <div class="col-md-2 d-none" id="div_pc_permitida">
                                 <div class="form-group">
-                                    <button type="submit" id="btn-vincular"
-                                        class="btn btn-danger btn-block">Associar</button>
+                                    <label>% Permitida</label>
+                                    <div class="form-group">
+                                        <input type="text" class="form-control" id="pc_permitida"
+                                            placeholder="%permitida">
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- /.card-body -->
                     </div>
-                    <!-- /.card-body -->
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header with-border">
-                        <h3 class="card-title">Supervisores Associados</h3>
-                    </div>
-                    <!-- /.card-header -->
-                    <div class="card-body">
-                        <table class="table compact" id="table-supervisor" style="width: 100%">
-                            <thead>
-                                <tr>
-                                    <th>Cód.</th>
-                                    <th>Cd. Usúario</th>
-                                    <th>Usúario</th>
-                                    <th>Cd. Supervisor</th>
-                                    <th>Supervisor</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                        </table>
+                    <div class="card-footer">
+                        <div class="col-md-2" align="center">
+                            <div class="form-group">
+                                <button type="submit" id="btn-vincular"
+                                    class="btn btn-danger btn-sm btn-block">Associar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header with-border">
+                            <h3 class="card-title">Supervisores Associados</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table class="table compact" id="table-supervisor" style="width: 100%">
+                                <thead>
+                                    <tr>
+                                        <th>Cód.</th>
+                                        <th>Cd. Usúario</th>
+                                        <th>Usúario</th>
+                                        <th>Cd. Supervisor</th>
+                                        <th>Supervisor</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.col -->
             </div>
-            <!-- /.col -->
-        </div>
     </section>
     {{-- Modal Editar --}}
     <div class="modal" id="CreatePessoaModal">
@@ -131,6 +155,15 @@
 @section('js')
     <script type="text/javascript">
         $(document).ready(function() {
+            document.querySelectorAll('input[name="radio"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === "1") {
+                        $('#div_pc_permitida').removeClass('d-none');
+                    } else if (this.value === "2") {
+                        $('#div_pc_permitida').addClass('d-none');
+                    }
+                });
+            });
             $('#cd_supervisorcomercial').select2({
                 theme: 'bootstrap4'
             });
@@ -147,13 +180,18 @@
                 let ds_supervisorcomercial = $("#cd_supervisorcomercial option:selected").text();
                 let cd_supervisorcomercial = $('#cd_supervisorcomercial').val();
                 let cd_usuario = $('#cd_usuario').val();
+                let pc_permitida = $('#pc_permitida').val();
+                let libera_acima_param = $('input[name="radio"]:checked').val();
+
                 $.ajax({
                     type: "GET",
                     url: "{{ route('get-supervisor-comercial.create') }}",
                     data: {
                         cd_supervisorcomercial: cd_supervisorcomercial,
                         cd_usuario: cd_usuario,
-                        ds_supervisorcomercial: ds_supervisorcomercial
+                        ds_supervisorcomercial: ds_supervisorcomercial,
+                        pc_permitida: pc_permitida,
+                        libera_acima_param: libera_acima_param
                     },
                     beforeSend: function() {
                         $("#loading").removeClass('hidden');
@@ -217,7 +255,7 @@
                 $('#cd_usuario_modal').val(rowData.cd_usuario).trigger('change');
                 $('.modal').modal('show');
             });
-            $('.btn-update').click(function() {                
+            $('.btn-update').click(function() {
 
                 Swal.fire({
                     title: 'Tem certeza?',
@@ -239,7 +277,7 @@
                             cd_usuario = $('#cd_usuario_modal').val();
                         $.ajax({
                             type: 'POST',
-                            url: '{{ route("edit-regiao-usuario") }}',
+                            url: '{{ route('edit-regiao-usuario') }}',
                             data: {
                                 id: id,
                                 cd_supervisor_comercial: cd_supervisor_comercial,

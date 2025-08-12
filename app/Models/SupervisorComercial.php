@@ -36,6 +36,8 @@ class SupervisorComercial extends Model
             'cd_supervisorcomercial' => $input['cd_supervisorcomercial'],
             'ds_supervisorcomercial' => $input['ds_supervisorcomercial'],
             'cd_cadusuario' => $input['cd_cadusuario'],
+            'pc_permitida' => $input['pc_permitida'] ?? 0,
+            'libera_acima_param' => $input['libera_acima_param'],
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -84,7 +86,9 @@ class SupervisorComercial extends Model
         $this->connection = 'mysql';
         return SupervisorComercial::select(
             'cd_supervisorcomercial as CD_SUPERVISORCOMERCIAL',
-            'ds_supervisorcomercial as DS_SUPERVISORCOMERCIAL'
+            'ds_supervisorcomercial as DS_SUPERVISORCOMERCIAL',
+            'pc_permitida as PC_PERMITIDA',
+            'libera_acima_param as ST_PARAM'
         )
             ->where('cd_usuario', $cd_usuario)->get();
     }

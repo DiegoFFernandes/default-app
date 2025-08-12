@@ -33,7 +33,9 @@ class LiberaOrdemComercial extends Model
                     TABPRECO.DS_TABPRECO,
                     TABPRECO.DT_VALIDADE,
                     COUNT(IPP.id) QTDPNEUS,
-                    COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL
+                    COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL,
+                    SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
+                    CONDPAGTO.DS_CONDPAGTO
                 FROM PEDIDOPNEU PP
                 INNER JOIN VENDEDOR V ON (V.CD_VENDEDOR = PP.IDVENDEDOR)
                 INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
@@ -42,11 +44,13 @@ class LiberaOrdemComercial extends Model
                     AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
                 INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
+                LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
                 INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA
                     AND EP.CD_ENDERECO = 1)
                 LEFT JOIN PARMTABPRECO T ON (T.CD_PESSOA = PP.IDPESSOA
                     AND PP.IDEMPRESA = T.CD_EMPRESA)
                 LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = T.CD_TABPRECO)
+                LEFT JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
                 WHERE PP.STPEDIDO IN ('B')
                     AND PP.IDTIPOPEDIDO <> 2
                     AND PP.TP_BLOQUEIO <> 'F'
@@ -68,7 +72,9 @@ class LiberaOrdemComercial extends Model
                     T.NR_SEQUENCIA,
                     TABPRECO.DS_TABPRECO,
                     TABPRECO.DT_VALIDADE,
-                    PP.ST_COMERCIAL
+                    PP.ST_COMERCIAL,
+                    NM_SUPERVISOR,
+                    CONDPAGTO.DS_CONDPAGTO
                     ";
         $data = DB::connection('firebird')->select($query);
 

@@ -1308,8 +1308,6 @@
             });
         };
 
-
-
         function configurarFiltroCheckbox(checkboxId, tabela, filtroCallback) {
             const checkbox = document.getElementById(checkboxId);
             if (!checkbox) return;
