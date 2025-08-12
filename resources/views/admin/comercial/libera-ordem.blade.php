@@ -7,10 +7,55 @@
 
 @section('content')
     <div class="content-fluid">
+        <div class="card collapsed-card mb-4">
+            <div class="card-header">
+                <h3 class="card-title mt-2">Filtros:</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                    </button>
+                </div>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Supervisor</label>
+                            <input type="text" class="form-control" id="nm_supervisor" placeholder="Nome Supervisor">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Vendedor</label>
+                            <input type="text" class="form-control" id="nm_vendedor" placeholder="Nome Vendedor">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <input type="text" class="form-control" id="nm_cliente" placeholder="Nome Cliente">
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.card-body -->
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-secondary btn-sm float-right mr-2"
+                            id="btn-limpar">Limpar</button>
+                    </div>
+                    <!-- /.row -->
+                </div>
+            </div>
+        </div>
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Pedidos Bloqueados</h3>
                 <span class="float-right badge bg-warning">Coordenador</span>
+                <span class="float-right badge bg-secondary mr-2">Supervisor</span>
             </div>
             <div class="card-body">
                 <table class="table stripe compact table-font-small" style="width:100%" id="table-ordem-block">
@@ -39,7 +84,7 @@
                                         readonly>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-12">
+                            <div class="col-6 col-md-6">
                                 <div class="form-group">
                                     <label for="vendedor">Vendedor</label>
                                     <input id="" class="form-control form-control-sm vendedor" type="text"
@@ -49,6 +94,13 @@
                                             permitida.</small>
                                     </blockquote>
 
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="form-group">
+                                    <label for="condicao">Condição</label>
+                                    <input id="" class="form-control form-control-sm condicao" type="text"
+                                        readonly>
                                 </div>
                             </div>
                         </div>
@@ -130,7 +182,7 @@
             },
             "searching": true,
             "paging": false,
-            "bInfo": false,
+            // "bInfo": false,
             processing: false,
             serverSide: false,
             scrollX: true,
@@ -157,7 +209,6 @@
                 {
                     data: 'PESSOA',
                     name: 'PESSOA',
-
                     title: 'Cliente'
                 }, {
                     data: 'QTDPNEUS',
@@ -176,10 +227,10 @@
                     visible: true
                 },
                 {
-                    data: 'DT_VALIDADE',
-                    name: 'DT_VALIDADE',
-                    title: 'Validade',
-                    visible: false
+                    data: 'NM_SUPERVISOR',
+                    name: 'NM_SUPERVISOR',
+                    title: 'Supervisor',
+                    visible: true
                 }
             ],
             order: [2, 'asc']
@@ -195,6 +246,7 @@
             $('.nr_pedido').val(row.data().PEDIDO);
             $('.pessoa').val(row.data().PESSOA);
             $('.vendedor').val(row.data().VENDEDOR);
+            $('.condicao').val(row.data().DS_CONDPAGTO);
 
             $('#modal-table-pedido').modal('show');
 
@@ -355,7 +407,7 @@
 
                     // Aplica destaque
                     [percentual, vlComissao, percentualComissao].forEach(el => {
-                        el.addClass('input-destaque');                        
+                        el.addClass('input-destaque');
                     });
 
                     // 👉 Aplica foco visual (danger) ao input editado
@@ -365,6 +417,28 @@
                 });
             }, 1000); // 1000ms de debounce
 
+        });
+
+        $('#nm_supervisor').on('keyup change', function() {
+            let value = $(this).val();
+            table.column(7).search(value).draw();
+        });
+
+        $('#nm_vendedor').on('keyup change', function() {
+            let value = $(this).val();
+            table.column(5).search(value).draw();
+        });
+
+        $('#nm_cliente').on('keyup change', function() {
+            let value = $(this).val();
+            table.column(3).search(value).draw();
+        });
+
+        $('#btn-limpar').on('click', function() {
+            $('#nm_supervisor').val('');
+            $('#nm_vendedor').val('');
+            $('#nm_cliente').val('');
+            table.search('').columns().search('').draw();
         });
 
         function initTable(tableId, data) {

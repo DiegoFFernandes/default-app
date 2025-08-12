@@ -204,6 +204,55 @@
                                 </table>
                             </div>
                             <div class="tab-pane fade" id="bloqueio-pedido" role="tabpanel">
+                                <div class="card collapsed-card mb-4">
+                                    <div class="card-header">
+                                        <h3 class="card-title mt-2">Filtros:</h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!-- /.card-header -->
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Supervisor</label>
+                                                    <input type="text" class="form-control" id="nm_supervisor_bloq"
+                                                        placeholder="Nome Supervisor">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Vendedor</label>
+                                                    <input type="text" class="form-control" id="nm_vendedor_bloq"
+                                                        placeholder="Nome Vendedor">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Cliente</label>
+                                                    <input type="text" class="form-control" id="nm_cliente_bloq"
+                                                        placeholder="Nome Cliente">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- /.row -->
+                                        <div class="card-footer">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <button type="button"
+                                                        class="btn btn-secondary btn-sm float-right mr-2"
+                                                        id="searchRegiao">Filtrar</button>
+                                                </div>
+                                                <!-- /.row -->
+                                            </div>
+                                        </div>
+                                        <!-- /.row -->
+                                    </div>
+                                </div>
+                                <hr>
                                 <table class="table stripe compact nowrap" id="bloqueio-pedidos"
                                     style="width:100%; font-size: 12px">
                                 </table>
@@ -224,12 +273,11 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 10%;
-        }        
+        }
+
         table.dataTable {
             table-layout: fixed;
         }
-
-        
     </style>
 @endsection
 
@@ -273,6 +321,7 @@
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
         var regiao;
         var table;
+        var tableBloqueio;
         var inicioData = 0;
         var fimData = 0;
         var dados;
@@ -287,7 +336,7 @@
         $('#bloqueio').click(function() {
             //Rever essa rotina atualiza caso o usuario voltar para aba bloqueio
             $('#bloqueio-pedidos').DataTable().destroy();
-            $('#bloqueio-pedidos').DataTable({
+            tableBloqueio = $('#bloqueio-pedidos').DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
                 },
@@ -362,17 +411,30 @@
                         data: 'DSTIPOPEDIDO',
                         name: 'DSTIPOPEDIDO',
                         title: 'Tipo Pedido'
+                    }, {
+                        data: 'VENDEDOR',
+                        name: 'VENDEDOR',
+                        title: 'Vendedor',
+                        visible: false
+                    },
+                    
+                    {
+                        data: 'NM_SUPERVISOR',
+                        name: 'NM_SUPERVISOR',
+                        title: 'Supervisor',
+                        visible: false
                     }
+
                 ],
                 columnDefs: [{
-                    targets: [5],
-                    render: $.fn.dataTable.render.moment('DD/MM/YYYY')
-                },{
-                    targets:[1],
-                    className: 'text-truncate'
-                }
-            
-            ],
+                        targets: [5],
+                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                    }, {
+                        targets: [1],
+                        className: 'text-truncate'
+                    }
+
+                ],
                 createdRow: (row, data, dataIndex, cells) => {
                     $(cells[7]).css('background-color', data.status_cliente);
                     $(cells[8]).css('background-color', data.status_scpc);
@@ -380,6 +442,28 @@
                 }
             });
 
+        });
+
+        $('#nm_supervisor_bloq').on('keyup change', function() {
+            let value = $(this).val();
+            tableBloqueio.column(12).search(value).draw();
+        });
+
+        $('#nm_vendedor_bloq').on('keyup change', function() {
+            let value = $(this).val();
+            tableBloqueio.column(11).search(value).draw();
+        });
+
+        $('#nm_cliente_bloq').on('keyup change', function() {
+            let value = $(this).val();
+            tableBloqueio.column(1).search(value).draw();
+        });
+
+        $('#btn-limpar').on('click', function() {
+            $('#nm_supervisor_bloq').val('');
+            $('#nm_vendedor_bloq').val('');
+            $('#nm_cliente_bloq').val('');
+            tableBloqueio.search('').columns().search('').draw();
         });
 
         $('#acompanhamento').click(function() {
@@ -585,7 +669,7 @@
                         width: "5%",
                     }, {
                         data: 'STORDEM',
-                        name: 'STORDEM',    
+                        name: 'STORDEM',
                         "width": "2%",
                     },
                 ]
@@ -654,7 +738,9 @@
                         width: "2%",
                     },
                 ],
-                order: [[3, 'asc']]
+                order: [
+                    [3, 'asc']
+                ]
 
             });
         }

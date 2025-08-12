@@ -59,8 +59,12 @@ class SupervisorComercialController extends Controller
     }
     public function create()
     {
+        if($this->request->libera_acima_param == 1 && $this->request->pc_permitida == ''){
+            return response()->json(['errors' => 'Parâmetro esta marcado como sim, o campo % permitido deve ser preenchido']);
+        }
         $this->request['cd_cadusuario'] = $this->user->id;
         $input = $this->_validate($this->request);
+
         if ($this->supervisor->verifyIfExists($input)) {
             return response()->json(['errors' => 'Supervisor já está vinculada com esse usúario!']);
         };
@@ -78,6 +82,8 @@ class SupervisorComercialController extends Controller
                 'cd_supervisorcomercial'     => 'required|integer',
                 'ds_supervisorcomercial' => 'string',
                 'cd_cadusuario'    => 'integer',
+                'libera_acima_param' => 'integer'
+                // 'pc_permitida'    => 'numeric',                
             ],
             [
                 'cd_usuario.required'    => 'Por favor informe um nome.',
