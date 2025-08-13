@@ -196,7 +196,7 @@ class Cobranca extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getRecebimentoLiquidado($tela = 1)
+    public function getRecebimentoLiquidado($tela = 1, $cd_empresa = 0, $cd_regiao = "")
     {
         $query = "
             SELECT DISTINCT
@@ -246,19 +246,20 @@ class Cobranca extends Model
             LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
                 --LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
                 --LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
-            WHERE ". ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "
+            WHERE " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "
                 --AND CONTAS.CD_PESSOA in (11283, 18106)
                 --AND CONTAS.nr_lancamento = 248188
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
-                --AND COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR) IN (16007, 57623, 20336)
+                " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
+                    " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
                 " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
-
+        
         if ($tela == 1) {
-            $key = "recebimentoLiquidado-3" . Auth::user()->id;
+            $key = "recebimentoLiquidado-4" . Auth::user()->id;
         } else {
-            $key = "recebimentoLiquidadoCartaoCheque-3" . Auth::user()->id;
+            $key = "recebimentoLiquidadoCartaoCheque-4" . Auth::user()->id;
         }
 
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {

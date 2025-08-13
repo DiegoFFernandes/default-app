@@ -47,17 +47,19 @@
                             @endhaspermission
                         </div>
                         @haspermission('ver-rel-cobranca')
-                        <div class="col-md-12 mt-2">
-                            <p>Cobrança</p>                           
+                            <div class="col-md-12 mt-2">
+                                <p>Cobrança</p>
                                 <a href={{ route('rel-cobranca') }} class="btn btn-sm btn-dark mb-1"
-                                    style="width: 150px">Relatório Cobranca</a>                            
-                        </div>
+                                    style="width: 150px">Relatório Cobranca</a>
+                            </div>
                         @endhaspermission
                         @haspermission('ver-producao')
                             <div class="col-md-12 mt-2">
                                 <p>Produção</p>
                                 <a href={{ route('executor-etapas.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Executor x Produção</a>
+                                <a href={{ route('pneus-lote-pcp') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Painel PCP</a>
                             </div>
                         @endhaspermission
                         @haspermission('ver-nota-devolucao')
@@ -65,7 +67,6 @@
                                 <p>Faturamento</p>
                                 <a href={{ route('nota-devolucao.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Nota Devolução</a>
-
                             </div>
                         @endhaspermission
 

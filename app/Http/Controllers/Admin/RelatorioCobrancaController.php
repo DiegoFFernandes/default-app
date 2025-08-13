@@ -329,7 +329,7 @@ class RelatorioCobrancaController extends Controller
 
         $indexado = [
             'vendedor' => [],
-            'supervisor' => []            
+            'supervisor' => []
         ];
         //Indexa os valores de recebimento e liquidação por vendedor e supervisor
         foreach ($receber_liquidada as $r) {
@@ -421,20 +421,51 @@ class RelatorioCobrancaController extends Controller
         return $data;
     }
 
-    public function RecebimentoLiquidado($tela)
+    public function RecebimentoLiquidado($tela, $cd_empresa = 0, $cd_regiao = "")
     {
-        return $this->cobranca->getRecebimentoLiquidado($tela);
+        return $this->cobranca->getRecebimentoLiquidado($tela, $cd_empresa, $cd_regiao);
     }
 
     public function getRecebimentoLiquidado()
     {
+        if ($this->user->hasRole('admin')) {
+            $cd_regiao = "";
+            $cd_empresa = 0;
+            // $regiao = $this->regiao->regiaoAll();
+            // $area = $this->area->areaAll();
+        } elseif ($this->user->hasRole('gerente comercial')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $cd_empresa = 0;
+            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
+                ->pluck('CD_AREACOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('supervisor')) {
+            $cd_empresa = 0;
+            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+                ->pluck('CD_SUPERVISORCOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        }
+
+
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
         //Faz a indexação das regiões codigo do supervisor e nome do gerente comercial
         $regioesIndexadas = [];
         foreach ($regioes_mysql as $regiao) {
             $regioesIndexadas[$regiao->cd_areacomercial] = $regiao->name;
         }
-        $data = self::RecebimentoLiquidado(1);
+
+        $data = self::RecebimentoLiquidado(1, $cd_empresa, $cd_regiao);
 
 
         foreach ($data as $item) {
@@ -444,9 +475,6 @@ class RelatorioCobrancaController extends Controller
         }
 
         return response()->json($data);
-
-        return Datatables::of($data)
-            ->make(true);
     }
 
     public function regioesIndexada($regioes_mysql)
