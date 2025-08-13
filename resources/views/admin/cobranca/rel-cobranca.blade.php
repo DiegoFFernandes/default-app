@@ -267,7 +267,7 @@
         var ChartContasMes;
         var ChartContasMestab2; // para o grafico da tab2 
         let gerenteSelecionado = null; // gerente filtrado
-        let supervisorSelecionadoInadimplencia = null;
+        let gerenteSelecionadoInadimplencia = null; //gerente da tab inadimplência
 
 
         carregaDadosRelatorioCobranca(1, 'tabela-relatorio-cobranca');
@@ -1030,11 +1030,11 @@
             tabelaInadimplencia.on("groupVisibilityChanged", function(group, visible) {
                 if (group.getField() !== "DS_AREACOMERCIAL") return;
 
-                const supervisor = group.getKey();
+                const gerente = group.getKey();
 
                 if (visible) {
                     if (gerenteSelecionadoInadimplencia && gerenteSelecionadoInadimplencia !==
-                        supervisor) {
+                        gerente) {
                         const prev = tabelaInadimplencia.getGroups().find(g => g.getKey() ===
                             gerenteSelecionadoInadimplencia);
                         if (prev) {
@@ -1042,12 +1042,21 @@
                         }
                     }
 
-                    gerenteSelecionadoInadimplencia = supervisor;
-                    filtrarGraficoPorSupervisor(supervisor);
+                    gerenteSelecionadoInadimplencia = gerente;
+                    filtrarGraficoPorSupervisor(gerente);
                 } else {
-                    if (gerenteSelecionadoInadimplencia === supervisor) {
+                    if (gerenteSelecionadoInadimplencia === gerente) {
                         gerenteSelecionadoInadimplencia = null;
                         gerarGraficoInadimplencia(dados); // gráfico completo
+
+                        //resta os gráficos de pizza
+                        const totais60 = calcularTotais(dados, 'RECEBERMENOR60DIAS',
+                            'LIQUIDADOMENOR60DIAS');
+                        criarGraficoPizza('grafico-pizza-atrasado', 'Atrasados', totais60);
+
+                        const totais61a240 = calcularTotais(dados, 'RECEBERMAIOR61DIAS',
+                            'LIQUIDADOMAIOR61DIAS');
+                        criarGraficoPizza('grafico-pizza-inadimplente', 'Inadimplentes', totais61a240);
                     }
                 }
             });
@@ -1068,6 +1077,13 @@
 
                 // atualizar gráfico completo
                 gerarGraficoInadimplencia(dados);
+
+               //resta os gráficos de pizza
+                const totais60 = calcularTotais(dados, 'RECEBERMENOR60DIAS', 'LIQUIDADOMENOR60DIAS');
+                criarGraficoPizza('grafico-pizza-atrasado', 'Atrasados', totais60);
+
+                const totais61a240 = calcularTotais(dados, 'RECEBERMAIOR61DIAS', 'LIQUIDADOMAIOR61DIAS');
+                criarGraficoPizza('grafico-pizza-inadimplente', 'Inadimplentes', totais61a240);
             });
 
             configurarFiltroCheckbox("checkSaldo", tabelaInadimplencia, filtroSaldo);
@@ -1078,7 +1094,7 @@
         });
 
         // função para filtrar o gráfico de inadimplência por supervisor
-        function filtrarGraficoPorSupervisor(gerenteSelecionado, cargoSelecionado) {
+        function filtrarGraficoPorSupervisor(gerenteSelecionado) {
             const dadosFiltrados = dados.filter(item => item.DS_AREACOMERCIAL === gerenteSelecionado);
             gerarGraficoInadimplencia(dadosFiltrados);
 
@@ -1090,9 +1106,6 @@
             const totais61a240 = calcularTotais(dadosFiltrados, 'RECEBERMAIOR61DIAS',
                 'LIQUIDADOMAIOR61DIAS');
             criarGraficoPizza('grafico-pizza-inadimplente', 'Inadimplentes', totais61a240);
-
-
-
         }
 
         function gerarGraficoInadimplencia(dados) {

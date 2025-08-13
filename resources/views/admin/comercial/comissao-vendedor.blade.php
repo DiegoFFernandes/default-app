@@ -50,9 +50,11 @@
                                 <div class="form-group mb-0">
                                     <label for="filtro-empresa">Empresa:</label>
                                     <select id="filtro-empresa" class="form-control mt-1">
-                                        <option value="">Todas</option>
                                         @foreach ($empresa as $emp)
-                                            <option value="{{ $emp->CD_EMPRESA }}">{{ $emp->NM_EMPRESA }}</option>
+                                            <option value="{{ $emp->CD_EMPRESA }}"
+                                                {{ $emp->CD_EMPRESA == 1 ? 'selected' : '' }}>
+                                                {{ $emp->NM_EMPRESA }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -143,6 +145,10 @@
 @section('js')
     <script>
         let dadosFiltrados = [];
+        const datasSelecionadas = initDateRangePicker();
+        //inicializa com a data atual
+        let dataInicio = moment().format('YYYY-MM-DD');
+        let dataFim =  moment().format('YYYY-MM-DD');
 
         $(document).ready(function() {
             $('#tabelaComissao').DataTable({
@@ -160,18 +166,36 @@
                     type: 'GET',
                     dataSrc: function(json) {
                         const empresaSelecionada = $('#filtro-empresa').val();
-                        const dataAlvo = '2025-05-02';
+                        const dataSelecionada = $('#daterange').val();
 
+                        // formatar as datas selecionadas
+                        if (dataSelecionada) {
+                            const datas = dataSelecionada.split(' - ');
+                            if (datas.length === 2) {
+                                dataInicio = moment(datas[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
+                                dataFim = moment(datas[1], 'DD/MM/YYYY').format('YYYY-MM-DD');
+                            } else {
+                                dataInicio = moment(datas[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
+                                dataFim = dataInicio;
+                            }
+                        }
+
+                        // filtra os dados
                         dadosFiltrados = json.data.filter(function(item) {
                             const empresaOk = empresaSelecionada === '' || item.CD_EMPRESA ==
                                 empresaSelecionada;
-                            const dataOk = item.DT_EMISSAO === dataAlvo;
+
+                            let dataOk = true;
+                            if (dataInicio && dataFim) {
+                                dataOk = moment(item.DT_EMISSAO).isBetween(dataInicio, dataFim,
+                                    undefined, '[]');
+                            }
+
                             return empresaOk && dataOk;
                         });
                         return dadosFiltrados;
                     }
                 },
-
                 columns: [{
                         data: 'CD_EMPRESA',
                         title: 'Emp'
@@ -297,6 +321,10 @@
                     }));
                     $('#quantidade-notas').text(notasEmitidas.size);
                 }
+            });
+            $('#submit-seach').on('click', function() {
+                let tabela = $('#tabelaComissao').DataTable();
+                tabela.ajax.reload();
             });
         });
     </script>
