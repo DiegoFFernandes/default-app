@@ -6,7 +6,7 @@
     <section class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-12 col-12">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">{{ $title_page }}</h3>
@@ -17,7 +17,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4 col-md-4">
+            {{-- <div class="col-4 col-md-4">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Lote PCP</h3>
@@ -27,7 +27,7 @@
                         </table>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         </div>
         </div>
     </section>
