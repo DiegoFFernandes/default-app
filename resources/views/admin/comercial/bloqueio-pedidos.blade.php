@@ -278,6 +278,22 @@
         table.dataTable {
             table-layout: fixed;
         }
+
+        @media (max-width: 768px) {
+            .table-left {                
+                margin-left: 0 !important;
+            }
+            .btn-detalhes {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #f0f0f0;
+                cursor: pointer;
+            }
+        }
     </style>
 @endsection
 
@@ -285,7 +301,7 @@
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
-            <table class="table row-border" id="pedido-{{ ID }}" style="width:100%">
+            <table class="table row-border table-left" id="pedido-{{ ID }}" style="width:80%; ">
                 <thead>
                     <tr>
                         <th></th>
@@ -338,7 +354,7 @@
             $('#bloqueio-pedidos').DataTable().destroy();
             tableBloqueio = $('#bloqueio-pedidos').DataTable({
                 language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
                 },
                 fixedHeader: true,
                 pagingType: "simple",
@@ -417,7 +433,7 @@
                         title: 'Vendedor',
                         visible: false
                     },
-                    
+
                     {
                         data: 'NM_SUPERVISOR',
                         name: 'NM_SUPERVISOR',
@@ -705,6 +721,8 @@
                 "bInfo": false,
                 processing: false,
                 serverSide: false,
+                autoWidth: false,
+                sDom: 't',
                 ajax: data.details_item_pedido_url,
                 columns: [{
                         data: 'O_DS_ETAPA',
@@ -712,7 +730,8 @@
                     },
                     {
                         data: 'O_NM_USUARIO',
-                        name: 'O_NM_USUARIO'
+                        name: 'O_NM_USUARIO',
+                        // "width": "15%"
                     },
                     {
                         data: 'DT_ENTRADA',
@@ -735,11 +754,15 @@
                     {
                         data: 'O_ST_RETRABALHO',
                         name: 'O_ST_RETRABALHO',
-                        width: "2%",
+                        // width: "2%",
                     },
                 ],
+                columnDefs: [{
+                    targets: [1],
+                    className: 'text-truncate'
+                }],
                 order: [
-                    [3, 'asc']
+                    [2, 'asc']
                 ]
 
             });

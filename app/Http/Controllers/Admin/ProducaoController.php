@@ -107,7 +107,7 @@ class ProducaoController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('CD_EMPRESA', function ($row) {
-                return '<span class="right details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $row->CD_EMPRESA;
+                return '<span class="right btn-detalhes details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $row->CD_EMPRESA;
             })
             ->addColumn('NM_PESSOA', function ($row) {
                 return $row->NM_PESSOA;

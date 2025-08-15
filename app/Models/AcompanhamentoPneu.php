@@ -68,17 +68,17 @@ class AcompanhamentoPneu extends Model
         return Helper::ConvertFormatText($data);
     }
     public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data)
-    {        
-       
+    {
+
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
             $nm_cliente = "";
             $nm_vendedor = "";
-            $idvendedor = "";            
+            $idvendedor = "";
             $grupo_item = 0;
             $inicioData = 0;
-            $fimData = 0;           
+            $fimData = 0;
         } else {
             $empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
             $pedido = $data['pedido'];
@@ -88,7 +88,7 @@ class AcompanhamentoPneu extends Model
             $idvendedor = $data['idvendedor'];
             $grupo_item = isset($data['grupo_item']) ? implode(',', $data['grupo_item']) : 0;
             $inicioData = $data['dt_inicial'];
-            $fimData = $data['dt_final'];            
+            $fimData = $data['dt_final'];
         }
 
         $query = "
@@ -149,8 +149,8 @@ class AcompanhamentoPneu extends Model
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
-                       " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
-                       --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                       --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
+                       PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -186,12 +186,11 @@ class AcompanhamentoPneu extends Model
                     ORDER BY PP.IDEMPRESA  
                 ";
 
-        $data = DB::connection('firebird')->select($query);
-        return Helper::ConvertFormatText($data);
-
-        $key = "PedidoAll_2024" . Auth::user()->id;
+        $key = "PedidoAll" . Auth::user()->id;
+        
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
-            return DB::connection('firebird')->select($query);
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
         });
     }
     public function ItemPedidoPneu($pedido)
@@ -304,8 +303,8 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
-                        " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
-                        --PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
+                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
                         " . (($cd_regiaocomercial != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL = $cd_regiaocomercial" : "") . "
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
@@ -416,8 +415,8 @@ class AcompanhamentoPneu extends Model
             LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             WHERE  
-                " . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
-                --PP.DTEMISSAO BETWEEN '04.02.2025' AND '04.02.2025'
+                --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
+                PP.DTEMISSAO BETWEEN '04.02.2025' AND '04.02.2025'
                 " . (($supervisor != null) ? "AND VENDEDOR.CD_VENDEDORGERAL = $supervisor" : "") . "
                 --AND PP.IDVENDEDOR = 18061
                 AND PP.STPEDIDO <> 'C'

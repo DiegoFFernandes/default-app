@@ -52,7 +52,7 @@ class LiberaOrdemComercial extends Model
                 LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = T.CD_TABPRECO)
                 LEFT JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
                 WHERE PP.STPEDIDO IN ('B')
-                    AND PP.IDTIPOPEDIDO <> 2
+                    AND PP.IDTIPOPEDIDO = 1
                     AND PP.TP_BLOQUEIO <> 'F'
                     " . (($cd_regiao != 0) ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
                     " . (($pedidos != 0) ? "and pp.id in ($pedidos)" : "") . "
@@ -117,16 +117,16 @@ class LiberaOrdemComercial extends Model
             FROM
                 PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-            INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
+            LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
                                                             AND IPB.CD_TIPO = 1)
             INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
             LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = COALESCE(IPP.IDTABPRECO, 1)
                                             AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
-            WHERE                
-                PP.STPEDIDO IN ('B') 
-                AND PP.IDTIPOPEDIDO <> 2
+            WHERE
+                PP.STPEDIDO IN ('B')
+                AND PP.IDTIPOPEDIDO = 1
                 AND PP.TP_BLOQUEIO <> 'F'
                
                 " . (($id <> 0) ? " and pp.id = '" . $id . "'" : "") . "

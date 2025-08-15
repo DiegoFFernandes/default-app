@@ -5,6 +5,8 @@ namespace App\Models;
 use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\TextUI\Help;
 
@@ -91,7 +93,7 @@ class Producao extends Model
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND PD.ST_PEDIDO <> 'A'
-                --AND PP.ID IN (75610, 181145, 186604, 169038)
+                AND PP.ID IN (75610, 181145, 186604, 169038)
             GROUP BY NR_EMBARQUE,
                 PP.ID,
                 PP.IDEMPRESA,
@@ -102,12 +104,12 @@ class Producao extends Model
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA";
 
-        $data = DB::connection('firebird')->select($query);
+        $key = "produzidos-para-faturar" . Auth::user()->id;
 
-        // Ensure data is properly formatted
-        $formattedData = Helper::ConvertFormatText($data);
-
-        return $formattedData;
+        return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+        });
     }
     public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE)
     {
@@ -130,8 +132,8 @@ class Producao extends Model
                                                             MAX(IPP2.NRSEQUENCIA)
                                                         FROM ITEMPEDIDOPNEU IPP2
                                                         WHERE
-                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NRORDEMPRODUCAO
-                --EF.DTFIM                                            
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NRORDEMPRODUCAO,
+                EF.DTFIM                                            
             FROM PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
@@ -544,7 +546,7 @@ class Producao extends Model
                     X.ID  
         ";
 
-        $data = DB::connection('firebird')->select($query); 
+        $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
     }

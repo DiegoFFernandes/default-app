@@ -1,5 +1,9 @@
 @extends('adminlte::page')
 
+@push('content')
+    <button class="btn btn-secondary btnTopo" id="btnTopo"><i class="fas fa-arrow-up"></i></button>
+@endpush
+
 @push('css')
     <!-- DataTables-->
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/datatables.min.css') }}">
@@ -26,7 +30,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css') }}">
 
 
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=2') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=6') }}">
 @endpush
 
 @push('js')
@@ -77,9 +81,29 @@
 
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
 
-            
-        document.addEventListener("DOMContentLoaded", function() {            
+            const btnTopo = document.getElementById("btnTopo");
+
+            window.addEventListener("scroll", function() {
+                if (window.scrollY > 300) {
+                    btnTopo.style.display = "block";
+                } else {
+                    btnTopo.style.display = "none";
+                }
+            });
+
+            btnTopo.addEventListener("click", function() {
+                window.scrollTo({
+                    top: 10,
+                    behavior: "smooth"
+                });
+            });
+
+            $('.input-venda').inputmask({
+                mask: 'decimal',
+                radixPoint: ',',
+            });
 
             $('#phone').inputmask({
                 mask: ['(99)9999-9999', '(99)99999-9999']

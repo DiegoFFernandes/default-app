@@ -58,7 +58,7 @@
                 <span class="float-right badge bg-secondary mr-2">Supervisor</span>
             </div>
             <div class="card-body">
-                <table class="table stripe compact table-font-small" style="width:100%" id="table-ordem-block">
+                <table class="table compact table-font-small" style="width:100%" id="table-ordem-block">
                 </table>
             </div>
         </div>
@@ -68,6 +68,15 @@
     <div class="modal modal-default fade" id="modal-table-pedido">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
+                <div class="modal-header">
+                    <blockquote class="quote-danger d-none" style="margin: 0">
+                        <small class="form-text text-muted">Apenas o Coordenador. Edição
+                            permitida.</small>
+                    </blockquote>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <div class="modal-body">
                     <div class="col-md-12">
                         <div class="row">
@@ -89,10 +98,6 @@
                                     <label for="vendedor">Vendedor</label>
                                     <input id="" class="form-control form-control-sm vendedor" type="text"
                                         readonly>
-                                    <blockquote class="quote-danger d-none">
-                                        <small class="form-text text-muted">Apenas o Coordenador libera. Edição
-                                            permitida.</small>
-                                    </blockquote>
 
                                 </div>
                             </div>
@@ -113,22 +118,25 @@
                     </div>
                     <table class="table compact row-border" id="table-item-pedido" style="font-size:12px">
                     </table>
-                    <div class="modal-footer">
+                    <div class="modal-footer justify-content-center">
                         <div class="col-md-12">
                             <div class="form-group" style="text-align: left">
                                 <label for="liberacao">Motivo Liberação:</label>
                                 <textarea id="" class="form-control liberacao" rows="3" cols="50"></textarea>
                             </div>
                         </div>
-
-                        <button type="button" class="btn btn-alert pull-left" data-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-success btn-save-confirm" id="">Liberar</button>
-
+                        <div class="d-flex">
+                            <button type="button" class="btn btn-alert" data-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success btn-save-confirm">Liberar</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        <button id="btnTopoModal" class="btn btn-danger btnTopoModal"><i class="fas fa-arrow-up"></i></button>
     </div>
+
+
 @stop
 
 @section('css')
@@ -153,6 +161,17 @@
             .form-control {
                 font-size: 13px;
             }
+
+            .btn-detalhes {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #f0f0f0;
+                cursor: pointer;
+            }
         }
 
         @media (min-width: 769px) {
@@ -174,6 +193,25 @@
 
 @section('js')
     <script>
+        const $modal = $('#modal-table-pedido');
+        const $btn = $('#btnTopoModal');
+
+        $modal.on('scroll', function() {
+            if ($modal.scrollTop() > 300) {
+                console.log('show');
+                $btn.show();
+            } else {
+                $btn.hide();
+            }
+        });
+
+        // Ao clicar no botão, rola o modal para o topo
+        $btn.on('click', function() {
+            $modal.animate({
+                scrollTop: 0
+            }, 300);
+        });
+
         var tableId = 0;
         var table_item_pedido;
         var table = $('#table-ordem-block').DataTable({
@@ -186,13 +224,13 @@
             processing: false,
             serverSide: false,
             scrollX: true,
-            scrollY: '60vh',
+            // scrollY: '60vh',
             ajax: "{{ route('get-ordens-bloqueadas-comercial') }}",
             columns: [{
                     data: "actions",
                     name: "actions",
-                    "width": "2%",
-                    title: "",
+                    "width": "3%",
+                    title: "Emp",
                 },
                 {
                     data: 'EMP',
@@ -282,8 +320,12 @@
                             item_pedido: rowData.ID,
                             venda: venda
                         }, function(data) {
-
-                            console.log(data);
+                            if (data === 0) {
+                                msgToastr(
+                                    'Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!',
+                                    'warning');
+                                return;
+                            }
 
                             let desconto = 0;
                             let commissao = 0;
@@ -388,6 +430,13 @@
                     item_pedido: item_pedido,
                     venda: venda
                 }, function(data) {
+
+                    if (data === 0) {
+                        msgToastr(
+                            'Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!',
+                            'warning');
+                        return;
+                    }
 
                     let desconto = 0;
                     let commissao = 0;

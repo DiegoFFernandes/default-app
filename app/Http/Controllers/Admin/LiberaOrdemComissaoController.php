@@ -82,7 +82,7 @@ class LiberaOrdemComissaoController extends Controller
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
-                return '<span class="right details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
+                return '<span class="right btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
             })
             ->rawColumns(['actions'])
             ->setRowClass(function ($d) {
@@ -100,6 +100,13 @@ class LiberaOrdemComissaoController extends Controller
     public function getCalculaComissao()
     {
         $item_pedido = $this->libera->listPneusOrdensBloqueadas(0, $this->request->item_pedido);
+
+        //verifica se teve algum retorno do calculo de comissão, 
+        //alguns pedidos não tem tipo vendedor 1, então retorna 0
+        if (Helper::is_empty_object($item_pedido)) {
+            $data = 0;
+            return response()->json($data);
+        }
 
         $data = $this->libera->calculaComissao($item_pedido, $this->request->venda);
 
@@ -124,7 +131,7 @@ class LiberaOrdemComissaoController extends Controller
         $registro = $data[0] ?? null;
 
         if ($this->user->hasRole('supervisor') && $supervisor[0]->ST_PARAM == 1 && $supervisor[0]->PC_PERMITIDA <= 35) {
-         // Se verdade continua, ação criada para permitir supervisor como se fosse gerente!
+            // Se verdade continua, ação criada para permitir supervisor como se fosse gerente!
         } else if (
             $this->user->hasRole('supervisor') &&
             $registro->ST_COMERCIAL === 'G' &&
@@ -134,7 +141,7 @@ class LiberaOrdemComissaoController extends Controller
                 'warning' => 'Feita atualização de comissão, favor aguardar liberação do Gerente!'
             ]);
         }
-   
+
         if ($data[0]->TP_BLOQUEIO == "C") //Se bloqueio for igual a Comercial
         {
             $update = $this->pedido->updateData($data[0], $stpedido = 'N', $tpbloqueio = '');

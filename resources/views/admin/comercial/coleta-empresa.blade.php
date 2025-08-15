@@ -316,6 +316,37 @@
         div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
             display: none;
         }
+
+        .col-actions {
+            width: 1% !important;
+        }
+
+        .dataTables_wrapper {
+            overflow-x: auto;
+        }
+
+        table.dataTable {
+            width: auto !important;
+            /* Não força 100% */
+        }
+
+
+        @media (max-width: 768px) {
+            .col-actions {
+                width: 2% !important;
+            }
+
+            .btn-detalhes {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #f0f0f0;
+                cursor: pointer;
+            }
+        }
     </style>
 @endsection
 
@@ -667,10 +698,10 @@
 
                 }
             });
-            
+
 
             $('#acompanhamento-' + empresaId).on('xhr.dt', function(e, settings, json, xhr) {
-                
+
             });
         }
 
@@ -706,10 +737,10 @@
                     }
                 },
                 columns: [{
-                        title: "",
+                        title: "#",
                         data: 'actions',
                         name: 'actions',
-                        "width": "1%"
+                        className: 'col-actions',
                     },
                     {
                         data: 'CD_EMPRESA',
@@ -729,7 +760,7 @@
                         data: 'BLOQUEADAS',
                         title: "Bloq.",
                         name: 'BLOQUEADAS',
-                        "width": "1%",
+                        "width": "2%",
                     },
                     {
                         data: 'QTDPEDIDOS',
@@ -742,7 +773,7 @@
                         data: 'QTDPNEUS',
                         title: "Pneus",
                         name: 'QTDPNEUS',
-                        "width": "1%",
+                        "width": "2%",
                     },
                     {
                         data: 'VALOR_MEDIO',
@@ -841,7 +872,7 @@
                         data: 'PESSOA',
                         name: 'PESSOA',
                         title: "Cliente",
-                        "width": "30%"
+                        "width": "20%"
                     },
                     {
                         data: 'VALOR_MEDIO',
@@ -914,6 +945,8 @@
                 sDom: 't',
                 processing: false,
                 serverSide: false,
+                scrollX: true,
+                autoWidth: false,
                 ajax: {
                     method: "GET",
                     url: " {{ route('get-item-pedido-acompanhar') }}",
@@ -925,11 +958,12 @@
                 columns: [{
                         data: 'NRSEQUENCIA',
                         name: 'NRSEQUENCIA',
-                        "width": "1%"
+                        className: 'col-actions',
                     },
                     {
                         data: 'NRORDEM',
-                        name: 'NRORDEM'
+                        name: 'NRORDEM',
+                        width: "60px"
                     },
                     {
                         data: 'DSSERVICO',

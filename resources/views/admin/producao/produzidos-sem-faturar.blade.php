@@ -18,15 +18,15 @@
             </div>
 
             @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-            <div class="col-md-4 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-dollar-sign"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Valor</span>
-                        <span class="info-box-number" id="valorTotal"></span>
+                <div class="col-md-4 col-sm-4 col-xs-6">
+                    <div class="info-box">
+                        <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-dollar-sign"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Valor</span>
+                            <span class="info-box-number" id="valorTotal"></span>
+                        </div>
                     </div>
                 </div>
-            </div>
             @endhasrole
 
             <div class="col-md-4 col-sm-4 col-xs-6">
@@ -141,7 +141,7 @@
             <div class="col-md-12">
                 <div class="card card-primary">
                     <div class="card-body">
-                        <table id="produzidosTable" class="table table-bordered table-striped table-font-small compact">
+                        <table id="produzidosTable" class="table table-bordered table-font-small compact">
 
                             <tfoot>
                                 <tr>
@@ -160,7 +160,30 @@
 
 @section('css')
     <style>
+        .col-actions {
+            width: 1% !important;
+        }
 
+        @media (max-width: 768px) {
+            .table-left {
+                margin-left: 0 !important;
+            }
+
+            .col-actions {
+                width: 2% !important;
+            }
+
+            .btn-detalhes {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: #f0f0f0;
+                cursor: pointer;
+            }
+        }
     </style>
 @stop
 
@@ -168,7 +191,7 @@
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge badge-danger">{{ NM_PESSOA }}</span>
-            <table class="table stripe row-border no-padding" id="pedido-{{ NR_COLETA }}" style="width:100%">
+            <table class="table stripe row-border no-padding table-left" id="pedido-{{ NR_COLETA }}" style="width:80%">
                 <thead style="background-color: #434A51;">
                     <tr>
                         <th>Expedicinado</th>
@@ -244,7 +267,7 @@
                 table = $('#produzidosTable').DataTable({
                     pageLength: 50,
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                        url: "{{ asset('vendor/datatables/pt-br.json') }}",
                     },
                     fixedHeader: true,
                     "scrollX": true,
@@ -272,12 +295,11 @@
                             title: "Cliente"
                         },
                         @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                        {
-                            "data": "VALOR",
-                            title: "Valor"
-                        },
-                        @endhasrole
-                        {
+                            {
+                                "data": "VALOR",
+                                title: "Valor"
+                            },
+                        @endhasrole {
                             "data": "PNEUS",
                             title: "Pneus"
                         },
@@ -336,7 +358,7 @@
             function initTable(tableId, data) {
                 var tableItemOrdem = $('#' + tableId).DataTable({
                     "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                        url: "{{ asset('vendor/datatables/pt-br.json') }}",
                     },
                     sDom: 't',
                     paging: false,
@@ -362,12 +384,11 @@
                             title: "Descrição"
                         },
                         @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                        {
-                            "data": "VALOR",
-                            title: "Valor"
-                        },
-                        @endhasrole
-                        {
+                            {
+                                "data": "VALOR",
+                                title: "Valor"
+                            },
+                        @endhasrole {
                             data: "DTFIM",
                             title: "Data",
                             render: function(data) {
