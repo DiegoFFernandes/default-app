@@ -54,10 +54,12 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Pedidos Bloqueados</h3>
-                <span class="float-right badge bg-warning">Coordenador</span>
-                <span class="float-right badge bg-secondary mr-2">Supervisor</span>
+                <button class="btn btn-primary btn-xs float-right" id="btn-liberar">Liberar Abaixo
+                    {{ intval($percentual[0]->perc_desconto_max) }}%</button>
             </div>
             <div class="card-body">
+                <span class="badge bg-warning">Coordenador</span>
+                <span class="badge bg-secondary mr-2">Supervisor</span>
                 <table class="table compact table-font-small" style="width:100%" id="table-ordem-block">
                 </table>
             </div>
@@ -113,6 +115,10 @@
                     <div class="card mb-2" class="d-none" id="card-pedido">
                         <div class="card-header">
                             <h3 class="card-title">Itens</h3>
+                            <div class="card-tools">
+                                <button id="btn-observacao" class="btn btn-secondary btn-xs" data-toggle="tooltip"
+                                    title="">Observação</button>
+                            </div>
                         </div>
                         <div id="card-container"></div>
                     </div>
@@ -284,7 +290,13 @@
             $('.nr_pedido').val(row.data().PEDIDO);
             $('.pessoa').val(row.data().PESSOA);
             $('.vendedor').val(row.data().VENDEDOR);
-            $('.condicao').val(row.data().DS_CONDPAGTO);
+            $('.condicao').val(row.data().DS_CONDPAGTO);   
+
+            $('#btn-observacao')
+                    .attr('data-original-title', '') // limpa qualquer title antigo
+                    .tooltip('dispose') // destrói tooltip existente
+                    .attr('title', row.data().DSOBSFATURAMENTO) // define novo texto
+                    .tooltip(); // recria tooltip
 
             $('#modal-table-pedido').modal('show');
 
@@ -292,11 +304,11 @@
             initTable('table-item-pedido', row.data());
         });
 
-        $(document).on('click', '#table-item-pedido td:nth-child(2)', function() {
+        $(document).on('click', '#table-item-pedido td:nth-child(3)', function() {
             var tr = $(this).closest('tr');
             var row = table_item_pedido.row(tr);
             var rowData = row.data();
-            var valorCellVenda = tr.find('td').eq(1);
+            var valorCellVenda = tr.find('td').eq(2);
             var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
 
             if (!valorCellVenda.find('input').length) {
@@ -490,6 +502,22 @@
             table.search('').columns().search('').draw();
         });
 
+        $('#btn-liberar').on('click', function() {
+            $.ajax({
+                type: "GET",
+                url: "{{ route('libera-abaixo-desconto') }}",
+                data: {
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(response) {
+                    if (response.success) {
+                        msgToastr(response.success, 'success');
+                        $('#table-ordem-block').DataTable().ajax.reload();
+                    }
+                }
+            });
+        });
+
         function initTable(tableId, data) {
 
             var url = "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}";
@@ -504,7 +532,6 @@
                 "searching": false,
                 "paging": false,
                 "bInfo": false,
-
                 processing: false,
                 serverSide: false,
                 ordering: false,
@@ -531,6 +558,11 @@
                         name: 'DS_ITEM',
                         width: '20%',
                         title: 'Item'
+                    },
+                    {
+                        data: 'CD_TABPRECO',
+                        name: 'CD_TABPRECO',
+                        title: 'Tabela'
                     },
                     {
                         data: 'VL_VENDA',
@@ -569,7 +601,7 @@
                         render: function(data, type, row) {
                             return data + '%';
                         },
-                        title: '% Comissão'
+                        title: '%Comis.'
                     }
                 ],
                 columnDefs: [{
@@ -612,6 +644,7 @@
             data.forEach(item => {
                 const card = $(`                       
                             <div class="card-body shadow-sm p-3">
+                                <span class="badge badge-secondary">${item.DS_TABPRECO}</span>
                                 <input type="hidden" class="input-id-item" value="${item.ID}" />
                                 <input type="hidden" class="input-empresa" value="${item.EMPRESA}" />
                                 <div class="row">

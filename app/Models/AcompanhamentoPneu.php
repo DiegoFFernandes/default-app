@@ -69,7 +69,6 @@ class AcompanhamentoPneu extends Model
     }
     public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data)
     {
-
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
@@ -90,6 +89,8 @@ class AcompanhamentoPneu extends Model
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
         }
+
+        $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);
 
         $query = "
                     SELECT
@@ -149,8 +150,7 @@ class AcompanhamentoPneu extends Model
                                                         AND EP.CD_ENDERECO = PP.IDENDERECO)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE  
-                       --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE") . " 
-                       PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                       " . $dataEmissao . "                        
                         " . (($cd_regiao != "") ? "AND EP.cd_regiaocomercial IN ($cd_regiao)" : "") . "
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
@@ -187,7 +187,10 @@ class AcompanhamentoPneu extends Model
                 ";
 
         $key = "PedidoAll" . Auth::user()->id;
-        
+
+         $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
             $data = DB::connection('firebird')->select($query);
             return Helper::ConvertFormatText($data);
@@ -234,7 +237,7 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPPB ON (IPPB.IDITEMPEDIDOPNEU = IPP.ID)
                     LEFT JOIN PESSOA PV ON (PV.CD_PESSOA = IPPB.IDBORRACHEIRO)
                     WHERE
-                        PP.ID = $pedido /**informar o numero do pedido aqui */
+                        PP.ID = $pedido 
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
@@ -275,6 +278,7 @@ class AcompanhamentoPneu extends Model
             $cd_regiaocomercial = $data['cd_regiaocomercial'];
             $grupo_item = implode(',', $data['grupo_item']);
         }
+        $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);
         $query = "
                     SELECT
                         PP.IDEMPRESA CD_EMPRESA,
@@ -303,8 +307,7 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
                     LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
                     WHERE                         
-                        --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                                 
-                        PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'
+                        " . $dataEmissao . "
                         " . (($cd_regiaocomercial != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL = $cd_regiaocomercial" : "") . "
                         --AND PP.IDVENDEDOR = 18061
                         AND PP.STPEDIDO <> 'C'
@@ -375,7 +378,6 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-
     //Retorna o primeiro nivel da tabela 
     public function getListColetaRegiao($data, $supervisor = null)
     {
@@ -389,6 +391,8 @@ class AcompanhamentoPneu extends Model
             $fimData = $data['dt_final'];
             $grupo_item = implode(',', $data['grupo_item']);
         }
+        $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);
+
         $query = "
             SELECT
                 PP.IDEMPRESA CD_EMPRESA,
@@ -415,8 +419,7 @@ class AcompanhamentoPneu extends Model
             LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             WHERE  
-                --" . (($inicioData != 0) ? "PP.DTEMISSAO between '$inicioData' and '$fimData' " : "PP.DTEMISSAO BETWEEN CURRENT_DATE AND CURRENT_DATE") . "                         
-                PP.DTEMISSAO BETWEEN '04.02.2025' AND '04.02.2025'
+                " . $dataEmissao . "
                 " . (($supervisor != null) ? "AND VENDEDOR.CD_VENDEDORGERAL = $supervisor" : "") . "
                 --AND PP.IDVENDEDOR = 18061
                 AND PP.STPEDIDO <> 'C'
@@ -429,5 +432,19 @@ class AcompanhamentoPneu extends Model
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
+    }
+
+    //Retorna o filtro de data caso estiver no ambiente de desenvolvimento muda para data especifica.
+    private function getDataFiltroEmissao($inicioData, $fimData)
+    {
+        if (config('app.dev_mode')) {
+            return "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'";
+        }
+
+        if ($inicioData != 0) {
+            return "PP.DTEMISSAO BETWEEN '$inicioData' AND '$fimData'";
+        }
+
+        return "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE";
     }
 }

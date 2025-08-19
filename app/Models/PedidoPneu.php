@@ -37,19 +37,19 @@ class PedidoPneu extends Model
         });
     }
 
-    static function updateDescontoMaior20($pedido)
+    static function updateDesconto($pedido, $tp_cargo)
     {
         if (empty($pedido)) {
             return;
         }
 
-        return DB::transaction(function () use ($pedido) {
+        return DB::transaction(function () use ($pedido, $tp_cargo) {
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
-
+           
             $query = "
                 UPDATE PEDIDOPNEU PP
-                    SET PP.ST_COMERCIAL = 'G'
+                    SET PP.ST_COMERCIAL = '$tp_cargo'
                 WHERE PP.ID in ($pedido)";
 
             return DB::connection('firebird')->statement($query);

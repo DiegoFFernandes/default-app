@@ -11,7 +11,7 @@ class LiberaOrdemComercial extends Model
 {
     use HasFactory;
 
-    public function listOrdensBloqueadas($cd_regiao = 0, $pedidos = 0, $iditempedidopneu = 0, $supervisor = null)
+    public function listPedidosBloqueadas($cd_regiao = 0, $pedidos = 0, $iditempedidopneu = 0, $supervisor = null, $st_comercial = null)
     {
         $query = "
                 SELECT
@@ -21,6 +21,7 @@ class LiberaOrdemComercial extends Model
                     PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
                     PP.IDPEDIDOMOVEL,
+                    PP.DSOBSFATURAMENTO,
                     CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET ISO8859_1) PESSOA,
                     --CAST(PP.DSBLOQUEIO AS VARCHAR(8100) CHARACTER SET UTF8) DSBLOQUEIO,
                     PP.DSLIBERACAO,
@@ -48,7 +49,7 @@ class LiberaOrdemComercial extends Model
                 INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA
                     AND EP.CD_ENDERECO = 1)
                 LEFT JOIN PARMTABPRECO T ON (T.CD_PESSOA = PP.IDPESSOA
-                    AND PP.IDEMPRESA = T.CD_EMPRESA)
+                    AND PP.IDEMPRESA = COALESCE(T.CD_EMPRESA, PP.IDEMPRESA))
                 LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = T.CD_TABPRECO)
                 LEFT JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
                 WHERE PP.STPEDIDO IN ('B')
@@ -58,12 +59,14 @@ class LiberaOrdemComercial extends Model
                     " . (($pedidos != 0) ? "and pp.id in ($pedidos)" : "") . "
                     " . (($iditempedidopneu != 0) ? "and ipb.iditempedidopneu = $iditempedidopneu" : "") . "
                     " . (($supervisor != null) ? "and v.CD_VENDEDORGERAL = $supervisor" : "") . "
+                    " . (($st_comercial != null) ? "and pp.st_comercial = '$st_comercial'" : "") . "
                 GROUP BY PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
                     PP.IDEMPRESA,
                     PP.DTEMISSAO,
                     PESSOA,
                     --PP.DSBLOQUEIO,
+                    PP.DSOBSFATURAMENTO,
                     PP.DSLIBERACAO,
                     VENDEDOR,
                     EP.CD_REGIAOCOMERCIAL,
@@ -112,7 +115,7 @@ class LiberaOrdemComercial extends Model
 
                 IPB.PC_COMISSAO,
                 IPB.VL_COMISSAO,
-
+                TABPRECO.DS_TABPRECO,
                 COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL
             FROM
                 PEDIDOPNEU PP
@@ -122,6 +125,7 @@ class LiberaOrdemComercial extends Model
             INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
             LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = COALESCE(IPP.IDTABPRECO, 1)
                                             AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
+            LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = ITP.CD_TABPRECO)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
             WHERE
@@ -189,8 +193,6 @@ class LiberaOrdemComercial extends Model
     }
     public function calculaComissao($input, $venda)
     {
-
-
         $cd_empresa = $input[0]->EMP;
         $cd_pessoa = $input[0]->IDPESSOA;
         $cd_item = $input[0]->CD_ITEM;
@@ -219,23 +221,65 @@ class LiberaOrdemComercial extends Model
 
         return Helper::ConvertFormatText($data);
     }
-
-    public function updateDescontoMaior20()
+    public function updateStatusPedidos()
     {
 
-        $pneus = self::listPneusOrdensBloqueadas(0, 0, 0) ?? [];
+        //Lista somente as que estão bloqueadas e já foram analisadas com o st_gerente 'G'
+        $pneus = self::listPneusOrdensBloqueadas(0, 0, 1) ?? [];
 
         if (empty($pneus)) {
             return;
         }
 
-        $pedidoDescontoMaior20 = collect($pneus)
-            ->filter(fn($p) => $p->PC_DESCONTO > 20)
-            ->pluck('PEDIDO')
-            ->values()
-            ->unique()
+        $foraTabela  = collect($pneus)
+            ->groupBy('PEDIDO')
+            ->filter(function ($grupo) {
+                // Supervisor e Gerente → basta UM item dentro da faixa
+                return $grupo->contains(
+                    fn($pneu) =>
+                    $pneu->CD_TABPRECO != 1 and $pneu->PC_DESCONTO > 0.00
+                );
+            })
+            ->keys()
             ->implode(',');
 
-        return PedidoPneu::updateDescontoMaior20($pedidoDescontoMaior20);
+        PedidoPneu::updateDesconto($foraTabela, 'G');
+
+        $percentual = PercentualDescontoComissao::listAllPercDesconto();
+        $resultado = [];
+
+        foreach ($percentual as $p) {
+            $pedidos = collect($pneus)
+                ->groupBy('PEDIDO')
+                ->filter(function ($grupo) use ($p) {
+                    // Automático precisa que TODOS estejam dentro da faixa
+                    if ($p->tp_cargo === 'A') {
+                        return $grupo->every(
+                            fn($pneu) =>
+                            $pneu->PC_DESCONTO >= $p->perc_desconto_min &&
+                                $pneu->PC_DESCONTO <= $p->perc_desconto_max &&
+                                $pneu->CD_TABPRECO == 1
+                        );
+                    }
+
+                    // Supervisor e Gerente → basta UM item dentro da faixa
+                    return $grupo->contains(
+                        fn($pneu) =>
+                        $pneu->PC_DESCONTO >= $p->perc_desconto_min &&
+                            $pneu->PC_DESCONTO <= $p->perc_desconto_max &&
+                            $pneu->CD_TABPRECO == 1
+                    );
+                })
+                ->keys()
+                ->implode(',');
+
+            $resultado[$p->tp_cargo] = $pedidos;
+        }
+
+        // Atualiza em lote
+        foreach (['G', 'S', 'A'] as $cargo) {
+            PedidoPneu::updateDesconto($resultado[$cargo] ?? '', $cargo);
+        }
+        return;
     }
 }

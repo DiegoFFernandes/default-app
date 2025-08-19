@@ -13,26 +13,26 @@
                                 <div class="col-12 border border-dark rounded p-0">
                                     <div class="row m-0">
                                         <div class="col-6 border-bottom border-dark">
-                                            <p><strong>Prezado:</strong> TESTE</p>
-                                            <p>RECEBEMOS OS ITENS CONSTANTES NO DOCUMENTO INDICADO ABAIXO:</p>
+                                            <p class="title-nota"><strong>Prezado:</strong> {{ $data[0]->NM_PESSOA }}</p>
+                                            <p class="title-nota">RECEBEMOS OS ITENS CONSTANTES NO DOCUMENTO INDICADO ABAIXO:</p>
                                         </div>
                                         <div class="col-3 border-bottom border-dark vr">
-                                            <p><strong>Cód:</strong> 0000</p>
+                                            <p class="title-nota"><strong>Cód:</strong> 0000</p>
                                         </div>
                                         <div class="col-3">
-                                            <p>NOTA:<strong> 00000</strong></p>
+                                            <p class="title-nota">NOTA:<strong> 00000</strong></p>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-3  border-end border-dark vr">
-                                            <p><strong>Data de Recebimento </p></strong>
+                                            <p class="title-nota"><strong>Data de Recebimento </p></strong>
                                         </div>
                                         <div class="col-6 border-end border-dark vr">
-                                            <p><strong>Identificação e Assinatura do Recebedor</p></strong>
+                                            <p class="title-nota"><strong>Identificação e Assinatura do Recebedor</p></strong>
                                         </div>
                                         <div class="col-3">
-                                            <p>RPS:<strong> 00000</strong></p>
-                                            <p>SÉRIE:<strong> F3</strong></p>
+                                            <p class="title-nota">RPS:<strong> 00000</strong></p>
+                                            <p class="title-nota">SÉRIE:<strong> F3</strong></p>
                                         </div>
                                     </div>
                                 </div>
@@ -41,7 +41,7 @@
                             <div class="row align-items-center">
                                 <div class="col-8">
                                     <div class="row align-items-center">
-                                        <div class="col-3 d-flex justify-content-start">
+                                        <div class="col-3 d-flex justify-content-center">
                                             <img src="{{ asset('img/municipio.png') }}" alt="Logo do Município"
                                                 class="logo-municipio img-fluid">
                                         </div>
@@ -55,17 +55,17 @@
                                 <div class="col-4 border border-dark p-0">
                                     <div class="row m-0">
                                         <div class="col-6 border-bottom border-dark text-center vr">
-                                            <p>Nº da Nota:</p>
-                                            <p><strong>00000</strong></p>
+                                            <p class="title-nota">Nº da Nota:</p>
+                                            <p class="title-nota"><strong>00000</strong></p>
                                         </div>
                                         <div class="col-6 border-bottom border-dark text-center">
-                                            <p>Data de emissão</p>
-                                            <p><strong>13/08/2025</strong></p>
+                                            <p class="title-nota">Data de emissão</p>
+                                            <p class="title-nota"><strong>13/08/2025</strong></p>
                                         </div>
                                     </div>
                                     <div class="row mt-2">
                                         <div class="col-12 text-center">
-                                            <p><strong>Código de Verificação</strong></p>
+                                            <p class="title-nota"><strong>Código de Verificação</strong></p>
                                         </div>
                                     </div>
                                 </div>
@@ -76,45 +76,45 @@
                                     <h5><strong>PRESTADOR DE SERVIÇOS</strong></h5>
                                 </div>
                             </div>
-                            <div class="row align-items-center">
-                                <div class="col-3">
+                            <div class="row align-items-center mt-1">
+                                <div class="col-3 d-flex justify-content-center">
                                     <img src="{{ asset('img/atz-logo.png') }}" alt="Logo ATZ" class="logo-atz  img-fluid">
                                 </div>
-                                <div class="col-9">
+                                <div class="col-9 align-items-center">
                                     <div class="row">
                                         <div class="col-8">
-                                            <p>Nome/Razão Social: LDB - VITTA COMERCIAL LTDA ME</p>
+                                            <p class="title-nota">Nome/Razão Social: LDB - VITTA COMERCIAL LTDA ME</p>
                                         </div>
                                         <div class="col-4">
-                                            <p>Inscrição Estadual: 000000000</p>
+                                            <p class="title-nota">Inscrição Estadual: 000000000</p>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-4">
-                                            <p>CNPJ: 00.000.000/0000-00</p>
+                                            <p class="title-nota">CNPJ: 00.000.000/0000-00</p>
                                         </div>
                                         <div class="col-3">
-                                            <p>Fone: (00) 0000-0000</p>
+                                            <p class="title-nota">Fone: (00) 0000-0000</p>
                                         </div>
                                         <div class="col-5">
-                                            <p>Email: email@gmail.com </p>
+                                            <p class="title-nota">Email: email@gmail.com </p>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-12">
-                                            <p>Endereço: ROD.MELLO PEIXOTO BR 369 KM 166, Bairro: JARDIM SANTA ADELAIDE </p>
+                                            <p class="title-nota">Endereço: ROD.MELLO PEIXOTO BR 369 KM 166, Bairro: JARDIM SANTA ADELAIDE </p>
                                         </div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-4">
-                                            <p>CEP: 00000-000</p>
+                                            <p class="title-nota">CEP: 00000-000</p>
                                         </div>
                                         <div class="col-4">
-                                            <p>Município: Cambe</p>
+                                            <p class="title-nota">Município: Cambe</p>
                                         </div>
                                         <div class="col-4">
-                                            <p>Inscrição Municipal: 00000</p>
+                                            <p class="title-nota">Inscrição Municipal: 00000</p>
                                         </div>
                                     </div>
                                 </div>
@@ -127,47 +127,47 @@
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p>Nome/Razão Social: TESTE</p>
+                                    <p class="title-nota">Nome/Razão Social: TESTE</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-4">
-                                    <p>CNPJ/CPF: 000.000.000-00</p>
+                                    <p class="title-nota">CNPJ/CPF: 000.000.000-00</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Inscrição Municipal:</p>
+                                    <p class="title-nota">Inscrição Municipal:</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Inscrição Estadual:</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <p>Endereço: R SETE DE SETEMBRO, Bairro: SAO JOSE - Maracai , SAO PAULO</p>
+                                    <p class="title-nota">Inscrição Estadual:</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p>Complemento: SAO JOSE DAS LARANJEIRAS</p>
+                                    <p class="title-nota">Endereço: R SETE DE SETEMBRO, Bairro: SAO JOSE - Maracai , SAO PAULO</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <p class="title-nota">Complemento: SAO JOSE DAS LARANJEIRAS</p>
                                 </div>
                             </div>
                             <div class="row mt-0">
                                 <div class="col-4">
-                                    <p>Cep: 00000-000</p>
+                                    <p class="title-nota">Cep: 00000-000</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Email: email@gmail.com</p>
+                                    <p class="title-nota">Email: email@gmail.com</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Fone: 00-00000-0000</p>
+                                    <p class="title-nota">Fone: 00-00000-0000</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-6">
-                                    <p>Forma Pagamento: Boleto</p>
+                                    <p class="title-nota">Forma Pagamento: Boleto</p>
                                 </div>
                                 <div class="col-6">
-                                    <p>Condição Pagamento: 7/28/56/84 dd</p>
+                                    <p class="title-nota">Condição Pagamento: 7/28/56/84 dd</p>
                                 </div>
                             </div>
                             <div class="row mt-0">
@@ -221,24 +221,24 @@
                             </div>
                             <div class="row">
                                 <div class="col-4">
-                                    <p>Retenção ISS:</p>
+                                    <p class="title-nota">Retenção ISS:</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Retenção PIS:</p>
+                                    <p class="title-nota">Retenção PIS:</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Retenção COFINS:</p>
+                                    <p class="title-nota">Retenção COFINS:</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-4">
-                                    <p>Retenção IR:</p>
+                                    <p class="title-nota">Retenção IR:</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Retenção CSLL:</p>
+                                    <p class="title-nota">Retenção CSLL:</p>
                                 </div>
                                 <div class="col-4">
-                                    <p>Retenção INSS:</p>
+                                    <p class="title-nota">Retenção INSS:</p>
                                 </div>
                             </div>
                             <div class="col-12 p-0">
@@ -254,34 +254,34 @@
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p>Código e Descrição do Serviço:</p>
+                                    <p class="title-nota">Código e Descrição do Serviço:</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p><strong>14.04 - Recauchutagem ou regeneração de pneus.</p></strong>
+                                    <p class="title-nota"><strong>14.04 - Recauchutagem ou regeneração de pneus.</p></strong>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-2 border border-black">
-                                    <p>Deduções (R$)</p>
-                                    <p>0,00</p>
+                                    <p class="title-nota">Deduções (R$)</p>
+                                    <p class="title-nota">0,00</p>
                                 </div>
                                 <div class="col-3 border border-black">
-                                    <p>Base de Cálculo ISS (R$)</p>
-                                    <p>4.038,00</p>
+                                    <p class="title-nota">Base de Cálculo ISS (R$)</p>
+                                    <p class="title-nota">4.038,00</p>
                                 </div>
                                 <div class="col-2 border border-black">
-                                    <p>Alíquota (%)</p>
-                                    <p>2.00</p>
+                                    <p class="title-nota">Alíquota (%)</p>
+                                    <p class="title-nota">2.00</p>
                                 </div>
                                 <div class="col-3 border border-black">
-                                    <p>Valor do ISS Retido (R$)</p>
-                                    <p>0,00</p>
+                                    <p class="title-nota">Valor do ISS Retido (R$)</p>
+                                    <p class="title-nota">0,00</p>
                                 </div>
                                 <div class="col-2 border border-black">
-                                    <p>Valor do ISS (R$)</p>
-                                    <p>80,76</p>
+                                    <p class="title-nota">Valor do ISS (R$)</p>
+                                    <p class="title-nota">80,76</p>
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -293,29 +293,29 @@
                             <div class="row mt-1">
                                 <div class="col-12 border border-dark">
                                     <div class="col-12">
-                                        <p>-<strong>Valor Líquido: R$ 4.038,00 </strong></p>
+                                        <p class="title-nota">-<strong>Valor Líquido: R$ 4.038,00 </strong></p>
                                     </div>
                                     <div class="col-12">
-                                        <p>- Vencimentos: 14/08/2025 - R$850.00 10/09/2025 - R$1062.67 08/10/2025 -
+                                        <p class="title-nota">- Vencimentos: 14/08/2025 - R$850.00 10/09/2025 - R$1062.67 08/10/2025 -
                                             R$1062.67 05/11/2025 - R$1062.66 </p>
                                     </div>
                                     <div class="col-12">
-                                        <p>- Esta NFS-e foi emitida conforme Decreto nº 332 de 21/09/2017</p>
+                                        <p class="title-nota">- Esta NFS-e foi emitida conforme Decreto nº 332 de 21/09/2017</p>
                                     </div>
                                     <div class="col-12">
-                                        <p>-<strong> RETENÇÕES: *ISS: R$ 0,00 / *IR: R$0,00</strong></p>
+                                        <p class="title-nota">-<strong> RETENÇÕES: *ISS: R$ 0,00 / *IR: R$0,00</strong></p>
                                     </div>
                                     <div class="col-12">
-                                        <p>Pedido Smartphone.: 64984, 64997 </p>
+                                        <p class="title-nota">Pedido Smartphone.: 64984, 64997 </p>
                                     </div>
                                     <div class="col-12">
-                                        <p>Coletas/Ordens s Carreg.: Coleta.: 204123, 204819 Ordem Carreg.: 149102. </p>
+                                        <p class="title-nota">Coletas/Ordens s Carreg.: Coleta.: 204123, 204819 Ordem Carreg.: 149102. </p>
                                     </div>
                                     <div class="col-12">
-                                        <p>Nr Placa: ,</p>
+                                        <p class="title-nota">Nr Placa: ,</p>
                                     </div>
                                     <div class="col-12">
-                                        <p>- Vendedores: TESTE </p>
+                                        <p class="title-nota">- Vendedores: TESTE </p>
                                     </div>
                                 </div>
                             </div>
@@ -334,7 +334,7 @@
             border-right: 1px solid black;
         }
 
-        p {
+        .title-nota {
             font-size: 13px;
             line-height: 14px;
             margin-bottom: 0.30em
@@ -361,7 +361,7 @@
         }
 
         .logo-atz {
-            max-width: 80px;
+            /* max-width: 80px; */
             height: auto;
         }
 

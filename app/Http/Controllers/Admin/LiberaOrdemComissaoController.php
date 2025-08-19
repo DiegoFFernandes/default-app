@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
 use App\Models\LiberaOrdemComercial;
 use App\Models\PedidoPneu;
+use App\Models\PercentualDescontoComissao;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use App\Models\User;
@@ -56,10 +57,17 @@ class LiberaOrdemComissaoController extends Controller
             }
         }
 
+        $percentual = PercentualDescontoComissao::listAllPercDesconto();
+
+        if (Helper::is_empty_object($percentual)) {
+            return Redirect::back()->with('warning', 'Nenhum percentual de desconto comercial cadastrado!');
+        }
+
         return view('admin.comercial.libera-ordem', compact(
             'title_page',
             'user_auth',
-            'uri'
+            'uri',
+            'percentual'
         ));
     }
 
@@ -74,11 +82,10 @@ class LiberaOrdemComissaoController extends Controller
                 return response()->json(['warning' => 'Usuário com função de supervisor mais sem vinculo com supervisor comercial, fale com o Administrador do sistema!']);
             }
         }
+        // Atualiza o status do pedido para filtrar por Gerente, supervisor ou liberação Automatica
+        $this->libera->updateStatusPedidos();
 
-        // Atualiza o desconto maior que 20% para Gerente fazer a liberação
-        $this->libera->updateDescontoMaior20();
-
-        $data = $this->libera->listOrdensBloqueadas(0, 0, 0, $supervisor);
+        $data = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor);
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
@@ -113,17 +120,22 @@ class LiberaOrdemComissaoController extends Controller
         return response()->json($data);
     }
 
-    public function saveLiberaPedido()
+    public function saveLiberaPedido($pedido = null)
     {
-        $pedido = $this->pedido->verifyIfExists($this->request->pedido);
-
-        $data = $this->libera->listOrdensBloqueadas(0, $this->request->pedido);
-
-        $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' / (Dash - ' . $this->user->name . ') Obs: ' . $this->request->liberacao;
-
-        foreach ($this->request->pneus as $pneu) {
-            $this->libera->updateValueItempedidoPneu($pneu);
+        if ($this->request->has('pedido')) {
+            $pedidoId = $this->request->pedido;
+            $observacao = $this->request->observacao ?? '';
+            foreach ($this->request->pneus as $pneu) {
+                $this->libera->updateValueItempedidoPneu($pneu);
+            }
+        } else {
+            $pedidoId = $pedido->PEDIDO;
+            $observacao = 'Automatico';
         }
+        $pedido = $this->pedido->verifyIfExists($pedidoId);
+
+        $data = $this->libera->listPedidosBloqueadas(0, $pedidoId);
+        $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' / (Dash - ' . $this->user->name . ') Obs: ' . $observacao;
 
         $supervisor = $this->supervisorComercialModel->findSupervisorUser($this->user->id);
         //Verifica se o usuario e supervisor e se o status comercial é G (Gerente)
@@ -147,17 +159,48 @@ class LiberaOrdemComissaoController extends Controller
             $update = $this->pedido->updateData($data[0], $stpedido = 'N', $tpbloqueio = '');
 
             if ($update) {
-                return response()->json(['success' => 'Ordem Liberada com sucesso!']);
+                return response()->json(['success' => 'Pedido ' . $data[0]->PEDIDO . ' liberado com sucesso!']);
             } else {
                 return response()->json(['danger' => 'Houve algum erro favor contactar TI!']);
             }
         } elseif ($data[0]->TP_BLOQUEIO == "A") {
             $update = $this->pedido->updateData($data[0], $stpedido = "B", $tpbloqueio = "F");
             if ($update) {
-                return response()->json(['warning' => 'Ordem Liberada com sucesso, mas ainda falta liberação de credito!']);
+                return response()->json(['warning' => 'Pedido ' . $data[0]->PEDIDO . ' liberado com sucesso, mas ainda falta liberação de credito!']);
             } else {
                 return response()->json(['danger' => 'Houve algum erro favor contactar TI!']);
             }
         }
+    }
+
+    public function liberaAbaixoDesconto()
+    {
+        $supervisor = null;
+
+        if ($this->user->hasRole('supervisor')) {
+            $supervisor = $this->supervisorComercial->getCdSupervisor();
+        }
+
+        $pedidos = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, 'A');
+
+        $resultados = [];
+
+        foreach ($pedidos as $pedido) {
+            $resultados[] = $this->saveLiberaPedido($pedido);
+        }
+        
+        $mensagens = [];
+
+        foreach ($resultados as $r) {
+            // transforma JsonResponse em array associativo
+            $data = $r->getData(true);
+
+            // pega a primeira mensagem (success ou warning)
+            $mensagens[] = reset($data);
+        }
+
+        return response()->json([
+            'success' => implode("</br>", $mensagens)
+        ]);
     }
 }

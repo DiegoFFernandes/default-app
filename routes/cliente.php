@@ -5,7 +5,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['role:admin'])->group(function () {
     Route::prefix('cliente')->group(function(){
-        Route::get('notas-emitidas', [AcessoClienteController::class, 'notasEmitidasCliente'])->name('notas-emitidas');       
+        Route::get('listar-notas-emitidas', [AcessoClienteController::class, 'listNotasEmitidasCliente'])->name('list-notas-emitidas'); 
+        Route::get('get-list-nota-emitida', [AcessoClienteController::class, 'getListNotasEmitidasCliente'])->name('get-list-nota-emitida');       
+
+        Route::get('get-layout-nota-emitida', [AcessoClienteController::class, 'layoutNotaEmitidaCliente'])->name('get-layout-nota-emitida');       
 
     });
     

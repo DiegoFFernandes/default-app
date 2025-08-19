@@ -16,6 +16,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Recapadora'),
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -29,6 +30,11 @@ return [
     */
 
     'env' => env('APP_ENV', 'production'),
+
+
+
+    // Verificar se esta no ambiente de desenvolvimento ou producao
+    'dev_mode' => env('APP_DEV', false),
 
     /*
     |--------------------------------------------------------------------------

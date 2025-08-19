@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('gerente_unidade', function (Blueprint $table) {
-             $table->id();
+            $table->id();
             $table->foreignId('cd_usuario'); 
             $table->bigInteger('cd_empresa'); //Essa informação virá do banco de dados firebird
             $table->bigInteger('cd_gerenteunidade'); //Essa informação virá do banco de dados firebird
