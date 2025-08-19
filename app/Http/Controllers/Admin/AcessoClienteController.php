@@ -68,10 +68,10 @@ class AcessoClienteController extends Controller
             ->make(true);
     }
 
-    public function layoutNotaEmitidaCliente()
+    public function layoutNotaEmitidaCliente($id)
     {
 
-        $data = $this->nota->getListNotaCliente(164973);
+        $data = $this->nota->getListNotaCliente($id);
         $title_page   = 'Notas Emitidas';
         $user_auth    = $this->user;
         $exploder     = explode('/', $this->request->route()->uri());
