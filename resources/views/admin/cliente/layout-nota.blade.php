@@ -14,13 +14,14 @@
                                     <div class="row m-0">
                                         <div class="col-6 border-bottom border-dark">
                                             <p class="title-nota"><strong>Prezado:</strong> {{ $data[0]->NM_PESSOA }}</p>
-                                            <p class="title-nota">RECEBEMOS OS ITENS CONSTANTES NO DOCUMENTO INDICADO ABAIXO:</p>
+                                            <p class="title-nota">RECEBEMOS OS ITENS CONSTANTES NO DOCUMENTO INDICADO
+                                                ABAIXO:</p>
                                         </div>
                                         <div class="col-3 border-bottom border-dark vr">
-                                            <p class="title-nota"><strong>Cód:</strong> 0000</p>
+                                            <p class="title-nota"><strong>Cód:</strong> {{ $data[0]->CD_PESSOA }}</p>
                                         </div>
                                         <div class="col-3">
-                                            <p class="title-nota">NOTA:<strong> 00000</strong></p>
+                                            <p class="title-nota">NOTA:<strong> {{ $data[0]->NR_NOTA }}</strong></p>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -28,11 +29,12 @@
                                             <p class="title-nota"><strong>Data de Recebimento </p></strong>
                                         </div>
                                         <div class="col-6 border-end border-dark vr">
-                                            <p class="title-nota"><strong>Identificação e Assinatura do Recebedor</p></strong>
+                                            <p class="title-nota"><strong>Identificação e Assinatura do Recebedor</p>
+                                            </strong>
                                         </div>
                                         <div class="col-3">
-                                            <p class="title-nota">RPS:<strong> 00000</strong></p>
-                                            <p class="title-nota">SÉRIE:<strong> F3</strong></p>
+                                            <p class="title-nota">RPS:<strong> {{ $data[0]->NR_RPS }}</strong></p>
+                                            <p class="title-nota">SÉRIE:<strong> {{ $data[0]->CD_SERIE }}</strong></p>
                                         </div>
                                     </div>
                                 </div>
@@ -56,16 +58,17 @@
                                     <div class="row m-0">
                                         <div class="col-6 border-bottom border-dark text-center vr">
                                             <p class="title-nota">Nº da Nota:</p>
-                                            <p class="title-nota"><strong>00000</strong></p>
+                                            <p class="title-nota"><strong>{{ $data[0]->NR_NOTA }}</strong></p>
                                         </div>
                                         <div class="col-6 border-bottom border-dark text-center">
                                             <p class="title-nota">Data de emissão</p>
-                                            <p class="title-nota"><strong>13/08/2025</strong></p>
+                                            <p class="title-nota"><strong>{{ $data[0]->DS_DTEMISSAO }}</strong></p>
                                         </div>
                                     </div>
                                     <div class="row mt-2">
                                         <div class="col-12 text-center">
                                             <p class="title-nota"><strong>Código de Verificação</strong></p>
+                                            <p class="title-nota"><strong>{{ $data[0]->CD_AUTENTICACAO }}</strong></p>
                                         </div>
                                     </div>
                                 </div>
@@ -83,38 +86,40 @@
                                 <div class="col-9 align-items-center">
                                     <div class="row">
                                         <div class="col-8">
-                                            <p class="title-nota">Nome/Razão Social: LDB - VITTA COMERCIAL LTDA ME</p>
+                                            <p class="title-nota">Nome/Razão Social: {{ $data[0]->NM_EMPRESA }}</p>
                                         </div>
                                         <div class="col-4">
-                                            <p class="title-nota">Inscrição Estadual: 000000000</p>
+                                            <p class="title-nota">Inscrição Estadual: {{ $data[0]->NR_INSCESTEMPRESA }}</p>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-4">
-                                            <p class="title-nota">CNPJ: 00.000.000/0000-00</p>
+                                            <p class="title-nota">CNPJ:{{ $data[0]->NR_CNPJEMPRESA }}</p>
                                         </div>
                                         <div class="col-3">
-                                            <p class="title-nota">Fone: (00) 0000-0000</p>
+                                            <p class="title-nota">Fone: {{ $data[0]->NR_FONEEMPRESA }}</p>
                                         </div>
                                         <div class="col-5">
-                                            <p class="title-nota">Email: email@gmail.com </p>
+                                            <p class="title-nota">Email: {{ $data[0]->DS_EMAILEMPRESA }} </p>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-12">
-                                            <p class="title-nota">Endereço: ROD.MELLO PEIXOTO BR 369 KM 166, Bairro: JARDIM SANTA ADELAIDE </p>
+                                            <p class="title-nota">Endereço: {{ $data[0]->DS_ENDEMPRESA }}, Bairro:
+                                                {{ $data[0]->DS_BAIRROEMPRESA }}</p>
                                         </div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-4">
-                                            <p class="title-nota">CEP: 00000-000</p>
+                                            <p class="title-nota">CEP: {{ $data[0]->NR_CEPEMPRESA }}</p>
                                         </div>
                                         <div class="col-4">
-                                            <p class="title-nota">Município: Cambe</p>
+                                            <p class="title-nota">Município: {{ $data[0]->DS_MUNICIPIOEMP }}</p>
                                         </div>
                                         <div class="col-4">
-                                            <p class="title-nota">Inscrição Municipal: 00000</p>
+                                            <p class="title-nota">Inscrição Municipal: {{ $data[0]->NR_INSCMUNEMPRESA }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -127,47 +132,49 @@
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p class="title-nota">Nome/Razão Social: TESTE</p>
+                                    <p class="title-nota">Nome/Razão Social: {{ $data[0]->NM_PESSOA }}</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-4">
-                                    <p class="title-nota">CNPJ/CPF: 000.000.000-00</p>
+                                    <p class="title-nota">CNPJ/CPF: {{ $data[0]->NR_CNPJCPF }}</p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Inscrição Municipal:</p>
+                                    <p class="title-nota">Inscrição Municipal: {{ $data[0]->NR_INSCMUN }} </p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Inscrição Estadual:</p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12">
-                                    <p class="title-nota">Endereço: R SETE DE SETEMBRO, Bairro: SAO JOSE - Maracai , SAO PAULO</p>
+                                    <p class="title-nota">Inscrição Estadual: {{ $data[0]->NR_INSCESTPESSOA }}</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p class="title-nota">Complemento: SAO JOSE DAS LARANJEIRAS</p>
+                                    <p class="title-nota">Endereço: {{ $data[0]->DS_ENDERECOPESSOA }}, N°
+                                        {{ $data[0]->NR_ENDPESSOA }}, Bairro: {{ $data[0]->DS_BAIRROPESSOA }},
+                                        {{ $data[0]->DS_MUNPESSOA }}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <p class="title-nota">Complemento: {{ $data[0]->DS_COMPPESSOA }}</p>
                                 </div>
                             </div>
                             <div class="row mt-0">
                                 <div class="col-4">
-                                    <p class="title-nota">Cep: 00000-000</p>
+                                    <p class="title-nota">Cep: {{ $data[0]->NR_CEPPESSOA }}</p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Email: email@gmail.com</p>
+                                    <p class="title-nota">Email: {{ $data[0]->DS_EMAIL }} </p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Fone: 00-00000-0000</p>
+                                    <p class="title-nota">Fone: {{ $data[0]->NR_FONE }}</p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-6">
-                                    <p class="title-nota">Forma Pagamento: Boleto</p>
+                                    <p class="title-nota">Forma Pagamento: {{ $data[0]->DS_FORMAPAGTO }}</p>
                                 </div>
                                 <div class="col-6">
-                                    <p class="title-nota">Condição Pagamento: 7/28/56/84 dd</p>
+                                    <p class="title-nota">Condição Pagamento: {{ $data[0]->DS_CONDPAGTO }}</p>
                                 </div>
                             </div>
                             <div class="row mt-0">
@@ -182,38 +189,29 @@
                                     <tr>
                                         <th style="width: 10%">Seq</th>
                                         <th style="width: 30%">Item</th>
-                                        <th style="width: 7%">Marca</th>
-                                        <th style="width: 7%">Modelo</th>
-                                        <th style="width: 7%">Série</th>
-                                        <th style="width: 7%">Fogo</th>
-                                        <th style="width: 7%">DOT</th>
-                                        <th style="width: 7%">Qtde</th>
-                                        <th style="width: 8%">Valor</th>
+                                        <th style="width: 30%">Marca</th>
+                                        <th style="width: 30%">Modelo</th>
+                                        <th style="width: 10%">Série</th>
+                                        <th style="width: 10%">Fogo</th>
+                                        <th style="width: 10%">DOT</th>
+                                        <th style="width: 10%">Qtde</th>
+                                        <th style="width: 10%">Valor</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>1</td>
-                                        <td>PM 295/80R22,5 DV-RT2 265</td>
-                                        <td>MICHELIN</td>
-                                        <td>X MULTI EN</td>
-                                        <td>3520</td>
-                                        <td></td>
-                                        <td>3520</td>
-                                        <td>1,00</td>
-                                        <td>850,00</td>
-                                    </tr>
-                                    <tr>
-                                        <td>2</td>
-                                        <td>PM 295/80R22,5 DV-RT2 265</td>
-                                        <td>MICHELIN</td>
-                                        <td>X MULTI EN</td>
-                                        <td>1721</td>
-                                        <td></td>
-                                        <td>1721</td>
-                                        <td>1,00</td>
-                                        <td>850,00</td>
-                                    </tr>
+                                    @foreach ($data as $d)
+                                        <tr>
+                                            <td>{{ $d->O_ORDEM }}</td>
+                                            <td>{{ $d->O_DS_ITEM }}</td>
+                                            <td>{{ $d->O_DS_MARCA }}</td>
+                                            <td>{{ $d->O_DS_MODELO }}</td>
+                                            <td>{{ $d->O_NR_SERIE }}</td>
+                                            <td>{{ $d->O_NR_FOGO }}</td>
+                                            <td>{{ $d->O_NR_DOT }}</td>
+                                            <td>{{ $d->O_QTDE }}</td>
+                                            <td class="vl-unitario">{{ $d->O_VL_UNITARIO }}</td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                             <div class="col-12  p-0">
@@ -221,7 +219,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-4">
-                                    <p class="title-nota">Retenção ISS:</p>
+                                    <p class="title-nota">Retenção ISS: {{ number_format($data[0]->VL_ISSQN_RETIDO, 2, ',', '.') }}</p>
                                 </div>
                                 <div class="col-4">
                                     <p class="title-nota">Retenção PIS:</p>
@@ -246,7 +244,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-12 text-center">
-                                    <h5><strong>VALOR TOTAL DA NOTA: R$ 4.038,00</strong></h5>
+                                    <h5><strong>VALOR TOTAL DA NOTA: R$ {{number_format($data[0]->VL_CONTABIL, 2, ',', '.')}}</strong></h5>
                                 </div>
                             </div>
                             <div class="col-12  p-0">
@@ -259,17 +257,18 @@
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <p class="title-nota"><strong>14.04 - Recauchutagem ou regeneração de pneus.</p></strong>
+                                    <p class="title-nota"><strong>14.04 - Recauchutagem ou regeneração de pneus.</p>
+                                    </strong>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-2 border border-black">
                                     <p class="title-nota">Deduções (R$)</p>
-                                    <p class="title-nota">0,00</p>
+                                    <p class="valorFormatado">{{ $data[0]->O_QT_DESCONTADA }}</p>
                                 </div>
                                 <div class="col-3 border border-black">
                                     <p class="title-nota">Base de Cálculo ISS (R$)</p>
-                                    <p class="title-nota">4.038,00</p>
+                                    <p class="valorFormatado">{{ $data[0]->VL_CONTABIL }}</p>
                                 </div>
                                 <div class="col-2 border border-black">
                                     <p class="title-nota">Alíquota (%)</p>
@@ -277,11 +276,11 @@
                                 </div>
                                 <div class="col-3 border border-black">
                                     <p class="title-nota">Valor do ISS Retido (R$)</p>
-                                    <p class="title-nota">0,00</p>
+                                    <p class="valorFormatado">{{ $data[0]->VL_ISSQN_RETIDO }}</p>
                                 </div>
                                 <div class="col-2 border border-black">
                                     <p class="title-nota">Valor do ISS (R$)</p>
-                                    <p class="title-nota">80,76</p>
+                                    <p class="valorFormatado">{{ $data[0]->VL_ISSQN }}</p>
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -293,29 +292,32 @@
                             <div class="row mt-1">
                                 <div class="col-12 border border-dark">
                                     <div class="col-12">
-                                        <p class="title-nota">-<strong>Valor Líquido: R$ 4.038,00 </strong></p>
+                                        <p class="title-nota">-<strong>Valor Líquido: R$ {{ number_format($data[0]->VL_CONTABIL, 2, ',', '.') }}
+                                            </strong></p>
                                     </div>
                                     <div class="col-12">
-                                        <p class="title-nota">- Vencimentos: 14/08/2025 - R$850.00 10/09/2025 - R$1062.67 08/10/2025 -
-                                            R$1062.67 05/11/2025 - R$1062.66 </p>
+                                        <p class="title-nota">- Vencimentos: {{ $data[0]->O_DS_CONDPAGTO }}</p>
                                     </div>
                                     <div class="col-12">
-                                        <p class="title-nota">- Esta NFS-e foi emitida conforme Decreto nº 332 de 21/09/2017</p>
+                                        <p class="title-nota">- Esta NFS-e foi emitida conforme Decreto nº 332 de
+                                            21/09/2017</p>
                                     </div>
                                     <div class="col-12">
-                                        <p class="title-nota">-<strong> RETENÇÕES: *ISS: R$ 0,00 / *IR: R$0,00</strong></p>
+                                        <p class="title-nota">-<strong> RETENÇÕES: *ISS: R$
+                                                {{ number_format($data[0]->VL_ISSQN_RETIDO, 2, ',', '.') }} / *IR: R$0,00</strong></p>
                                     </div>
                                     <div class="col-12">
                                         <p class="title-nota">Pedido Smartphone.: 64984, 64997 </p>
                                     </div>
                                     <div class="col-12">
-                                        <p class="title-nota">Coletas/Ordens s Carreg.: Coleta.: 204123, 204819 Ordem Carreg.: 149102. </p>
+                                        <p class="title-nota">Coletas/Ordens s Carreg.: Coleta.: 204123, 204819 Ordem
+                                            Carreg.: 149102. </p>
                                     </div>
                                     <div class="col-12">
                                         <p class="title-nota">Nr Placa: ,</p>
                                     </div>
                                     <div class="col-12">
-                                        <p class="title-nota">- Vendedores: TESTE </p>
+                                        <p class="title-nota">- Vendedores: {{ $data[0]->NM_VENDEDOR }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -335,6 +337,12 @@
         }
 
         .title-nota {
+            font-size: 13px;
+            line-height: 14px;
+            margin-bottom: 0.30em
+        }
+
+        .valorFormatado {
             font-size: 13px;
             line-height: 14px;
             margin-bottom: 0.30em
@@ -385,28 +393,69 @@
             h5 {
                 font-size: 0.5rem;
             }
-                .logo-municipio,
-                .logo-atz {
-                    max-width: 45px;
-                }
+
+            .logo-municipio,
+            .logo-atz {
+                max-width: 45px;
+            }
+        }
+
+        /* ajustar quando imprimir */
+        @media print {
+
+            /* exibe apenas o card-body */
+            body * {
+                visibility: hidden;
             }
 
-            /* ajustar quando imprimir */
-            @media print {
-
-                /* exibe apenas o card-body */
-                body * {
-                    visibility: hidden;
-                }
-
-                .card-body * {
-                    visibility: visible;
-                }
-
-                .card-body {
-                    width: 100% !important;
-                    padding: 1cm !important;
-                }
+            .card-body * {
+                visibility: visible;
             }
+
+            .card-body {
+                width: 100% !important;
+                padding: 1cm !important;
+            }
+        }
     </style>
+@stop
+
+@section('js')
+
+    <script>
+        function formatarReal(valor, tipo) {
+            if (!valor) return 'R$ 0,00';
+
+            let numero;
+
+            if (tipo === 'unitario') {
+                // valor com 000 → divide por 1000
+                numero = Number(valor.toString().replace(/\./g, '')) / 1000;
+            } else if (tipo === 'valorFormatado') {
+                // valores com 00 → apenas transforma em número
+                numero = Number(valor);
+            } else {
+                // fallback
+                numero = Number(valor);
+            }
+
+            return numero.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // formata os valor que vem com  tres zeros
+            document.querySelectorAll('.vl-unitario').forEach(el => {
+                el.textContent = formatarReal(el.textContent, 'unitario');
+            });
+
+            // formata os valor que vem com  dois zeros
+            document.querySelectorAll('.valorFormatado').forEach(el => {
+                el.textContent = formatarReal(el.textContent, 'valorFormatado');
+            });
+        });
+    </script>
+
 @stop

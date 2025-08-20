@@ -8,7 +8,7 @@ Route::middleware(['role:admin'])->group(function () {
         Route::get('listar-notas-emitidas', [AcessoClienteController::class, 'listNotasEmitidasCliente'])->name('list-notas-emitidas'); 
         Route::get('get-list-nota-emitida', [AcessoClienteController::class, 'getListNotasEmitidasCliente'])->name('get-list-nota-emitida');       
 
-        Route::get('get-layout-nota-emitida', [AcessoClienteController::class, 'layoutNotaEmitidaCliente'])->name('get-layout-nota-emitida');       
+        Route::get('get-layout-nota-emitida/{id}', [AcessoClienteController::class, 'layoutNotaEmitidaCliente'])->name('get-layout-nota-emitida');       
 
     });
     
