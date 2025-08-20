@@ -35,6 +35,8 @@ class AcessoClienteController extends Controller
             return $next($request);
         });
     }
+
+    // Notas fiscais
     public function listNotasEmitidasCliente()
     {
         $title_page   = 'Notas Emitidas';
@@ -53,7 +55,6 @@ class AcessoClienteController extends Controller
             'empresa'
         ));
     }
-
     public function getListNotasEmitidasCliente()
     {
        $data = $this->nota->getListNotaCliente();
@@ -67,7 +68,6 @@ class AcessoClienteController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-
     public function layoutNotaEmitidaCliente($id)
     {
 
@@ -87,6 +87,21 @@ class AcessoClienteController extends Controller
             'user',
             'empresa',
             'data'
+        ));
+    }
+
+    // Boletos
+    public function LayoutBoletosEmitidosCliente()
+    {
+        $title_page   = 'Boletos Emitidos';       
+        $exploder     = explode('/', $this->request->route()->uri());
+        $uri = ucfirst($exploder[1]);
+        $empresa = $this->empresa->empresa();        
+
+        return view('admin.cliente.boleto', compact(
+            'title_page',
+            'uri',
+            'empresa'
         ));
     }
 }

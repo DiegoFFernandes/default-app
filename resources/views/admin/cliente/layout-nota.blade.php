@@ -187,10 +187,10 @@
                                 style="font-size: 13px">
                                 <thead class="table-light">
                                     <tr>
-                                        <th style="width: 10%">Seq</th>
+                                        <th>Seq</th>
                                         <th style="width: 30%">Item</th>
-                                        <th style="width: 30%">Marca</th>
-                                        <th style="width: 30%">Modelo</th>
+                                        <th style="width: 10%">Marca</th>
+                                        <th style="width: 10%">Modelo</th>
                                         <th style="width: 10%">Série</th>
                                         <th style="width: 10%">Fogo</th>
                                         <th style="width: 10%">DOT</th>
@@ -201,7 +201,7 @@
                                 <tbody>
                                     @foreach ($data as $d)
                                         <tr>
-                                            <td>{{ $d->O_ORDEM }}</td>
+                                            <td>{{ $d->SEQ}}</td>
                                             <td>{{ $d->O_DS_ITEM }}</td>
                                             <td>{{ $d->O_DS_MARCA }}</td>
                                             <td>{{ $d->O_DS_MODELO }}</td>
@@ -217,26 +217,26 @@
                             <div class="col-12  p-0">
                                 <hr style="border: 1px solid black;">
                             </div>
-                            <div class="row">
+                            <div class="row mt-1">
                                 <div class="col-4">
                                     <p class="title-nota">Retenção ISS: {{ number_format($data[0]->VL_ISSQN_RETIDO, 2, ',', '.') }}</p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Retenção PIS:</p>
+                                    <p class="title-nota">Retenção PIS: 0,00</p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Retenção COFINS:</p>
+                                    <p class="title-nota">Retenção COFINS: 0,00</p>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row mt-1 mb-1">
                                 <div class="col-4">
-                                    <p class="title-nota">Retenção IR:</p>
+                                    <p class="title-nota">Retenção IR: {{ number_format($data[0]->VL_IR, 2, ',', '.') }}</p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Retenção CSLL:</p>
+                                    <p class="title-nota">Retenção CSLL: 0,00</p>
                                 </div>
                                 <div class="col-4">
-                                    <p class="title-nota">Retenção INSS:</p>
+                                    <p class="title-nota">Retenção INSS: 0,00</p>
                                 </div>
                             </div>
                             <div class="col-12 p-0">
@@ -264,7 +264,7 @@
                             <div class="row">
                                 <div class="col-2 border border-black">
                                     <p class="title-nota">Deduções (R$)</p>
-                                    <p class="valorFormatado">{{ $data[0]->O_QT_DESCONTADA }}</p>
+                                    <p class="valorFormatado">0,00</p>
                                 </div>
                                 <div class="col-3 border border-black">
                                     <p class="title-nota">Base de Cálculo ISS (R$)</p>
@@ -290,8 +290,9 @@
                                 </div>
                             </div>
                             <div class="row mt-1">
-                                <div class="col-12 border border-dark">
-                                    <div class="col-12">
+                                <div class="col-12 border border-dark mt-1 mb-1">
+                                    <div class="row mb-1 mt-1">
+                                        <div class="col-12">
                                         <p class="title-nota">-<strong>Valor Líquido: R$ {{ number_format($data[0]->VL_CONTABIL, 2, ',', '.') }}
                                             </strong></p>
                                     </div>
@@ -304,7 +305,7 @@
                                     </div>
                                     <div class="col-12">
                                         <p class="title-nota">-<strong> RETENÇÕES: *ISS: R$
-                                                {{ number_format($data[0]->VL_ISSQN_RETIDO, 2, ',', '.') }} / *IR: R$0,00</strong></p>
+                                                {{ number_format($data[0]->VL_ISSQN_RETIDO, 2, ',', '.') }} / *IR: R$ {{ number_format($data[0]->VL_IR, 2, ',', '.') }}</strong></p>
                                     </div>
                                     <div class="col-12">
                                         <p class="title-nota">Pedido Smartphone.: 64984, 64997 </p>
@@ -318,6 +319,7 @@
                                     </div>
                                     <div class="col-12">
                                         <p class="title-nota">- Vendedores: {{ $data[0]->NM_VENDEDOR }}</p>
+                                    </div>
                                     </div>
                                 </div>
                             </div>

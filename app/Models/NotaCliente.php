@@ -100,7 +100,46 @@ class NotaCliente extends Model
         (SELECT
             V_VL_IMPOSTO
         FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, N.TP_NOTA, NULL, 'Q', 'S', 'VI')) VL_ISSQN_RETIDO,
-        N.VL_CONTABIL";
+
+        N.VL_CONTABIL,
+        
+        ---IMPOSTOS ZILS
+        (SELECT V_VL_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'S', NULL, 'VI')) VL_PIS,
+        (SELECT V_VL_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'F', NULL, 'VI')) VL_COFINS,
+        (SELECT V_VL_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'N', NULL, 'VI')) VL_INSS,
+        (SELECT V_VL_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'J', NULL, 'VI')) VL_IR,
+        (SELECT V_VL_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'L', NULL, 'VI')) VL_CSLL,
+
+        N.VL_DESCONTO VL_TOTDESCONTO, LDN.O_VL_LAUDO VL_GARANTIA,
+
+        (SELECT V_PC_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'S', NULL, 'VI')) PC_PIS,
+        (SELECT V_PC_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'F', NULL, 'VI')) PC_COFINS,
+        (SELECT V_PC_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'N', NULL, 'VI')) PC_INSS,
+        (SELECT V_PC_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'J', NULL, 'VI')) PC_IR,
+        (SELECT V_PC_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
+                            N.TP_NOTA, NULL, 'L', NULL, 'VI')) PC_CSLL,
+        N.VL_NOTAFISCAL               
+        
+        ";
 
         if (!empty($nr_lancamento)) {
             $query .= "
@@ -119,6 +158,7 @@ class NotaCliente extends Model
             R.O_DS_DESENHO,
             R.O_IDORDEMPRODUCAORECAP,
             R.O_ORDEM,
+            CASE WHEN R.O_ORDEM = 1 THEN ROW_NUMBER() OVER (PARTITION BY CASE WHEN R.O_ORDEM = 1 THEN 0 ELSE 1 END ORDER BY R.O_IDORDEMPRODUCAORECAP, R.O_ORDEM) ELSE NULL END AS SEQ,
             R.O_VL_TOTAL TOT_VL_ITENS,
             R.O_QTDE TOT_QT_ITENS,
             IIF(R.O_ORDEM = 1, R.O_ORDEM, NULL) TOT_QT_PNEUS,
@@ -160,6 +200,7 @@ class NotaCliente extends Model
                 LEFT JOIN CONFIGNFSE CF ON (CF.CD_EMPRESA = N.CD_EMPRESA)
                 LEFT JOIN FORMAPAGTO F ON (F.CD_FORMAPAGTO = N.CD_FORMAPAGTO)
                 LEFT JOIN RETORNA_CONDPAGTONOTALNF230(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, N.TP_NOTA) RC ON (1 = 1)
+                LEFT JOIN RETORNA_VLLAUDONOTA(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, N.TP_NOTA) LDN ON (1=1)
                 " . ($nr_lancamento != null ? " LEFT JOIN RETORNA_SERVICONOTALNF230(N.CD_EMPRESA, N.NR_LANCAMENTO, N.TP_NOTA, N.CD_SERIE) R ON (1 = 1)
                     INNER JOIN ITEM I ON (I.CD_ITEM = R.O_CD_ITEM) " : "") . "
                 WHERE N.TP_NOTA = 'S'
@@ -168,9 +209,13 @@ class NotaCliente extends Model
                     --AND N.DT_EMISSAO = CURRENT_DATE -1
                     --AND P.DS_EMAIL IS NOT NULL
                     AND N.CD_PESSOA = 24585
-                    " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "
-                    
+                    " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "                    
                 ";
+
+        if (!empty($nr_lancamento)) {
+            $query .= "
+            ORDER BY R.O_IDORDEMPRODUCAORECAP, R.O_ORDEM";
+        }
 
         $data = DB::connection('firebird')->select($query);
 

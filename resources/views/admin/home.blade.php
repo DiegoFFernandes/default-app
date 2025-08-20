@@ -21,7 +21,9 @@
                     </div>
                     <div class="card-body row">
                         <div class="col-md-12">
-                            <p>Comercial</p>
+                            @haspermission('ver-coleta-empresa')
+                                <p>Comercial</p>
+                            @endhaspermission
                             @haspermission('ver-coleta-empresa')
                                 <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Coleta Geral</a>

@@ -219,18 +219,18 @@ class Producao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function getPneusLotePCP()
+    public function getPneusLotePCP($cd_empresa)
     {
         $query = "
                 SELECT
-                    X.NR_COLETA, X.IDPEDIDOMOVEL, X.DTENTRADA, X.DTENTREGA, X.IDPESSOA, X.IDSERVICOPNEU,
+                    X.IDEMPRESA, X.NR_COLETA, X.IDPEDIDOMOVEL, X.DTENTRADA, X.DTENTREGA, X.IDPESSOA, X.IDSERVICOPNEU,
                     P.NM_PESSOA, COALESCE(RC.DS_REGIAOCOMERCIAL,'SEM REGIAO') DS_REGIAOCOMERCIAL, SP.DSSERVICO,
                     X.DSCONTROLELOTEPCP, X.NR_LOTE, X.NRLOTESEQDIA, X.DTFIM, X.HRFIM, X.ID NR_OP,
                     X.DT_EXAME, X.DT_MANCHAO, X.DT_COBER, X.DT_VULC, X.DT_FINAL,
                     X.DS_ETAPA, X.DSOBSERVACAO, MP.DSMOTIVO
                 FROM (
                     --EXAME INICIAL
-                    SELECT PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
+                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, NULL DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
@@ -252,7 +252,7 @@ class Producao extends Model
                     LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                        --AND PP.IDEMPRESA IN (1)
+                        AND PP.IDEMPRESA IN ($cd_empresa)
                         AND M.STLOTE = 'P'
                         AND OPR.STORDEM = 'A'
                         AND (EI.ID IS NULL OR EI.ST_ETAPA = 'A')
@@ -261,7 +261,7 @@ class Producao extends Model
                     UNION ALL
 
                     --APLICAÇÃO COLA
-                    SELECT PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
+                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
@@ -289,7 +289,7 @@ class Producao extends Model
                     LEFT JOIN APLICACAOCOLAPNEU LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                        --AND PP.IDEMPRESA IN (1)
+                        AND PP.IDEMPRESA IN ($cd_empresa)
                         AND M.STLOTE = 'P'
                         AND OPR.STORDEM = 'A'
                         AND (LM.ID IS NULL OR LM.ST_ETAPA = 'A')
@@ -299,7 +299,7 @@ class Producao extends Model
                     UNION ALL
 
                     --COBERTURA
-                    SELECT PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
+                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
@@ -332,7 +332,7 @@ class Producao extends Model
                     LEFT JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                        --AND PP.IDEMPRESA IN (1)
+                        AND PP.IDEMPRESA IN ($cd_empresa)
                         AND M.STLOTE = 'P'
                         AND OPR.STORDEM = 'A'
                         AND (EB.ID IS NULL OR EB.ST_ETAPA = 'A')
@@ -342,7 +342,7 @@ class Producao extends Model
                     UNION ALL
 
                     --VULCANIZAÇÃO
-                    SELECT PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
+                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
@@ -372,7 +372,7 @@ class Producao extends Model
                     LEFT JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                        --AND PP.IDEMPRESA IN (1)
+                        AND PP.IDEMPRESA IN ($cd_empresa)
                         AND M.STLOTE = 'P'
                         AND OPR.STORDEM = 'A'
                         AND (VP.ID IS NULL OR VP.ST_ETAPA = 'A')
@@ -382,7 +382,7 @@ class Producao extends Model
                     UNION ALL
 
                     --EXAME FINAL
-                    SELECT PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
+                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, EF.DTFIM DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
@@ -411,7 +411,7 @@ class Producao extends Model
                     LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                        --AND PP.IDEMPRESA IN (1)
+                        AND PP.IDEMPRESA IN ($cd_empresa)
                         AND M.STLOTE = 'P'
                         AND OPR.STORDEM = 'A'
                         AND (EF.ID IS NULL OR EF.ST_ETAPA = 'A')
@@ -432,7 +432,7 @@ class Producao extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getLotePCP()
+    public function getLotePCP($cd_empresa)
     {
         $query = "
                 SELECT
@@ -465,7 +465,7 @@ class Producao extends Model
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                    --AND PP.IDEMPRESA IN (101,201)
+                    AND PP.IDEMPRESA IN ($cd_empresa)
                     AND M.STLOTE = 'P'
                     -- AND OPR.ID = 905
                 GROUP BY C.DSCONTROLELOTEPCP,
@@ -496,7 +496,7 @@ class Producao extends Model
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                    --AND PP.IDEMPRESA IN (101,201)
+                    AND PP.IDEMPRESA IN ($cd_empresa)
                     AND M.STLOTE = 'P'
                     AND OPR.STORDEM = 'A'
                 GROUP BY C.DSCONTROLELOTEPCP,
@@ -528,7 +528,7 @@ class Producao extends Model
                 LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                 WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
-                    --AND PP.IDEMPRESA IN (101,201)
+                    AND PP.IDEMPRESA IN ($cd_empresa)
                     AND M.STLOTE = 'P'
                     AND OPR.STORDEM = 'A'
                     AND EI.ID IS NULL
