@@ -5,7 +5,7 @@
     <!-- Main content -->
     <section class="content">
         <div class="row">
-            <div class="col-4">
+            <div class="col-md-4 col-12">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="fas fa-truck"></i></span>
                     <div class="info-box-content">
@@ -14,7 +14,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-md-4 col-12">
                 <div class="info-box">
                     <span class="info-box-icon bg-success"><i class="fas fa-industry"></i></span>
                     <div class="info-box-content">
@@ -23,7 +23,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-md-4 col-12">
                 <div class="info-box">
                     <span class="info-box-icon bg-danger"><i class="fas fa-times-circle"></i></span>
                     <div class="info-box-content">
@@ -37,13 +37,13 @@
             <div class="col-md-12 col-12">
                 <div class="card card-dark card-outline card-outline-tabs">
                     <div class="card-header p-0 border-bottom-0">
-                        <ul class="nav nav-tabs" id="tab-pcp" role="tablist">
+                        <ul class="nav nav-tabs" id="tab-empresa" role="tablist">
                             @foreach ($empresa as $emp)
                                 <li class="nav-item">
                                     <a class="nav-link @if ($loop->first) active @endif"
-                                        id="tab-vendedores-{{ $emp->CD_EMPRESA }}" data-toggle="pill"
-                                        href="#painel-vendedores-{{ $emp->CD_EMPRESA }}" role="tab"
-                                        aria-controls="painel-vendedores-{{ $emp->CD_EMPRESA }}"
+                                        id="tab-empresas-{{ $emp->CD_EMPRESA }}" data-toggle="pill"
+                                        href="#painel-empresas-{{ $emp->CD_EMPRESA }}" role="tab"
+                                        aria-controls="painel-empresas-{{ $emp->CD_EMPRESA }}"
                                         aria-selected="{{ $loop->first ? 'true' : 'false' }}"
                                         data-empresa="{{ $emp->CD_EMPRESA }}">
                                         {{ $emp->NM_EMPRESA }}
@@ -59,11 +59,11 @@
                         </ul>
                     </div>
                     <div class="card-body">
-                        <div class="tab-content" id="tabContentColetas">
+                        <div class="tab-content" id="tabContentEmpresas">
                             @foreach ($empresa as $emp)
                                 <div class="tab-pane fade @if ($loop->first) show active @endif"
-                                    id="painel-vendedores-{{ $emp->CD_EMPRESA }}" role="tabpanel"
-                                    aria-labelledby="tab-vendedores-{{ $emp->CD_EMPRESA }}">
+                                    id="painel-empresas-{{ $emp->CD_EMPRESA }}" role="tabpanel"
+                                    aria-labelledby="tab-empresas-{{ $emp->CD_EMPRESA }}">
                                     <div class="table-responsive">
                                         <table id="acompanhamentoMesAtual-{{ $emp->CD_EMPRESA }}"
                                             class="table compact table-font-small table-striped table-bordered"
@@ -73,10 +73,12 @@
                                 </div>
                             @endforeach
                             <div class="tab-pane fade" id="painel-todas" role="tabpanel" aria-labelledby="tab-todas">
-                                <table id="acompanhamentoMesAtualtodas"
-                                    class="table compact table-font-small table-striped table-bordered"
-                                    style="width:100%; font-size: 11px;">
-                                </table>
+                                <div class="table-responsive">
+                                    <table id="acompanhamentoMesAtualtodas"
+                                        class="table compact table-font-small table-striped table-bordered"
+                                        style="width:100%; font-size: 11px;">
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -104,7 +106,7 @@
 @section('js')
     <script>
         $(document).ready(function() {
-            $('#tab-pcp a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
+            $('#tab-empresa a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
                 var empresaId = $(e.target).data('empresa');
                 var tableId = '#acompanhamentoMesAtual-' + empresaId;
 
@@ -175,7 +177,7 @@
                     $('#acompanhamentoMesAtualtodas').DataTable().ajax.reload();
                 }
             });
-            $('#tab-pcp a.nav-link.active').trigger('shown.bs.tab');
+            $('#tab-empresa a.nav-link.active').trigger('shown.bs.tab');
 
             $('#acompanhamentoMesAtualtodas').DataTable({
                 processing: false,
