@@ -136,9 +136,15 @@
             $('#tab-pcp').on('click', '#tab-lotesPCP', function() {
                 $('#lote-pcp').DataTable().destroy();
                 $('#lote-pcp').DataTable({
+                    processing: true,
+                    lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, 'Todos']
+                    ],
+                    responsive: true,
+                    pageLength: 100,
                     processing: false,
                     serverSide: false,
-                    pageLength: 100,
                     language: {
                         url: "{{ asset('vendor/datatables/pt-br.json') }}",
                     },

@@ -7,9 +7,8 @@ use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Stmt\Foreach_;
 
-class Boleto extends Model
+class BoletoCliente extends Model
 {
     use HasFactory;
 
@@ -30,54 +29,58 @@ class Boleto extends Model
     public function BoletoResumo()
     {
         $query = "
-                    SELECT DISTINCT
-                    BI.CD_EMPRESA,
-                    BI.NR_LANCAMENTO,
-                    C.NR_DOCUMENTO,
-                    --BI.NR_DOCUMENTO,
-                    C.NR_LANCTONOTA,
-                    FORMATA_DATA(C.DT_LANCAMENTO, '%Y-%M-%D') DT_EMISSAO,
-                    --C.dt_registro,
-                    BI.NM_SACADO NM_PESSOA,
-                    BI.nr_cnpjcpfsacado NR_CNPJCPF,
-                    --BI.NR_PARCELA,
-                    --BI.VL_DOCUMENTO,
-                    C.CD_FORMAPAGTO
-                FROM CONTAS C
-                INNER JOIN BOLETOIMPRESSO BI ON (BI.CD_EMPRESA = C.CD_EMPRESA
-                    AND BI.NR_LANCAMENTO = C.NR_LANCAMENTO
-                    AND BI.NR_PARCELA = C.NR_PARCELA
-                    AND BI.NR_SEQUENCIA = (SELECT FIRST 1
-                                                BI2.NR_SEQUENCIA
-                                            FROM BOLETOIMPRESSO BI2
-                                            WHERE BI2.CD_EMPRESA = C.CD_EMPRESA
-                                                AND BI2.NR_LANCAMENTO = C.NR_LANCAMENTO
-                                                AND BI2.NR_PARCELA = C.NR_PARCELA
-                                            ORDER BY BI2.NR_SEQUENCIA DESC))
-                INNER JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA)
-                WHERE C.ST_CONTAS NOT IN ('C', 'L', 'A')
-                    --AND C.DT_LANCAMENTO BETWEEN CURRENT_DATE AND CURRENT_DATE
-                    --AND C.CD_FORMAPAGTO NOT IN ( 'V2', 'VB', 'V1', 'VD', 'V3')
-                    --AND C.NR_LANCAMENTO = 
-                    --AND C.CD_EMPRESA = 
-                    AND C.CD_PESSOA = 25715
+                   SELECT DISTINCT
+                        BI.CD_EMPRESA,
+                        BI.NR_LANCAMENTO,
+                        C.NR_DOCUMENTO,
+                        C.NR_DOCUMENTO || ' - ' || BI.NR_PARCELA || '/' || RMAX.O_NR_MAIORPARCELA NR_PARCELA,
+                        C.NR_LANCTONOTA,
+                        FORMATA_DATA(C.DT_LANCAMENTO, '%Y-%M-%D') DT_EMISSAO,
+                        C.DT_VENCIMENTO,
+                        --C.dt_registro,
+                        BI.NM_SACADO NM_PESSOA,
+                        BI.NR_CNPJCPFSACADO NR_CNPJCPF,
+                        BI.NR_PARCELA NR_PARC,
+                        BI.VL_DOCUMENTO,
+                        C.CD_FORMAPAGTO
+                    FROM CONTAS C
+                    INNER JOIN BOLETOIMPRESSO BI ON (BI.CD_EMPRESA = C.CD_EMPRESA
+                        AND BI.NR_LANCAMENTO = C.NR_LANCAMENTO
+                        AND BI.NR_PARCELA = C.NR_PARCELA
+                        AND BI.NR_SEQUENCIA = (SELECT FIRST 1
+                                                    BI2.NR_SEQUENCIA
+                                                FROM BOLETOIMPRESSO BI2
+                                                WHERE BI2.CD_EMPRESA = C.CD_EMPRESA
+                                                    AND BI2.NR_LANCAMENTO = C.NR_LANCAMENTO
+                                                    AND BI2.NR_PARCELA = C.NR_PARCELA
+                                                ORDER BY BI2.NR_SEQUENCIA DESC))
+                    INNER JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA)
+                    INNER JOIN RETORNA_MAIORPARCELACONTAS(C.CD_EMPRESA, C.NR_LANCAMENTO, C.CD_PESSOA, C.CD_TIPOCONTA) RMAX ON (0 = 0)
+                    WHERE C.ST_CONTAS NOT IN ('C', 'L', 'A')
+                        --AND C.DT_LANCAMENTO BETWEEN CURRENT_DATE AND CURRENT_DATE
 
-                GROUP BY BI.CD_EMPRESA,
-                    BI.NR_LANCAMENTO,
-                    C.NR_DOCUMENTO,
-                    C.NR_LANCTONOTA,
-                    BI.DT_DOCUMENTO,
-                    --C.dt_registro,
-                    C.DT_LANCAMENTO,
-                    --BI.NR_DOCUMENTO,
-                    BI.NM_SACADO,
-                    BI.NR_CNPJCPFSACADO ,
-                    --BI.NR_PARCELA,
-                    --BI.VL_DOCUMENTO,
-                    C.CD_FORMAPAGTO  
+                        --AND C.NR_LANCAMENTO =
+                        --AND C.CD_EMPRESA =
+                        AND C.CD_PESSOA = 25715
+
+                    GROUP BY BI.CD_EMPRESA,
+                        BI.NR_LANCAMENTO,
+                        C.NR_DOCUMENTO,
+                        C.NR_LANCTONOTA,
+                        BI.DT_DOCUMENTO,
+                        --C.dt_registro,
+                        C.DT_LANCAMENTO,
+                        C.DT_VENCIMENTO,
+                        --BI.NR_DOCUMENTO,
+                        RMAX.O_NR_MAIORPARCELA,
+                        BI.NM_SACADO,
+                        BI.NR_CNPJCPFSACADO,
+                        BI.NR_PARCELA,
+                        BI.VL_DOCUMENTO,
+                        C.CD_FORMAPAGTO  
         ";
 
-        $results = DB::connection('firebird_rede')->select($query);
+        $results = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($results);
     }
@@ -86,7 +89,7 @@ class Boleto extends Model
     {
         foreach ($input as $i) {
 
-            Boleto::firstOrCreate(
+            BoletoCliente::firstOrCreate(
                 [
                     'CD_EMPRESA' => $i['CD_EMPRESA'],
                     'NR_LANCAMENTO' => $i['NR_LANCAMENTO'],
@@ -105,7 +108,7 @@ class Boleto extends Model
             );
         }
     }
-    public function Boleto($nr_lancamento, $empresa)
+    public function Boleto($nr_lancamento, $empresa, $nr_parcela = null)
     {
         $query = "
                    SELECT DISTINCT
@@ -213,10 +216,10 @@ class Boleto extends Model
                     AND N.NR_LANCAMENTO = COALESCE(CO.NR_LANCTONOTA, C.NR_LANCTONOTA)
                     AND N.TP_NOTA = COALESCE(CO.TP_CONTAS, C.TP_CONTAS))
                 WHERE C.ST_CONTAS NOT IN ('L', 'A')
-                    --AND N.DT_EMISSAO >= CURRENT_DATE-1
-                    --AND C.CD_FORMAPAGTO NOT IN ('V2', 'VB', 'V1', 'VD', 'V3')
+                    --AND N.DT_EMISSAO >= CURRENT_DATE-1                    
                     AND C.NR_LANCAMENTO = $nr_lancamento
                     AND C.CD_EMPRESA = $empresa
+                    and C.NR_PARCELA = $nr_parcela
 
                 GROUP BY CPP.NRTELEFONE,
                     P.CD_PESSOA,
@@ -279,7 +282,7 @@ class Boleto extends Model
                     C.NR_PARCELA                
                 ";
 
-        $results = DB::connection('firebird_rede')->select($query);
+        $results = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($results);
 
@@ -292,7 +295,7 @@ class Boleto extends Model
     public function listBoletoSend($nota)
     {
         if ($nota === null) {
-            return Boleto::where('STATUS', 'A')
+            return BoletoCliente::where('STATUS', 'A')
                 // ->where('NR_DOCUMENTO', 1103666)
                 // ->where('CD_EMPRESA', 102)
                 ->where('created_at', '<', Carbon::now()->subHour(2))
@@ -301,7 +304,7 @@ class Boleto extends Model
                 ->get();
         } else {
 
-            return Boleto::where('STATUS', 'A')
+            return BoletoCliente::where('STATUS', 'A')
                 ->whereIn('NR_DOCUMENTO', [$nota['NR_DOCUMENTO']])
                 ->where('CD_EMPRESA', $nota['CD_EMPRESA'])
                 ->get();
@@ -310,7 +313,7 @@ class Boleto extends Model
 
     public function UpdateBoletoSend($input, $status)
     {
-        return Boleto::where('NR_LANCAMENTO', $input['NR_LANCAMENTO'])
+        return BoletoCliente::where('NR_LANCAMENTO', $input['NR_LANCAMENTO'])
             ->where('CD_EMPRESA', $input['CD_EMPRESA'])
             ->update([
                 'STATUS' => $status,

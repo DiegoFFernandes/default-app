@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\VendedorController;
 use App\Http\Controllers\Admin\ColetaController;
 use App\Http\Controllers\Admin\ComissaoController;
 use App\Http\Controllers\Admin\GerenteUnidadeController;
+use App\Http\Controllers\admin\TabelaPrecoController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -23,6 +24,14 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
         Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
         Route::get('get-calcula-comissao', [LiberaOrdemComissaoController::class, 'getCalculaComissao'])->name('get-calcula-comissao');
         Route::get('libera-abaixo-desconto', [LiberaOrdemComissaoController::class, 'liberaAbaixoDesconto'])->name('libera-abaixo-desconto');
+    });
+});
+
+Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
+    Route::prefix('tabela')->group(function () {
+        Route::get('tabela-preco', [TabelaPrecoController::class, 'index'])->name('tabela-preco.index');
+        Route::get('get-tabela-preco', [TabelaPrecoController::class, 'getTabPreco'])->name('get-tabela-preco');
+        Route::get('get-item-tabela-preco', [TabelaPrecoController::class, 'getItemTabPreco'])->name('get-item-tabela-preco');
     });
 });
 
@@ -111,7 +120,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');
         Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas');
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
+
         Route::get('vendedor', [ColetaController::class, 'vendedor'])->name('vendedor');
+        Route::get('get-vendedor', [ColetaController::class, 'getVendedor'])->name('get-vendedor-acompanhamento');
+
         Route::get('coleta-producao', [ColetaController::class, 'coletaProducao'])->name('coleta-producao');
         Route::get('fichas-abertas', [ColetaController::class, 'fichasAbertas'])->name('fichas-abertas');
         Route::get('inadimplencia-vendedor', [ColetaController::class, 'inadimplenciaVendedor'])->name('inadimplencia-vendedor');
@@ -119,8 +131,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('producao-indicadores', [ColetaController::class, 'producaoIndicadores'])->name('producao-indicadores');
         Route::get('producao-carga', [ColetaController::class, 'producaoCarga'])->name('producao-carga');
 
-        
-        Route::get('pneus-etapas-executar',[ColetaController::class, 'pneusEtapasExecutar'])->name('pneus-etapas-executar');
+
+        Route::get('pneus-etapas-executar', [ColetaController::class, 'pneusEtapasExecutar'])->name('pneus-etapas-executar');
         Route::get('pneus-parados-quatro-horas', [ColetaController::class, 'pneusParados'])->name('pneus-parados-quatro-horas');
         Route::get('exame-inicial-cobertura', [ColetaController::class, 'exameInicialCobertura'])->name('exame-inicial-cobertura');
         Route::get('exame-inicial', [ColetaController::class, 'exameInicial'])->name('exame-inicial');

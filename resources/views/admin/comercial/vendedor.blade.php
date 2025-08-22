@@ -62,19 +62,7 @@
                         <div class="table-responsive h-100">
                             <table id="acompanhamentoMesAtual"
                                 class="table compact table-font-small table-striped table-bordered nowrap"
-                                style="width:100%; font-size: 12px;">
-                                <thead class="bg-dark text-white">
-                                    <tr>
-                                        <th>Vendedor</th>
-                                        <th>Pneus Coletados</th>
-                                        <th>Qtde Prod.</th>
-                                        <th>Recusado</th>
-                                        <th>Qtde Fat.</th>
-                                        <th>VI Fat</th>
-                                        <th>Coleta Mês Ant.</th>
-                                        <th>Qtde Fat Mês Ant.</th>
-                                    </tr>
-                                </thead>
+                                style="width:100%; font-size: 12px;">                               
                             </table>
                         </div>
                     </div>
@@ -91,11 +79,21 @@
             }
 
             $('#acompanhamentoMesAtual').DataTable({
-                processing: true,
+                processing: false,
                 serverSide: false,
                 language: {
                     url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
                 },
+                ajax: {
+                    url: '{{ route('get-vendedor-acompanhamento') }}',
+                    type: 'GET',
+                },
+                columns: [
+                    { data: 'NM_PESSOA', name: 'vendedor', title: 'Vendedor' },                    
+                    { data: 'QT_PNEU', name: 'pneus_coletados', title: 'Pneus Coletados' },
+                    { data: 'QT_FATURADO', name: 'qtde_prod', title: 'Qtde Prod.' },
+                    { data: 'VL_FATURADO', name: 'recusado', title: 'Recusado' }                   
+                ]
             });
         });
     </script>

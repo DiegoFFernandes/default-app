@@ -1,7 +1,5 @@
 @extends('layouts.master')
 
-@section('title', 'Dashboard')
-
 @section('content')
     <section class="content">
         <div class="row">
@@ -97,7 +95,13 @@
                             </div>
                             <div class="tab-pane fade" id="painel-boletosAbertos" role="tabpanel"
                                 aria-labelledby="tab-boletosAbertos">
-                                <!-- tab boletosAbertos -->
+                                <div class="card-body p-2">
+                                    <div class="table-responsive">
+                                        <table id="table-boletos-abertos"
+                                            class="table table-bordered table-striped compact table-font-small">
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -136,85 +140,174 @@
 @section('js')
     <script>
         $(document).ready(function() {
-            var table = $('#table-notas-emitidas').DataTable({
-                processing: true,
-                serverSide: false,
-                pageLength: 100,
-                order: [[0, 'desc']], //exibe as ultimas 100 notas
-                ajax: {
-                    url: '{{ route('get-list-nota-emitida') }}',
-                    data: function(d) {
-                        d.numero_nota = $('#filtro-nr-documento').val();
-                    }
-                },
-                columns: [{
-                        data: 'NR_LANCAMENTO',
-                        name: 'NR_LANCAMENTO',
-                        title: 'Nº Lançamento'
-                    },
-                    {
-                        data: 'NM_EMPRESA',
-                        name: 'NM_EMPRESA',
-                        title: 'Empresa'
-                    },
-                    {
-                        data: 'NR_NOTA',
-                        name: 'NR_NOTA',
-                        title: 'Nº Nota'
-                    },
-                    {
-                        data: 'NM_PESSOA',
-                        name: 'NM_PESSOA',
-                        title: 'Cliente'
-                    },
-                    {
-                        data: 'DS_DTEMISSAO',
-                        name: 'DS_DTEMISSAO',
-                        title: 'Data Emissão'
-                    },
-                    {
-                        data: 'VL_CONTABIL',
-                        name: 'VL_CONTABIL',
-                        title: 'Valor Total'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        title: 'Ações',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                drawCallback: function(settings) {
-                    var api = this.api();
-                    var data = api.rows({
-                        search: 'applied'
-                    }).data();
 
-                    var countNotas = data.length;
-
-                    //atualiza o card de totais de notas
-                    $('#totalNotas').eq(0).text(countNotas);
-                }
-            });
+            initTableNota();
+            // initTableBoleto();
 
             // filtrar por data
             $.fn.dataTable.ext.search.push((settings, data) => {
                 const r = $('#daterange').val()?.split(' - ');
                 if (!r || r.length < 2) return true;
-                const d = s => { const [day, m, y] = s.split('/'); return new Date(y, m-1, day); };
+                const d = s => {
+                    const [day, m, y] = s.split('/');
+                    return new Date(y, m - 1, day);
+                };
                 const rowDate = d(data[4]);
                 return rowDate >= d(r[0]) && rowDate <= d(r[1]);
             });
 
             $('#submit-seach').on('click', function() {
-                table.draw();
+                tableNota.draw();
             });
 
             // filtro por número da nota
             $('#filtro-nr-documento').on('keyup change', function() {
-                table.column(2).search(this.value).draw();
+                tableNota.column(2).search(this.value).draw();
             });
+
+            $('#tab-boletosAbertos').on('click', function() {
+               initTableBoleto();
+            });
+
+            function initTableNota() {
+                if ($.fn.DataTable.isDataTable('#table-notas-emitidas')) {
+                    $('#table-notas-emitidas').DataTable().destroy();
+                }
+                var tableNota = $('#table-notas-emitidas').DataTable({
+                    processing: false,
+                    serverSide: false,
+                    pageLength: 100,
+                    language: {
+                        url: '{{ asset('vendor/datatables/pt-BR.json') }}'
+                    },
+                    order: [
+                        [0, 'desc']
+                    ], //exibe as ultimas 100 notas
+                    ajax: {
+                        url: '{{ route('get-list-nota-emitida') }}',
+                        data: function(d) {
+                            d.numero_nota = $('#filtro-nr-documento').val();
+                        }
+                    },
+                    columns: [{
+                            data: 'NR_LANCAMENTO',
+                            name: 'NR_LANCAMENTO',
+                            title: 'Lançamento'
+                        },
+                        {
+                            data: 'NM_EMPRESA',
+                            name: 'NM_EMPRESA',
+                            title: 'Empresa'
+                        },
+                        {
+                            data: 'NR_NOTA',
+                            name: 'NR_NOTA',
+                            title: 'Nº Nota'
+                        },
+                        {
+                            data: 'NM_PESSOA',
+                            name: 'NM_PESSOA',
+                            title: 'Cliente'
+                        },
+                        {
+                            data: 'DS_DTEMISSAO',
+                            name: 'DS_DTEMISSAO',
+                            title: 'Data Emissão'
+                        },
+                        {
+                            data: 'VL_CONTABIL',
+                            name: 'VL_CONTABIL',
+                            title: 'Valor Total'
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            title: 'Ações',
+                            orderable: false,
+                            searchable: false
+                        }
+                    ],
+                    drawCallback: function(settings) {
+                        var api = this.api();
+                        var data = api.rows({
+                            search: 'applied'
+                        }).data();
+
+                        var countNotas = data.length;
+
+                        //atualiza o card de totais de notas
+                        $('#totalNotas').eq(0).text(countNotas);
+                    }
+                });
+            }
+            function initTableBoleto(){
+                if ($.fn.DataTable.isDataTable('#table-boletos-abertos')) {
+                    $('#table-boletos-abertos').DataTable().destroy();
+                }
+                var tableBoleto = $('#table-boletos-abertos').DataTable({
+                    processing: false,
+                    serverSide: false,
+                    pageLength: 100,
+                    language: {
+                        url: '{{ asset('vendor/datatables/pt-BR.json') }}'
+                    },
+                    order: [
+                        [0, 'desc']
+                    ], 
+                    ajax: {
+                        url: '{{ route("get-listar-boletos-emitidos") }}',
+                    },                    
+                    columns: [{
+                            data: 'NR_LANCAMENTO',
+                            name: 'NR_LANCAMENTO',
+                            title: 'Lançamento',
+                            "width": '1%'
+                        },
+                        {
+                            data: 'CD_EMPRESA',
+                            name: 'CD_EMPRESA',
+                            title: 'Empresa'
+                        },
+                        {
+                            data: 'NR_DOCUMENTO',
+                            name: 'NR_DOCUMENTO',
+                            title: 'Nº Nota'
+                        },
+                        { data: 'NR_PARCELA',
+                            name: 'NR_PARCELA',
+                            title: 'Nº Parcela'
+                        },
+                        {
+                            data: 'NM_PESSOA',
+                            name: 'NM_PESSOA',
+                            title: 'Cliente',
+                            "width": '15%'
+                        },
+                        {
+                            data: 'DT_EMISSAO',
+                            name: 'DT_EMISSAO',
+                            title: 'Data Emissão'
+                        },
+                        {
+                            data: 'DT_VENCIMENTO',
+                            name: 'DT_VENCIMENTO',
+                            title: 'Data Vencimento'
+                        },
+                        {
+                            data: 'VL_DOCUMENTO',
+                            name: 'VL_DOCUMENTO',
+                            title: 'Valor'
+                        },
+                        {
+                            data: 'action',
+                            name: 'action',
+                            title: 'Ações',
+                            orderable: false,
+                            searchable: false
+                        }
+                    ]
+                });
+            }
         });
     </script>
 @stop

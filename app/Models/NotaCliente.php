@@ -208,7 +208,7 @@ class NotaCliente extends Model
                     AND N.ST_NOTA = 'V'
                     --AND N.DT_EMISSAO = CURRENT_DATE -1
                     --AND P.DS_EMAIL IS NOT NULL
-                    AND N.CD_PESSOA = 24585
+                    AND N.CD_PESSOA = 25715
                     " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "                    
                 ";
 

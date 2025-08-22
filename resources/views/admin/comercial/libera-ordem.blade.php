@@ -56,10 +56,14 @@
                 <h3 class="card-title">Pedidos Bloqueados</h3>
                 <button class="btn btn-primary btn-xs float-right" id="btn-liberar">Liberar Abaixo
                     {{ intval($percentual[0]->perc_desconto_max) }}%</button>
+
             </div>
             <div class="card-body">
                 <span class="badge bg-warning">Coordenador</span>
                 <span class="badge bg-secondary mr-2">Supervisor</span>
+                @hasrole('admin|gerente comercial')
+                    <a class="btn btn-info btn-xs float-right mr-2" href="{{ route('tabela-preco.index') }}">Tabela Preço</a>
+                @endhasrole
                 <table class="table compact table-font-small" style="width:100%" id="table-ordem-block">
                 </table>
             </div>
@@ -290,13 +294,13 @@
             $('.nr_pedido').val(row.data().PEDIDO);
             $('.pessoa').val(row.data().PESSOA);
             $('.vendedor').val(row.data().VENDEDOR);
-            $('.condicao').val(row.data().DS_CONDPAGTO);   
+            $('.condicao').val(row.data().DS_CONDPAGTO);
 
             $('#btn-observacao')
-                    .attr('data-original-title', '') // limpa qualquer title antigo
-                    .tooltip('dispose') // destrói tooltip existente
-                    .attr('title', row.data().DSOBSFATURAMENTO) // define novo texto
-                    .tooltip(); // recria tooltip
+                .attr('data-original-title', '') // limpa qualquer title antigo
+                .tooltip('dispose') // destrói tooltip existente
+                .attr('title', row.data().DSOBSFATURAMENTO) // define novo texto
+                .tooltip(); // recria tooltip
 
             $('#modal-table-pedido').modal('show');
 

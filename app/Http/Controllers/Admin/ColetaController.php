@@ -4,26 +4,34 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcompanhamentoPneu;
+use App\Models\Empresa;
+use App\Models\GerenteUnidade;
 use Illuminate\Http\Request;
 use App\Models\PedidoPneu;
 use App\Models\User;
+use App\Models\Vendedor;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
 class ColetaController extends Controller
 {
-    public $request, $user, $coleta, $acompanhamento;
+    public $request, $user, $coleta, $acompanhamento, $empresa, $gerenteUnidade, $vendedor;
 
     public function __construct(Request $request, 
             User $user, 
             PedidoPneu $coleta,
-            AcompanhamentoPneu $acompanhamento
+            AcompanhamentoPneu $acompanhamento,
+            Empresa $empresa,
+            GerenteUnidade $gerenteUnidade,
+            Vendedor $vendedor
         ){
         $this->request = $request;
         $this->user = $user;
         $this->coleta = $coleta;
         $this->acompanhamento = $acompanhamento;
-
+        $this->empresa = $empresa;
+        $this->gerenteUnidade = $gerenteUnidade;
+        $this->vendedor = $vendedor;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -68,7 +76,23 @@ class ColetaController extends Controller
 
     public function vendedor()
     {
-        return view('admin.comercial.vendedor');
+        if ($this->user->hasRole('admin')) {
+            $empresa = $this->empresa->empresa();
+        } else if ($this->user->hasRole('gerente unidade')) {
+            $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        } else {
+            $empresa = $this->empresa->empresa($this->user->empresa);
+        }
+
+        return view('admin.comercial.vendedor', compact('empresa'));
+    }
+
+    public function getVendedor()
+    {
+        $data = $this->vendedor->getAcompanhamentoVendedor(1);
+        return Datatables::of($data)->make('true');
     }
 
     public function coletaProducao()

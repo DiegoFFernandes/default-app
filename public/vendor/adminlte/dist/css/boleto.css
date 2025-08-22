@@ -1,0 +1,203 @@
+/* table */
+.line {
+    box-sizing: border-box;
+    border: 1px solid black;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.line p {
+    margin: 0px;
+    padding: 0.8px;
+    /* line-height: 16px; */
+}
+
+.line2 {
+    box-sizing: border-box;
+    border: 1px solid black;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.line2 p {
+    margin: 0;
+    padding-top: 20px;
+    /* line-height: 17.6px; */
+}
+
+.line_auto {
+    margin-top: 0px;
+    padding-bottom: 0px;
+    box-sizing: border-box;
+    border: 1px solid black;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.line_especial {
+    box-sizing: border-box;
+    border: 1px solid black;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.line_especial p {
+    margin: 0px;
+    padding: 0px;
+    line-height: 12px;
+}
+
+.line_inv {
+    box-sizing: border-box;
+    border: 1px solid none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.line_inv p {
+    margin: 0.8px;
+    padding: 0.8px;
+    line-height: 12px;
+}
+
+
+.column {
+    box-sizing: border-box;
+    border: 1px solid black;
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+}
+
+.line_column {
+    box-sizing: border-box;
+    border: 1px solid black;
+    border-top: none;
+    border-right: none;
+    line-height: 12px;
+}
+
+/* text */
+
+.cresol1 {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.codigol1 {
+    text-align: center;
+    font-size: 20.8px;
+    font-weight: bold;
+}
+
+.textol1 {
+    text-align: right;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.texto_sup {
+    text-align: left;
+    font-size: 11px;
+}
+
+.texto_sup_v {
+    text-align: left;
+    font-size: 11px;
+}
+
+.ajuste_sup {
+    text-align: left;
+    font-size: 11px;
+    visibility: hidden;
+}
+
+
+.nomes {
+    /* padding: 2px 0 0 19.2px; */
+    font-size: 11px;
+}
+
+.nomes_center {
+    text-align: center;
+    font-size: 12px;
+}
+
+.numeros_center {
+    text-align: center;
+    font-size: 12px;
+}
+
+.numeros_right {
+    text-align: right;
+    font-size: 12px;
+}
+
+.numeros_right_b {
+    text-align: right;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.ajuste_center {
+    text-align: center;
+    font-size: 12px;
+    visibility: hidden;
+}
+
+.tracejado {
+    border-top: 1px dashed black;
+    margin-top: 8px;
+    margin-bottom: 0px;
+}
+
+
+.texto_autenticação {
+    text-align: left;
+    font-size: 10px;
+}
+
+
+/* Codigo de barras Boleto */
+.barcode {
+    height: 60px
+}
+
+.barcode div {
+    display: inline-block;
+    height: 100%
+}
+.barcode .black {
+    border-color: #000;
+    border-left-style: solid;
+    width: 0
+}
+
+.barcode .white {
+    background: #fff
+}
+
+.barcode .thin.black {
+    border-left-width: 1px
+}
+
+.barcode .large.black {
+    border-left-width: 3px
+}
+
+.barcode .thin.white {
+    width: 1.5px
+}
+
+.barcode .large.white {
+    width: 3px
+}
+
+
+

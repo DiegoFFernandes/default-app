@@ -31,6 +31,7 @@
 
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=6') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css?v=1') }}">
 @endpush
 
 @push('js')
