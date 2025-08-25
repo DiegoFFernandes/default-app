@@ -57,12 +57,27 @@ class TabelaPrecoController extends Controller
                     <button class="btn btn-xs btn-danger btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
                 ';
             })
+            ->addColumn('clientes_associados', function ($row) {
+                $btn = '<span class="btn-detalhes details-control mr-2" data-cd_tabela="' . $row->CD_TABPRECO . '"><i class="fas fa-plus-circle"></i></span> ' . $row->CD_TABPRECO;
+                return $btn;
+            })
+            ->setRowClass(function($row){
+                return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
+            })
+            ->rawColumns(['action', 'clientes_associados'])
             ->make(true);
     }
     public function getItemTabPreco()
     {
         $cd_tabela = $this->request->get('cd_tabela');
         $data = $this->tabela->getItemTabPreco($cd_tabela);
+
+        return DataTables::of($data)
+            ->make(true);
+    }
+    public function getTabClientePreco(){
+        $cd_tabela = $this->request->cd_tabela;
+        $data = $this->tabela->getTabClientePreco($cd_tabela);
 
         return DataTables::of($data)
             ->make(true);
