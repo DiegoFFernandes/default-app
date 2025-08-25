@@ -101,3 +101,30 @@ function initDateRangePicker(daterangeSelector = '#daterange') {
         getFim: () => fimData
     };
 }
+
+// Configura os detalhes da linha no DataTable
+function configurarDetalhesLinha(selector, options) {
+                $(document).on('click', selector, function() {
+                    const tr = $(this).closest('tr');
+                    const table = tr.closest('table');
+                    const tableId = table.attr('id');
+                    const row = $('#' + tableId).DataTable().row(tr);
+
+                    const data = row.data();
+
+                    const tableChildId = options.idPrefixo + (options.idCampo ? data[options.idCampo] : data
+                        .ID);
+
+                    if (row.child.isShown()) { // Se a linha já está expandida
+                        row.child.hide();
+                        tr.removeClass('shown');
+                        $(this).find('i').removeClass(options.iconeMenos).addClass(options.iconeMais);
+                    } else { // Se a linha não está expandida
+                        row.child(options.templateFn(data)).show();
+                        options.initFn(tableChildId, data);
+                        tr.addClass('shown');
+                        $(this).find('i').removeClass(options.iconeMais).addClass(options.iconeMenos);
+                        tr.next().find('td').addClass('no-padding');
+                    }
+                });
+            }
