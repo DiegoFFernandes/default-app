@@ -106,7 +106,7 @@ class Vendedor extends Model
                 WHERE CAST(PN.DTEMISSAO AS TIMESTAMP) BETWEEN '01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AND CURRENT_DATE
                         AND PN.STPEDIDO <> 'C'
                         AND IPP.STCANCELADO = 'N'
-                        AND PN.IDEMPRESA = 1
+                        AND PN.IDEMPRESA = $cd_empresa
                         AND IT.CD_GRUPO IN (102, 105, 140, 132, 130)
                         AND IPB.CD_TIPO = 1
 
@@ -172,7 +172,7 @@ class Vendedor extends Model
                         WHERE CAST(N.DT_EMISSAO AS DATE) BETWEEN '01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AND CURRENT_DATE
                             AND N.ST_NOTA = 'V'
                             AND M.ST_RECEITA = 'S'
-                            AND N.CD_EMPRESA = 1
+                            AND N.CD_EMPRESA = $cd_empresa
                             AND ITV.CD_TIPO = 1
                         GROUP BY LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO),
                             I.CD_EMPRESA,
@@ -224,7 +224,7 @@ class Vendedor extends Model
                 WHERE CAST(PN.DTEMISSAO AS TIMESTAMP) BETWEEN '01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AND CURRENT_DATE
                         AND OPR.STORDEM = 'F'
                         AND OPR.STEXAMEFINAL = 'R'
-                        AND PN.IDEMPRESA = 1
+                        AND PN.IDEMPRESA = $cd_empresa
                         AND IPB.CD_TIPO = 1
                 GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
                     PV.CD_PESSOA,
@@ -262,7 +262,7 @@ class Vendedor extends Model
                 WHERE CAST(PN.DTEMISSAO AS TIMESTAMP) BETWEEN DATEADD(-1 MONTH TO CAST('01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AS DATE)) AND LASTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE))
                         AND OPR.STORDEM = 'F'
                         AND OPR.STEXAMEFINAL = 'R'
-                        AND PN.IDEMPRESA = 1
+                        AND PN.IDEMPRESA = $cd_empresa
                         AND IPB.CD_TIPO = 1
                 GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
                     PV.CD_PESSOA,
@@ -302,7 +302,7 @@ class Vendedor extends Model
                         AND PN.STPEDIDO <> 'C'
                         AND IPP.STCANCELADO = 'N'
                         AND IT.CD_GRUPO IN (102, 105, 140, 132, 130)
-                        AND PN.IDEMPRESA = 1
+                        AND PN.IDEMPRESA = $cd_empresa
                         AND IPB.CD_TIPO = 1
                 GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
                     PV.CD_PESSOA,
@@ -366,7 +366,7 @@ class Vendedor extends Model
                         WHERE CAST(N.DT_EMISSAO AS TIMESTAMP) BETWEEN DATEADD(-1 MONTH TO CAST('01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AS DATE)) AND LASTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE))
                             AND N.ST_NOTA = 'V'
                             AND M.ST_RECEITA = 'S'
-                            AND N.CD_EMPRESA = 1
+                            AND N.CD_EMPRESA = $cd_empresa
                             AND ITV.CD_TIPO = 1
                         GROUP BY LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO),
                             I.CD_EMPRESA,
@@ -423,7 +423,7 @@ class Vendedor extends Model
                 INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
 
                 WHERE CAST(OPR.DTFECHAMENTO AS TIMESTAMP) BETWEEN '01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AND CURRENT_DATE
-                        AND PN.IDEMPRESA = 1
+                        AND PN.IDEMPRESA = $cd_empresa
                         AND IPB.CD_TIPO = 1
 
                 GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
@@ -468,7 +468,7 @@ class Vendedor extends Model
                 INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
 
                 WHERE CAST(OPR.DTFECHAMENTO AS TIMESTAMP) BETWEEN DATEADD(-1 MONTH TO CAST('01.' || EXTRACT(MONTH FROM CURRENT_DATE) || '.' || EXTRACT(YEAR FROM CURRENT_DATE) AS DATE)) AND LASTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE))
-                        AND PN.IDEMPRESA = 1
+                        AND PN.IDEMPRESA = $cd_empresa
                         AND IPB.CD_TIPO = 1
 
                 GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
@@ -509,14 +509,13 @@ class Vendedor extends Model
                 GROUP BY X.NM_PESSOA,
                     X.CD_PESSOA --, VENCEU_ATUAL
                 HAVING SUM(COALESCE(QT_PNEU, 0)) > 0
-                ORDER BY PROJECAO_ATUAL DESC) X";
+                ORDER BY PROJECAO_ATUAL DESC) X ";
 
-        $key = "acompanhamento-vendedor" . Auth::user()->id;
+        $key = "acompanhamento-vendedor-" . Auth::user()->id . '-' . $cd_empresa;
 
         return Cache::remember($key, now()->addMinutes(30), function () use ($query) {
             $data = DB::connection('firebird')->select($query);
             return Helper::ConvertFormatText($data);
         });
-            
     }
 }

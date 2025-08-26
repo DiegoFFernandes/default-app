@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\admin\PessoaController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -31,5 +32,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('permissao/novo', [PermissionController::class, 'create'])->name('usuario.permission.create');
         Route::post('permissao/novo', [PermissionController::class, 'save'])->name('usuario.permission.create.do');
         Route::get('permissao/delete/{id}', [PermissionController::class, 'delete'])->name('usuario.permission.delete');
+    });
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::prefix('cadastro')->group(function () {
+
+        Route::get('pessoa', [PessoaController::class, 'index'])->name('pessoa.index');
+        Route::get('get-pessoa', [PessoaController::class, 'create'])->name('get-pessoa.create');
+        Route::get('get-table-pessoa-usuario', [PessoaController::class, 'list'])->name('get-table-pessoa-usuario');
+        Route::post('edit-pessoa-usuario', [PessoaController::class, 'update'])->name('edit-pessoa-usuario');
+        Route::delete('pessoa-usuario-delete', [PessoaController::class, 'destroy'])->name('pessoa-usuario.delete');
     });
 });

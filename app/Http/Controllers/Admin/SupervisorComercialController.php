@@ -14,7 +14,6 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SupervisorComercialController extends Controller
 {
-
     public $request, $regiao, $empresa, $user, $vendedor, $supervisor;
     public function __construct(
         Request $request,

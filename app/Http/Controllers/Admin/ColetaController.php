@@ -47,7 +47,7 @@ class ColetaController extends Controller
         return Datatables::of($data)->make('true');
     }
 
-    public function coletaMedidas()
+    public function acoletaMedidas()
     {        
         return view('admin.comercial.coleta-medidas');
     }
@@ -91,7 +91,8 @@ class ColetaController extends Controller
 
     public function getVendedor()
     {
-        $data = $this->vendedor->getAcompanhamentoVendedor(1);
+        $cd_empresa = $this->request->empresa;
+        $data = $this->vendedor->getAcompanhamentoVendedor($cd_empresa);
         return Datatables::of($data)->make('true');
     }
 

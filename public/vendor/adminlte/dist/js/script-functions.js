@@ -38,6 +38,8 @@ function exportarParaExcel(
 function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
     const $element = $(selector);
 
+    // console.log(routeUrl);
+
     $element.select2({
         placeholder: "Pessoa",
         theme: "bootstrap4",
