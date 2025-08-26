@@ -518,4 +518,170 @@ class Vendedor extends Model
             return Helper::ConvertFormatText($data);
         });
     }
+
+    public function getColetaVendedorMes()
+    {
+        $query = "
+                        SELECT
+                            X.NM_PESSOA,
+                            SUM(COALESCE(QT_PNEU, 0)) QT_COLETA,
+                            SUM(COALESCE(QT_FATURADO, 0)) QT_FATURADO,
+                            SUM(COALESCE(QT_RECUSADO, 0)) QT_RECUSADO,
+                            SUM(COALESCE(QT_FATURADOMESANTERIOR, 0)) QT_FATURADOMESANTERIOR,
+                            SUM(COALESCE(VL_MEDIO, 0)) VL_MEDIO,
+                            SUM(COALESCE(VL_MEDIOMESANTERIOR, 0)) VL_MEDIOMESANTERIOR
+                        FROM (SELECT
+                                LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO) MES_COLETA,
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA,
+                                COUNT(IPB.IDITEMPEDIDOPNEU) QT_PNEU,
+                                NULL QT_FATURADO,
+                                NULL QT_RECUSADO,
+                                ((SUM(IPP.VLUNITARIO - COALESCE(IPP.VLDESCONTO, 0))) / COUNT(IPB.IDITEMPEDIDOPNEU)) VL_MEDIO,
+                                NULL QT_FATURADOMESANTERIOR,
+                                NULL VL_MEDIOMESANTERIOR
+                            FROM PEDIDOPNEU PN
+                            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PN.ID)
+                            INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID)
+                            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
+                            WHERE CAST(PN.DTEMISSAO AS TIMESTAMP) BETWEEN FIRSTDAYMONTH(CURRENT_DATE) AND CURRENT_DATE
+                                    AND IPB.CD_TIPO = 1
+                                    AND PV.NM_PESSOA NOT CONTAINING 'BORR'
+                                    AND PN.STPEDIDO <> 'C'
+                                    AND PN.IDEMPRESA = 1
+                            GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA
+
+                            UNION ALL
+
+                            SELECT
+                                LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO) MES_COLETA,
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA,
+                                NULL QT_PNEU,
+                                COUNT(DISTINCT IPB.ID || IPB.IDBORRACHEIRO) QT_FATURADO,
+                                NULL QT_RECUSADO,
+                                NULL VL_MEDIO,
+                                NULL QT_FATURADOMESANTERIOR,
+                                NULL VL_MEDIOMESANTERIOR
+                            FROM NOTA N
+                            INNER JOIN ITEMNOTA I ON (I.CD_EMPRESA = N.CD_EMPRESA
+                                    AND I.NR_LANCAMENTO = N.NR_LANCAMENTO
+                                    AND I.TP_NOTA = N.TP_NOTA
+                                    AND I.CD_SERIE = N.CD_SERIE)
+                            LEFT JOIN RETORNA_CHAVEPEDIDO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.TP_NOTA, N.CD_SERIE) RP ON (1 = 1)
+                            INNER JOIN PLUGORDRECAPPEDIDO PLUG ON (PLUG.CD_EMPRESA = RP.O_CD_EMPRESA
+                                    AND PLUG.NR_PEDIDO = RP.O_NR_PEDIDO
+                                    AND PLUG.TP_PEDIDO = RP.O_TP_PEDIDO)
+                            INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = PLUG.IDORDEMPRODUCAORECAP)
+                            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                            LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID)
+                            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
+                            WHERE CAST(N.DT_EMISSAO AS TIMESTAMP) BETWEEN FIRSTDAYMONTH(CURRENT_DATE) AND CURRENT_DATE
+                                    AND IPB.CD_TIPO = 1
+                                    AND PV.NM_PESSOA NOT CONTAINING 'BORR'
+                                    AND N.ST_NOTA <> 'C'
+                                    AND OPR.STEXAMEFINAL = 'A'
+                                    AND N.CD_EMPRESA = 1
+                            GROUP BY LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO),
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA
+
+                            UNION ALL
+
+                            SELECT
+                                LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO) MES_COLETA,
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA,
+                                NULL QT_PNEU,
+                                NULL QT_FATURADO,
+                                COUNT(OPR.ID) QT_RECUSADO,
+                                NULL VL_MEDIO,
+                                NULL QT_FATURADOMESANTERIOR,
+                                NULL VL_MEDIOMESANTERIOR
+                            FROM PEDIDOPNEU PN
+                            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PN.ID)
+                            INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID)
+                            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
+                            INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
+                            WHERE CAST(PN.DTEMISSAO AS TIMESTAMP) BETWEEN FIRSTDAYMONTH(CURRENT_DATE) AND CURRENT_DATE
+                                    AND OPR.STORDEM = 'F'
+                                    AND OPR.STEXAMEFINAL = 'R'
+                                    AND IPB.CD_TIPO = 1
+                                    AND PV.NM_PESSOA NOT CONTAINING 'BORR'
+                                    AND PN.IDEMPRESA = 1
+                            GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA
+
+                            UNION ALL
+
+                            SELECT
+                                LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO) MES_COLETA,
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA,
+                                NULL QT_PNEU,
+                                NULL QT_FATURADO,
+                                NULL QT_RECUSADO,
+                                NULL VL_MEDIO,
+                                COUNT(DISTINCT IPB.ID || IPB.IDBORRACHEIRO) QT_FATURADOMESANTERIOR,
+                                NULL VL_MEDIOMESANTERIOR
+                            FROM NOTA N
+                            INNER JOIN ITEMNOTA I ON (I.CD_EMPRESA = N.CD_EMPRESA
+                                    AND I.NR_LANCAMENTO = N.NR_LANCAMENTO
+                                    AND I.TP_NOTA = N.TP_NOTA
+                                    AND I.CD_SERIE = N.CD_SERIE)
+                            LEFT JOIN RETORNA_CHAVEPEDIDO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.TP_NOTA, N.CD_SERIE) RP ON (1 = 1)
+                            INNER JOIN PLUGORDRECAPPEDIDO PLUG ON (PLUG.CD_EMPRESA = RP.O_CD_EMPRESA
+                                    AND PLUG.NR_PEDIDO = RP.O_NR_PEDIDO
+                                    AND PLUG.TP_PEDIDO = RP.O_TP_PEDIDO)
+                            INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = PLUG.IDORDEMPRODUCAORECAP)
+                            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                            LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID)
+                            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
+                            WHERE CAST(N.DT_EMISSAO AS TIMESTAMP) BETWEEN FIRSTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE)) AND LASTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE))
+                                    AND IPB.CD_TIPO = 1
+                                    AND PV.NM_PESSOA NOT CONTAINING 'BORR'
+                                    AND N.ST_NOTA <> 'C'
+                                    AND OPR.STEXAMEFINAL = 'A'
+                                    AND N.CD_EMPRESA = 1
+                            GROUP BY LPAD(EXTRACT(MONTH FROM N.DT_EMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO),
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA
+                            UNION ALL
+
+                            SELECT
+                                LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO) MES_COLETA,
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA,
+                                NULL QT_PNEU,
+                                NULL QT_FATURADO,
+                                NULL QT_RECUSADO,
+                                NULL VL_MEDIO,
+                                NULL QT_FATURADOMESANTERIOR,
+                                ((SUM(IPP.VLUNITARIO - COALESCE(IPP.VLDESCONTO, 0))) / COUNT(IPB.IDITEMPEDIDOPNEU)) VL_MEDIOMESANTERIOR
+                            FROM PEDIDOPNEU PN
+                            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PN.ID)
+                            INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID)
+                            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = IPB.IDBORRACHEIRO)
+                            WHERE CAST(PN.DTEMISSAO AS TIMESTAMP) BETWEEN FIRSTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE)) AND LASTDAYMONTH(DATEADD(-1 MONTH TO CURRENT_DATE))
+                                    AND IPB.CD_TIPO = 1
+                                    AND PV.NM_PESSOA NOT CONTAINING 'BORR'
+                                    AND PN.IDEMPRESA = 1
+                            GROUP BY LPAD(EXTRACT(MONTH FROM PN.DTEMISSAO), 2, 0) || '/' || EXTRACT(YEAR FROM PN.DTEMISSAO),
+                                PV.CD_PESSOA,
+                                PV.NM_PESSOA) X
+                        GROUP BY X.NM_PESSOA
+                        HAVING SUM(COALESCE(QT_PNEU, 0)) > 0
+                        ORDER BY QT_COLETA DESC
+                ";
+
+        $key = 'coletas_por_vendedor_mes' . Auth::user()->id;
+
+        return Cache::remember($key, now()->addMinutes(30), function () use ($query) {
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+        });
+    }
 }

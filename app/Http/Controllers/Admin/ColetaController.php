@@ -74,6 +74,12 @@ class ColetaController extends Controller
         return view('admin.comercial.coleta-vendedor');
     }
 
+    public function getColetaVendedorMes(){
+        $data = $this->vendedor->getColetaVendedorMes();
+        return Datatables::of($data)->make('true');
+    }
+
+
     public function vendedor()
     {
         if ($this->user->hasRole('admin')) {
