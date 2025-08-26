@@ -118,10 +118,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('coleta', [ColetaController::class, 'coleta'])->name('coleta');
         Route::get('get-coleta-geral', [ColetaController::class, 'getColetaGeral'])->name('get-coleta-geral');
 
-
         Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');
         Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas');
+        
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
+        Route::get('get-coleta-vendedor-mes', [ColetaController::class, 'getColetaVendedorMes'])->name('get-coleta-vendedor-mes');
 
         Route::get('vendedor', [ColetaController::class, 'vendedor'])->name('vendedor');
         Route::get('get-vendedor', [ColetaController::class, 'getVendedor'])->name('get-vendedor-acompanhamento');

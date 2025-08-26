@@ -104,18 +104,6 @@
                         <table id="coletasPorVendedorMes"
                             class="table compact table-font-small table-striped table-bordered nowrap"
                             style="width: 100%; font-size: 12px;">
-                            <thead class="bg-dark text-white">
-                                <tr>
-                                    <th>Vendedores</th>
-                                    <th>Coletas</th>
-                                    <th>Valor Médio</th>
-                                    <th>Faturados</th>
-                                    <th>Recusados</th>
-                                    <th>Faturado Mês Ant.</th>
-                                    <th>Valor Médio Mês Ant.</th>
-                                    <th>Posição</th>
-                                </tr>
-                            </thead>
                         </table>
                     </div>
                 </div>
@@ -139,11 +127,48 @@
 
             $('#coletasPorVendedorMes').DataTable({
                 responsive: true,
-                processing: true,
+                processing: false,
                 serverSide: false,
                 language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
                 },
+                ajax: {
+                    url: "{{ route('get-coleta-vendedor-mes') }}",
+                },
+                columns: [{
+                        title: 'Vendedor',
+                        data: 'NM_PESSOA',
+                        name: 'NM_PESSOA'
+                    },
+                    {
+                        title: 'Coletas',
+                        data: 'QT_COLETA',
+                        name: 'QT_COLETA'
+                    },
+                    {
+                        title: 'Qtd Faturado',
+                        data: 'QT_FATURADO',
+                        name: 'QT_FATURADO'
+                    },
+                    {
+                        title: 'Qt Mes Anterior',
+                        data: 'QT_FATURADOMESANTERIOR',
+                        name: 'QT_FATURADOMESANTERIOR'
+                    },
+                    {
+                        title: 'Vlr Médio',
+                        data: 'VL_MEDIO',
+                        name: 'VL_MEDIO'
+                    },
+                    {
+                        title: 'Vlr Médio Mês Anterior',
+                        data: 'VL_MEDIOMESANTERIOR',
+                        name: 'VL_MEDIOMESANTERIOR'
+                    },
+                    
+                ],
+
+              
             });
         });
     </script>
