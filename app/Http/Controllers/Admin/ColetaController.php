@@ -71,7 +71,16 @@ class ColetaController extends Controller
 
     public function coletaVendedor()
     {
-        return view('admin.comercial.coleta-vendedor');
+        if ($this->user->hasRole('admin')) {
+            $empresa = $this->empresa->empresa();
+        } else if ($this->user->hasRole('gerente unidade')) {
+            $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        } else {
+            $empresa = $this->empresa->empresa($this->user->empresa);
+        }
+        return view('admin.comercial.coleta-vendedor', compact('empresa'));
     }
 
     public function getColetaVendedorMes(){
@@ -151,13 +160,4 @@ class ColetaController extends Controller
         return view('admin.comercial.exame-inicial');
     }
 
-    public function retrabalho()
-    {
-        return view('admin.comercial.retrabalho');
-    }
-
-    public function inventario()
-    {
-        return view('admin.comercial.inventario');
-    }
 }
