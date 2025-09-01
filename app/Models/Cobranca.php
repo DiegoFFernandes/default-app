@@ -285,8 +285,8 @@ class Cobranca extends Model
                 EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) MES,
                 EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) ANO,
                 MES.O_DS_MES || '/' || EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) MES_ANO,
-                SUM(CONTAS.VL_DOCUMENTO) VL_DOCUMENTO,
-                SUM(CONTAS.VL_SALDO) VL_SALDO
+                CAST(SUM(CONTAS.VL_DOCUMENTO) AS NUMERIC(18,2)) VL_DOCUMENTO,
+                CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO
             FROM CONTAS
             LEFT JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) MES ON (1 = 1)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
@@ -319,7 +319,7 @@ class Cobranca extends Model
             GROUP BY MES_ANO, MES, ANO
             ORDER BY ANO DESC,MES DESC";
 
-        $key = "recebimentoLiquidadoMes" . Auth::user()->id;
+        $key = "recebimentoLiquidadoMesV1" . Auth::user()->id;
 
         return Cache::remember($key, now()->addMinutes(30), function () use ($query) {
             $data = DB::connection('firebird')->select($query);
@@ -345,7 +345,7 @@ class Cobranca extends Model
                 --EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO)||'/'||EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) DT_VENCIMENTO,
                 --ANO,
                 --SUM(CONTAS.VL_DOCUMENTO) VL_DOCUMENTO,
-                SUM(CONTAS.VL_SALDO) VL_SALDO
+                CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO
             FROM CONTAS
             INNER JOIN RETORNA_MAIORPARCELACONTAS(CONTAS.CD_EMPRESA, CONTAS.NR_LANCAMENTO, CONTAS.CD_PESSOA, CONTAS.CD_TIPOCONTA) M ON (1 = 1)
             LEFT JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) MES ON (1 = 1)

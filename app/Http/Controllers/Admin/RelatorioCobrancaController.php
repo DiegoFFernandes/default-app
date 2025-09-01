@@ -545,4 +545,9 @@ class RelatorioCobrancaController extends Controller
         // return Datatables::of($data)                      
         //     ->make(true);
     }
+
+    public function relatorioCobrancaNovo()
+    {
+        return view('admin.cobranca.rel-cobranca-novo');
+    }
 }

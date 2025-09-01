@@ -22,11 +22,11 @@
                 </div>
             </div>
         </div>
-        <div class="row">
+        <div class="row align-items-stretch">
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Inadimplência por Vendedor</h3>
+                        <h3 class="card-title">Inadimplência</h3>
                     </div>
                     <div class="card-body pt-0">
                         <table id="tabela-inadimplencia-vendedor" class="table compact table-responsive table-font-small">
@@ -40,6 +40,13 @@
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8 col-12">
+                <div class="card">
+                    <div class="card-body pt-0">
+                        <canvas id="graficoInadimplencia"></canvas>
                     </div>
                 </div>
             </div>
@@ -88,8 +95,39 @@
                 cursor: pointer;
             }
         }
+
+        /* deixa os card da tabela e grafico da mesma altura */
+        @media (min-width: 768px) {
+            .row.align-items-stretch {
+                display: flex;
+                align-items: stretch;
+            }
+
+            .col-md-4,
+            .col-md-8 {
+                display: flex;
+            }
+
+            .col-md-4 .card,
+            .col-md-8 .card {
+                flex: 1;
+            }
+        }
+
+        /* altura do grafico no mobile */
+        @media (max-width: 768px) {
+            .col-12 .card {
+                height: 300px;
+            }
+        }
+
+        /* diminui a fonte do modal da nota*/
+        .td-small-text {
+            font-size: 12px;
+        }
     </style>
 @stop
+
 @section('js')
     <script>
         var table = $('#tabela-inadimplencia-vendedor').DataTable({
@@ -235,7 +273,7 @@
                                         <tbody>
                                         <tr>
                                             <th class="text-muted">Nota</th>
-                                            <td>${detalhe.NR_DOCUMENTO}</td>
+                                            <td class="td-small-text">${detalhe.NR_DOCUMENTO}</td>
                                             <th class="text-muted">Venc.</th>
                                         <td>${formatDate(detalhe.DT_VENCIMENTO)}</td>
                                         </tr>
@@ -278,5 +316,5 @@
             );
         }
     </script>
-
+    <script src="{{ asset('js/dashboard/rel-cobranca-vendedor.js') }}"></script>
 @stop
