@@ -20,6 +20,13 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
 
 
 
+
+        // rotas inadimplencias vendedor
+        Route::get('rel-cobranca-vendedor', [RelatorioCobrancaController::class, 'relatorioCobrancaVendedor'])->name('rel-cobranca-vendedor');
+        Route::get('get-inadimplencia', [RelatorioCobrancaController::class, 'getInadimplencia'])->name('get-inadimplencia');
+        Route::get('get-inadimplencia-cliente', [RelatorioCobrancaController::class, 'getInadimplenciaDetalhes'])->name('get-inadimplencia-cliente');
+
+
     });
     
 });

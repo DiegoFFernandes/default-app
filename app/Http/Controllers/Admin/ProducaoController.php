@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
+use App\Models\Pessoa;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
@@ -15,7 +16,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade;
+    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $pessoa;
 
     public function __construct(
         Request $request,
@@ -24,8 +25,8 @@ class ProducaoController extends Controller
         User $user,
         Producao $producao,
         SupervisorAuthService $supervisorComercial,
-        GerenteUnidade $gerenteUnidade
-
+        GerenteUnidade $gerenteUnidade,
+        Pessoa $pessoa
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -34,6 +35,7 @@ class ProducaoController extends Controller
         $this->producao = $producao;
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
+        $this->pessoa = $pessoa;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -96,13 +98,17 @@ class ProducaoController extends Controller
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        } else if ($this->user->hasRole('cliente')) {
+            $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+                ->pluck('cd_pessoa')
+                ->implode(',');
         }
 
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
 
-        $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data);
+        $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
 
         return DataTables::of($data)
             ->addIndexColumn()
@@ -131,12 +137,13 @@ class ProducaoController extends Controller
     {
         $nr_embarque = $this->request->get('nr_embarque');
         $pedido = $this->request->get('pedido');
+        $expedicionado = $this->request->get('expedicionado');
 
         if ($nr_embarque == 'SEM EMBARQUE') {
             $nr_embarque = 0;
         }
 
-        $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque);
+        $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque, $expedicionado);
 
         return DataTables::of($data)->make(true);
     }

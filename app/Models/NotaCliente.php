@@ -11,7 +11,7 @@ class NotaCliente extends Model
 {
     use HasFactory;
 
-    public function getListNotaCliente($nr_lancamento = null)
+    public function getListNotaCliente($nr_lancamento = null, $cd_pessoa = null)
     {
         $query = "
             SELECT DISTINCT
@@ -208,7 +208,7 @@ class NotaCliente extends Model
                     AND N.ST_NOTA = 'V'
                     --AND N.DT_EMISSAO = CURRENT_DATE -1
                     --AND P.DS_EMAIL IS NOT NULL
-                    AND N.CD_PESSOA = 25715
+                    AND N.CD_PESSOA in ($cd_pessoa)
                     " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "                    
                 ";
 

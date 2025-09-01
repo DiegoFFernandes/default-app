@@ -51,7 +51,12 @@ class Handler extends ExceptionHandler
     }
     public function render($request, Throwable $exception)
     {
-        // Redireciona se o usuário não estiver autenticado (sessão expirada)
+        // Verifica se a requisição espera JSON (AJAX) e se é uma falha de autenticação
+        if ($request->expectsJson() && $exception instanceof AuthenticationException) {
+            return response()->json(['message' => 'Sessão expirada.'], 401);
+        }
+
+        // Redireciona se o usuário não estiver autenticado (sessão expirada) - para requisições HTML
         if ($exception instanceof AuthenticationException) {
             return redirect()->guest(route('login'))->withErrors([
                 'Sessão expirada. Faça login novamente.',
@@ -63,6 +68,7 @@ class Handler extends ExceptionHandler
             return redirect()->route('home')->with(['error' => 'Você não tem permissão para acessar esta página.']);
         }
 
+        // Redireciona em caso de erro de CSRF
         if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
             return redirect()->guest(route('login'))->withErrors([
                 'Sessão expirada. Faça login novamente.',

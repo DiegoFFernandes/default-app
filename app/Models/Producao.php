@@ -14,7 +14,7 @@ class Producao extends Model
 {
     use HasFactory;
 
-    public function getPneusProduzidosFaturar($empresa = 0, $cd_regiao = "",  $supervisor = 0, $data)
+    public function getPneusProduzidosFaturar($empresa = 0, $cd_regiao = "",  $supervisor = 0, $data, $cd_pessoa = 0)
     {
 
         if (is_null($data)) {
@@ -88,6 +88,7 @@ class Producao extends Model
                     " . (($inicioData != 0) ? "AND PP.DTEMISSAO >= '$inicioData'" : "") . "
                     " . (($fimData != 0) ? "AND PP.DTEMISSAO <= '$fimData'" : "") . "
                     " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
+                    " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
                 AND OPR.STEXAMEFINAL <> 'T'
                 AND COALESCE(PD.ST_PEDIDO, 'N') <> 'C'
                 AND RCH.O_NR_LANCAMENTO IS NULL
@@ -111,7 +112,7 @@ class Producao extends Model
             return Helper::ConvertFormatText($data);
         });
     }
-    public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE)
+    public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE, $EXPEDICIONADO)
     {
         $query = "
             SELECT DISTINCT
@@ -164,10 +165,14 @@ class Producao extends Model
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND PD.ST_PEDIDO <> 'A'
-                AND PP.ID IN ($NR_COLETA)              
-                
-                 " . (($NR_EMBARQUE != 0) ? "AND OCP.NR_EMBARQUE = $NR_EMBARQUE" : "") . "                 
-                
+                AND PP.ID IN ($NR_COLETA)
+                AND CASE
+                        WHEN OPRX.IDEXPEDICAOLOTEPNEU IS NULL THEN 'NAO'
+                        ELSE 'SIM'
+                    END = '$EXPEDICIONADO'
+                " . (($NR_EMBARQUE != 0) ? "AND OCP.NR_EMBARQUE = $NR_EMBARQUE" : "") . "
+
+
                 ";
 
         $data = DB::connection('firebird')->select($query);

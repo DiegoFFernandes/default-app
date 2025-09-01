@@ -3,6 +3,7 @@
 @section('adminlte_js')
     <script src="{{ asset('/sw.js') }}"></script>
     <script>
+        document.getElementById('redirect_url').value = sessionStorage.getItem('redirect_url');
         if ("serviceWorker" in navigator) {
             // Register a service worker hosted at the root of the
             // site using the default scope.

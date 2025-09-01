@@ -341,7 +341,7 @@ return [
                     'url' => '#',
                     'can' => ['ver-cadastros'],
                     'submenu' => [
-                         [
+                        [
                             'text' => 'Ger. Unidade',
                             'route' => 'gerente-unidade.index'
                         ],
@@ -364,6 +364,7 @@ return [
                     'text' => 'Movimentos',
                     'url' => '#',
                     'icon' => 'nav-icon fas fa-edit',
+                    'can' => ['ver-libera-ordem-comissao', 'ver-bloqueio-pedidos', 'ver-rel-cobranca', 'ver-coleta-empresa'],
                     'submenu' => [
                         [
                             'text' => 'Liberação Comercial',
@@ -374,7 +375,7 @@ return [
                             'route' => 'bloqueio-pedidos',
                         ],
                         [
-                            'text' => 'Rel. Cobranca',
+                            'text' => 'Financeiro Cliente',
                             'route' => 'rel-cobranca'
                         ],
                         [
@@ -432,6 +433,50 @@ return [
                     'text' => 'Lote de Expedição',
                     'route' => 'lote-expedicao.index',
 
+                ]
+
+            ]
+        ],
+        [
+            'text' => 'Pessoa',
+            'icon' => 'nav-icon fas fa-users',
+            'url' => '#',
+            'can' => ['ver-nota-cliente', 'ver-cadastros', 'ver-pedidos-coletados-acompanhamento'],
+            'submenu' => [
+                [
+                    'text' => 'Cadastros',
+                    'url' => '#',
+                    'can' => ['ver-cadastros'],
+                    'submenu' => [
+                        [
+                            'text' => 'Vincular Pessoa',
+                            'route' => 'pessoa.index',
+                            'can' => ['ver-cadastros']
+                        ]
+                    ]
+                ],
+                [
+                    'text' => 'Movimentações',
+                    'can' => ['ver-nota-cliente', 'ver-pedidos-coletados-acompanhamento'],
+                    'url' => '#',
+                    'submenu' => [
+                        [
+                            'text' => 'Notas/Boletos',
+                            'route' => 'list-notas-emitidas',
+                            'can' => ['ver-nota-cliente']
+                        ],
+                        [
+                            'text' => 'Acompanha Pedidos',
+                            'route' => 'bloqueio-pedidos',
+                            'can' => ['ver-pedidos-coletados-acompanhamento']
+                        ],
+                        [
+                            'text' => 'Produzidos S/ Faturar',
+                            'route' => 'produzidos-sem-faturar',
+                            'can' => ['ver-produzidos-sem-faturar'],
+                        ],
+
+                    ]
                 ]
 
             ]

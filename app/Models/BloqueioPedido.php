@@ -28,7 +28,7 @@ class BloqueioPedido extends Model
         'VERIFICAR' => '#FFFF99'
     ];
 
-    public function BloqueioPedido($empresa = 0, $cd_supervisor = 0)
+    public function BloqueioPedido($empresa = 0, $cd_supervisor = 0, $cd_pessoa = 0)
     {
         $query = "
             SELECT (CASE PP.STPEDIDO
@@ -80,6 +80,7 @@ class BloqueioPedido extends Model
                 AND PE.ST_SCPC = 'S'))
                 " . (($empresa != 0) ? "AND PP.IDEMPRESA IN ($empresa) " : "") . "
                 " . (($cd_supervisor != 0) ? "AND VE.CD_VENDEDORGERAL = $cd_supervisor" : "") . "
+                " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
             ORDER BY PP.IDEMPRESA,
                 PP.DTEMISSAO";
 

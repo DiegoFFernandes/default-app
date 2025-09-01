@@ -82,6 +82,28 @@
 
 
     <script>
+        $.extend(true, $.fn.dataTable.defaults, {
+            ajax: {
+                error: function(xhr, status, error) {
+                    if (xhr.status === 401) {
+
+                        // Salva a URL atual no sessionStorage antes de redirecionar
+                        sessionStorage.setItem('redirect_url', window.location.href);
+
+                        Swal.fire({
+                            title: 'Sessão Expirada!',
+                            text: 'Sua sessão expirou. Você será redirecionado para login.',
+                            icon: 'warning',
+                            confirmButtonColor: '#D43343',
+                            confirmButtonText: 'OK'
+                        }).then(function() {
+                            window.location.href = '/login'; // Altere para a URL da sua tela de login
+                        });
+                    }
+                }
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", function() {
 
             const btnTopo = document.getElementById("btnTopo");
@@ -158,5 +180,5 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=2') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=3') }}"></script>
 @endpush

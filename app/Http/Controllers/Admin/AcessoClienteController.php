@@ -8,11 +8,13 @@ use App\Models\BoletoCliente;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\NotaCliente;
+use App\Models\Pessoa;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
 use App\Services\SupervisorAuthService;
 use Barryvdh\Snappy\Facades\SnappyPdf;
+use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -20,14 +22,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class AcessoClienteController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $nota, $boleto;
+    public $request, $pessoa, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $nota, $boleto;
 
     public function __construct(
         Request $request,
         Empresa $empresa,
         User $user,
         NotaCliente $nota,
-        BoletoCliente $boleto
+        BoletoCliente $boleto,
+        Pessoa $pessoa
 
     ) {
         $this->request = $request;
@@ -35,6 +38,7 @@ class AcessoClienteController extends Controller
         $this->empresa = $empresa;
         $this->nota = $nota;
         $this->boleto = $boleto;
+        $this->pessoa = $pessoa;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -52,6 +56,11 @@ class AcessoClienteController extends Controller
         $empresa = $this->empresa->empresa();
         $user =  $this->user->getData();
 
+        $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id);
+
+        if (Helper::is_empty_object($cd_pessoa)) {
+            abort(403, 'Cliente sem vínculo com usuário no sistema.');
+        }
 
         return view('admin.cliente.notas', compact(
             'title_page',
@@ -63,12 +72,15 @@ class AcessoClienteController extends Controller
     }
     public function getListNotasEmitidasCliente()
     {
-        $data = $this->nota->getListNotaCliente();
+        $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+            ->pluck('cd_pessoa')
+            ->implode(',');
+        $data = $this->nota->getListNotaCliente(null, $cd_pessoa);
 
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
                 $btn = '<a href="' . route('get-layout-nota-emitida', ['id' => $row->NR_LANCAMENTO]) . '" class="btn btn-danger btn-xs">Nota</a>';
-                $btn .= '<a href="' . route('get-layout-nota-emitida', ['id' => $row->NR_LANCAMENTO]) . '" class="btn btn-secondary btn-xs ml-1">Boleto</a>';
+                // $btn .= '<a href="' . route('get-layout-nota-emitida', ['id' => $row->NR_LANCAMENTO]) . '" class="btn btn-secondary btn-xs ml-1">Boleto</a>';
                 return $btn;
             })
             ->rawColumns(['action'])
@@ -76,31 +88,39 @@ class AcessoClienteController extends Controller
     }
     public function layoutNotaEmitidaCliente($id)
     {
+        $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+            ->pluck('cd_pessoa')
+            ->implode(',');
 
-        $data = $this->nota->getListNotaCliente($id);
-        $title_page   = 'Notas Emitidas';
-        $user_auth    = $this->user;
-        $exploder     = explode('/', $this->request->route()->uri());
-        $uri = ucfirst($exploder[1]);
-        $empresa = $this->empresa->empresa();
-        $user =  $this->user->getData();
+        $data = $this->nota->getListNotaCliente($id, $cd_pessoa);
 
+        $view = view('admin.cliente.layout-nota', compact('data'));
 
-        return view('admin.cliente.layout-nota', compact(
-            'title_page',
-            'user_auth',
-            'uri',
-            'user',
-            'empresa',
-            'data'
-        ));
+        $html = $view->render();
+
+        // Configurando o Snappy
+        $options = [
+            // 'page-size' => 'A4',
+            'no-stop-slow-scripts' => true,
+            'enable-javascript' => true,
+            'lowquality' => true,
+            'encoding' => 'UTF-8'
+        ];
+
+        $pdf = SnappyPdf::loadHTML($html)->setOptions($options);
+
+        return $pdf->inline('nota_fiscal.pdf'); //Exibe o pdf sem fazer o downlaod.
+        return $pdf->download('Nota-' . $id . '.pdf'); //Faz o download do arquivo.
     }
 
     // Boletos
-
     public function getListBoletosEmitidosCliente()
     {
-        $data = $this->boleto->BoletoResumo();
+        $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+            ->pluck('cd_pessoa')
+            ->implode(',');
+
+        $data = $this->boleto->BoletoResumo($cd_pessoa);
 
         return DataTables::of($data)
             ->addColumn('action', function ($d) {
@@ -123,11 +143,14 @@ class AcessoClienteController extends Controller
     }
     public function layoutBoletoEmitidoCliente()
     {
+        $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+            ->pluck('cd_pessoa')
+            ->implode(',');
         $nr_lancamento = $this->request->nr_lancamento;
         $cd_empresa = $this->request->cd_empresa;
         $nr_parcela = $this->request->nr_parcela;
 
-        $boleto = $this->boleto->Boleto($nr_lancamento, $cd_empresa, $nr_parcela);
+        $boleto = $this->boleto->Boleto($nr_lancamento, $cd_empresa, $nr_parcela, $cd_pessoa);
         $boleto = $boleto[0];
 
         $codigo_barras = $this->getImagemCodigoDeBarras($boleto->DS_CODIGOBARRA);

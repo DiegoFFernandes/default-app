@@ -26,7 +26,7 @@ class BoletoCliente extends Model
         'STATUS'
     ];
 
-    public function BoletoResumo()
+    public function BoletoResumo($cd_pessoa)
     {
         $query = "
                    SELECT DISTINCT
@@ -61,7 +61,7 @@ class BoletoCliente extends Model
 
                         --AND C.NR_LANCAMENTO =
                         --AND C.CD_EMPRESA =
-                        AND C.CD_PESSOA = 25715
+                        AND C.CD_PESSOA in ($cd_pessoa)
 
                     GROUP BY BI.CD_EMPRESA,
                         BI.NR_LANCAMENTO,
@@ -108,7 +108,7 @@ class BoletoCliente extends Model
             );
         }
     }
-    public function Boleto($nr_lancamento, $empresa, $nr_parcela = null)
+    public function Boleto($nr_lancamento, $empresa, $nr_parcela = null, $cd_pessoa = null)
     {
         $query = "
                    SELECT DISTINCT
@@ -220,6 +220,7 @@ class BoletoCliente extends Model
                     AND C.NR_LANCAMENTO = $nr_lancamento
                     AND C.CD_EMPRESA = $empresa
                     and C.NR_PARCELA = $nr_parcela
+                    and c.cd_pessoa in ($cd_pessoa)
 
                 GROUP BY CPP.NRTELEFONE,
                     P.CD_PESSOA,

@@ -70,15 +70,18 @@
             width: 100%;
         }
     </style>
+    @yield('css')
 </head>
 
 <body>
     <div class="wrapper">
         <div class="" style="min-height: 346px;">
             <!-- Content Header (Page header) -->
-            <section class="content-header">
-                {!! isset($title_page) ? '<h1 id="title-page">' . $title_page . '</h1>' : '' !!}
-            </section>
+            @if (isset($title_page))
+                <section class="content-header">
+                    <h1 id="title-page">{{ $title_page }}</h1>
+                </section>
+            @endif
             <section class="content">
                 <div class="container-fluid">
                     @yield('content')

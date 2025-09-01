@@ -308,6 +308,7 @@
                         <th>Sq</th>
                         <th>Nr Ordem</th>
                         <th>Serviço</th>
+                        <th>Nr Fogo</th>
                         <th>Valor</th>
                         <th>Status</th>
                     </tr>
@@ -678,6 +679,11 @@
                         data: 'DSSERVICO',
                         name: 'DSSERVICO',
                         "width": "20%",
+                    },
+                    {
+                        data: 'NRFOGO',
+                        name: 'NRFOGO',
+                        "width": "5%",
                     },
                     {
                         data: 'VLUNITARIO',

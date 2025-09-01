@@ -67,7 +67,7 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data)
+    public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data, $cd_pessoa = 0)
     {
         if (is_null($data)) {
             $pedido = "";
@@ -160,6 +160,7 @@ class AcompanhamentoPneu extends Model
                         " . (($idvendedor != "") ? "AND PP.IDVENDEDOR IN ($idvendedor)" : "") . "
                         " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
                         " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
+                        " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
                         AND PP.STPEDIDO <> 'C'               
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
@@ -212,6 +213,7 @@ class AcompanhamentoPneu extends Model
                         MOP.DSMODELO,
                         P.NRDOT,
                         P.NRSERIE,
+                        P.NRFOGO,
                         DP.DSDESENHO,
                         IPP.VLUNITARIO,
                         IPP.ID IDITEMPEDPNEU,
@@ -249,6 +251,7 @@ class AcompanhamentoPneu extends Model
                         MAC.DSMARCA,
                         MOP.DSMODELO,
                         P.NRDOT,
+                        P.NRFOGO,
                         P.NRSERIE,
                         DP.DSDESENHO,
                         IPP.VLUNITARIO,
@@ -438,6 +441,8 @@ class AcompanhamentoPneu extends Model
     private function getDataFiltroEmissao($inicioData, $fimData)
     {
         if (config('app.dev_mode')) {
+            return "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE";
+            
             return "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'";
         }
 

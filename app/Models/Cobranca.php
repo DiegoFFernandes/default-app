@@ -255,7 +255,7 @@ class Cobranca extends Model
                 " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
-        
+
         if ($tela == 1) {
             $key = "recebimentoLiquidado-4" . Auth::user()->id;
         } else {
@@ -266,5 +266,133 @@ class Cobranca extends Model
             $data = DB::connection('firebird')->select($query);
             return Helper::ConvertFormatText($data);
         });
+    }
+    public function getInadimplencia()
+    {
+        $query = "
+            SELECT
+            --    CONTAS.CD_FORMAPAGTO,
+            --    CONTAS.CD_EMPRESA,
+            --    CONTAS.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+            --    CONTAS.NR_LANCAMENTO,
+            --    CONTAS.NR_DOCUMENTO,
+            --    CONTAS.NR_PARCELA,
+            --V.CD_VENDEDORGERAL,
+            --SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
+            --VEND.CD_PESSOA CD_VENDEDOR,
+            --VEND.NM_PESSOA NM_VENDEDOR,
+            --CONTAS.DT_VENCIMENTO,
+                EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) MES,
+                EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) ANO,
+                MES.O_DS_MES || '/' || EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) MES_ANO,
+                SUM(CONTAS.VL_DOCUMENTO) VL_DOCUMENTO,
+                SUM(CONTAS.VL_SALDO) VL_SALDO
+            FROM CONTAS
+            LEFT JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) MES ON (1 = 1)
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
+            LEFT JOIN NOTA NT ON (NT.CD_EMPRESA = CONTAS.CD_EMPRESA
+                AND NT.NR_LANCAMENTO = CONTAS.NR_LANCTONOTA
+                AND NT.TP_NOTA = CONTAS.TP_CONTAS
+                AND NT.CD_SERIE = CONTAS.CD_SERIE)
+            LEFT JOIN ITEMNOTA ITN ON (ITN.CD_EMPRESA = NT.CD_EMPRESA
+                AND ITN.NR_LANCAMENTO = NT.NR_LANCAMENTO
+                AND ITN.TP_NOTA = NT.TP_NOTA
+                AND ITN.CD_SERIE = NT.CD_SERIE)
+            LEFT JOIN ITEMNOTAVENDEDOR ITNV ON (ITNV.CD_EMPRESA = ITN.CD_EMPRESA
+                AND ITNV.NR_LANCAMENTO = ITN.NR_LANCAMENTO
+                AND ITNV.TP_NOTA = ITN.TP_NOTA
+                AND ITNV.CD_SERIE = ITN.CD_SERIE
+                AND ITNV.CD_ITEM = ITN.CD_ITEM
+                AND ITNV.CD_TIPO = 1)
+                --LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = CONTAS.CD_PESSOA AND EP.CD_ENDERECO = 1)
+                --LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = COALESCE(COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR), EP.CD_VENDEDOR))
+                --LEFT JOIN PESSOA VEND ON (VEND.CD_PESSOA = V.CD_VENDEDOR)
+                --LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
+                --LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
+                --LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
+            WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
+                --AND CONTAS.CD_PESSOA in (11283, 18106)
+                --AND CONTAS.nr_lancamento = 248188
+                AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
+                AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
+            GROUP BY MES_ANO, MES, ANO
+            ORDER BY ANO DESC,MES DESC";
+
+        $key = "recebimentoLiquidadoMes" . Auth::user()->id;
+
+        return Cache::remember($key, now()->addMinutes(30), function () use ($query) {
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+        });
+    }
+    public function getInadimplenciaDetalhes($mes, $ano)
+    {
+        $query = "
+            SELECT
+                --CONTAS.CD_FORMAPAGTO,
+                --CONTAS.CD_EMPRESA,
+                CONTAS.CD_PESSOA,
+                CONTAS.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                --CONTAS.NR_LANCAMENTO,
+                CONTAS.NR_DOCUMENTO || ' - ' || CONTAS.NR_PARCELA || '/' || M.O_NR_MAIORPARCELA NR_DOCUMENTO,
+                CONTAS.NR_PARCELA,
+                --V.CD_VENDEDORGERAL,
+                --SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
+                --VEND.CD_PESSOA CD_VENDEDOR,
+                --VEND.NM_PESSOA NM_VENDEDOR,
+                CONTAS.DT_VENCIMENTO,
+                --EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO)||'/'||EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) DT_VENCIMENTO,
+                --ANO,
+                --SUM(CONTAS.VL_DOCUMENTO) VL_DOCUMENTO,
+                SUM(CONTAS.VL_SALDO) VL_SALDO
+            FROM CONTAS
+            INNER JOIN RETORNA_MAIORPARCELACONTAS(CONTAS.CD_EMPRESA, CONTAS.NR_LANCAMENTO, CONTAS.CD_PESSOA, CONTAS.CD_TIPOCONTA) M ON (1 = 1)
+            LEFT JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) MES ON (1 = 1)
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
+            LEFT JOIN NOTA NT ON (NT.CD_EMPRESA = CONTAS.CD_EMPRESA
+                AND NT.NR_LANCAMENTO = CONTAS.NR_LANCTONOTA
+                AND NT.TP_NOTA = CONTAS.TP_CONTAS
+                AND NT.CD_SERIE = CONTAS.CD_SERIE)
+            LEFT JOIN ITEMNOTA ITN ON (ITN.CD_EMPRESA = NT.CD_EMPRESA
+                AND ITN.NR_LANCAMENTO = NT.NR_LANCAMENTO
+                AND ITN.TP_NOTA = NT.TP_NOTA
+                AND ITN.CD_SERIE = NT.CD_SERIE)
+            LEFT JOIN ITEMNOTAVENDEDOR ITNV ON (ITNV.CD_EMPRESA = ITN.CD_EMPRESA
+                AND ITNV.NR_LANCAMENTO = ITN.NR_LANCAMENTO
+                AND ITNV.TP_NOTA = ITN.TP_NOTA
+                AND ITNV.CD_SERIE = ITN.CD_SERIE
+                AND ITNV.CD_ITEM = ITN.CD_ITEM
+                AND ITNV.CD_TIPO = 1)
+                --LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = CONTAS.CD_PESSOA AND EP.CD_ENDERECO = 1)
+                --LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = COALESCE(COALESCE(ITNV.CD_VENDEDOR, CONTAS.CD_VENDEDOR), EP.CD_VENDEDOR))
+                --LEFT JOIN PESSOA VEND ON (VEND.CD_PESSOA = V.CD_VENDEDOR)
+                --LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
+                --LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
+                --LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
+            WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
+                --AND CONTAS.CD_PESSOA in (27822)
+                --AND CONTAS.nr_lancamento = 248188
+                AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
+                AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
+                AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes
+                AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano
+                AND CONTAS.VL_SALDO > 0
+
+            GROUP BY CONTAS.CD_PESSOA,
+                P.NM_PESSOA,
+                CONTAS.NR_DOCUMENTO,
+                CONTAS.NR_PARCELA,
+                CONTAS.DT_VENCIMENTO,
+                M.O_NR_MAIORPARCELA    
+                ";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+
+        $key = "clientesInadimplentes1" . Auth::user()->id;
+
+        return Cache::remember($key, now()->addMinutes(30), function () use ($query) {});
     }
 }

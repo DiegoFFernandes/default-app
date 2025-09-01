@@ -35,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'permission:ver-cadastros'])->group(function () {
     Route::prefix('cadastro')->group(function () {
 
         Route::get('pessoa', [PessoaController::class, 'index'])->name('pessoa.index');

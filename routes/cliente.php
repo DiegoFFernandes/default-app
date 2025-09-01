@@ -3,9 +3,9 @@
 use App\Http\Controllers\admin\AcessoClienteController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['role:admin'])->group(function () {
+Route::middleware(['role:admin|cliente'])->group(function () {
     Route::prefix('cliente')->group(function () {
-        Route::get('listar-notas-emitidas', [AcessoClienteController::class, 'listNotasEmitidasCliente'])->name('list-notas-emitidas');
+        Route::get('dados-cliente', [AcessoClienteController::class, 'listNotasEmitidasCliente'])->name('list-notas-emitidas');
         Route::get('get-list-nota-emitida', [AcessoClienteController::class, 'getListNotasEmitidasCliente'])->name('get-list-nota-emitida');
         Route::get('get-layout-nota-emitida/{id}', [AcessoClienteController::class, 'layoutNotaEmitidaCliente'])->name('get-layout-nota-emitida');
 

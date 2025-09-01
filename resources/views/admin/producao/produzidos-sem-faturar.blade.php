@@ -368,7 +368,8 @@
                         "method": "GET",
                         "data": {
                             'pedido': data.NR_COLETA,
-                            'nr_embarque': data.NR_EMBARQUE
+                            'nr_embarque': data.NR_EMBARQUE,
+                            'expedicionado': data.EXPEDICIONADO
                         }
                     },
                     columns: [{

@@ -3,7 +3,7 @@
 @section('content')
     <section class="content">
         <div class="row">
-            <div class="col-6">
+            <div class="col-4">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="fas fa-file-invoice"></i></span>
                     <div class="info-box-content">
@@ -12,7 +12,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6">
+            <div class="col-4">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
                     <div class="info-box-content">
@@ -21,42 +21,12 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Filtro (mudar de acordo com a nescessidade da página) -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card collapsed-card">
-                    <div class="card-header">
-                        <h5 class="card-title">Filtros</h5>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12 col-md-2 mb-2">
-                                <label for="filtro-nr-documento">Número da Nota</label>
-                                <input type="text" class="form-control mt-1" id="filtro-nr-documento"
-                                    placeholder="Digite o número da nota">
-                            </div>
-                            <div class="col-12 col-md-4 mb-2">
-                                <div class="form-group mb-0">
-                                    <label for="daterange">Data:</label>
-                                    <div class="input-group mt-1">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                                        </div>
-                                        <input type="text" class="form-control" id="daterange"
-                                            placeholder="Selecione a Data">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
-                            </div>
-                        </div>
+            <div class="col-4">
+                <div class="info-box">
+                    <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Boletos em Aberto</span>
+                        <span class="info-box-number">0</span>
                     </div>
                 </div>
             </div>
@@ -85,7 +55,43 @@
                         <div class="tab-content" id="tabContentColetas">
                             <div class="tab-pane fade show active" id="painel-notasEmitidas" role="tabpanel"
                                 aria-labelledby="tab-notasEmitidas">
-                                <div class="card-body p-2">
+                                <div class="card-body p-2">                                    
+                                    <div class="card collapsed-card">
+                                        <div class="card-header">
+                                            <h5 class="card-title">Filtros</h5>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-12 col-md-2 mb-2">
+                                                    <label for="filtro-nr-documento">Número da Nota</label>
+                                                    <input type="text" class="form-control mt-1" id="filtro-nr-documento"
+                                                        placeholder="Digite o número da nota">
+                                                </div>
+                                                <div class="col-12 col-md-4 mb-2">
+                                                    <div class="form-group mb-0">
+                                                        <label for="daterange">Data:</label>
+                                                        <div class="input-group mt-1">
+                                                            <div class="input-group-prepend">
+                                                                <span class="input-group-text"><i
+                                                                        class="far fa-calendar-alt"></i></span>
+                                                            </div>
+                                                            <input type="text" class="form-control" id="daterange"
+                                                                placeholder="Selecione a Data">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-primary btn-block"
+                                                        id="submit-seach">Buscar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
                                         <table id="table-notas-emitidas"
                                             class="table table-bordered table-striped compact table-font-small">
@@ -166,7 +172,7 @@
             });
 
             $('#tab-boletosAbertos').on('click', function() {
-               initTableBoleto();
+                initTableBoleto();
             });
 
             function initTableNota() {
@@ -210,6 +216,11 @@
                             title: 'Cliente'
                         },
                         {
+                            data: 'NR_CNPJCPF',
+                            name: 'NR_CNPJCPF',
+                            title: 'CNPJ/CPF'
+                        },
+                        {
                             data: 'DS_DTEMISSAO',
                             name: 'DS_DTEMISSAO',
                             title: 'Data Emissão'
@@ -223,6 +234,7 @@
                             data: 'action',
                             name: 'action',
                             title: 'Ações',
+                            className: 'text-center',
                             orderable: false,
                             searchable: false
                         }
@@ -240,7 +252,8 @@
                     }
                 });
             }
-            function initTableBoleto(){
+
+            function initTableBoleto() {
                 if ($.fn.DataTable.isDataTable('#table-boletos-abertos')) {
                     $('#table-boletos-abertos').DataTable().destroy();
                 }
@@ -253,10 +266,10 @@
                     },
                     order: [
                         [0, 'desc']
-                    ], 
+                    ],
                     ajax: {
-                        url: '{{ route("get-listar-boletos-emitidos") }}',
-                    },                    
+                        url: '{{ route('get-listar-boletos-emitidos') }}',
+                    },
                     columns: [{
                             data: 'NR_LANCAMENTO',
                             name: 'NR_LANCAMENTO',
@@ -273,7 +286,8 @@
                             name: 'NR_DOCUMENTO',
                             title: 'Nº Nota'
                         },
-                        { data: 'NR_PARCELA',
+                        {
+                            data: 'NR_PARCELA',
                             name: 'NR_PARCELA',
                             title: 'Nº Parcela'
                         },
@@ -302,6 +316,7 @@
                             data: 'action',
                             name: 'action',
                             title: 'Ações',
+                            className: 'text-center',
                             orderable: false,
                             searchable: false
                         }

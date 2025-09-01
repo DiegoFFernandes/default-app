@@ -9,7 +9,6 @@ use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
-use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -123,7 +122,6 @@ class RelatorioCobrancaController extends Controller
         $data = $this->cobranca->clientesInadiplentesDetails($this->request->cd_pessoa);
         return Datatables::of($data)->make(true);
     }
-
     public function getListCobrancaFiltro()
     {
         $cd_empresa = intval($this->request->cd_empresa);
@@ -264,7 +262,6 @@ class RelatorioCobrancaController extends Controller
         $total_ = number_format($total, 2, ',', '.');
         return "R$ " . $total_;
     }
-
     public function getRelatorioCobranca()
     {
         $tela = $this->request->tela;
@@ -323,7 +320,6 @@ class RelatorioCobrancaController extends Controller
 
         return response()->json($data);
     }
-
     public static function indexarVendedorSupervisorRecebimentoLiquidado($receber_liquidada)
     {
 
@@ -364,7 +360,6 @@ class RelatorioCobrancaController extends Controller
 
         return $indexado;
     }
-
     public static function indexarGerenteComercial($receber_liquidada, $regioes_mysql)
     {
         //faz a indexação dos valores por gerente comercial
@@ -395,7 +390,6 @@ class RelatorioCobrancaController extends Controller
         }
         return $gerente;
     }
-
     public static function reCompilaDados($data, $regioesIndexadas, $indexado, $gerente)
     {
         foreach ($data as $item) {
@@ -420,12 +414,10 @@ class RelatorioCobrancaController extends Controller
         }
         return $data;
     }
-
     public function RecebimentoLiquidado($tela, $cd_empresa = 0, $cd_regiao = "")
     {
         return $this->cobranca->getRecebimentoLiquidado($tela, $cd_empresa, $cd_regiao);
     }
-
     public function getRecebimentoLiquidado()
     {
         if ($this->user->hasRole('admin')) {
@@ -476,7 +468,6 @@ class RelatorioCobrancaController extends Controller
 
         return response()->json($data);
     }
-
     public function regioesIndexada($regioes_mysql)
     {
         //Faz a indexação das regiões codigo do supervisor e nome do gerente comercial
@@ -485,5 +476,73 @@ class RelatorioCobrancaController extends Controller
             $regioesIndexadas[$regiao->cd_areacomercial] = $regiao->name;
         }
         return $regioesIndexadas;
+    }
+
+    // Relatório de cobrança por vendedor
+    public function relatorioCobrancaVendedor()
+    {
+        $title_page   = 'Relatório de Cobrança Vendedor';
+        $exploder = explode('/', $this->request->route()->uri());
+        $uri = ucfirst($exploder[1]);
+        $empresa = $this->empresa->empresa();
+
+        return view('admin.cobranca.rel-cobranca-vendedor', compact(
+            'empresa',
+            'title_page',
+            'uri',
+        ));
+    }
+    public function getInadimplencia()
+    {
+        $data = $this->cobranca->getInadimplencia();
+
+        return Datatables::of($data)
+            ->addColumn('action', function ($row) {
+                return '<span class="right btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ';
+            })
+            ->addColumn('PC_INADIMPLENCIA', function ($data) {
+                if ($data->VL_SALDO > 0) {
+                    return number_format((($data->VL_SALDO / $data->VL_DOCUMENTO) * 100), 2, ',', '.') . '%';
+                } else {
+                    return '0,00%';
+                }
+            })
+            ->rawColumns(['action', 'PC_INADIMPLENCIA'])
+            ->make(true);
+    }
+    public function getInadimplenciaDetalhes()
+    {
+        $mes = $this->request->mes;
+        $ano = $this->request->ano;
+        $data = $this->cobranca->getInadimplenciaDetalhes($mes, $ano);
+
+        $pessoa = [];
+
+        foreach ($data as $item) {
+            if (!isset($pessoa[$item->CD_PESSOA])) {
+                $pessoa[$item->CD_PESSOA] = [
+                    'CD_PESSOA' => $item->CD_PESSOA,
+                    'NM_PESSOA' => $item->NM_PESSOA,
+                    'VL_SALDO_AGRUPADO'  => 0,
+                    'DETALHES' => []
+                ];
+            }
+
+            $pessoa[$item->CD_PESSOA]['VL_SALDO_AGRUPADO'] += $item->VL_SALDO;
+
+            $pessoa[$item->CD_PESSOA]['DETALHES'][] = [
+                'NR_DOCUMENTO' => $item->NR_DOCUMENTO,
+                'NR_PARCELA'   => $item->NR_PARCELA,
+                'DT_VENCIMENTO' => $item->DT_VENCIMENTO,
+                'VL_SALDO'  => $item->VL_SALDO
+            ];
+
+        
+        }
+
+        return $pessoa;
+
+        // return Datatables::of($data)                      
+        //     ->make(true);
     }
 }

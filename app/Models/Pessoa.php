@@ -45,7 +45,7 @@ class Pessoa extends Model
             'cd_usuario' => $input['cd_usuario'],
             'cd_pessoa' => $input['cd_pessoa'],
             'nm_pessoa' => $input['nm_pessoa'],
-            'cd_cadusuario' => $input['cd_cadusuario'],           
+            'cd_cadusuario' => $input['cd_cadusuario'],
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -63,7 +63,7 @@ class Pessoa extends Model
             'users.id as cd_usuario',
             'users.name',
             'pessoas.cd_pessoa',
-            'pessoas.nm_pessoa', 
+            'pessoas.nm_pessoa',
         )
             ->join('users', 'users.id', 'pessoas.cd_usuario')
             // ->whereIn('users.empresa', $cd_empresa)
@@ -89,16 +89,14 @@ class Pessoa extends Model
             ->where('supervisor_comercial.cd_usuario', $id)
             ->first();
     }
-    public function findSupervisorUser($cd_usuario)
+    public function findPessoaUser($cd_usuario)
     {
         $this->connection = 'mysql';
         return Pessoa::select(
-            'cd_supervisorcomercial as CD_SUPERVISORCOMERCIAL',
-            'ds_supervisorcomercial as DS_SUPERVISORCOMERCIAL',
-            'pc_permitida as PC_PERMITIDA',
-            'libera_acima_param as ST_PARAM'
+            'cd_pessoa',
+            'nm_pessoa'
         )
-            ->where('cd_usuario', $cd_usuario)->get();
+        ->where('cd_usuario', $cd_usuario)->get();
     }
     public function updateData($input)
     {
@@ -113,7 +111,7 @@ class Pessoa extends Model
                     'updated_at' => now(),
                 ]);
             return response()->json(['success' => 'Pessoa atualizada para usúario!']);
-        } catch (\Exception $e) {            
+        } catch (\Exception $e) {
             return response()->json(['errors' => 'Erro ao conectar ao banco de dados.']);
         }
     }

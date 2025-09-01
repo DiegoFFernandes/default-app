@@ -21,9 +21,9 @@
                     </div>
                     <div class="card-body row">
                         <div class="col-md-12">
-                            @haspermission('ver-coleta-empresa')
+                            @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento'])
                                 <p>Comercial</p>
-                            @endhaspermission
+                            @endcanany                            
                             @haspermission('ver-coleta-empresa')
                                 <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Coleta Geral</a>
@@ -71,7 +71,15 @@
                                     style="width: 150px">Nota Devolução</a>
                             </div>
                         @endhaspermission
-
+                        @hasrole('cliente|admin')
+                            @haspermission('ver-nota-cliente')
+                                <div class="col-md-12 mt-2">
+                                    <p>Faturamento</p>
+                                    <a href={{ route('list-notas-emitidas') }} class="btn btn-sm btn-dark mb-1"
+                                        style="width: 150px">Nota e Boleto</a>
+                                </div>
+                            @endhaspermission
+                        @endhasrole
                     </div>
                 </div>
             </div>

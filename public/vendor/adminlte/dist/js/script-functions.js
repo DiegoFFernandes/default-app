@@ -60,7 +60,7 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
                             id: item.ID,
                             email: item.DS_EMAIL,
                             tipopessoa: item.CD_TIPOPESSOA,
-                            phone: item.NR_CELULAR                            
+                            phone: item.NR_CELULAR,
                         };
                     }),
                 };
@@ -76,57 +76,78 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
         $("#ds_tipopessoa").val(data.tipopessoa || "");
         $("#phone").val(data.phone || "");
         $("#cd_pessoa").val(data.id || "");
-        
     });
 }
 
-function initDateRangePicker(daterangeSelector = '#daterange') {
+function initDateRangePicker(daterangeSelector = "#daterange") {
     let inicioData = 0;
     let fimData = 0;
 
     const $daterange = $(daterangeSelector);
 
-    $daterange.on('apply.daterangepicker', function (ev, picker) {
-        $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-        inicioData = picker.startDate.format('MM/DD/YYYY');
-        fimData = picker.endDate.format('MM/DD/YYYY');
+    $daterange.on("apply.daterangepicker", function (ev, picker) {
+        $(this).val(
+            picker.startDate.format("DD/MM/YYYY") +
+                " - " +
+                picker.endDate.format("DD/MM/YYYY")
+        );
+        inicioData = picker.startDate.format("MM/DD/YYYY");
+        fimData = picker.endDate.format("MM/DD/YYYY");
     });
 
-    $daterange.on('cancel.daterangepicker', function (ev, picker) {
-        $(this).val('');
+    $daterange.on("cancel.daterangepicker", function (ev, picker) {
+        $(this).val("");
         inicioData = 0;
         fimData = 0;
     });
 
     return {
         getInicio: () => inicioData,
-        getFim: () => fimData
+        getFim: () => fimData,
     };
 }
 
 // Configura os detalhes da linha no DataTable
 function configurarDetalhesLinha(selector, options) {
-                $(document).on('click', selector, function() {
-                    const tr = $(this).closest('tr');
-                    const table = tr.closest('table');
-                    const tableId = table.attr('id');
-                    const row = $('#' + tableId).DataTable().row(tr);
+    $(document).on("click", selector, function () {
+        const tr = $(this).closest("tr");
+        const table = tr.closest("table");
+        const tableId = table.attr("id");
+        const row = $("#" + tableId)
+            .DataTable()
+            .row(tr);
 
-                    const data = row.data();
+        const data = row.data();
 
-                    const tableChildId = options.idPrefixo + (options.idCampo ? data[options.idCampo] : data
-                        .ID);
+        const tableChildId =
+            options.idPrefixo +
+            (options.idCampo ? data[options.idCampo] : data.ID);
 
-                    if (row.child.isShown()) { // Se a linha já está expandida
-                        row.child.hide();
-                        tr.removeClass('shown');
-                        $(this).find('i').removeClass(options.iconeMenos).addClass(options.iconeMais);
-                    } else { // Se a linha não está expandida
-                        row.child(options.templateFn(data)).show();
-                        options.initFn(tableChildId, data);
-                        tr.addClass('shown');
-                        $(this).find('i').removeClass(options.iconeMais).addClass(options.iconeMenos);
-                        tr.next().find('td').addClass('no-padding');
-                    }
-                });
-            }
+        if (row.child.isShown()) {
+            // Se a linha já está expandida
+            row.child.hide();
+            tr.removeClass("shown");
+            $(this)
+                .find("i")
+                .removeClass(options.iconeMenos)
+                .addClass(options.iconeMais);
+        } else {
+            // Se a linha não está expandida
+            row.child(options.templateFn(data)).show();
+            options.initFn(tableChildId, data);
+            tr.addClass("shown");
+            $(this)
+                .find("i")
+                .removeClass(options.iconeMais)
+                .addClass(options.iconeMenos);
+            tr.next().find("td").addClass("no-padding");
+        }
+    });
+}
+function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    return (
+        date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR")
+    );
+}

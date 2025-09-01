@@ -9,6 +9,7 @@ use App\Models\BloqueioPedido;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\Item;
+use App\Models\Pessoa;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use App\Services\SupervisorAuthService;
@@ -20,7 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial, $gerenteUnidade;
+    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial, $gerenteUnidade, $pessoa;
 
     public function __construct(
         Request $request,
@@ -31,6 +32,7 @@ class BloqueioPedidosController extends Controller
         SupervisorComercial $supervisor,
         SupervisorAuthService $supervisorComercial,
         GerenteUnidade $gerenteUnidade,
+        Pessoa $pessoa,
         Item $item,
         Empresa $empresa
     ) {
@@ -44,6 +46,7 @@ class BloqueioPedidosController extends Controller
         $this->gerenteUnidade = $gerenteUnidade;
         $this->item = $item;
         $this->empresa = $empresa;
+        $this->pessoa = $pessoa;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -93,8 +96,12 @@ class BloqueioPedidosController extends Controller
             $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        } else if ($this->user->hasRole('cliente')) {
+            $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+                ->pluck('cd_pessoa')
+                ->implode(',');
         }
-        $bloqueio = $this->bloqueio->BloqueioPedido($empresa, $supervisor);
+        $bloqueio = $this->bloqueio->BloqueioPedido($empresa, $supervisor, $cd_pessoa);
 
         return DataTables::of($bloqueio)
             ->addColumn('action', function ($b) {
@@ -138,6 +145,10 @@ class BloqueioPedidosController extends Controller
             $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        } else if ($this->user->hasRole('cliente')) {
+            $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+                ->pluck('cd_pessoa')
+                ->implode(',');
         }
         // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
         $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -147,9 +158,9 @@ class BloqueioPedidosController extends Controller
         }
 
         if ($supervisor == null) {
-            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao,  0, $dados);
+            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao,  0, $dados, $cd_pessoa ?? 0);
         } else {
-            $pedidos = $this->acompanha->ListPedidoPneu(0,  $cd_regiao,  $supervisor, $dados);
+            $pedidos = $this->acompanha->ListPedidoPneu(0,  $cd_regiao,  $supervisor, $dados, $cd_pessoa ?? 0);
         }
 
         // verifica se cd_empresa e nullo ou e igual a 7
