@@ -191,7 +191,7 @@
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge badge-danger">{{ NM_PESSOA }}</span>
-            <table class="table stripe row-border no-padding table-left" id="pedido-{{ NR_COLETA }}" style="width:80%">
+            <table class="table stripe row-border no-padding table-left" id="pedido-{{ NR_COLETA }}-{{ EXPEDICIONADO }}-{{ NR_EMBARQUE }}" style="width:80%">
                 <thead style="background-color: #434A51;">
                     <tr>
                         <th>Expedicinado</th>
@@ -356,7 +356,7 @@
             }
 
             function initTable(tableId, data) {
-                var tableItemOrdem = $('#' + tableId).DataTable({
+                var tableItemOrdem = $('#' + tableId + '-' + data.EXPEDICIONADO + '-' + data.NR_EMBARQUE).DataTable({
                     "language": {
                         url: "{{ asset('vendor/datatables/pt-br.json') }}",
                     },
