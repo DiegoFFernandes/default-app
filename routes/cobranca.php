@@ -27,6 +27,7 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         Route::get('get-inadimplencia-cliente', [RelatorioCobrancaController::class, 'getInadimplenciaDetalhes'])->name('get-inadimplencia-cliente');
 
 
+        Route::get('rel-cobranca-novo', [RelatorioCobrancaController::class, 'relatorioCobrancaNovo'])->name('rel-cobranca-novo');
     });
     
 });
