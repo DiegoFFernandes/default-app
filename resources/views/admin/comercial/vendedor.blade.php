@@ -52,7 +52,7 @@
                             @endforeach
                             <li class="nav-item">
                                 <a class="nav-link" id="tab-todas" data-toggle="pill" href="#painel-todas" role="tab"
-                                    aria-controls="painel-todas" aria-selected="false">
+                                    aria-controls="painel-todas" aria-selected="false" data-empresa="null">
                                     Todas
                                 </a>
                             </li>
@@ -108,131 +108,93 @@
         $(document).ready(function() {
             $('#tab-empresa a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
                 var empresaId = $(e.target).data('empresa');
-                var tableId = '#acompanhamentoMesAtual-' + empresaId;
+                if (empresaId === 'null') empresaId = null;
+                var tableId = empresaId ? '#acompanhamentoMesAtual-' + empresaId : '#acompanhamentoMesAtualtodas';
 
-                if (empresaId) {
-                    if (!$.fn.DataTable.isDataTable(tableId)) {
-                        $(tableId).DataTable({
-                            processing: false,
-                            serverSide: false,
-                            pageLength: 50,
-                            language: {
-                                url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-                            },
-                            ajax: {
-                                url: '{{ route('get-vendedor-acompanhamento') }}',
-                                type: 'GET',
-                                data: {
-                                    empresa: empresaId
-                                }
-                            },
-                            columns: [{
-                                    data: 'NM_PESSOA',
-                                    name: 'vendedor',
-                                    title: 'Vendedor'
-                                },
-                                {
-                                    data: 'QT_PNEU',
-                                    name: 'pneus_coletados',
-                                    title: 'Pneus Coletados'
-                                },
-                                {
-                                    data: 'QT_FATURADO',
-                                    name: 'qtde_prod',
-                                    title: 'Qtde Prod.'
-                                },
-                                {
-                                    data: 'VL_FATURADO',
-                                    name: 'recusado',
-                                    title: 'Recusado'
-                                }
-                            ],
-                            drawCallback: function(settings) {
-                                var api = this.api();
-                                var data = api.rows().data();
-
-                                // inicializa somas
-                                let somaPneus = 0;
-                                let somaProd = 0;
-                                let somaRecusados = 0;
-
-                                // percorre todas as linhas e soma os valores
-                                data.each(function(d) {
-                                    somaPneus += parseFloat(d.QT_PNEU) || 0;
-                                    somaProd += parseFloat(d.QT_FATURADO) || 0;
-                                    somaRecusados += parseFloat(d.VL_FATURADO) || 0;
-                                });
-
-                                // atualiza os cards
-                                $('#coletados').text(somaPneus);
-                                $('#produzidos').text(somaProd);
-                                $('#recusados').text(somaRecusados);
-
+                if (!$.fn.DataTable.isDataTable(tableId)) {
+                    $(tableId).DataTable({
+                        processing: false,
+                        serverSide: false,
+                        pageLength: 50,
+                        language: {
+                            url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                        },
+                        ajax: {
+                            url: '{{ route('get-vendedor-acompanhamento') }}',
+                            type: 'GET',
+                            data: function(d) {
+                                d.empresa = empresaId;
                             }
-                        });
-                    } else {
-                        $(tableId).DataTable().ajax.reload();
-                    }
+                        },
+                        columns: [{
+                                data: 'NM_PESSOA',
+                                name: 'vendedor',
+                                title: 'Vendedor'
+                            },
+                            {
+                                data: 'QT_PNEU',
+                                name: 'pneus_coletados',
+                                title: 'Pneus Coletados'
+                            },
+                            {
+                                data: 'QT_PRODUZIDO',
+                                name: 'qtde_prod',
+                                title: 'Qtde Prod.'
+                            },
+                            {
+                                data: 'QT_RECUSADO',
+                                name: 'recusado',
+                                title: 'Recusado'
+                            },
+                            {
+                                data: 'QT_FATURADO',
+                                name: 'qtde_fat',
+                                title: 'Qtde Fat'
+                            },
+                            {
+                                data: 'VL_FATURADO',
+                                name: 'vl_Fat',
+                                title: 'Vl Fat'
+                            },
+                            {
+                                data: 'QT_PNEUANTERIOR',
+                                name: 'qtde_pneusanterior',
+                                title: 'Coleta Mês Ant.'
+                            },
+                            {
+                                data: 'QT_FATURADOMESANTERIOR',
+                                name: 'qtde_fatmesanterior',
+                                title: 'Qtde Fat Mês Ant.'
+                            }
+                        ],
+                        drawCallback: function(settings) {
+                            var api = this.api();
+                            var data = api.rows().data();
+
+                            // inicializa somas
+                            let somaPneus = 0;
+                            let somaProd = 0;
+                            let somaRecusados = 0;
+
+                            // percorre todas as linhas e soma os valores
+                            data.each(function(d) {
+                                somaPneus += parseFloat(d.QT_PNEU) || 0;
+                                somaProd += parseFloat(d.QT_PRODUZIDO) || 0;
+                                somaRecusados += parseFloat(d.QT_RECUSADO) || 0;
+                            });
+
+                            // atualiza os cards    
+                            $('#coletados').text(somaPneus);
+                            $('#produzidos').text(somaProd);
+                            $('#recusados').text(somaRecusados);
+
+                        }
+                    });
                 } else {
-                    $('#acompanhamentoMesAtualtodas').DataTable().ajax.reload();
+                    $(tableId).DataTable().ajax.reload();
                 }
             });
             $('#tab-empresa a.nav-link.active').trigger('shown.bs.tab');
-
-            $('#acompanhamentoMesAtualtodas').DataTable({
-                processing: false,
-                serverSide: false,
-                pageLength: 50,
-                language: {
-                    url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-                },
-                ajax: {
-                    url: '{{ route('get-vendedor-acompanhamento') }}',
-                    type: 'GET',
-                },
-                columns: [{
-                        data: 'NM_PESSOA',
-                        name: 'vendedor',
-                        title: 'Vendedor'
-                    },
-                    {
-                        data: 'QT_PNEU',
-                        name: 'pneus_coletados',
-                        title: 'Pneus Coletados'
-                    },
-                    {
-                        data: 'QT_FATURADO',
-                        name: 'qtde_prod',
-                        title: 'Qtde Prod.'
-                    },
-                    {
-                        data: 'VL_FATURADO',
-                        name: 'recusado',
-                        title: 'Recusado'
-                    }
-                ],
-                drawCallback: function(settings) {
-                    var api = this.api();
-                    var data = api.rows().data();
-
-                    // inicializa somas
-                    let somaPneus = 0;
-                    let somaProd = 0;
-                    let somaRecusados = 0;
-
-                    // percorre todas as linhas e soma os valores
-                    data.each(function(d) {
-                        somaPneus += parseFloat(d.QT_PNEU) || 0;
-                        somaProd += parseFloat(d.QT_FATURADO) || 0;
-                        somaRecusados += parseFloat(d.VL_FATURADO) || 0;
-                    });
-
-                    // atualiza os cards
-                    $('#coletados').text(somaPneus);
-                    $('#produzidos').text(somaProd);
-                    $('#recusados').text(somaRecusados);
-                }
-            });
         });
     </script>
 @stop
