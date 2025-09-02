@@ -4,41 +4,6 @@
 @section('content')
     <!-- Main content -->
     <section class="content">
-        <div class="row">
-            <div class="col-md-4 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <span class="info-box-icon bg-danger"><i class="fa fa-list-ul"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Total</span>
-                        <span class="info-box-number text-sm" id="soma-geral">
-
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <span class="info-box-icon bg-yellow"><i class="far fa-thumbs-down"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text t-maior-divida">Maior divida</span>
-                        <span class="info-box-number text-sm" id="maior-divida">
-
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <span class="info-box-icon bg-yellow"><i class="fas fa-sort-amount-up-alt"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text titulos">Quantidade de Titulos</span>
-                        <span class="info-box-number text-sm" id="qtd-titulos">
-
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="card collapsed-card">
             <div class="card-header">
                 <h3 class="card-title">Filtros</h3>
@@ -108,34 +73,24 @@
                                 <a class="nav-link active" id="tab-relatorio-cobranca" data-toggle="pill"
                                     href="#painel-relatorio-cobranca" role="tab"
                                     aria-controls="painel-relatorio-cobranca" aria-selected="true">
-                                    Relatório Cobrança
+                                    Relatório
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="tab-inadimplencia" data-toggle="pill"
-                                    href="#painel-inadimplencia" role="tab" aria-controls="painel-inadimplencia"
-                                    aria-selected="false">
-                                    Inadimplência
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-cartao-cheque" data-toggle="pill"
-                                    href="#painel-cartao-cheque" role="tab" aria-controls="painel-cartao-cheque"
-                                    aria-selected="false">
+                                <a class="nav-link" id="tab-cartao-cheque" data-toggle="pill" href="#painel-cartao-cheque"
+                                    role="tab" aria-controls="painel-cartao-cheque" aria-selected="false">
                                     Cheques e Cartão
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="tab-limite-credito" data-toggle="pill"
-                                    href="#painel-limite-credito" role="tab" aria-controls="painel-limite-credito"
-                                    aria-selected="false">
+                                <a class="nav-link" id="tab-limite-credito" data-toggle="pill" href="#painel-limite-credito"
+                                    role="tab" aria-controls="painel-limite-credito" aria-selected="false">
                                     Limite Crédito
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" id="tab-prazo-medio" data-toggle="pill"
-                                    href="#painel-prazo-medio" role="tab" aria-controls="painel-prazo-medio"
-                                    aria-selected="false">
+                                <a class="nav-link" id="tab-prazo-medio" data-toggle="pill" href="#painel-prazo-medio"
+                                    role="tab" aria-controls="painel-prazo-medio" aria-selected="false">
                                     Prazo Médio
                                 </a>
                             </li>
@@ -145,45 +100,29 @@
                         <div class="tab-content" id="tabContentRelatorio">
                             <div class="tab-pane fade show active" id="painel-relatorio-cobranca" role="tabpanel"
                                 aria-labelledby="tab-relatorio-cobranca">
-                                <div class="card-body p-2">
-                                    <div class="table-responsive">
-                                        <table id="relCobranca"
-                                            class="table compact table-font-small table-striped table-bordered nowrap"
-                                            style="width:100%; font-size: 12px;">
-                                            <thead>
-                                                <tr>
-                                                    <th>Documento</th>
-                                                    <th>Nome</th>
-                                                    <th>Cnpj</th>
-                                                    <th>Vencimento</th>
-                                                    <th>Valor</th>
-                                                    <th>Juros</th>
-                                                    <th>Dias Atraso</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
+                                <div class="row">
+                                    <div class="col-md-8 col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="card-title">Relatório</h5>
+                                            </div>
+                                            <div class="card-body p-2">
+                                                <table id="table-rel-cobranca"
+                                                    class="table compact table-font-small table-striped table-bordered nowrap"
+                                                    style="width:100%; font-size: 12px;">
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="painel-inadimplencia" role="tabpanel"
-                                aria-labelledby="tab-inadimplencia">
-                                <div class="card-body p-2">
-                                    <div class="table-responsive">
-                                        <table id="inadimplencia"
-                                            class="table compact table-font-small table-striped table-bordered nowrap"
-                                            style="width:100%; font-size: 12px;">
-                                            <thead>
-                                                <tr>
-                                                    <th>Documento</th>
-                                                    <th>Nome</th>
-                                                    <th>Vencimento</th>
-                                                    <th>Atrasos 1 a 60 dias</th>
-                                                    <th>Liquidado 1 a 60 dias</th>
-                                                    <th>Inadim. 61 a 240 dias</th>
-                                                    <th>Liquidado 61 a 240 dias</th>
-                                                </tr>
-                                            </thead>
-                                        </table>
+                                    <div class="col-md-4 col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h5 class="card-title">Inadimplência Mensal</h5>
+                                            </div>
+                                            <div class="card-body p-2">
+
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -230,6 +169,65 @@
 @stop
 
 @section('js')
+
+    <script id="details-template" type="text/x-handlebars-template">
+        @verbatim
+        <div class="right badge badge-danger">{{ DS_REGIAOCOMERCIAL }}</div>
+        <table class="table row-border" id="regiao-{{ CD_REGIAOCOMERCIAL }}" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Cliente</th>
+                    <th>CNPJ</th>
+                    <th>Titulos</th>
+                    <th>Tipo Conta</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+        </table>
+        @endverbatim
+    </script>
+
+    <script type="text/javascript">
+        var template = Handlebars.compile($("#details-template").html());
+        var table = $("#table-rel-cobranca").DataTable({
+            language: {
+                url: "{{ asset('vendor/datatables/pt-br.json') }}",
+            },
+            pageLength: 50,
+            // responsive: true,
+            // "searching": true,
+            // "bInfo": false,
+            // scrollX: true,
+            ajax: "{{ route('get-list-cobranca') }}",
+            columns: [{
+                    data: "actions",
+                    name: "actions",
+                    title: "Ações",
+                    orderable: false,
+                    searchable: false,
+                    "width": "1%",
+                },
+                {
+                    data: "responsavel",
+                    name: "responsavel",
+                    title: "Responsável",
+                    visible: true,
+                },
+                {
+                    data: "qtd_titulos",
+                    name: "qtd_titulos",
+                    title: "Títulos",
+                    visible: true,
+                },
+                {
+                    data: "saldo",
+                    name: "saldo",
+                    title: "Valor",
+                },
+            ]
+        });
+    </script>
 
     <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
     <script src="{{ asset('js/dashboard/inadimplencia.js') }}"></script>

@@ -92,7 +92,7 @@ class Cobranca extends Model
                 LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
                 LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
                 WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
-                    --AND CONTAS.CD_PESSOA in (11283, 18106)
+                    AND CONTAS.CD_PESSOA in (11283, 18106)
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
@@ -140,6 +140,7 @@ class Cobranca extends Model
                 LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RC.CD_AREACOMERCIAL)
                 WHERE
                     C.ST_CONTAS IN ('P', 'T')
+                    AND C.CD_PESSOA in (11283, 18106)
                     AND C.DT_VENCIMENTO <= CURRENT_DATE-2
                     AND C.CD_TIPOCONTA IN (2, 10)
                     " . (!empty($cd_regiao) ? "AND RC.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "

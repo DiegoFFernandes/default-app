@@ -369,19 +369,29 @@ return [
                         [
                             'text' => 'Liberação Comercial',
                             'route' => 'libera-ordem-comissao.index',
+                            'can' => ['ver-libera-ordem-comissao']
                         ],
                         [
                             'text' => 'Acompanha Pedidos',
                             'route' => 'bloqueio-pedidos',
+                            'can' => ['ver-bloqueio-pedidos']
                         ],
                         [
                             'text' => 'Financeiro Cliente',
-                            'route' => 'rel-cobranca'
+                            'route' => 'rel-cobranca',
+                            'can' => ['ver-rel-cobranca']
+                        ],
+                        [
+                            'text' => 'Inadimplência',
+                            'route' => 'rel-cobranca-vendedor',
+                            'can' => ['ver-rel-cobranca']
                         ],
                         [
                             'text' => 'Coleta Empresa',
-                            'route' => 'coleta-empresa-geral'
-                        ]
+                            'route' => 'coleta-empresa-geral',
+                            'can' => ['ver-coleta-empresa']
+                        ],
+
                     ],
                 ],
 

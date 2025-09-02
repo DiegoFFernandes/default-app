@@ -17,7 +17,7 @@
                 <div class="info-box">
                     <div class="info-box-content">
                         <span class="info-box-text">Inadimplência</span>
-                        <span class="info-box-number" id="pc_inadimplencia"></span>
+                        <span class="info-box-number" id="pc_inadimplencia">0%</span>
                     </div>
                 </div>
             </div>
@@ -122,9 +122,9 @@
         }
 
         /* diminui a fonte do modal da nota*/
-        .td-small-text {
+        /* .td-small-text {
             font-size: 12px;
-        }
+        } */
     </style>
 @stop
 

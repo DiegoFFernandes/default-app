@@ -280,9 +280,10 @@
         }
 
         @media (max-width: 768px) {
-            .table-left {                
+            .table-left {
                 margin-left: 0 !important;
             }
+
             .btn-detalhes {
                 display: inline-flex;
                 align-items: center;

@@ -80,31 +80,36 @@ class RelatorioCobrancaController extends Controller
         }
         // return $cd_regiao;
         $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao);
-        //return $this->calc($clientesInadimplentes, "N");
 
+        // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
 
-        $regioes_mysql = $this->regiao->RegiaoUsuarioAll()->keyBy('cd_regiaocomercial');
+        //faz a indexação dos valores por gerente comercial
+        $gerente = [];
+        foreach ($data as $r) {
+            foreach ($regioes_mysql as $regiao) {
+                if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+                    $nome = $regiao->name;
 
-        $valor_geral = 0;
-        foreach ($data as $item) {
-            $valor_geral += (float)$item->VL_SALDO; // ou $item->VL_SALDO se for objeto
+                    if (!isset($gerente[$nome])) {
+                        $gerente[$nome] = [
+                            'responsavel' => 0,
+                            'saldo' => 0,
+                            'qtd_titulos' => 0,                            
+                        ];
+                    }
+                    $gerente[$nome]['responsavel'] = $nome;
+                    $gerente[$nome]['saldo'] += $r->VL_SALDO;
+                    $gerente[$nome]['qtd_titulos'] += 1;
+                }
+            }
         }
 
-
-        return DataTables::of($data)
-            ->addColumn('percentual', function ($data) use ($valor_geral) {
-                return number_format(((float)$data->VL_SALDO / $valor_geral) * 100, 2) . '%';
+        return DataTables::of($gerente)           
+            ->addColumn('actions', function ($d) {
+                return '<span class="btn-detalhes details-control-vendedor mr-2"><i class="fas fa-plus-circle"></i></span> ';
             })
-            ->addColumn('responsavel', function ($data) use ($regioes_mysql) {
-                $regiao = $regioes_mysql[$data->CD_REGIAOCOMERCIAL] ?? null;
-
-                if ($regiao) {
-                    return '<span class="right badge badge-success details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $regiao->name;
-                } else {
-                    return '<span class="right badge badge-success details-control mr-2"><i class="fa fa-plus-circle"></i></span>' . 'SEM RESPONSAVEL';
-                }
-            })
-            ->rawColumns(['responsavel', 'total'])
+            ->rawColumns(['actions'])
             ->make(true);
     }
     public function getListCobrancaPessoa()
@@ -536,8 +541,6 @@ class RelatorioCobrancaController extends Controller
                 'DT_VENCIMENTO' => $item->DT_VENCIMENTO,
                 'VL_SALDO'  => $item->VL_SALDO
             ];
-
-        
         }
 
         return $pessoa;

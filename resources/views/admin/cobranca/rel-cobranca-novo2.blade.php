@@ -1,5 +1,4 @@
-@extends('adminlte::page')
-
+@extends('layouts.master')
 @section('title', 'Dashboard')
 
 @section('content')
@@ -46,21 +45,9 @@
                     <div class="card-body">
                         <div class="list-cobranca">
                             <table class="table table-striped compact" id="table-rel-cobranca"
-                                style="width: 100%;font-size: 13px">
-                                <thead>
-                                    <tr>
-                                        <th>Responsável</th>
-                                        <th>Região</th>
-                                        <th>Titulos</th>
-                                        <th class="text-center">%</th>
-                                        <th>Valor</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
+                                style="width: 100%;font-size: 13px">                                
                                 <tfoot>
-                                    <tr>
-                                        <th></th>
+                                    <tr>                                       
                                         <th></th>
                                         <th></th>
                                         <th style="text-align: right"></th>
@@ -126,7 +113,7 @@
             </table>
         @endverbatim
     </script>
-    <script>
+    <script type="text/javascript">
         var template = Handlebars.compile($("#details-template").html());
         var totalValor = 0;
         var table = $('#table-rel-cobranca').DataTable({
@@ -142,36 +129,30 @@
             columns: [{
                     data: "responsavel",
                     name: "responsavel",
+                    title: 'Responsável',
                     visible: true
                 },
                 {
                     data: "DS_REGIAOCOMERCIAL",
                     name: "DS_REGIAOCOMERCIAL",
+                    title: 'Região',
                     visible: true
-                },
-                {
-                    data: "TITULOS",
-                    name: "TITULOS"
-                },
-
+                },                
                 {
                     data: "percentual",
                     name: "percentual",
-
+                    title: 'Percentual'
                 },
                 {
                     data: "VL_SALDO",
-                    name: "VL_SALDO"
+                    name: "VL_SALDO",
+                    title: 'Valor'
                 },
             ],
             columnDefs: [{
-                    targets: 4,
-                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                }, {
                     targets: 3,
-                    className: "text-center"
+                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                 }
-
             ],
             // outras configurações...
             footerCallback: function(row, data, start, end, display) {
@@ -179,7 +160,7 @@
 
                 // Pegando a coluna desejada (ex: coluna 3 = índice 2)
                 var total = api
-                    .column(4, {
+                    .column(3, {
                         page: 'all'
                     }) // ou 'page: all' para total geral
                     .data()
@@ -188,7 +169,7 @@
                     }, 0);
 
                 // Atualiza o footer da coluna
-                $(api.column(4).footer()).html('Total: ' + total.toLocaleString('pt-BR'));
+                $(api.column(3).footer()).html('Total: ' + total.toLocaleString('pt-BR'));
 
                 let maiorValor = 0;
                 let regiaoMaior = '';

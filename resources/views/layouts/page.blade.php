@@ -49,10 +49,10 @@
             @include('adminlte::partials.sidebar.right-sidebar')
         @endif
 
-        {{-- Icon loading --}}
+        {{-- Icon loading
         <div class="invisible" id="loading">
             <img id="loading-image" class="mb-4" src="{{ asset('img/loader.gif') }}" alt="Loading...">
-        </div>
+        </div> --}}
     </div>
 @stop
 
