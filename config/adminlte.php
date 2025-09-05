@@ -369,12 +369,12 @@ return [
                         [
                             'text' => 'Liberação Comercial',
                             'route' => 'libera-ordem-comissao.index',
-                            'can' => ['ver-libera-ordem-comissao']
+                            // 'can' => ['ver-libera-ordem-comissao']
                         ],
                         [
                             'text' => 'Acompanha Pedidos',
                             'route' => 'bloqueio-pedidos',
-                            'can' => ['ver-bloqueio-pedidos']
+                            // 'can' => ['ver-bloqueio-pedidos']
                         ],
                         [
                             'text' => 'Financeiro Cliente',
@@ -383,7 +383,7 @@ return [
                         ],
                         [
                             'text' => 'Inadimplência',
-                            'route' => 'rel-cobranca-vendedor',
+                            'route' => 'rel-inadimplencia',
                             'can' => ['ver-rel-cobranca']
                         ],
                         [

@@ -91,6 +91,7 @@ class BloqueioPedidosController extends Controller
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();
         $empresa = 0;
+        $cd_pessoa = 0;
 
         if ($this->user->hasRole('gerente unidade')) {
             $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)

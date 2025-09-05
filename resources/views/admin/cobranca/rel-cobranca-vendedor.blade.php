@@ -83,18 +83,7 @@
             display: none;
         }
 
-        @media (max-width: 768px) {
-            .btn-detalhes {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                background: #f0f0f0;
-                cursor: pointer;
-            }
-        }
+        
 
         /* deixa os card da tabela e grafico da mesma altura */
         @media (min-width: 768px) {

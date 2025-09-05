@@ -105,6 +105,9 @@ class Producao extends Model
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA";
 
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+
         $key = "produzidos-para-faturar" . Auth::user()->id;
 
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {

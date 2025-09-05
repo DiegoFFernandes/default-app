@@ -62,8 +62,17 @@ class RelatorioCobrancaController extends Controller
         //     'uri',
         // ));
     }
-    public function getListCobranca()
+    public function getListCobrancaGerente()
     {
+        $this->request->validate([
+            'filtro.nm_pessoa' => 'string|nullable',
+            'filtro.nm_vendedor' => 'string|nullable',
+            'filtro.nm_supervisor' => 'string|nullable',
+            'filtro.cnpj' => 'string|nullable',
+        ]);
+
+        $filtro = $this->request->input('filtro');
+
         if ($this->user->hasRole('admin|diretoria')) {
             $cd_area = "";
             $cd_regiao = "";
@@ -79,38 +88,88 @@ class RelatorioCobrancaController extends Controller
             }
         }
         // return $cd_regiao;
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao);
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, 0, 1, 0, 0, $filtro);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
 
         //faz a indexação dos valores por gerente comercial
-        $gerente = [];
+        $hierarquia = [];
+
         foreach ($data as $r) {
             foreach ($regioes_mysql as $regiao) {
                 if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
-                    $nome = $regiao->name;
-
-                    if (!isset($gerente[$nome])) {
-                        $gerente[$nome] = [
-                            'responsavel' => 0,
+                    $nomeGerente = $regiao->name;
+                    // --- GERENTE ---
+                    $nomeGerente = $regiao->name ?? 'Sem gerente';
+                    if (!isset($hierarquia[$nomeGerente])) {
+                        $hierarquia[$nomeGerente] = [
+                            'nome' => $nomeGerente,
+                            'cargo' => 'Gerente',
                             'saldo' => 0,
-                            'qtd_titulos' => 0,                            
+                            'supervisores' => []
                         ];
                     }
-                    $gerente[$nome]['responsavel'] = $nome;
-                    $gerente[$nome]['saldo'] += $r->VL_SALDO;
-                    $gerente[$nome]['qtd_titulos'] += 1;
+                    $hierarquia[$nomeGerente]['saldo'] += $r->VL_SALDO;
+
+                    // --- SUPERVISOR ---
+                    $nomeSupervisor = $r->NM_SUPERVISOR ?? 'Sem supervisor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor] = [
+                            'nome' => $nomeSupervisor,
+                            'cargo' => 'Supervisor',
+                            'saldo' => 0,
+                            'vendedores' => []
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['saldo'] += $r->VL_SALDO;
+
+                    // --- VENDEDOR ---
+                    $nomeVendedor = $r->NM_VENDEDOR ?? 'Sem vendedor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
+                            'nome' => $nomeVendedor,
+                            'cargo' => 'Vendedor',
+                            'saldo' => 0
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['saldo'] += $r->VL_SALDO;
+
+
+                    // --- CLIENTE ---
+                    $nomeCliente = $r->NM_PESSOA ?? 'Sem cliente';
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][] = [
+                        'nome' => $nomeCliente,
+                        'saldo' => $r->VL_SALDO,
+                        'detalhes' => [
+                            'documento' => $r->NR_DOCUMENTO ?? null,
+                            'vencimento' => $r->DT_VENCIMENTO ?? null,
+                            'saldo' => $r->VL_SALDO ?? null,
+                            'cnpj' => $r->NR_CNPJCPF ?? null,
+                            'juros' => floatval($r->VL_JUROS) ?? null,
+                            'documento' => $r->NR_DOCUMENTO ?? null,
+                            'dias_atraso' => $r->NR_DIAS ?? null,
+                        ]
+                    ];
                 }
             }
         }
 
-        return DataTables::of($gerente)           
-            ->addColumn('actions', function ($d) {
-                return '<span class="btn-detalhes details-control-vendedor mr-2"><i class="fas fa-plus-circle"></i></span> ';
-            })
-            ->rawColumns(['actions'])
-            ->make(true);
+        // --- Normaliza a hierarquia em arrays (em vez de objetos associativos)
+        foreach ($hierarquia as &$gerente) {
+            // supervisores
+            $gerente['supervisores'] = array_values($gerente['supervisores']);
+            foreach ($gerente['supervisores'] as &$supervisor) {
+                // vendedores
+                $supervisor['vendedores'] = array_values($supervisor['vendedores']);
+            }
+        }
+        unset($gerente); // boa prática
+        unset($supervisor);
+
+
+        // return $hierarquia;
+        return response()->json(array_values($hierarquia));
     }
     public function getListCobrancaPessoa()
     {
@@ -499,7 +558,18 @@ class RelatorioCobrancaController extends Controller
     }
     public function getInadimplencia()
     {
-        $data = $this->cobranca->getInadimplencia();
+        $this->request->validate([
+            'filtro.nm_pessoa' => 'string|nullable',
+            'filtro.nm_vendedor' => 'string|nullable',
+            'filtro.nm_supervisor' => 'string|nullable',
+            'filtro.cnpj' => 'string|nullable',
+        ]);
+
+        $filtro = $this->request->input('filtro');
+
+        session(['filtro' => $filtro]);
+
+        $data = $this->cobranca->getInadimplencia($filtro);
 
         return Datatables::of($data)
             ->addColumn('action', function ($row) {
@@ -517,9 +587,18 @@ class RelatorioCobrancaController extends Controller
     }
     public function getInadimplenciaDetalhes()
     {
+        $filtro = null;
+        if (session()->has('filtro')) {
+            $filtro = session()->get('filtro');
+            if ($filtro['session'] === false) {
+                $filtro = null;
+            }
+        }
+
         $mes = $this->request->mes;
         $ano = $this->request->ano;
-        $data = $this->cobranca->getInadimplenciaDetalhes($mes, $ano);
+        // $data = $this->cobranca->getInadimplenciaDetalhes($mes, $ano);
+        $data = $this->cobranca->AreaRegiaoInadimplentes('', 0, 1, $mes, $ano, $filtro);
 
         $pessoa = [];
 
@@ -539,7 +618,8 @@ class RelatorioCobrancaController extends Controller
                 'NR_DOCUMENTO' => $item->NR_DOCUMENTO,
                 'NR_PARCELA'   => $item->NR_PARCELA,
                 'DT_VENCIMENTO' => $item->DT_VENCIMENTO,
-                'VL_SALDO'  => $item->VL_SALDO
+                'VL_SALDO'  => $item->VL_SALDO,
+                'VL_JUROS'  => $item->VL_JUROS
             ];
         }
 

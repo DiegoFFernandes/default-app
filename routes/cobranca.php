@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
     Route::prefix('cobranca')->group(function(){
         Route::get('rel-cobranca', [RelatorioCobrancaController::class, 'index'])->name('rel-cobranca');
-        Route::get('get-lista-cobranca', [RelatorioCobrancaController::class, 'getListCobranca'])->name('get-list-cobranca');
+        Route::get('get-lista-cobranca', [RelatorioCobrancaController::class, 'getListCobrancaGerente'])->name('get-list-cobranca');
         Route::get('get-lista-pessoa-cobranca', [RelatorioCobrancaController::class, 'getListCobrancaPessoa'])->name('get-list-pessoa-cobranca');
         Route::get('get-lista-pessoa-cobranca-details', [RelatorioCobrancaController::class, 'getListCobrancaPessoaDetails'])->name('get-list-pessoa-cobranca-details');
         
@@ -27,7 +27,7 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         Route::get('get-inadimplencia-cliente', [RelatorioCobrancaController::class, 'getInadimplenciaDetalhes'])->name('get-inadimplencia-cliente');
 
 
-        Route::get('rel-cobranca-novo', [RelatorioCobrancaController::class, 'relatorioCobrancaNovo'])->name('rel-cobranca-novo');
+        Route::get('rel-inadimplencia', [RelatorioCobrancaController::class, 'relatorioCobrancaNovo'])->name('rel-inadimplencia');
     });
     
 });

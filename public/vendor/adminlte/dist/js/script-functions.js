@@ -119,6 +119,8 @@ function configurarDetalhesLinha(selector, options) {
 
         const data = row.data();
 
+        console.log(data);
+
         const tableChildId =
             options.idPrefixo +
             (options.idCampo ? data[options.idCampo] : data.ID);
@@ -148,6 +150,21 @@ function formatDate(value) {
     if (!value) return "";
     const date = new Date(value);
     return (
-        date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR")
+        date.toLocaleDateString("pt-BR") +
+        " " +
+        date.toLocaleTimeString("pt-BR")
     );
+}
+
+function formatarValorBR(valor) {
+    const numero = Number(valor);
+
+    if (isNaN(numero)) {
+        return "0,00";
+    }
+
+    return numero.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }

@@ -1,46 +1,52 @@
 Chart.register(ChartDataLabels); // inicia o datalabels
 
-const ctx = document.getElementById('graficoInadimplencia').getContext('2d');
+const ctx = document.getElementById("graficoInadimplencia").getContext("2d");
 let graficoInadimplencia;
 
-table.on('xhr', function () {
-    const json = table.ajax.json();
+tableInadimplencia.on("xhr", function () {
+    const json = tableInadimplencia.ajax.json();
 
     if (json && json.data) {
-        const labels = json.data.map(item => item.MES_ANO).reverse();
-        const valores = json.data.map(item => parseFloat(String(item.VL_SALDO).replace(',', '.')))
+        const labels = json.data.map((item) => item.MES_ANO).reverse();
+        const valores = json.data
+            .map((item) => parseFloat(String(item.VL_SALDO).replace(",", ".")))
             .reverse();
-        const percentuais = json.data.map(item => parseFloat(String(item.PC_INADIMPLENCIA).replace(',',
-            '.'))).reverse();
-
+        const percentuais = json.data
+            .map((item) =>
+                parseFloat(String(item.PC_INADIMPLENCIA).replace(",", "."))
+            )
+            .reverse();
 
         if (graficoInadimplencia) {
             graficoInadimplencia.destroy();
         }
 
         graficoInadimplencia = new Chart(ctx, {
-            type: 'bar',
+            type: "bar",
             data: {
                 labels: labels,
-                datasets: [{
-                    type: 'bar',
-                    label: ' Vencidos (R$)',
-                    data: valores,
-                    borderWidth: 2,
-                    borderColor: '#6c757d',
-                    backgroundColor: 'rgba(108,117,125,0.7)',
-                    yAxisID: 'y',
-                }, {
-                    type: 'line',
-                    label: '% Inadimplência',
-                    data: percentuais,
-                    borderColor: 'rgba(0, 0, 0, 1)',
-                    backgroundColor: 'rgba(0, 0, 0, 1)',
-                    borderWidth: 2,
-                    yAxisID: 'y1',
-                    fill: false,
-                    tension: 0.3
-                }]
+                datasets: [
+                    {
+                        type: "bar",
+                        label: " Vencidos (R$)",
+                        data: valores,
+                        borderWidth: 2,
+                        borderColor: "#6c757d",
+                        backgroundColor: "rgba(108,117,125,0.7)",
+                        yAxisID: "y",
+                    },
+                    {
+                        type: "line",
+                        label: "% Inadimplência",
+                        data: percentuais,
+                        borderColor: "rgba(0, 0, 0, 1)",
+                        backgroundColor: "rgba(0, 0, 0, 1)",
+                        borderWidth: 2,
+                        yAxisID: "y1",
+                        fill: false,
+                        tension: 0.3,
+                    },
+                ],
             },
             options: {
                 responsive: true,
@@ -48,18 +54,18 @@ table.on('xhr', function () {
                 plugins: {
                     datalabels: {
                         display: function (context) {
-                            return context.dataset.type === 'line'; //label apenas para a linha
+                            return context.dataset.type === "line"; //label apenas para a linha
                         },
                         formatter: function (value, context) {
-                            return value.toFixed(2).replace('.', ',');
+                            return value.toFixed(2).replace(".", ",");
                         },
-                        anchor: 'end',
-                        align: 'top',
-                          offset: window.innerWidth <= 768 ? -6 : -8,    
-                        color: 'black', 
+                        anchor: "end",
+                        align: "top",
+                        offset: window.innerWidth <= 768 ? -6 : -8,
+                        color: "black",
                         font: {
-                            weight: 'bold',
-                            size: window.innerWidth <= 768 ? 11 : 12
+                            weight: "bold",
+                            size: window.innerWidth <= 768 ? 11 : 12,
                         },
                     },
                     tooltip: {
@@ -68,15 +74,16 @@ table.on('xhr', function () {
                                 const dataset = context.dataset;
                                 const value = context.raw;
 
-                                if (dataset.type === 'line') {
-                                    return value + '%';
+                                if (dataset.type === "line") {
+                                    return value + "%";
                                 } else {
-                                    return 'R$ ' + value.toLocaleString(
-                                        'pt-BR');
+                                    return (
+                                        "R$ " + value.toLocaleString("pt-BR")
+                                    );
                                 }
-                            }
-                        }
-                    }
+                            },
+                        },
+                    },
                 },
                 scales: {
                     x: {
@@ -85,49 +92,47 @@ table.on('xhr', function () {
                             maxRotation: window.innerWidth <= 768 ? 45 : 0,
                             minRotation: window.innerWidth <= 768 ? 45 : 0,
                             font: {
-                                size: 10
+                                size: 10,
                             },
                             callback: function (value) {
                                 const label = this.getLabelForValue(value);
-                                const mes = label.split('/')[0]; // pega só o mes
+                                const mes = label.split("/")[0]; // pega só o mes
                                 return mes.substring(0, 3); //exibe o mes abreviado
-                            }
-                        }
+                            },
+                        },
                     },
                     y: {
-                        type: 'logarithmic',
-                        position: 'left',
+                        type: "logarithmic",
+                        position: "left",
                         ticks: {
                             display: false,
-                            maxTicksLimit: 10, //evita ficar com muitas linhas no fundo 
-                        }
+                            maxTicksLimit: 10, //evita ficar com muitas linhas no fundo
+                        },
                     },
                     y1: {
-                        type: 'linear',
-                        position: 'right',
+                        type: "linear",
+                        position: "right",
                         grid: {
                             drawOnChartArea: false,
                         },
                         ticks: {
                             display: false,
-                        }
-                    }
+                        },
+                    },
                 },
-
-            }
+            },
         });
     }
 });
 
+$("#btn-toggle-chart").click(function () {
+    var tabela = $("#container-tabela");
+    var grafico = $("#container-grafico");
 
-$('#btn-toggle-chart').click(function () {
-    var tabela = $('#container-tabela');
-    var grafico = $('#container-grafico');
-
-    if (tabela.is(':visible')) {
+    if (tabela.is(":visible")) {
         tabela.hide();
         grafico.show();
-        $(this).text('Exibir Tabela');
+        $(this).text("Exibir Tabela");
 
         if (graficoInadimplencia) {
             graficoInadimplencia.resize(); // garante que o canvas ajuste ao tamanho
@@ -135,6 +140,24 @@ $('#btn-toggle-chart').click(function () {
     } else {
         grafico.hide();
         tabela.show();
-        $(this).text('Exibir Gráfico');
+        $(this).text("Exibir Gráfico");
     }
 });
+
+function formatarValorBR(valor) {
+    const numero = Number(valor);
+
+    if (isNaN(numero)) {
+        return "0,00";
+    }
+
+    return numero.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+}
+function formatDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    return date.toLocaleDateString("pt-BR");
+}
