@@ -168,9 +168,8 @@
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
                                                             <input type="text" id="buscarCliente"
-                                                                class="form-control w-100 order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
-                                                                placeholder="Buscar Cliente..."
-                                                                style="max-width: 250px;">
+                                                                class="form-control input-busca order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
+                                                                placeholder="Buscar Cliente...">
                                                         </div>
                                                         <div class="modal-body">
 
@@ -317,6 +316,17 @@
         /* otimiza a busca do modal*/
         .hidden {
             display: none !important;
+        }
+
+        .input-busca {
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .input-busca {
+                max-width: 250px;
+                width: auto;
+            }
         }
     </style>
 
