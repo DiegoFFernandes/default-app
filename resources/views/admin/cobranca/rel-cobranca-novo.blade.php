@@ -157,15 +157,22 @@
                                                 aria-hidden="true">
                                                 <div class="modal-dialog modal-lg" role="document">
                                                     <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h6 class="modal-title" id="modal-table-cliente-label">
-                                                                Detalhes Inadimplência</h6>
-                                                            <button type="button" class="close" data-dismiss="modal"
-                                                                aria-label="Close">
+                                                        <div class="modal-header d-flex flex-wrap align-items-center">
+                                                            <h6 class="modal-title flex-md-grow-1"
+                                                                id="modal-table-cliente-label">
+                                                                Detalhes Inadimplência
+                                                            </h6>
+                                                            <button type="button"
+                                                                class="close order-2 order-md-3 ml-auto ml-md-0"
+                                                                data-dismiss="modal" aria-label="Close">
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
+                                                            <input type="text" id="buscarCliente"
+                                                                class="form-control input-busca order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
+                                                                placeholder="Buscar Cliente...">
                                                         </div>
                                                         <div class="modal-body">
+
                                                             <div class="accordion" id="accordionCliente">
 
                                                             </div>
@@ -303,6 +310,22 @@
 
             .text-small {
                 font-size: 13px;
+            }
+        }
+
+        /* otimiza a busca do modal*/
+        .hidden {
+            display: none !important;
+        }
+
+        .input-busca {
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .input-busca {
+                max-width: 250px;
+                width: auto;
             }
         }
     </style>
