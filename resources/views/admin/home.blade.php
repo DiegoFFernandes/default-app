@@ -51,8 +51,8 @@
                         @haspermission('ver-rel-cobranca')
                             <div class="col-md-12 mt-2">
                                 <p>Cobrança</p>
-                                <a href={{ route('rel-cobranca') }} class="btn btn-sm btn-dark mb-1"
-                                    style="width: 150px">Relatório Cobranca</a>
+                                <a href={{ route('rel-inadimplencia') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Inadimplência</a>
                             </div>
                         @endhaspermission
                         @haspermission('ver-producao')

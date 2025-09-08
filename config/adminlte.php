@@ -376,11 +376,11 @@ return [
                             'route' => 'bloqueio-pedidos',
                             // 'can' => ['ver-bloqueio-pedidos']
                         ],
-                        [
-                            'text' => 'Financeiro Cliente',
-                            'route' => 'rel-cobranca',
-                            'can' => ['ver-rel-cobranca']
-                        ],
+                        // [
+                        //     'text' => 'Financeiro Cliente',
+                        //     'route' => 'rel-cobranca',
+                        //     'can' => ['ver-rel-cobranca']
+                        // ],
                         [
                             'text' => 'Inadimplência',
                             'route' => 'rel-inadimplencia',

@@ -68,28 +68,42 @@ class RelatorioCobrancaController extends Controller
             'filtro.nm_pessoa' => 'string|nullable',
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',
-            'filtro.cnpj' => 'string|nullable',            
+            'filtro.cnpj' => 'string|nullable',
         ]);
         $tab = $this->request->input('tab');
 
         $filtro = $this->request->input('filtro');
 
-        if ($this->user->hasRole('admin|diretoria')) {
-            $cd_area = "";
+        if ($this->user->hasRole('admin')) {
             $cd_regiao = "";
+            $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
             // $area = $this->area->areaAll();
         } elseif ($this->user->hasRole('gerente comercial')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $cd_regiao = $this->regiao->findRegiaoUser($this->user->id)
-                ->pluck('CD_REGIAOCOMERCIAL')
+            $cd_empresa = 0;
+            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
+                ->pluck('CD_AREACOMERCIAL')
                 ->implode(',');
             if (empty($cd_regiao)) {
                 return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
             }
+        } elseif ($this->user->hasRole('supervisor')) {
+            $cd_empresa = 0;
+            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+                ->pluck('CD_SUPERVISORCOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
         }
         // return $cd_regiao;
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, 0, $tab, 0, 0, $filtro);
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa, $tab, 0, 0, $filtro);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
@@ -559,7 +573,6 @@ class RelatorioCobrancaController extends Controller
     }
     public function getInadimplencia()
     {
-        
         $this->request->validate([
             'filtro.nm_pessoa' => 'string|nullable',
             'filtro.nm_vendedor' => 'string|nullable',
@@ -571,7 +584,36 @@ class RelatorioCobrancaController extends Controller
 
         session(['filtro' => $filtro]);
 
-        $data = $this->cobranca->getInadimplencia($filtro, $tab);
+        if ($this->user->hasRole('admin')) {
+            $cd_regiao = "";
+            $cd_empresa = 0;
+            // $regiao = $this->regiao->regiaoAll();
+            // $area = $this->area->areaAll();
+        } elseif ($this->user->hasRole('gerente comercial')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $cd_empresa = 0;
+            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
+                ->pluck('CD_AREACOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('supervisor')) {
+            $cd_empresa = 0;
+            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+                ->pluck('CD_SUPERVISORCOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        }
+
+        $data = $this->cobranca->getInadimplencia($filtro, $tab,  $cd_empresa, $cd_regiao);
 
         return Datatables::of($data)
             ->addColumn('action', function ($row) {

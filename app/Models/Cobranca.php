@@ -137,7 +137,7 @@ class Cobranca extends Model
                 LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RC.CD_AREACOMERCIAL)
                 WHERE
                     C.ST_CONTAS IN ('P', 'T')
-                    AND C.CD_PESSOA in (11283, 18106)
+                    --AND C.CD_PESSOA in (11283, 18106)
                     AND C.DT_VENCIMENTO <= CURRENT_DATE-2
                     AND C.CD_TIPOCONTA IN (2, 10)
                     " . (!empty($cd_regiao) ? "AND RC.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
@@ -265,7 +265,7 @@ class Cobranca extends Model
             return Helper::ConvertFormatText($data);
         });
     }
-    public function getInadimplencia($filtro = null, $tela = 1)
+    public function getInadimplencia($filtro = null, $tela = 1, $cd_empresa = 0, $cd_regiao = "")
     {
         $query = "
             SELECT
@@ -290,8 +290,11 @@ class Cobranca extends Model
             WHERE
                 CONTAS.CD_TIPOCONTA IN (2, 10)
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
-                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
+                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
+                " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
+                
                 " . (!empty($filtro['nm_pessoa']) ? "AND P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                 " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                 " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
