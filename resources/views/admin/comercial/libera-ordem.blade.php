@@ -143,7 +143,10 @@
                 </div>
             </div>
         </div>
-        <button id="btnTopoModal" class="btn btn-danger btnTopoModal"><i class="fas fa-arrow-up"></i></button>
+        <x-btn-topo-modal :modalId="'modal-table-pedido'" />
+
+        
+
     </div>
 
 
@@ -171,7 +174,7 @@
             .form-control {
                 font-size: 13px;
             }
-            
+
         }
 
         @media (min-width: 769px) {
@@ -193,25 +196,6 @@
 
 @section('js')
     <script>
-        const $modal = $('#modal-table-pedido');
-        const $btn = $('#btnTopoModal');
-
-        $modal.on('scroll', function() {
-            if ($modal.scrollTop() > 300) {
-                console.log('show');
-                $btn.show();
-            } else {
-                $btn.hide();
-            }
-        });
-
-        // Ao clicar no botão, rola o modal para o topo
-        $btn.on('click', function() {
-            $modal.animate({
-                scrollTop: 0
-            }, 300);
-        });
-
         var tableId = 0;
         var table_item_pedido;
         var table = $('#table-ordem-block').DataTable({
