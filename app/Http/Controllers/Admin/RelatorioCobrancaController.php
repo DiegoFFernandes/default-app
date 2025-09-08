@@ -68,8 +68,9 @@ class RelatorioCobrancaController extends Controller
             'filtro.nm_pessoa' => 'string|nullable',
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',
-            'filtro.cnpj' => 'string|nullable',
+            'filtro.cnpj' => 'string|nullable',            
         ]);
+        $tab = $this->request->input('tab');
 
         $filtro = $this->request->input('filtro');
 
@@ -88,7 +89,7 @@ class RelatorioCobrancaController extends Controller
             }
         }
         // return $cd_regiao;
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, 0, 1, 0, 0, $filtro);
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, 0, $tab, 0, 0, $filtro);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
@@ -558,18 +559,19 @@ class RelatorioCobrancaController extends Controller
     }
     public function getInadimplencia()
     {
+        
         $this->request->validate([
             'filtro.nm_pessoa' => 'string|nullable',
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',
             'filtro.cnpj' => 'string|nullable',
         ]);
-
+        $tab = $this->request->input('tab');
         $filtro = $this->request->input('filtro');
 
         session(['filtro' => $filtro]);
 
-        $data = $this->cobranca->getInadimplencia($filtro);
+        $data = $this->cobranca->getInadimplencia($filtro, $tab);
 
         return Datatables::of($data)
             ->addColumn('action', function ($row) {
@@ -597,8 +599,9 @@ class RelatorioCobrancaController extends Controller
 
         $mes = $this->request->mes;
         $ano = $this->request->ano;
+        $tab = $this->request->input('tab');
         // $data = $this->cobranca->getInadimplenciaDetalhes($mes, $ano);
-        $data = $this->cobranca->AreaRegiaoInadimplentes('', 0, 1, $mes, $ano, $filtro);
+        $data = $this->cobranca->AreaRegiaoInadimplentes('', 0, $tab, $mes, $ano, $filtro);
 
         $pessoa = [];
 

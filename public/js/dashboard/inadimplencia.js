@@ -1,15 +1,15 @@
 // inicializa o accordion da inadimplência por gerente
-function inadimplenciaGerente(data, route) {
+function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
     $.ajax({
         url: route,
         method: "GET",
         data: {
             filtro: data,
+            tab: tab,
         },
         beforeSend: function () {
-            $("#card-inadimplencia-gerente .loading-card").removeClass(
-                "invisible"
-            );
+            $("#" + idCard + " .loading-card").removeClass("invisible");
+            $(".valorTotalGerente").text(`R$ 0`);
         },
         success: function (data) {
             let valorTotalGerente = 0;
@@ -25,7 +25,7 @@ function inadimplenciaGerente(data, route) {
                 )})
                                 </button>
                             </div>
-                            <div id="sup-${gIndex}" class="collapse" data-parent="#treeAccordion">
+                            <div id="sup-${gIndex}" class="collapse" data-parent="#${idAccordion}">
                                 <div class="card-body p-2">     `;
 
                 gerente.supervisores.forEach((sup, sIndex) => {
@@ -95,11 +95,9 @@ function inadimplenciaGerente(data, route) {
                 html += `</div></div></div>`; // fecha Gerente
             });
 
-            $("#treeAccordion").html(html);
-            $("#card-inadimplencia-gerente .loading-card").addClass(
-                "invisible"
-            );
-            $("#valorTotalGerente").text(
+            $("#" + idAccordion).html(html);
+            $("#" + idCard + " .loading-card").addClass("invisible");
+            $(".valorTotalGerente").text(
                 `R$ ${valorTotalGerente.toLocaleString()}`
             );
         },
@@ -107,17 +105,20 @@ function inadimplenciaGerente(data, route) {
 }
 // inicializa a tabela de meses
 function initTableInadimplenciaMeses(
+    tab,
     idTable,
     idModal,
     idAccordion,
     data,
     route
 ) {
-    if (tableInadimplencia) {
-        tableInadimplencia.destroy();
+    if ($.fn.DataTable.isDataTable("#" + idTable)) {
+        $("#" + idTable)
+            .DataTable()
+            .destroy();
     }
 
-    tableInadimplencia = $("#" + idTable).DataTable({
+    $("#" + idTable).DataTable({
         processing: false,
         serverSide: false,
         searching: false,
@@ -129,6 +130,7 @@ function initTableInadimplenciaMeses(
             url: route["tabela_mensal"],
             data: {
                 filtro: data,
+                tab: tab,
             },
             beforeSend: function () {
                 $("#card-inadimplencia-meses .loading-card").removeClass(
@@ -220,7 +222,7 @@ function initTableInadimplenciaMeses(
 
     $("#" + idTable + " tbody").on("click", ".details-control", function () {
         var tr = $(this).closest("tr");
-        var row = tableInadimplencia.row(tr);
+        var row = $("#" + idTable).DataTable().row(tr);
 
         $("#" + idAccordion).empty(); // Limpa antes
 
@@ -230,6 +232,7 @@ function initTableInadimplenciaMeses(
             data: {
                 mes: row.data().MES,
                 ano: row.data().ANO,
+                tab: tab,
             },
             dataType: "json",
             beforeSend: function () {

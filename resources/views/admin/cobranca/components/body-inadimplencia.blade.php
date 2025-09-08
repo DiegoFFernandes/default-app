@@ -4,7 +4,7 @@
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
                 <h5 class="card-title">Inadimplência Mensal</h5>
-                <div class="float-right"><button id="btn-toggle-chart" class="btn btn-secondary btn-xs btn-hover">Exibir
+                <div class="float-right"><button class="btn btn-secondary btn-xs btn-hover btn-toggle-chart">Exibir
                         Gráfico</button>
                 </div>
             </div>
@@ -15,7 +15,7 @@
                         <div class="text-bold pt-2"></div>
                     </div>
                 </div>
-                <div id="container-tabela">
+                <div class="container-tabela">
                     <div class="table-responsive">
                         <table id="{{ $tabela_mensal }}" class="table compact table-font-small nowrap"
                             style="width:100%; font-size: 12px;">
@@ -31,7 +31,7 @@
                         </table>
                     </div>
                 </div>
-                <div id="container-grafico" style="display:none;">
+                <div class="container-grafico" style="display:none;">
                     <canvas id="{{ $grafico_mensal }}"></canvas>
                 </div>
             </div>
@@ -75,7 +75,7 @@
                         <div class="text-bold pt-2"></div>
                     </div>
                 </div>
-                <div class="accordion" id="treeAccordion">
+                <div class="accordion" id="{{ $treeAccordion }}">
                     <!-- Gerente -->
                     <div class="card">
                         <div class="card-header p-1">
@@ -85,7 +85,7 @@
                                 </button>
                             </h2>
                         </div>
-                        <div id="sup1" class="collapse" data-parent="#treeAccordion">
+                        <div id="sup1" class="collapse" data-parent="#{{ $treeAccordion }}">
                             <div class="card-body">
                                 <!-- Supervisor -->
                                 <button class="btn btn-sm btn-secondary" data-toggle="collapse" data-target="#vend1">
@@ -109,7 +109,7 @@
                 </div>
             </div>
             <div class="card-footer text-right">
-                <strong>Total geral: </strong><span id="valorTotalGerente"></span>
+                <strong>Total geral: </strong><span class="valorTotalGerente" id=""></span>
             </div>
         </div>
     </div>

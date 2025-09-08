@@ -53,16 +53,18 @@
                                     'modal_table' => 'modal-table-cliente',
                                     'card_inadimplencia' => 'card-inadimplencia-gerente',
                                     'accordion_id' => 'accordion-inadimplencia-gerente',
+                                    'treeAccordion' => 'treeAccordion',
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
                                 aria-labelledby="tab-cartao-cheque">
                                 @include('admin.cobranca.components.body-inadimplencia', [
                                     'tabela_mensal' => 'tabela-inadimplencia-meses-ch-cartao',
-                                    'grafico_mensal' => 'graficoInadimplencia1',
+                                    'grafico_mensal' => 'grafico-inadimplencia-ch-cartao',
                                     'modal_table' => 'modal-table-cliente-ch-cartao',
                                     'card_inadimplencia' => 'card-inadimplencia-gerente-ch-cartao',
                                     'accordion_id' => 'accordion-inadimplencia-gerente-ch-cartao',
+                                    'treeAccordion' => 'treeAccordion-ch-cartao',
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
@@ -126,9 +128,9 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=3') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=5') }}"></script>
     <script type="text/javascript">
-        const tabChCartao = 1;
+        const tab = 1;
         var tableInadimplencia;
         var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
@@ -144,36 +146,61 @@
             'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}"
         };
 
-        inadimplenciaGerente({}, routes['inadimplencia_gerente']);
+        inadimplenciaGerente(
+            tab, {},
+            routes['inadimplencia_gerente'],
+            'treeAccordion',
+            'card-inadimplencia-gerente'
+        );
+
+
         initTableInadimplenciaMeses(
+            tab,
             'tabela-inadimplencia-meses',
             'modal-table-cliente',
             'accordion-inadimplencia-gerente', {},
-            routesInadimplenciaMensal);
+            routesInadimplenciaMensal
+        );
 
         buscarTermo('accordion-inadimplencia-gerente');
 
         $('#tab-relatorio-cobranca').on('click', function() {
-            const tabChCartao = 1;
-            inadimplenciaGerente({}, routes['inadimplencia_gerente']);
+            const tab = 1;
+            inadimplenciaGerente(
+                tab, {},
+                routes['inadimplencia_gerente'],
+                'treeAccordion',
+                'card-inadimplencia-gerente'
+            );
+
             initTableInadimplenciaMeses(
+                tab,
                 'tabela-inadimplencia-meses',
                 'modal-table-cliente',
                 'accordion-inadimplencia-gerente', {},
                 routesInadimplenciaMensal
-            );
+            );            
+            vincularTabelaAoGrafico("tabela-inadimplencia-meses", "graficoInadimplencia");
         });
 
         $('#tab-cartao-cheque').on('click', function() {
-            const tabChCartao = 2;
-            inadimplenciaGerente({}, routes['inadimplencia_gerente']);
+            const tab = 2;
+            inadimplenciaGerente(
+                tab, {},
+                routes['inadimplencia_gerente'],
+                'treeAccordion-ch-cartao',
+                'card-inadimplencia-gerente-ch-cartao'
+            );
+
             initTableInadimplenciaMeses(
+                tab,
                 'tabela-inadimplencia-meses-ch-cartao',
                 'modal-table-cliente-ch-cartao',
                 'accordion-inadimplencia-gerente-ch-cartao', {},
                 routesInadimplenciaMensal
             );
             buscarTermo('accordion-inadimplencia-gerente-ch-cartao');
+            vincularTabelaAoGrafico("tabela-inadimplencia-meses-ch-cartao", "grafico-inadimplencia-ch-cartao");
 
         });
         // faz a pesquisa pelos filtros
@@ -185,9 +212,19 @@
                 nm_supervisor: $('#filtro-supervisor').val(),
                 session: true
             };
+            inadimplenciaGerente(
+                tab,
+                data,
+                routes['inadimplencia_gerente'],
+                'treeAccordion',
+                'card-inadimplencia-gerente');
 
-            inadimplenciaGerente(data, routes['inadimplencia_gerente']);
-            initTableInadimplenciaMeses('tabela-inadimplencia-meses', 'modal-table-cliente', data,
+            initTableInadimplenciaMeses(
+                tab,
+                'tabela-inadimplencia-meses',
+                'modal-table-cliente',
+                'treeAccordion',
+                data,
                 routesInadimplenciaMensal);
         });
 
@@ -204,12 +241,25 @@
                 nm_supervisor: '',
                 session: false
             };
-            inadimplenciaGerente(data, routes['inadimplencia_gerente']);
-            initTableInadimplenciaMeses('tabela-inadimplencia-meses', data, routesInadimplenciaMensal);
+
+            inadimplenciaGerente(
+                tab,
+                data,
+                routes['inadimplencia_gerente'],
+                'treeAccordion',
+                'card-inadimplencia-gerente');
+
+            initTableInadimplenciaMeses(
+                tab,
+                'tabela-inadimplencia-meses',
+                'modal-table-cliente',
+                'treeAccordion',
+                data,
+                routesInadimplenciaMensal);
         });
     </script>
 
-    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=4') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=8') }}"></script>
     <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
     <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js') }}"></script>

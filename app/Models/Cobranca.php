@@ -265,7 +265,7 @@ class Cobranca extends Model
             return Helper::ConvertFormatText($data);
         });
     }
-    public function getInadimplencia($filtro = null)
+    public function getInadimplencia($filtro = null, $tela = 1)
     {
         $query = "
             SELECT
@@ -290,12 +290,14 @@ class Cobranca extends Model
             WHERE
                 CONTAS.CD_TIPOCONTA IN (2, 10)
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
-                AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
                 " . (!empty($filtro['nm_pessoa']) ? "AND P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                 " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                 " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                 " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
+
+                
             GROUP BY MES_ANO,
                 MES,
                 ANO
