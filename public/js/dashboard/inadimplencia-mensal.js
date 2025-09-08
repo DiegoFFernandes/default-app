@@ -5,7 +5,7 @@ let graficoInadimplencia;
 vincularTabelaAoGrafico("tabela-inadimplencia-meses", "graficoInadimplencia");
 
 function vincularTabelaAoGrafico(idTabela, idGrafico) {
-    const seletorTabela = "#" + idTabela;    
+    const seletorTabela = "#" + idTabela;
 
     if ($.fn.DataTable.isDataTable(seletorTabela)) {
         $(seletorTabela)
@@ -41,6 +41,38 @@ $(".btn-toggle-chart").click(function () {
         $(this).text("Exibir Gráfico");
     }
 });
+
+function resetarVisualizacaoAba(abaAtiva) {
+        let $container = $(abaAtiva);
+
+        if (!$container.length) return; // se não encontrar o container, sai da função
+
+        let $tabela = $container.find(".container-tabela"); // procura a tabela
+        let $grafico = $container.find(".container-grafico"); // procura o gráfico
+        let $botao = $container.find(".btn-toggle-chart"); // procura o botão
+
+        $tabela.show();
+        $grafico.hide();
+
+        // reseta o texto do botão
+        if ($botao.length) {
+            $botao.text("Exibir Gráfico");
+        }
+    }
+
+    // quando muda de aba 
+    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
+        let abaAtiva = $(e.target).attr('href');
+        resetarVisualizacaoAba(abaAtiva);
+    });
+
+    //quando clica na aba ativa
+    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('click', function(e) {
+        if ($(this).hasClass('active')) {
+            let abaAtiva = $(this).attr('href');
+            resetarVisualizacaoAba(abaAtiva);
+        }
+    });
 
 function formatarValorBR(valor) {
     const numero = Number(valor);
