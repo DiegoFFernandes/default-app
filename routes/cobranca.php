@@ -13,21 +13,16 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         
         Route::get('get-cobranca-filtro', [RelatorioCobrancaController::class, 'getListCobrancaFiltro'])->name('get-cobranca-filtro');
         Route::get('get-cobranca-cnpj', [RelatorioCobrancaController::class, 'getListCobrancaFiltroCnpj'])->name('get-cobranca-filtro-cnpj');
-
         Route::get('get-relatorio-cobranca',[RelatorioCobrancaController::class, 'getRelatorioCobranca'])->name('get-relatorio-cobranca');
-
         Route::get('get-recebimento-liquidado', [RelatorioCobrancaController::class, 'getRecebimentoLiquidado'])->name('get-recebimento-liquidado');
 
-
-
-
-        // rotas inadimplencias vendedor
-        Route::get('rel-cobranca-vendedor', [RelatorioCobrancaController::class, 'relatorioCobrancaVendedor'])->name('rel-cobranca-vendedor');
+        // rotas inadimplencias
+        Route::get('rel-inadimplencia', [RelatorioCobrancaController::class, 'relatorioCobrancaNovo'])->name('rel-inadimplencia');
         Route::get('get-inadimplencia', [RelatorioCobrancaController::class, 'getInadimplencia'])->name('get-inadimplencia');
         Route::get('get-inadimplencia-cliente', [RelatorioCobrancaController::class, 'getInadimplenciaDetalhes'])->name('get-inadimplencia-cliente');
 
-
-        Route::get('rel-inadimplencia', [RelatorioCobrancaController::class, 'relatorioCobrancaNovo'])->name('rel-inadimplencia');
+        Route::get('get-limite-credito', [RelatorioCobrancaController::class, 'getLimiteCredito'])->name('get-limite-credito');
+        Route::get('get-prazo-medio', [RelatorioCobrancaController::class, 'getPrazoMedio'])->name('get-prazo-medio');
     });
     
 });

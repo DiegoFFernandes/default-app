@@ -7,17 +7,19 @@ use App\Models\AreaComercial;
 use App\Models\Cobranca;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
+use App\Models\LimiteCredito;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use JeroenNoten\LaravelAdminLte\View\Components\Tool\Datatable;
+use Termwind\Components\Li;
 use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
 {
-    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade;
+    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
@@ -25,7 +27,8 @@ class RelatorioCobrancaController extends Controller
         SupervisorComercial $supervisorComercial,
         Cobranca $cobranca,
         Empresa $empresa,
-        GerenteUnidade $gerenteUnidade
+        GerenteUnidade $gerenteUnidade,
+        LimiteCredito $limite
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -34,6 +37,7 @@ class RelatorioCobrancaController extends Controller
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
         $this->empresa = $empresa;
+        $this->limite = $limite;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -170,7 +174,7 @@ class RelatorioCobrancaController extends Controller
             }
         }
 
-        // --- Normaliza a hierarquia em arrays (em vez de objetos associativos)
+        // --- Normaliza a hierarquia em arrays 
         foreach ($hierarquia as &$gerente) {
             // supervisores
             $gerente['supervisores'] = array_values($gerente['supervisores']);
@@ -179,7 +183,7 @@ class RelatorioCobrancaController extends Controller
                 $supervisor['vendedores'] = array_values($supervisor['vendedores']);
             }
         }
-        unset($gerente); // boa prática
+        unset($gerente);
         unset($supervisor);
 
 
@@ -677,5 +681,97 @@ class RelatorioCobrancaController extends Controller
     public function relatorioCobrancaNovo()
     {
         return view('admin.cobranca.rel-cobranca-novo');
+    }
+
+    public function getLimiteCredito()
+    {
+        $data = $this->limite->getLimiteCredito();
+        return Datatables::of($data)
+            ->make(true);
+    }
+    public function getPrazoMedio()
+    {
+        // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+
+        //faz a indexação dos valores por gerente comercial
+        $hierarquia = [];
+        $data = $this->limite->getPrazoMedio();
+
+        foreach ($data as $r) {
+            foreach ($regioes_mysql as $regiao) {
+                if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+                    $nomeGerente = $regiao->name;
+                    // --- GERENTE ---
+                    $nomeGerente = $regiao->name ?? 'Sem gerente';
+                    if (!isset($hierarquia[$nomeGerente])) {
+                        $hierarquia[$nomeGerente] = [
+                            'nome' => $nomeGerente,
+                            'cargo' => 'Gerente',
+                            'dias' => 0,
+                            'supervisores' => [],
+                            'qtd' => 0
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['dias'] += $r->PRAZO_MEDIO;
+                    $hierarquia[$nomeGerente]['qtd']++;
+
+
+                    // --- SUPERVISOR ---
+                    $nomeSupervisor = $r->NM_SUPERVISOR ?? 'Sem supervisor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor] = [
+                            'nome' => $nomeSupervisor,
+                            'cargo' => 'Supervisor',
+                            'dias' => 0,
+                            'vendedores' => [],
+                            'qtd' => 0
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['dias'] += $r->PRAZO_MEDIO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd']++;
+
+                    // --- VENDEDOR ---
+                    $nomeVendedor = $r->NM_VENDEDOR ?? 'Sem vendedor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
+                            'nome' => $nomeVendedor,
+                            'cargo' => 'Vendedor',
+                            'dias' => 0,
+                            'qtd' => 0
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['dias'] += $r->PRAZO_MEDIO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['qtd']++;
+
+                    // --- CLIENTE ---
+                    $nomeCliente = $r->NM_PESSOA ?? 'Sem cliente';                    
+
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomeCliente])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomeCliente] = [
+                            'nome' => $nomeCliente,
+                            'dias' => 0,
+                            'qtd' => 0
+                        ];
+                    }
+
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomeCliente]['dias'] += $r->PRAZO_MEDIO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomeCliente]['qtd']++;
+                }
+            }
+        }
+        // --- Normaliza a hierarquia em arrays 
+        foreach ($hierarquia as &$gerente) {
+            // supervisores
+            $gerente['supervisores'] = array_values($gerente['supervisores']);
+            foreach ($gerente['supervisores'] as &$supervisor) {
+                // vendedores
+                $supervisor['vendedores'] = array_values($supervisor['vendedores']);
+            }
+        }
+        unset($gerente);
+        unset($supervisor);
+
+        return response()->json(array_values($hierarquia));
     }
 }

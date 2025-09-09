@@ -47,7 +47,7 @@
 
                                 @include('admin.cobranca.components.cards-inadimplencia')
 
-                                @include('admin.cobranca.components.body-inadimplencia', [
+                                @include('admin.cobranca.components.tab-relatorios', [
                                     'tabela_mensal' => 'tabela-inadimplencia-meses',
                                     'grafico_mensal' => 'graficoInadimplencia',
                                     'modal_table' => 'modal-table-cliente',
@@ -58,7 +58,7 @@
                             </div>
                             <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
                                 aria-labelledby="tab-cartao-cheque">
-                                @include('admin.cobranca.components.body-inadimplencia', [
+                                @include('admin.cobranca.components.tab-relatorios', [
                                     'tabela_mensal' => 'tabela-inadimplencia-meses-ch-cartao',
                                     'grafico_mensal' => 'grafico-inadimplencia-ch-cartao',
                                     'modal_table' => 'modal-table-cliente-ch-cartao',
@@ -68,14 +68,12 @@
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
-                                aria-labelledby="tab-cartao-cheque">
-                                <div class="card-body p-2">
-                                </div>
+                                aria-labelledby="tab-limite-credito">
+                                @include('admin.cobranca.components.tab-painel-limite-credito')
                             </div>
                             <div class="tab-pane fade" id="painel-prazo-medio" role="tabpanel"
                                 aria-labelledby="tab-cartao-cheque">
-                                <div class="card-body p-2">
-                                </div>
+                                @include('admin.cobranca.components.tab-prazo-medio')
                             </div>
                         </div>
                     </div>
@@ -88,7 +86,7 @@
 
 @section('css')
     <style>
-        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+        #tabela-inadimplencia-meses div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
             display: none;
         }
 
@@ -153,7 +151,6 @@
             'card-inadimplencia-gerente'
         );
 
-
         initTableInadimplenciaMeses(
             tab,
             'tabela-inadimplencia-meses',
@@ -179,7 +176,7 @@
                 'modal-table-cliente',
                 'accordion-inadimplencia-gerente', {},
                 routesInadimplenciaMensal
-            );            
+            );
             vincularTabelaAoGrafico("tabela-inadimplencia-meses", "graficoInadimplencia");
         });
 
@@ -201,6 +198,59 @@
             );
             buscarTermo('accordion-inadimplencia-gerente-ch-cartao');
             vincularTabelaAoGrafico("tabela-inadimplencia-meses-ch-cartao", "grafico-inadimplencia-ch-cartao");
+
+        });
+
+        $('#tab-limite-credito').on('click', function() {
+            $('#tabela-limite-credito').DataTable({
+                processing: true,
+                serverSide: false,
+                searching: true,
+                responsive: true,
+                paging: true,
+                pagingType: "simple",
+                destroy: true,
+                language: {
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}"
+                },
+                ajax: {
+                    url: "{{ route('get-limite-credito') }}",
+                    type: 'GET',
+                },
+                columns: [{
+                        data: 'NM_PESSOA',
+                        title: 'Cliente',
+                        className: 'text-left',                                                
+                    },
+                    {
+                        data: 'VL_NOTA',
+                        title: 'Vl Notas',
+                        className: 'text-right',                        
+                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                    },
+                    {
+                        data: 'VL_USADO',
+                        title: 'Vl Usado',
+                        className: 'text-right',                       
+                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                    }, {
+                        data: 'VL_CREDITO',
+                        title: 'Vl Credito',
+                        className: 'text-right',                        
+                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                    },
+                    {
+                        data: 'DISPONIVEL',
+                        title: 'Vl Disponível',
+                        className: 'text-right',                        
+                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+                    },
+                ],
+            });
+
+        });
+
+        $('#tab-prazo-medio').on('click', function() {
 
         });
         // faz a pesquisa pelos filtros
@@ -259,7 +309,7 @@
         });
     </script>
 
-    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=8') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=9') }}"></script>
     <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
     <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js') }}"></script>
