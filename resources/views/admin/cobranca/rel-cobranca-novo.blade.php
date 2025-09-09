@@ -201,15 +201,14 @@
 
         });
 
-        $('#tab-limite-credito').on('click', function() {
-            $('#tabela-limite-credito').DataTable({
+        $('#tab-limite-credito').one('click', function() {
+             $('#tabela-limite-credito').DataTable({
                 processing: true,
                 serverSide: false,
                 searching: true,
                 responsive: true,
                 paging: true,
                 pagingType: "simple",
-                destroy: true,
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}"
                 },
@@ -220,29 +219,34 @@
                 columns: [{
                         data: 'NM_PESSOA',
                         title: 'Cliente',
-                        className: 'text-left',                                                
+                        className: 'text-left',
+                        responsivePriority: 1,
                     },
                     {
                         data: 'VL_NOTA',
                         title: 'Vl Notas',
-                        className: 'text-right',                        
+                        className: 'text-right',
+                        responsivePriority: 10000,
                         render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                     },
                     {
                         data: 'VL_USADO',
                         title: 'Vl Usado',
-                        className: 'text-right',                       
+                        className: 'text-right',
+                        responsivePriority: 10000,
                         render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                     }, {
                         data: 'VL_CREDITO',
                         title: 'Vl Credito',
-                        className: 'text-right',                        
+                        className: 'text-right',
+                        responsivePriority: 10000,
                         render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                     },
                     {
                         data: 'DISPONIVEL',
                         title: 'Vl Disponível',
-                        className: 'text-right',                        
+                        className: 'text-right',
+                        responsivePriority: 10000,
                         render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
                     },
                 ],
@@ -250,7 +254,12 @@
 
         });
 
-        $('#tab-prazo-medio').on('click', function() {
+        var route = {
+            'prazo-medio': "{{ route('get-prazo-medio') }}"
+        };
+
+        $('#tab-prazo-medio').one('click', function() {
+            carregarDadosPrazoMedio(route ['prazo-medio']);
 
         });
         // faz a pesquisa pelos filtros
