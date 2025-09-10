@@ -60,19 +60,19 @@ function resetarVisualizacaoAba(abaAtiva) {
         }
     }
 
-    // quando muda de aba 
-    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
-        let abaAtiva = $(e.target).attr('href');
-        resetarVisualizacaoAba(abaAtiva);
-    });
+// quando muda de aba 
+$('a[data-toggle="tab"], a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
+    let abaAtiva = $(e.target).attr('href');
+    resetarVisualizacaoAba(abaAtiva);
+});
 
-    //quando clica na aba ativa
-    $('a[data-toggle="tab"], a[data-toggle="pill"]').on('click', function(e) {
-        if ($(this).hasClass('active')) {
-            let abaAtiva = $(this).attr('href');
-            resetarVisualizacaoAba(abaAtiva);
-        }
-    });
+//quando clica na aba ativa
+$('a[data-toggle="tab"], a[data-toggle="pill"]').on('click', function(e) {
+    if ($(this).hasClass('active')) {
+        let abaAtiva = $(this).attr('href');
+        resetarVisualizacaoAba(abaAtiva);
+    }
+});
 
 function formatarValorBR(valor) {
     const numero = Number(valor);
@@ -91,7 +91,6 @@ function formatDate(value) {
     const date = new Date(value);
     return date.toLocaleDateString("pt-BR");
 }
-
 function criarGraficoInadimplencia(data, canvasId) {
     const ctx = document.getElementById(canvasId).getContext("2d");
     const labels = data.map((item) => item.MES_ANO).reverse();

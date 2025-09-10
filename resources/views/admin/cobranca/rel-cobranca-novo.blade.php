@@ -126,12 +126,14 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=5') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=12') }}"></script>
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
         var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+        
+        
         $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
         var routes = {
@@ -309,7 +311,7 @@
         });
     </script>
 
-    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=9') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=10') }}"></script>
     <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
     <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js') }}"></script>

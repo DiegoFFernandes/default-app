@@ -1,3 +1,24 @@
+var dados1 = null;
+var dados2 = null;
+var total = 0;
+
+function tentarProcessar() {
+    if (dados1 && dados2) {
+        total = dados2.reduce(
+            (acc, item) => acc + parseFloat(item.VL_DOCUMENTO),
+            0
+        );
+
+        dados1.forEach((gerente, gIndex) => {
+            let percentual = (gerente.saldo / total) * 100;
+
+            $(`.pc_inadidimplencia-gerente-${gIndex}`).text(
+                percentual.toFixed(2) + "%"
+            );
+        });
+    }
+}
+
 // inicializa o accordion da inadimplência por gerente
 function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
     $.ajax({
@@ -12,6 +33,8 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
             $(".valorTotalGerente").text(`R$ 0`);
         },
         success: function (data) {
+            dados1 = data;
+            tentarProcessar();
             let valorTotalGerente = 0;
             let html = "";
             data.forEach((gerente, gIndex) => {
@@ -22,7 +45,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                                 <button class="btn btn-link" data-toggle="collapse" data-target="#sup-${gIndex}">
                                 👔 ${gerente.nome} (R$ ${formatarValorBR(
                     gerente.saldo
-                )})
+                )}) <span class="badge badge-warning pc_inadidimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
                                 </button>
                             </div>
                             <div id="sup-${gIndex}" class="collapse" data-parent="#${idAccordion}">
@@ -33,7 +56,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                             <button class="btn btn-sm btn-secondary d-block mb-2 btn-list" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
                                 🛡️ ${sup.nome} (R$ ${formatarValorBR(
                         sup.saldo
-                    )})
+                    )}) 
                             </button>
                             <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
                             `;
@@ -183,6 +206,8 @@ function initTableInadimplenciaMeses(
         ],
         footerCallback: function (row, data, start, end, display) {
             var api = this.api();
+            dados2 = data;
+            tentarProcessar();
 
             // Remove the formatting to get integer data for summation
             var intVal = function (i) {
@@ -217,12 +242,16 @@ function initTableInadimplenciaMeses(
                 formatarValorBR(inadimplenciaPercentual) + "%"
             );
             $("#vencidos").html(formatarValorBR(totalVencido));
+
+            $("#total_carteira").html(formatarValorBR(totalTotal));
         },
     });
 
     $("#" + idTable + " tbody").on("click", ".details-control", function () {
         var tr = $(this).closest("tr");
-        var row = $("#" + idTable).DataTable().row(tr);
+        var row = $("#" + idTable)
+            .DataTable()
+            .row(tr);
 
         $("#" + idAccordion).empty(); // Limpa antes
 
