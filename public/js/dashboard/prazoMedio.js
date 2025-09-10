@@ -1,22 +1,23 @@
-
 function carregarDadosPrazoMedio(route) {
-    const card = $('#cardPrazoMedio');
-    const accordionContainer = card.find('#prazoMedioAccordionContainer');
-    const totalGeralContainer = card.find('.prazoMedioValorTotal');
-    const carregando = card.find('.loading-card');
+
+    const card = $("#cardPrazoMedio");
+    const accordionContainer = card.find("#prazoMedioAccordionContainer");
+    const totalGeralContainer = card.find(".prazoMedioValorTotal");
+    const carregando = card.find(".loading-card");
 
     $.ajax({
-        url: route,
-        type: 'GET',
-        beforeSend: function() {
-            carregando.removeClass('invisible');
-            totalGeralContainer.text('0 dias');
+        url: route['prazo_medio'],
+        type: "GET",
+        beforeSend: function () {
+            carregando.removeClass("invisible");
+            totalGeralContainer.text("0 dias");
         },
-        success: function(data) {
+        success: function (data) {
             let totalGeralDias = 0;
             let totalGeralQtd = 0;
 
-            const calcularMedia = (dias, qtd) => (qtd > 0 ? Math.round(dias / qtd) : 0);
+            const calcularMedia = (dias, qtd) =>
+                qtd > 0 ? Math.round(dias / qtd) : 0;
 
             const gerarGerentesHtml = (gerentes) => {
                 return gerentes
@@ -24,8 +25,14 @@ function carregarDadosPrazoMedio(route) {
                         totalGeralDias += gerente.dias;
                         totalGeralQtd += gerente.qtd;
 
-                        const mediaGerente = calcularMedia(gerente.dias, gerente.qtd);
-                        const supervisoresHtml = gerarSupervisoresHtml(gerente.supervisores, i);
+                        const mediaGerente = calcularMedia(
+                            gerente.dias,
+                            gerente.qtd
+                        );
+                        const supervisoresHtml = gerarSupervisoresHtml(
+                            gerente.supervisores,
+                            i
+                        );
 
                         return `
                             <div class="card">
@@ -44,65 +51,82 @@ function carregarDadosPrazoMedio(route) {
                             </div>
                         `;
                     })
-                .join('');
+                    .join("");
             };
 
             const gerarSupervisoresHtml = (supervisores, i) => {
-                if (!supervisores) return '';
+                if (!supervisores) return "";
                 return supervisores
                     .map((supervisor, j) => {
-                        const mediaSupervisor = calcularMedia(supervisor.dias, supervisor.qtd);
-                        const vendedoresHtml = gerarVendedoresHtml(supervisor.vendedores, i, j);
+                        const mediaSupervisor = calcularMedia(
+                            supervisor.dias,
+                            supervisor.qtd
+                        );
+                        const vendedoresHtml = gerarVendedoresHtml(
+                            supervisor.vendedores,
+                            i,
+                            j
+                        );
                         return `
-                            <button class="btn btn-sm btn-secondary mb-1 d-block" data-toggle="collapse" data-target="#prazo-sup-${i}-${j}">
-                                🛡️ ${supervisor.nome} (Média: ${mediaSupervisor} dias)
+                            <button class="btn btn-sm btn-secondary mb-1 d-block btn-d-block text-left" data-toggle="collapse" data-target="#prazo-sup-${i}-${j}">
+                                🛡️ ${supervisor.nome} 
+                                <span class="">(Média: ${mediaSupervisor} dias)</span>
                             </button>
-                            <div id="prazo-sup-${i}-${j}" class="collapse mt-2 mb-2 ml-3">
+                            <div id="prazo-sup-${i}-${j}" class="collapse mt-2 mb-2">
                                 ${vendedoresHtml}
                             </div>
                         `;
                     })
-                .join('');
+                    .join("");
             };
 
             const gerarVendedoresHtml = (vendedores, i, j) => {
-                if (!vendedores) return '';
+                if (!vendedores) return "";
                 return vendedores
                     .map((vendedor, k) => {
-                        const mediaVendedor = calcularMedia(vendedor.dias, vendedor.qtd);
-                        const clientesHtml = gerarClientesHtml(vendedor.clientes);
+                        const mediaVendedor = calcularMedia(
+                            vendedor.dias,
+                            vendedor.qtd
+                        );
+                        const clientesHtml = gerarClientesHtml(
+                            vendedor.clientes
+                        );
                         return `
-                            <button class="btn btn-sm btn-info mb-1 d-block" data-toggle="collapse" data-target="#prazo-vend-${i}-${j}-${k}">
-                                👤 ${vendedor.nome} (Média: ${mediaVendedor} dias)
+                            <button class="btn btn-sm btn-info mb-1 d-block btn-d-block text-left" data-toggle="collapse" data-target="#prazo-vend-${i}-${j}-${k}">
+                                👤 ${vendedor.nome} 
+                                <span class="saldo">(Média: ${mediaVendedor} dias)</span>
                             </button>
-                            <div id="prazo-vend-${i}-${j}-${k}" class="collapse mt-2 mb-2 ml-3">
+                            <div id="prazo-vend-${i}-${j}-${k}" class="collapse mt-2 mb-2">
                                 <ul class="list-group">${clientesHtml}</ul>
                             </div>
                         `;
                     })
-                .join('');
+                    .join("");
             };
 
             const gerarClientesHtml = (clientes) => {
-                if (!clientes) return '';
+                if (!clientes) return "";
                 return Object.values(clientes)
-                    .map(cliente => {
-                        const mediaCliente = calcularMedia(cliente.dias, cliente.qtd);
+                    .map((cliente) => {
+                        const mediaCliente = calcularMedia(
+                            cliente.dias,
+                            cliente.qtd
+                        );
                         return `
-                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <li class="list-group-item d-flex justify-content-between align-items-start text-small">
                             🏢 ${cliente.nome} <span class="badge badge-primary badge-pill">${mediaCliente} dias</span>
                         </li>`;
                     })
-                .join('');
+                    .join("");
             };
             const htmlGerentes = gerarGerentesHtml(data);
             accordionContainer.append(htmlGerentes);
-            
+
             const mediaGeral = calcularMedia(totalGeralDias, totalGeralQtd);
             totalGeralContainer.text(`${mediaGeral} dias`);
         },
-        complete: function() {
-            carregando.addClass('invisible');
-        }
+        complete: function () {
+            carregando.addClass("invisible");
+        },
     });
 }

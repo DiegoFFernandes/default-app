@@ -111,6 +111,15 @@
             .text-small {
                 font-size: 13px;
             }
+
+            .btn-d-block {
+                display: block;
+                width: 100%;
+            }
+
+            .btn-d-block .saldo {
+                display: block;
+            }
         }
 
         /* otimiza a busca do modal*/
@@ -127,13 +136,15 @@
 
 @section('js')
     <script src="{{ asset('js/dashboard/inadimplencia.js?v=12') }}"></script>
+    <script src="{{ asset('js/dashboard/prazoMedio.js?v=1') }}"></script>
+    <script src="{{ asset('js/dashboard/limiteCredito.js?v=1') }}"></script>
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
         var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
-        
-        
+
+
         $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
         var routes = {
@@ -143,6 +154,15 @@
         var routesInadimplenciaMensal = {
             'tabela_mensal': "{{ route('get-inadimplencia') }}",
             'modal_clientes': "{{ route('get-inadimplencia-cliente') }}",
+            'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}"
+        };
+
+        var routePrazoMedio = {
+            'prazo_medio': "{{ route('get-prazo-medio') }}"
+        };
+
+        var routeLimiteCredito = {
+            'limite_credito': "{{ route('get-limite-credito') }}",
             'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}"
         };
 
@@ -204,65 +224,11 @@
         });
 
         $('#tab-limite-credito').one('click', function() {
-             $('#tabela-limite-credito').DataTable({
-                processing: true,
-                serverSide: false,
-                searching: true,
-                responsive: true,
-                paging: true,
-                pagingType: "simple",
-                language: {
-                    url: "{{ asset('vendor/datatables/pt-br.json') }}"
-                },
-                ajax: {
-                    url: "{{ route('get-limite-credito') }}",
-                    type: 'GET',
-                },
-                columns: [{
-                        data: 'NM_PESSOA',
-                        title: 'Cliente',
-                        className: 'text-left',
-                        responsivePriority: 1,
-                    },
-                    {
-                        data: 'VL_NOTA',
-                        title: 'Vl Notas',
-                        className: 'text-right',
-                        responsivePriority: 10000,
-                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                    },
-                    {
-                        data: 'VL_USADO',
-                        title: 'Vl Usado',
-                        className: 'text-right',
-                        responsivePriority: 10000,
-                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                    }, {
-                        data: 'VL_CREDITO',
-                        title: 'Vl Credito',
-                        className: 'text-right',
-                        responsivePriority: 10000,
-                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                    },
-                    {
-                        data: 'DISPONIVEL',
-                        title: 'Vl Disponível',
-                        className: 'text-right',
-                        responsivePriority: 10000,
-                        render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                    },
-                ],
-            });
-
+            initTableLimiteCredito(routeLimiteCredito);
         });
 
-        var route = {
-            'prazo-medio': "{{ route('get-prazo-medio') }}"
-        };
-
         $('#tab-prazo-medio').one('click', function() {
-            carregarDadosPrazoMedio(route ['prazo-medio']);
-
+            carregarDadosPrazoMedio(routePrazoMedio);
         });
         // faz a pesquisa pelos filtros
         $('#btn-search').on('click', function() {
@@ -324,6 +290,5 @@
     <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
     <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js') }}"></script>
-    <script src="{{ asset('js/dashboard/prazoMedio.js') }}"></script>
 
 @stop

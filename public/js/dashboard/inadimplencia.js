@@ -42,7 +42,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                 html += `
                             <div class="card">
                             <div class="card-header p-1">
-                                <button class="btn btn-link" data-toggle="collapse" data-target="#sup-${gIndex}">
+                                <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
                                 👔 ${gerente.nome} (R$ ${formatarValorBR(
                     gerente.saldo
                 )}) <span class="badge badge-warning pc_inadidimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
@@ -53,7 +53,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
 
                 gerente.supervisores.forEach((sup, sIndex) => {
                     html += `
-                            <button class="btn btn-sm btn-secondary d-block mb-2 btn-list" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
+                            <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
                                 🛡️ ${sup.nome} (R$ ${formatarValorBR(
                         sup.saldo
                     )}) 
@@ -63,10 +63,9 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
 
                     sup.vendedores.forEach((vend, vIndex) => {
                         html += `
-                                <button class="btn btn-sm btn-info d-block mb-2 btn-list" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
-                                👤 ${vend.nome} (R$ ${formatarValorBR(
-                            vend.saldo
-                        )})
+                                <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                👤 ${vend.nome} 
+                                <span class="saldo">(R$ ${formatarValorBR(vend.saldo)})</span>
                                 </button>
                                 <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">
                                 <ul class="list-group">
@@ -75,11 +74,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                         vend.clientes.forEach((cliente) => {
                             html += `
                                 <li class="list-group-item p-1">
-                                    🏢 <span class="text-small">${
-                                        cliente.nome
-                                    } - R$ ${formatarValorBR(
-                                cliente.saldo
-                            )}</span><br>
+                                    🏢 <span class="text-small">${cliente.nome}</span><br>
                                     <table class="table table-sm mb-0 table-font-xs">
                                         <tbody>
                                         <tr>
