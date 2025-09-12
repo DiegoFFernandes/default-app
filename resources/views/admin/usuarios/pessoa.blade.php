@@ -47,18 +47,20 @@
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <table class="table compact" id="table-pessoa" style="width: 100%">
-                                <thead>
-                                    <tr>
-                                        <th>Cód.</th>
-                                        <th>Cd. Usúario</th>
-                                        <th>Usúario</th>
-                                        <th>Cd. Pessoa</th>
-                                        <th>Pessoa</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table compact table-font-small table-striped table-bordered nowrap" id="table-pessoa" style="width: 100%, font-size: 10px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Cód.</th>
+                                            <th>Cd. Usúario</th>
+                                            <th>Usúario</th>
+                                            <th>Cd. Pessoa</th>
+                                            <th>Pessoa</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -175,7 +177,8 @@
                 ajax: '{{ route('get-table-pessoa-usuario') }}',
                 columns: [{
                         data: 'id',
-                        name: 'id'
+                        name: 'id',
+                        responsivePriority: 1
                     },
                     {
                         data: 'cd_usuario',
@@ -184,7 +187,8 @@
                     },
                     {
                         data: 'name',
-                        name: 'name'
+                        name: 'name',
+                        responsivePriority: 2
                     },
                     {
                         data: 'cd_pessoa',
@@ -193,7 +197,8 @@
                     },
                     {
                         data: 'nm_pessoa',
-                        name: 'nm_pessoa'
+                        name: 'nm_pessoa',
+                        responsivePriority: 3
                     },
                     {
                         data: 'Actions',
