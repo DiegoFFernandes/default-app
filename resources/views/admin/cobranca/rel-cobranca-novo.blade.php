@@ -34,6 +34,12 @@
                                     Prazo Médio
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-canhoto" data-toggle="pill" href="#painel-canhoto"
+                                    role="tab" aria-controls="painel-canhoto" aria-selected="false">
+                                    Canhoto
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     <div class="card-body">
@@ -76,6 +82,16 @@
                             <div class="tab-pane fade" id="painel-prazo-medio" role="tabpanel"
                                 aria-labelledby="tab-cartao-cheque">
                                 @include('admin.cobranca.components.tab-prazo-medio')
+                            </div>
+                            <div class="tab-pane fade" id="painel-canhoto" role="tabpanel"
+                                aria-labelledby="tab-painel-canhoto">
+                                @include('admin.cobranca.components.tab-canhotos', [
+                                    'tabela_canhoto_mensal' => 'tabela-canhoto-meses',
+                                    'modal_canhoto_table' => 'modal-table-canhoto',
+                                    'card_canhoto' => 'card-canhoto',
+                                    'accordion_canhoto_id' => 'accordion-canhoto',
+                                    'treeAccordionCanhoto' => 'treeAccordionCanhoto'                                    
+                                ])
                             </div>
                         </div>
                     </div>
@@ -137,9 +153,10 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=16') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=19') }}"></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=1') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js?v=3') }}"></script>
+    <script src="{{ asset('js/dashboard/canhoto.js?v=1') }}"></script>
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
@@ -149,7 +166,8 @@
         $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
         var routes = {
-            'inadimplencia_gerente': "{{ route('get-list-cobranca') }}"
+            'inadimplencia_gerente': "{{ route('get-list-cobranca') }}",
+            'canhoto': "{{ route('get-list-canhoto') }}"
         };
 
         var routesInadimplenciaMensal = {
@@ -243,8 +261,32 @@
         $('#tab-prazo-medio').one('click', function() {
             carregarDadosPrazoMedio(routePrazoMedio);
         });
+
+        $('#tab-canhoto').on('click', function() {            
+            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+
+            $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
+
+            // inadimplenciaGerente(
+            //     tab, {},
+            //     routes['inadimplencia_gerente'],
+            //     'treeAccordionGerente',
+            //     'card-inadimplencia-gerente'
+            // );
+
+            initTableCanhotoMeses(
+                tab,
+                'tabela-canhoto-meses',
+                'modal-table-cliente',
+                'accordion-canhoto-gerente', {},
+                routes['canhoto'],
+            );
+            
+        });
         // faz a pesquisa pelos filtros
         $('#btn-search').on('click', function() {
+            hierarquia = null;
             const data = {
                 nm_pessoa: $("#pessoa option:selected").text(),
                 nm_vendedor: $('#filtro-vendedor').val(),

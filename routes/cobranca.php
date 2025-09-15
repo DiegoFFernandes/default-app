@@ -24,6 +24,8 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         Route::get('get-limite-credito', [RelatorioCobrancaController::class, 'getLimiteCredito'])->name('get-limite-credito');
         Route::get('get-prazo-medio', [RelatorioCobrancaController::class, 'getPrazoMedio'])->name('get-prazo-medio');
 
+        Route::get('get-list-canhoto', [RelatorioCobrancaController::class, 'getCanhoto'])->name('get-list-canhoto');
+
     });
     
 });

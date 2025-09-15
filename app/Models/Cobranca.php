@@ -280,7 +280,9 @@ class Cobranca extends Model
                 MES.O_DS_MES || '/' || EXTRACT(YEAR FROM CONTAS.$string) MES_ANO,
                 CONTAS.$string,
                 CAST(SUM(CONTAS.VL_DOCUMENTO) AS NUMERIC(18,2)) VL_DOCUMENTO,
-                CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO
+                CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO,
+
+                V.CD_VENDEDORGERAL
             FROM CONTAS
             INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
             LEFT JOIN MES_EXTENSO(CONTAS.$string) MES ON (1 = 1)
@@ -311,7 +313,8 @@ class Cobranca extends Model
             GROUP BY MES_ANO,
                 CONTAS.$string,
                 MES,
-                ANO
+                ANO,
+                V.CD_VENDEDORGERAL
             ORDER BY ANO DESC,
                 MES DESC";
 

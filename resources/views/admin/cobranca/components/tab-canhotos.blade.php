@@ -3,12 +3,9 @@
     <div class="col-md-4 col-12">
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
-                <h5 class="card-title">Inadimplência Mensal</h5>
-                <div class="float-right"><button class="btn btn-secondary btn-xs btn-hover btn-toggle-chart">Exibir
-                        Gráfico</button>
-                </div>
+                <h5 class="card-title">Canhatos Mensal</h5>                
             </div>
-            <div class="card-body p-2" id="card-inadimplencia-meses">
+            <div class="card-body p-2" id="card-canhoto-meses">
                 {{-- Icon loading --}}
                 <div class="invisible loading-card">
                     <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
@@ -17,7 +14,7 @@
                 </div>
                 <div class="container-tabela">
                     <div class="table-responsive">
-                        <table id="{{ $tabela_mensal }}" class="table compact table-font-small nowrap"
+                        <table id="{{ $tabela_canhoto_mensal }}" class="table compact table-font-small nowrap"
                             style="width:100%; font-size: 12px;">
                             <tfoot>
                                 <tr>
@@ -30,31 +27,25 @@
                             </tfoot>
                         </table>
                     </div>
-                </div>
-                <div class="container-grafico" style="display:none;">
-                    <canvas id="{{ $grafico_mensal }}"></canvas>
-                </div>
+                </div>                
             </div>
-            <div class="modal fade" id="{{ $modal_table }}" tabindex="-1" role="dialog"
-                aria-labelledby="modal-table-cliente-label" aria-hidden="true">
+            <div class="modal fade" id="{{ $modal_canhoto_table }}" tabindex="-1" role="dialog"
+                aria-labelledby="modal-table-canhoto-label" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header d-flex flex-wrap align-items-center">
-                            <h6 class="modal-title flex-md-grow-1 modal-table-cliente-label" id="">
-                                Detalhes Inadimplência
+                            <h6 class="modal-title flex-md-grow-1 modal-table-canhoto-label" id="">
+                                Detalhes Canhoto NF
                             </h6>
                             <button type="button" class="close order-2 order-md-3 ml-auto ml-md-0" data-dismiss="modal"
                                 aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
-                            </button>
-                            <input type="text" id="buscarCliente"
-                                class="form-control input-busca order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
-                                placeholder="Buscar Cliente...">
+                            </button>                            
                         </div>
                         <div class="modal-body">
-                            <div class="accordion" id="{{ $accordion_id }}">
+                            <div class="accordion" id="{{ $accordion_canhoto_id }}">
                             </div>
-                            <x-btn-topo-modal :modalId="$modal_table" />
+                            <x-btn-topo-modal :modalId="$modal_canhoto_table" />
                         </div>
                     </div>
                 </div>
@@ -64,16 +55,16 @@
     <div class="col-md-8 col-12">
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
-                <h5 class="card-title">Relatório Vencidos</h5>
+                <h5 class="card-title">Relatório Canhotos</h5>
             </div>
-            <div class="card-body p-2" id="{{ $card_inadimplencia }}">
+            <div class="card-body p-2" id="{{ $card_canhoto }}">
                 {{-- Icon loading --}}
                 <div class="invisible loading-card">
                     <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
                         <div class="text-bold pt-2"></div>
                     </div>
                 </div>
-                <div class="accordion" id="{{ $treeAccordionGerente }}">
+                <div class="accordion" id="{{ $treeAccordionCanhoto }}">
                     <!-- Gerente -->
                     <div class="card">
                         <div class="card-header p-1">
@@ -83,7 +74,7 @@
                                 </button>
                             </h2>
                         </div>
-                        <div id="sup1" class="collapse" data-parent="#{{ $treeAccordionGerente }}">
+                        <div id="sup1" class="collapse" data-parent="#{{ $treeAccordionCanhoto }}">
                             <div class="card-body">
                                 <!-- Supervisor -->
                                 <button class="btn btn-sm btn-secondary" data-toggle="collapse" data-target="#vend1">
@@ -107,7 +98,7 @@
                 </div>
             </div>
             <div class="card-footer text-right">
-                <strong>Total geral: </strong><span class="valorTotalGerente" id=""></span>
+                <strong>Total geral: </strong><span class="valorTotalCanhoto" id=""></span>
             </div>
         </div>
     </div>

@@ -3,26 +3,30 @@ var inadMeses = null;
 var total = 0;
 var atrasados = 0;
 var inadimplencia = 0;
+var hierarquia = null;
 
 function tentarProcessar() {
-    if (inadGerente && inadMeses) {
-        total = inadMeses.reduce(
-            (acc, item) => acc + parseFloat(item.VL_DOCUMENTO),
-            0
-        );
+    if (inadGerente && inadMeses) {      
 
         inadGerente.forEach((gerente, gIndex) => {
-            let percentual = (gerente.saldo / total) * 100;
-            let pc_atrasados = (gerente.atrasados / total) * 100;
-            let pc_inadimplencia = (gerente.inadimplencia / total) * 100;
+            if (hierarquia !== null) {
+                console.log(hierarquia[gerente.nome].nome);
+                if (hierarquia[gerente.nome].nome === gerente.nome) {
+                    total = hierarquia[gerente.nome]["vl_documento"];
+                    let percentual = (gerente.saldo / total) * 100;
+                    let pc_atrasados = (gerente.atrasados / total) * 100;
+                    let pc_inadimplencia =
+                        (gerente.inadimplencia / total) * 100;
 
-            // $(`.pc_inadidimplencia-gerente-${gIndex}`).text(percentual.toFixed(2) + "%");
-            $(`.pc_atrasados-gerente-${gIndex}`).html(
-                `Atrasados: ${pc_atrasados.toFixed(2)}%`
-            );
-            $(`.pc_inadimplencia-gerente-${gIndex}`).html(
-                `Inadimplência: ${pc_inadimplencia.toFixed(2)}%`
-            );
+                    // $(`.pc_inadidimplencia-gerente-${gIndex}`).text(percentual.toFixed(2) + "%");
+                    $(`.pc_atrasados-gerente-${gIndex}`).html(
+                        `Atrasados: ${pc_atrasados.toFixed(2)}%`
+                    );
+                    $(`.pc_inadimplencia-gerente-${gIndex}`).html(
+                        `Inadimplência: ${pc_inadimplencia.toFixed(2)}%`
+                    );
+                }
+            }
         });
     }
 }
@@ -151,7 +155,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
         },
     });
 }
-// inicializa a tabela de meses
+// inicializa a tabela de meses relatorio de gerente
 function initTableInadimplenciaMeses(
     tab,
     idTable,
@@ -192,6 +196,8 @@ function initTableInadimplenciaMeses(
                 // Salva as variáveis globais com os valores do backend
                 atrasados = parseFloat(json.atrasados);
                 inadimplencia = parseFloat(json.inadimplencia);
+
+                hierarquia = json.hierarquia;
                 return json.data;
             },
             complete: function () {

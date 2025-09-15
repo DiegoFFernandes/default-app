@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
 use App\Models\Cobranca;
+use App\Models\ControleCanhoto;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\LimiteCredito;
@@ -20,7 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
 {
-    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite;
+    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite, $controleCanhoto;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
@@ -29,7 +30,8 @@ class RelatorioCobrancaController extends Controller
         Cobranca $cobranca,
         Empresa $empresa,
         GerenteUnidade $gerenteUnidade,
-        LimiteCredito $limite
+        LimiteCredito $limite,
+        ControleCanhoto $controleCanhoto
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -39,6 +41,7 @@ class RelatorioCobrancaController extends Controller
         $this->gerenteUnidade = $gerenteUnidade;
         $this->empresa = $empresa;
         $this->limite = $limite;
+        $this->controleCanhoto = $controleCanhoto;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -630,25 +633,30 @@ class RelatorioCobrancaController extends Controller
         }
 
         $data = $this->cobranca->getInadimplencia($filtro, $tab,  $cd_empresa, $cd_regiao);
+        // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
 
-        $resultados = self::formataArrayMeses($data, $tab);
+        $resultados = self::formataArrayMeses($data, $tab, $regioes_mysql);
 
         // Dados formatados
         $data = $resultados['mesesAgrupados'];
         $atrasados = $resultados['atrasados'];
         $inadimplencia = $resultados['inadimplencia'];
+        $hierarquia = $resultados['hierarquia'];
 
         // Retorna os dados para o DataTables, incluindo as variáveis extras
         return response()->json([
             'data' => $data,  // Tabela dos meses
             'atrasados' => $atrasados,
-            'inadimplencia' => $inadimplencia
+            'inadimplencia' => $inadimplencia,
+            'hierarquia' => $hierarquia
         ]);
     }
-    static function formataArrayMeses($data, $tab)
+    static function formataArrayMeses($data, $tab, $regioes_mysql)
     {
         // Inicializa um array vazio para armazenar os objetos
         $meses = [];
+        $hierarquia = [];
         $atrasados = 0;
         $inadimplencia = 0;
         $dataAtrasoHojeAte60 = Carbon::parse(now()->subDays(60))->format('Y-m-d');
@@ -683,18 +691,33 @@ class RelatorioCobrancaController extends Controller
                 $meses[$item->MES_ANO]->PC_INADIMPLENCIA = 0;
             }
 
-
             if ($vencimento >= $dataAtrasoHojeAte60) {
                 $atrasados += floatval($item->VL_SALDO);
             } else {
                 $inadimplencia += floatval($item->VL_SALDO);
+            }
+
+            foreach ($regioes_mysql as $regiao) {
+                if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+                    $nomeGerente = $regiao->name;
+                    // --- GERENTE ---
+                    $nomeGerente = $regiao->name ?? 'Sem gerente';
+                    if (!isset($hierarquia[$nomeGerente])) {
+                        $hierarquia[$nomeGerente] = [
+                            'nome' => $nomeGerente,
+                            'vl_documento' => 0
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['vl_documento'] += $item->VL_DOCUMENTO;
+                }
             }
         }
 
         return [
             'mesesAgrupados' => array_values((array)$meses),
             'atrasados' => $atrasados,
-            'inadimplencia' => $inadimplencia
+            'inadimplencia' => $inadimplencia,
+            'hierarquia' => $hierarquia
         ];
     }
     public function getInadimplenciaDetalhes()
@@ -941,5 +964,13 @@ class RelatorioCobrancaController extends Controller
         unset($supervisor);
 
         return response()->json(array_values($hierarquia));
+    }
+
+    public function getCanhoto()
+    {
+        $data = $this->controleCanhoto->canhotoNaoRecebidos();
+
+        return Datatables::of($data)
+            ->make(true);
     }
 }
