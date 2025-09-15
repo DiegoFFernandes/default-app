@@ -10,6 +10,7 @@ use App\Models\GerenteUnidade;
 use App\Models\LimiteCredito;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -73,6 +74,7 @@ class RelatorioCobrancaController extends Controller
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',
             'filtro.cnpj' => 'string|nullable',
+            'filtro.filtro_gerente' => 'integer|nullable',
         ]);
         $tab = $this->request->input('tab');
 
@@ -106,6 +108,13 @@ class RelatorioCobrancaController extends Controller
                 ->pluck('cd_empresa')
                 ->implode(',');
         }
+
+        if (!$this->user->hasRole('supervisor')) {
+            if ($filtro['filtro_gerente'] ?? 0 <> 0) {
+                $cd_regiao = $this->area->findGerenteSupervisor($filtro['filtro_gerente'])->pluck('CD_AREACOMERCIAL')
+                    ->implode(',');
+            }
+        }
         // return $cd_regiao;
         $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa, $tab, 0, 0, $filtro);
 
@@ -114,10 +123,12 @@ class RelatorioCobrancaController extends Controller
 
         //faz a indexação dos valores por gerente comercial
         $hierarquia = [];
+        $dataAtrasoHojeAte60 = Carbon::parse(now()->subDays(60))->format('Y-m-d');
 
-        foreach ($data as $r) {
+
+        foreach ($data as $item) {
             foreach ($regioes_mysql as $regiao) {
-                if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+                if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
                     $nomeGerente = $regiao->name;
                     // --- GERENTE ---
                     $nomeGerente = $regiao->name ?? 'Sem gerente';
@@ -126,13 +137,22 @@ class RelatorioCobrancaController extends Controller
                             'nome' => $nomeGerente,
                             'cargo' => 'Gerente',
                             'saldo' => 0,
-                            'supervisores' => []
+                            'supervisores' => [],
+                            'atrasados' => 0,
+                            'inadimplencia' => 0
                         ];
                     }
-                    $hierarquia[$nomeGerente]['saldo'] += $r->VL_SALDO;
+                    $hierarquia[$nomeGerente]['saldo'] += $item->VL_SALDO;
+                    $vencimento = \Carbon\Carbon::parse($item->DT_VENCIMENTO)->format('Y-m-d');
+
+                    if ($vencimento >= $dataAtrasoHojeAte60) {
+                        $hierarquia[$nomeGerente]['atrasados'] += floatval($item->VL_SALDO);
+                    } else {
+                        $hierarquia[$nomeGerente]['inadimplencia'] += floatval($item->VL_SALDO);
+                    }
 
                     // --- SUPERVISOR ---
-                    $nomeSupervisor = $r->NM_SUPERVISOR ?? 'Sem supervisor';
+                    $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
                     if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor])) {
                         $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor] = [
                             'nome' => $nomeSupervisor,
@@ -141,10 +161,10 @@ class RelatorioCobrancaController extends Controller
                             'vendedores' => []
                         ];
                     }
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['saldo'] += $r->VL_SALDO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['saldo'] += $item->VL_SALDO;
 
                     // --- VENDEDOR ---
-                    $nomeVendedor = $r->NM_VENDEDOR ?? 'Sem vendedor';
+                    $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem vendedor';
                     if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
                         $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
                             'nome' => $nomeVendedor,
@@ -152,23 +172,22 @@ class RelatorioCobrancaController extends Controller
                             'saldo' => 0
                         ];
                     }
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['saldo'] += $r->VL_SALDO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['saldo'] += $item->VL_SALDO;
 
 
                     // --- CLIENTE ---
-                    $nomeCliente = $r->NM_PESSOA ?? 'Sem cliente';
+                    $nomeCliente = $item->NM_PESSOA ?? 'Sem cliente';
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][] = [
-                        'nome' => $nomeCliente,
-                        'saldo' => $r->VL_SALDO,
-                        'detalhes' => [
-                            'documento' => $r->NR_DOCUMENTO ?? null,
-                            'vencimento' => $r->DT_VENCIMENTO ?? null,
-                            'saldo' => $r->VL_SALDO ?? null,
-                            'cnpj' => $r->NR_CNPJCPF ?? null,
-                            'juros' => floatval($r->VL_JUROS) ?? null,
-                            'documento' => $r->NR_DOCUMENTO ?? null,
-                            'dias_atraso' => $r->NR_DIAS ?? null,
-                        ]
+                        'PESSOA' => $nomeCliente,
+                        'NR_DOCUMENTO' => $item->NR_DOCUMENTO,
+                        'CD_FORMAPAGTO' => $item->CD_FORMAPAGTO,
+                        'NR_PARCELA'   => $item->NR_PARCELA,
+                        'DT_VENCIMENTO' => $item->DT_VENCIMENTO,
+                        'DT_LANCAMENTO' => $item->DT_LANCAMENTO,
+                        'VL_SALDO'  => $item->VL_SALDO,
+                        'VL_JUROS'  => $item->VL_JUROS,
+                        'TIPOCONTA' => $item->TIPOCONTA,
+                        'VL_TOTAL'  => $item->VL_TOTAL
                     ];
                 }
             }
@@ -224,8 +243,8 @@ class RelatorioCobrancaController extends Controller
             }
         } else {
             $regiaoUsuario = $this->regiao->regiaoPorUsuario($this->user->id);
-            foreach ($regiaoUsuario as $r) {
-                $cd_regiao[] = $r->cd_regiaocomercial;
+            foreach ($regiaoUsuario as $item) {
+                $cd_regiao[] = $item->cd_regiaocomercial;
             }
             $cd_regiao = implode(",", $cd_regiao);
             $cd_area = "";
@@ -560,21 +579,6 @@ class RelatorioCobrancaController extends Controller
         }
         return $regioesIndexadas;
     }
-
-    // Relatório de cobrança por vendedor
-    public function relatorioCobrancaVendedor()
-    {
-        $title_page   = 'Relatório de Cobrança Vendedor';
-        $exploder = explode('/', $this->request->route()->uri());
-        $uri = ucfirst($exploder[1]);
-        $empresa = $this->empresa->empresa();
-
-        return view('admin.cobranca.rel-cobranca-vendedor', compact(
-            'empresa',
-            'title_page',
-            'uri',
-        ));
-    }
     public function getInadimplencia()
     {
         $this->request->validate([
@@ -582,6 +586,7 @@ class RelatorioCobrancaController extends Controller
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',
             'filtro.cnpj' => 'string|nullable',
+            'filtro.filtro_gerente' => 'integer|nullable',
         ]);
         $tab = $this->request->input('tab');
         $filtro = $this->request->input('filtro');
@@ -616,22 +621,81 @@ class RelatorioCobrancaController extends Controller
                 ->pluck('cd_empresa')
                 ->implode(',');
         }
+        //Caso o usuario buscar por gerente comercial
+        if (!$this->user->hasRole('supervisor')) {
+            if ($filtro['filtro_gerente'] ?? 0 <> 0) {
+                $cd_regiao = $this->area->findGerenteSupervisor($filtro['filtro_gerente'])->pluck('CD_AREACOMERCIAL')
+                    ->implode(',');
+            }
+        }
 
         $data = $this->cobranca->getInadimplencia($filtro, $tab,  $cd_empresa, $cd_regiao);
 
-        return Datatables::of($data)
-            ->addColumn('action', function ($row) {
-                return '<span class="right btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ';
-            })
-            ->addColumn('PC_INADIMPLENCIA', function ($data) {
-                if ($data->VL_SALDO > 0) {
-                    return number_format((($data->VL_SALDO / $data->VL_DOCUMENTO) * 100), 2, ',', '.') . '%';
-                } else {
-                    return '0,00%';
-                }
-            })
-            ->rawColumns(['action', 'PC_INADIMPLENCIA'])
-            ->make(true);
+        $resultados = self::formataArrayMeses($data, $tab);
+
+        // Dados formatados
+        $data = $resultados['mesesAgrupados'];
+        $atrasados = $resultados['atrasados'];
+        $inadimplencia = $resultados['inadimplencia'];
+
+        // Retorna os dados para o DataTables, incluindo as variáveis extras
+        return response()->json([
+            'data' => $data,  // Tabela dos meses
+            'atrasados' => $atrasados,
+            'inadimplencia' => $inadimplencia
+        ]);
+    }
+    static function formataArrayMeses($data, $tab)
+    {
+        // Inicializa um array vazio para armazenar os objetos
+        $meses = [];
+        $atrasados = 0;
+        $inadimplencia = 0;
+        $dataAtrasoHojeAte60 = Carbon::parse(now()->subDays(60))->format('Y-m-d');
+
+        if ($tab == 1) {
+            $string = 'DT_VENCIMENTO';
+        } else {
+            $string = 'DT_LANCAMENTO';
+        }
+
+        foreach ($data as $item) {
+            $vencimento = \Carbon\Carbon::parse($item->{$string})->format('Y-m-d');
+            // Verifica se já existe um mês no array
+            if (!isset($meses[$item->MES_ANO])) {
+                // Cria um novo objeto para MES_ANO
+                $meses[$item->MES_ANO] = (object)[
+                    'MES' => $item->MES,
+                    'ANO' => $item->ANO,
+                    'MES_ANO' => $item->MES_ANO,
+                    'VL_DOCUMENTO' => 0,
+                    'VL_SALDO' => 0,
+                    'PC_INADIMPLENCIA' => 0
+                ];
+            }
+            // Acumula os valores de VL_DOCUMENTO e VL_SALDO
+            $meses[$item->MES_ANO]->VL_DOCUMENTO += floatval($item->VL_DOCUMENTO);
+            $meses[$item->MES_ANO]->VL_SALDO += floatval($item->VL_SALDO);
+            // Calcula a porcentagem de inadimplência
+            if ($meses[$item->MES_ANO]->VL_DOCUMENTO > 0) {
+                $meses[$item->MES_ANO]->PC_INADIMPLENCIA = ($meses[$item->MES_ANO]->VL_SALDO / $meses[$item->MES_ANO]->VL_DOCUMENTO) * 100;
+            } else {
+                $meses[$item->MES_ANO]->PC_INADIMPLENCIA = 0;
+            }
+
+
+            if ($vencimento >= $dataAtrasoHojeAte60) {
+                $atrasados += floatval($item->VL_SALDO);
+            } else {
+                $inadimplencia += floatval($item->VL_SALDO);
+            }
+        }
+
+        return [
+            'mesesAgrupados' => array_values((array)$meses),
+            'atrasados' => $atrasados,
+            'inadimplencia' => $inadimplencia
+        ];
     }
     public function getInadimplenciaDetalhes()
     {
@@ -675,6 +739,13 @@ class RelatorioCobrancaController extends Controller
                 ->pluck('cd_empresa')
                 ->implode(',');
         }
+        //Caso o usuario buscar por gerente comercial
+        if (!$this->user->hasRole('supervisor')) {
+            if ($filtro['filtro_gerente'] ?? 0 <> 0) {
+                $cd_regiao = $this->area->findGerenteSupervisor($filtro['filtro_gerente'])->pluck('CD_AREACOMERCIAL')
+                    ->implode(',');
+            }
+        }
 
         $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa, $tab, $mes, $ano, $filtro);
 
@@ -694,27 +765,67 @@ class RelatorioCobrancaController extends Controller
 
             $pessoa[$item->CD_PESSOA]['DETALHES'][] = [
                 'NR_DOCUMENTO' => $item->NR_DOCUMENTO,
+                'CD_FORMAPAGTO' => $item->CD_FORMAPAGTO,
                 'NR_PARCELA'   => $item->NR_PARCELA,
                 'DT_VENCIMENTO' => $item->DT_VENCIMENTO,
+                'DT_LANCAMENTO' => $item->DT_LANCAMENTO,
                 'VL_SALDO'  => $item->VL_SALDO,
-                'VL_JUROS'  => $item->VL_JUROS
+                'VL_JUROS'  => $item->VL_JUROS,
+                'TIPOCONTA' => $item->TIPOCONTA,
+                'VL_TOTAL'  => $item->VL_TOTAL
             ];
         }
 
         return $pessoa;
-
-        // return Datatables::of($data)                      
-        //     ->make(true);
     }
-
-    public function relatorioCobrancaNovo()
+    public function relatorioFinanceiroCliente()
     {
-        return view('admin.cobranca.rel-cobranca-novo');
+        if ($this->user->hasRole('admin')) {
+            $gerentes = $this->area->GerenteAll();
+        } elseif ($this->user->hasRole('gerente comercial')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $gerentes = $this->area->GerenteAll($this->user->id);
+        } elseif ($this->user->hasRole('supervisor')) {
+            $gerentes = $this->area->GerenteAll();
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $gerentes = $this->area->GerenteAll();
+        }
+
+        return view('admin.cobranca.rel-cobranca-novo', compact('gerentes'));
     }
 
     public function getLimiteCredito()
     {
-        $data = $this->limite->getLimiteCredito();
+        if ($this->user->hasRole('admin')) {
+            $cd_regiao = "";
+            $cd_empresa = 0;
+            // $regiao = $this->regiao->regiaoAll();
+            // $area = $this->area->areaAll();
+        } elseif ($this->user->hasRole('gerente comercial')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $cd_empresa = 0;
+            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
+                ->pluck('CD_AREACOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('supervisor')) {
+            $cd_empresa = 0;
+            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+                ->pluck('CD_SUPERVISORCOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        }
+
+        $data = $this->limite->getLimiteCredito($cd_empresa, $cd_regiao);
         return Datatables::of($data)
             ->make(true);
     }
@@ -722,10 +833,38 @@ class RelatorioCobrancaController extends Controller
     {
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+        if ($this->user->hasRole('admin')) {
+            $cd_regiao = "";
+            $cd_empresa = 0;
+            // $regiao = $this->regiao->regiaoAll();
+            // $area = $this->area->areaAll();
+        } elseif ($this->user->hasRole('gerente comercial')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $cd_empresa = 0;
+            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
+                ->pluck('CD_AREACOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('supervisor')) {
+            $cd_empresa = 0;
+            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
+                ->pluck('CD_SUPERVISORCOMERCIAL')
+                ->implode(',');
+            if (empty($cd_regiao)) {
+                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
+            }
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $cd_regiao = "";
+            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        }
 
         //faz a indexação dos valores por gerente comercial
         $hierarquia = [];
-        $data = $this->limite->getPrazoMedio();
+        $data = $this->limite->getPrazoMedio($cd_empresa, $cd_regiao);
 
         foreach ($data as $r) {
             foreach ($regioes_mysql as $regiao) {

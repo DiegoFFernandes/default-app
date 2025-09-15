@@ -54,6 +54,7 @@
                                     'card_inadimplencia' => 'card-inadimplencia-gerente',
                                     'accordion_id' => 'accordion-inadimplencia-gerente',
                                     'treeAccordion' => 'treeAccordion',
+                                    'treeAccordionGerente' => 'treeAccordionGerente',
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
@@ -65,6 +66,7 @@
                                     'card_inadimplencia' => 'card-inadimplencia-gerente-ch-cartao',
                                     'accordion_id' => 'accordion-inadimplencia-gerente-ch-cartao',
                                     'treeAccordion' => 'treeAccordion-ch-cartao',
+                                    'treeAccordionGerente' => 'treeAccordionGerente-ch-cartao',
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
@@ -117,7 +119,7 @@
                 width: 100%;
             }
 
-            .btn-d-block .saldo {
+            .saldo {
                 display: block;
             }
         }
@@ -135,15 +137,14 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=12') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=16') }}"></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=1') }}"></script>
-    <script src="{{ asset('js/dashboard/limiteCredito.js?v=1') }}"></script>
+    <script src="{{ asset('js/dashboard/limiteCredito.js?v=3') }}"></script>
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
         var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
-
 
         $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
@@ -154,7 +155,8 @@
         var routesInadimplenciaMensal = {
             'tabela_mensal': "{{ route('get-inadimplencia') }}",
             'modal_clientes': "{{ route('get-inadimplencia-cliente') }}",
-            'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}"
+            'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}",
+            'searchPessoa': "{{ route('usuario.search-pessoa') }}"
         };
 
         var routePrazoMedio = {
@@ -166,10 +168,13 @@
             'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}"
         };
 
+        //Carrega o select2 de pessoa
+        initSelect2Pessoa('#pessoa', routesInadimplenciaMensal.searchPessoa);
+
         inadimplenciaGerente(
             tab, {},
             routes['inadimplencia_gerente'],
-            'treeAccordion',
+            'treeAccordionGerente',
             'card-inadimplencia-gerente'
         );
 
@@ -185,10 +190,15 @@
 
         $('#tab-relatorio-cobranca').on('click', function() {
             const tab = 1;
+            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+
+            $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
+
             inadimplenciaGerente(
                 tab, {},
                 routes['inadimplencia_gerente'],
-                'treeAccordion',
+                'treeAccordionGerente',
                 'card-inadimplencia-gerente'
             );
 
@@ -204,10 +214,13 @@
 
         $('#tab-cartao-cheque').on('click', function() {
             const tab = 2;
+            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
+            $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
             inadimplenciaGerente(
                 tab, {},
                 routes['inadimplencia_gerente'],
-                'treeAccordion-ch-cartao',
+                'treeAccordionGerente-ch-cartao',
                 'card-inadimplencia-gerente-ch-cartao'
             );
 
@@ -233,9 +246,10 @@
         // faz a pesquisa pelos filtros
         $('#btn-search').on('click', function() {
             const data = {
-                nm_pessoa: $('#filtro-nome').val(),
+                nm_pessoa: $("#pessoa option:selected").text(),
                 nm_vendedor: $('#filtro-vendedor').val(),
                 cnpj: $('#filtro-cnpj').val(),
+                filtro_gerente: $('#filtro-gerente').val(),
                 nm_supervisor: $('#filtro-supervisor').val(),
                 session: true
             };
@@ -243,7 +257,7 @@
                 tab,
                 data,
                 routes['inadimplencia_gerente'],
-                'treeAccordion',
+                'treeAccordionGerente',
                 'card-inadimplencia-gerente');
 
             initTableInadimplenciaMeses(
@@ -273,7 +287,7 @@
                 tab,
                 data,
                 routes['inadimplencia_gerente'],
-                'treeAccordion',
+                'treeAccordionGerente',
                 'card-inadimplencia-gerente');
 
             initTableInadimplenciaMeses(
@@ -289,6 +303,5 @@
     <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=10') }}"></script>
     <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
     <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
-    <script src="{{ asset('js/dashboard/limiteCredito.js') }}"></script>
 
 @stop

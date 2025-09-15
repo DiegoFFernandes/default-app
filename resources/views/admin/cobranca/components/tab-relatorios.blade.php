@@ -75,7 +75,7 @@
                         <div class="text-bold pt-2"></div>
                     </div>
                 </div>
-                <div class="accordion" id="{{ $treeAccordion }}">
+                <div class="accordion" id="{{ $treeAccordionGerente }}">
                     <!-- Gerente -->
                     <div class="card">
                         <div class="card-header p-1">
@@ -85,7 +85,7 @@
                                 </button>
                             </h2>
                         </div>
-                        <div id="sup1" class="collapse" data-parent="#{{ $treeAccordion }}">
+                        <div id="sup1" class="collapse" data-parent="#{{ $treeAccordionGerente }}">
                             <div class="card-body">
                                 <!-- Supervisor -->
                                 <button class="btn btn-sm btn-secondary" data-toggle="collapse" data-target="#vend1">

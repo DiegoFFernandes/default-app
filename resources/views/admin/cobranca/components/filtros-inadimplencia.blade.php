@@ -11,16 +11,26 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-4 mb-2">
-                <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Pessoa">
+                {{-- <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Cliente"> --}}
+                <select name='pessoa' class="form-control" id="pessoa" style="width: 100%">
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <select name="gerente" id="filtro-gerente" class="form-control" style="width: 100%">
+                    <option value="0">Todos Gerentes</option>
+                    @foreach ($gerentes as $g)
+                        <option value="{{ $g->cd_usuario }}">{{ $g->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <input id="filtro-supervisor" type="text" class="form-control" placeholder="Filtrar por Supervisor">
             </div>
             <div class="col-md-4 mb-2">
                 <input id="filtro-vendedor" type="text" class="form-control" placeholder="Filtrar por Vendedor">
             </div>
             <div class="col-md-4 mb-2">
                 <input id="filtro-cnpj" type="text" class="form-control" placeholder="Filtrar por CNPJ">
-            </div>
-            <div class="col-md-4 mb-2">
-                <input id="filtro-supervisor" type="text" class="form-control" placeholder="Filtrar por Supervisor">
             </div>
             <div class="col-md-4 mb-2">
                 <input id="daterange" type="text" class="form-control" placeholder="Filtrar por Vencimento">

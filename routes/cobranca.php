@@ -17,12 +17,13 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         Route::get('get-recebimento-liquidado', [RelatorioCobrancaController::class, 'getRecebimentoLiquidado'])->name('get-recebimento-liquidado');
 
         // rotas inadimplencias
-        Route::get('rel-inadimplencia', [RelatorioCobrancaController::class, 'relatorioCobrancaNovo'])->name('rel-inadimplencia');
+        Route::get('rel-cliente', [RelatorioCobrancaController::class, 'relatorioFinanceiroCliente'])->name('rel-cliente');
         Route::get('get-inadimplencia', [RelatorioCobrancaController::class, 'getInadimplencia'])->name('get-inadimplencia');
         Route::get('get-inadimplencia-cliente', [RelatorioCobrancaController::class, 'getInadimplenciaDetalhes'])->name('get-inadimplencia-cliente');
 
         Route::get('get-limite-credito', [RelatorioCobrancaController::class, 'getLimiteCredito'])->name('get-limite-credito');
         Route::get('get-prazo-medio', [RelatorioCobrancaController::class, 'getPrazoMedio'])->name('get-prazo-medio');
+
     });
     
 });

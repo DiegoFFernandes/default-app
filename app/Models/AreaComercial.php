@@ -50,6 +50,17 @@ class AreaComercial extends Model
             ->get();
     }
 
+    public function GerenteAll($cd_usuario = 0){
+        $this->connection = 'mysql';
+        return AreaComercial::select('area_comercial.cd_usuario', DB::raw("substring_index(UPPER(users.name), ' ', 1) as name"))
+            ->join('users', 'users.id', 'area_comercial.cd_usuario') 
+            ->when($cd_usuario <> 0, function($q) use ($cd_usuario){
+                $q->where('area_comercial.cd_usuario', $cd_usuario);
+            })
+            ->groupBy('area_comercial.cd_usuario', 'users.name')          
+            ->get();
+    }
+
     public function GerenteSupervisorAll(){
         $this->connection = 'mysql';
         return AreaComercial::select('area_comercial.cd_areacomercial', DB::raw("substring_index(UPPER(users.name), ' ', 1) as name"))
