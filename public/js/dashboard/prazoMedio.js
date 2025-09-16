@@ -11,6 +11,7 @@ function carregarDadosPrazoMedio(route) {
         beforeSend: function () {
             carregando.removeClass("invisible");
             totalGeralContainer.text("0 dias");
+            accordionContainer.empty();
         },
         success: function (data) {
             let totalGeralDias = 0;
@@ -19,7 +20,11 @@ function carregarDadosPrazoMedio(route) {
             const calcularMedia = (dias, qtd) =>
                 qtd > 0 ? Math.round(dias / qtd) : 0;
 
+            const compararPorMaiorMedia = (itemA, itemB) => calcularMedia(itemB.dias, itemB.qtd) - calcularMedia(itemA.dias, itemA.qtd);
+
             const gerarGerentesHtml = (gerentes) => {
+
+                gerentes.sort(compararPorMaiorMedia);
                 return gerentes
                     .map((gerente, i) => {
                         totalGeralDias += gerente.dias;
@@ -56,6 +61,8 @@ function carregarDadosPrazoMedio(route) {
 
             const gerarSupervisoresHtml = (supervisores, i) => {
                 if (!supervisores) return "";
+
+                supervisores.sort(compararPorMaiorMedia);
                 return supervisores
                     .map((supervisor, j) => {
                         const mediaSupervisor = calcularMedia(
@@ -84,6 +91,8 @@ function carregarDadosPrazoMedio(route) {
 
             const gerarVendedoresHtml = (vendedores, i, j) => {
                 if (!vendedores) return "";
+
+                vendedores.sort(compararPorMaiorMedia);
                 return vendedores
                     .map((vendedor, k) => {
                         const mediaVendedor = calcularMedia(
