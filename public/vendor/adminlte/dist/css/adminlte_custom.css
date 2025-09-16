@@ -272,6 +272,13 @@ button.select2-selection__choice__remove {
     background-color: #495057; /* cinza mais claro no hover */
 }
 
+.info-leftline-info {
+    border-left: 3px solid #169EB3;
+}
+.info-leftline-warning {
+    border-left: 3px solid #F8BC07;
+}
+
 
 @media (max-width: 768px) {
     .btn-detalhes {

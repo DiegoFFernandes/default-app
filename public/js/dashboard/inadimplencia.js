@@ -1,20 +1,31 @@
-var dados1 = null;
-var dados2 = null;
+var inadGerente = null;
+var inadMeses = null;
 var total = 0;
+var atrasados = 0;
+var inadimplencia = 0;
+var hierarquia = null;
 
 function tentarProcessar() {
-    if (dados1 && dados2) {
-        total = dados2.reduce(
-            (acc, item) => acc + parseFloat(item.VL_DOCUMENTO),
-            0
-        );
+    if (inadGerente && inadMeses) {      
 
-        dados1.forEach((gerente, gIndex) => {
-            let percentual = (gerente.saldo / total) * 100;
+        inadGerente.forEach((gerente, gIndex) => {
+            if (hierarquia !== null) {                
+                if (hierarquia[gerente.nome].nome === gerente.nome) {
+                    total = hierarquia[gerente.nome]["vl_documento"];
+                    let percentual = (gerente.saldo / total) * 100;
+                    let pc_atrasados = (gerente.atrasados / total) * 100;
+                    let pc_inadimplencia =
+                        (gerente.inadimplencia / total) * 100;
 
-            $(`.pc_inadidimplencia-gerente-${gIndex}`).text(
-                percentual.toFixed(2) + "%"
-            );
+                    // $(`.pc_inadidimplencia-gerente-${gIndex}`).text(percentual.toFixed(2) + "%");
+                    $(`.pc_atrasados-gerente-${gIndex}`).html(
+                        `Atrasados: ${pc_atrasados.toFixed(2)}%`
+                    );
+                    $(`.pc_inadimplencia-gerente-${gIndex}`).html(
+                        `Inadimplência: ${pc_inadimplencia.toFixed(2)}%`
+                    );
+                }
+            }
         });
     }
 }
@@ -31,21 +42,29 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
         beforeSend: function () {
             $("#" + idCard + " .loading-card").removeClass("invisible");
             $(".valorTotalGerente").text(`R$ 0`);
+            $("#pc_atrasados").text(`0,00%`);
+            $("#pc_inadimplencia").text(`0,00%`);
         },
         success: function (data) {
-            dados1 = data;
+            inadGerente = data;
             tentarProcessar();
             let valorTotalGerente = 0;
             let html = "";
             data.forEach((gerente, gIndex) => {
                 valorTotalGerente += gerente.saldo;
+
                 html += `
                             <div class="card">
                             <div class="card-header p-1">
                                 <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
-                                👔 ${gerente.nome} (R$ ${formatarValorBR(
+                                    👔 ${gerente.nome} (R$ ${formatarValorBR(
                     gerente.saldo
-                )}) <span class="badge badge-warning pc_inadidimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                )}) 
+                                    <!--<span class="badge badge-warning pc_inadidimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>-->
+                                    <span class="saldo">
+                                        <span class="badge badge-info pc_atrasados-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-warning pc_inadimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                    </span>
                                 </button>
                             </div>
                             <div id="sup-${gIndex}" class="collapse" data-parent="#${idAccordion}">
@@ -65,38 +84,52 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                         html += `
                                 <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
                                 👤 ${vend.nome} 
-                                <span class="saldo">(R$ ${formatarValorBR(vend.saldo)})</span>
+                                <span class="saldo">(R$ ${formatarValorBR(
+                                    vend.saldo
+                                )})</span>
                                 </button>
                                 <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">
                                 <ul class="list-group">
                             `;
 
-                        vend.clientes.forEach((cliente) => {
+                        vend.clientes.forEach((detalhe) => {
                             html += `
                                 <li class="list-group-item p-1">
-                                    🏢 <span class="text-small">${cliente.nome}</span><br>
-                                    <table class="table table-sm mb-0 table-font-xs">
+                                    🏢 <span class="badge badge-secondary">${
+                                        detalhe.PESSOA
+                                    }</span><br>
+                                     <table class="table table-sm mb-0">
                                         <tbody>
-                                        <tr>
-                                            <th class="text-muted">Nota</th>
-                                            <td class="td-small-text">${
-                                                cliente.detalhes.documento
-                                            }</td>
-                                            <th class="text-muted">Venc.</th>
-                                        <td>${formatDate(
-                                            cliente.detalhes.vencimento
-                                        )}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-muted">Valor</th>
-                                            <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
-                                                cliente.detalhes.saldo
-                                            )}</span></td>
-                                            <th class="text-muted">Juros</th>
-                                            <td><span class="text-danger">${formatarValorBR(
-                                                cliente.detalhes.juros
-                                            )}</span></td>
-                                        </tr>
+                                            <tr>
+                                                <th class="text-muted">Nota</th>
+                                                <td class="td-small-text">${
+                                                    detalhe.NR_DOCUMENTO
+                                                }</td>
+                                                <th class="text-muted">Total</th>
+                                                <td><span class="font-weight-bold">${formatarValorBR(
+                                                    detalhe.VL_TOTAL
+                                                )}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Emissão</th>
+                                                <td class="td-small-text">${formatDate(
+                                                    detalhe.DT_LANCAMENTO
+                                                )}</td>
+                                                <th class="text-muted">Venc.</th>
+                                                <td>${formatDate(
+                                                    detalhe.DT_VENCIMENTO
+                                                )}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Valor</th>
+                                                <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
+                                                    detalhe.VL_SALDO
+                                                )}</span></td>
+                                                <th class="text-muted">Juros</th>
+                                                <td><span class="text-danger font-weight-bold">${formatarValorBR(
+                                                    detalhe.VL_JUROS
+                                                )}</span></td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 
@@ -121,7 +154,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
         },
     });
 }
-// inicializa a tabela de meses
+// inicializa a tabela de meses relatorio de gerente
 function initTableInadimplenciaMeses(
     tab,
     idTable,
@@ -154,6 +187,17 @@ function initTableInadimplenciaMeses(
                 $("#card-inadimplencia-meses .loading-card").removeClass(
                     "invisible"
                 );
+                $("#pc_atrasados").text(`0,00%`);
+                $("#pc_inadimplencia").text(`0,00%`);
+            },
+            dataSrc: function (json) {
+                // console.log(json);
+                // Salva as variáveis globais com os valores do backend
+                atrasados = parseFloat(json.atrasados);
+                inadimplencia = parseFloat(json.inadimplencia);
+
+                hierarquia = json.hierarquia;
+                return json.data;
             },
             complete: function () {
                 $("#card-inadimplencia-meses .loading-card").addClass(
@@ -164,9 +208,13 @@ function initTableInadimplenciaMeses(
 
         columns: [
             {
-                data: "action",
+                data: null,
                 name: "action",
-                title: "",
+                ordeable: false,
+                searchable: false,
+                render: function () {
+                    return "<span class='right btn-detalhes details-control mr-2'><i class='fa fa-plus-circle'></i></span>";
+                },
             },
             {
                 data: "MES_ANO",
@@ -191,6 +239,9 @@ function initTableInadimplenciaMeses(
                 name: "PC_INADIMPLENCIA",
                 title: "%",
                 width: "33%",
+                render: function (data) {
+                    return formatarValorBR(data) + "%";
+                },
             },
         ],
         columnDefs: [
@@ -201,7 +252,8 @@ function initTableInadimplenciaMeses(
         ],
         footerCallback: function (row, data, start, end, display) {
             var api = this.api();
-            dados2 = data;
+
+            inadMeses = data;
             tentarProcessar();
 
             // Remove the formatting to get integer data for summation
@@ -232,10 +284,14 @@ function initTableInadimplenciaMeses(
             $(api.column(2).footer()).html(formatarValorBR(totalTotal));
             $(api.column(3).footer()).html(formatarValorBR(totalVencido));
 
-            var inadimplenciaPercentual = (totalVencido / totalTotal) * 100;
+            var inadimplenciaPercentual = (inadimplencia / totalTotal) * 100;
+            var atrasadosPercentual = (atrasados / totalTotal) * 100;
+
             $("#pc_inadimplencia").html(
                 formatarValorBR(inadimplenciaPercentual) + "%"
             );
+            $("#pc_atrasados").html(formatarValorBR(atrasadosPercentual) + "%");
+
             $("#vencidos").html(formatarValorBR(totalVencido));
 
             $("#total_carteira").html(formatarValorBR(totalTotal));
@@ -310,28 +366,44 @@ function initTableInadimplenciaMeses(
                         accordion += `
                                 <div class="card-body p-1">
                                     <div class="card-body pt-2 pb-2">
+                                    <span class="badge badge-secondary mr-1">${
+                                        detalhe.TIPOCONTA
+                                    }</span>
+                                    <span class="badge badge-dark mr-1">${
+                                        detalhe.CD_FORMAPAGTO
+                                    }</span>
                                     <table class="table table-sm mb-0">
                                         <tbody>
-                                        <tr>
-                                            <th class="text-muted">Nota</th>
-                                            <td class="td-small-text">${
-                                                detalhe.NR_DOCUMENTO
-                                            }</td>
-                                            <th class="text-muted">Venc.</th>
-                                        <td>${formatDate(
-                                            detalhe.DT_VENCIMENTO
-                                        )}</td>
-                                        </tr>
-                                        <tr>
-                                            <th class="text-muted">Valor</th>
-                                            <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
-                                                detalhe.VL_SALDO
-                                            )}</span></td>
-                                            <th class="text-muted">Juros</th>
-                                            <td><span class="text-danger">${formatarValorBR(
-                                                detalhe.VL_JUROS
-                                            )}</span></td>
-                                        </tr>
+                                            <tr>
+                                                <th class="text-muted">Nota</th>
+                                                <td class="td-small-text">${
+                                                    detalhe.NR_DOCUMENTO
+                                                }</td>
+                                                <th class="text-muted">Total</th>
+                                                <td><span class="font-weight-bold">${formatarValorBR(
+                                                    detalhe.VL_TOTAL
+                                                )}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Emissão</th>
+                                                <td class="td-small-text">${formatDate(
+                                                    detalhe.DT_LANCAMENTO
+                                                )}</td>
+                                                <th class="text-muted">Venc.</th>
+                                                <td>${formatDate(
+                                                    detalhe.DT_VENCIMENTO
+                                                )}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Valor</th>
+                                                <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
+                                                    detalhe.VL_SALDO
+                                                )}</span></td>
+                                                <th class="text-muted">Juros</th>
+                                                <td><span class="text-danger font-weight-bold">${formatarValorBR(
+                                                    detalhe.VL_JUROS
+                                                )}</span></td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>

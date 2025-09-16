@@ -15,6 +15,11 @@ class Cobranca extends Model
 
     public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0, $tela = 1, $mes = 0, $ano = 0, $filtro = null)
     {
+        if($tela == 1){
+            $string = 'DT_VENCIMENTO';
+        } else {
+            $string = 'DT_LANCAMENTO';
+        }
         $query = "          
                 SELECT DISTINCT 
                     CONTAS.CD_FORMAPAGTO,                   
@@ -41,7 +46,7 @@ class Cobranca extends Model
                     CONTAS.NR_DOCUMENTO || ' - ' || CONTAS.NR_PARCELA || '/' || RMAX.O_NR_MAIORPARCELA NR_DOCUMENTO,
                     CONTAS.DT_LANCAMENTO,
                     CONTAS.DT_VENCIMENTO,
-                    ME.O_DS_ABREVIACAOMES || '/' || EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) MES,
+                    ME.O_DS_ABREVIACAOMES || '/' || EXTRACT(YEAR FROM CONTAS.$string) MES,
                     CONTAS.VL_DOCUMENTO,
                     CAST(CONTAS.VL_SALDO AS NUMERIC(15,2)) VL_SALDO,
                     CJ.O_VL_JURO VL_JUROS,
@@ -61,7 +66,7 @@ class Cobranca extends Model
                     COALESCE(AC.CD_AREACOMERCIAL, 99) CD_AREACOMERCIAL,
                     COALESCE(AC.DS_AREACOMERCIAL, 'SEM AREA') DS_AREACOMERCIAL
                 FROM CONTAS
-                INNER JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) ME ON (1 = 1)
+                INNER JOIN MES_EXTENSO(CONTAS.$string) ME ON (1 = 1)
                 INNER JOIN RETORNA_MAIORPARCELACONTAS(CONTAS.CD_EMPRESA, CONTAS.NR_LANCAMENTO, CONTAS.CD_PESSOA, CONTAS.CD_TIPOCONTA) RMAX ON (1 = 1)
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
                 INNER JOIN TIPOCONTA ON (TIPOCONTA.CD_TIPOCONTA = CONTAS.CD_TIPOCONTA)
@@ -80,34 +85,30 @@ class Cobranca extends Model
                 LEFT JOIN CALCULA_JUROMORA(CONTAS.CD_EMPRESA, CONTAS.NR_LANCAMENTO, CONTAS.CD_PESSOA, CONTAS.CD_TIPOCONTA, CONTAS.NR_PARCELA, CURRENT_DATE, NULL) CJ ON (0 = 0)
                 LEFT JOIN REGIAOCOMERCIAL RGC ON (RGC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
                 LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
-                WHERE CONTAS.CD_TIPOCONTA IN (2, 10)
+                WHERE 
+                    " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "
                     --AND CONTAS.CD_PESSOA in (11283, 18106)
-                    AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
+                    " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1" : " AND CONTAS.DT_LANCAMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5") . "
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "                    
-                    " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
-                    " . ($mes != 0 ? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
-                    " . ($ano != 0 ? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
+                    " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                    " . ($mes != 0 && $tela == 1? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
+                    " . ($ano != 0 && $tela == 1? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
+
+                    " . ($mes != 0 && $tela == 2? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
+                    " . ($ano != 0 && $tela == 2? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
 
                     " . (!empty($filtro['nm_pessoa']) ? "AND P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                     " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
-                    " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
+                    " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "                  
 
-                ORDER BY CONTAS.DT_VENCIMENTO;
+                ORDER BY CONTAS.$string;
              ";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
-
-        if ($tela == 1) {
-            $key = "relatorioCobranca-3" . Auth::user()->id;
-        } else {
-            $key = "relatorioCobrancaCartaoCheque-3" . Auth::user()->id;
-        }
-
-        return Cache::remember($key, now()->addMinutes(15), function () use ($query) {});
     }
 
     public function clientesInadiplentes($cd_regiao)
@@ -141,7 +142,7 @@ class Cobranca extends Model
                     AND C.DT_VENCIMENTO <= CURRENT_DATE-2
                     AND C.CD_TIPOCONTA IN (2, 10)
                     " . (!empty($cd_regiao) ? "AND RC.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
-                    AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                    AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')
                 GROUP BY C.CD_PESSOA,
                     P.NM_PESSOA,
                     P.NR_CNPJCPF,
@@ -186,7 +187,7 @@ class Cobranca extends Model
                 AND C.DT_VENCIMENTO <= CURRENT_DATE-2
                 AND C.CD_TIPOCONTA IN (2, 10)
                 AND C.CD_PESSOA = $cd_pessoa
-                AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')
+                AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')
             ORDER BY C.VL_SALDO DESC     
                 ";
 
@@ -250,7 +251,7 @@ class Cobranca extends Model
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
-                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
 
@@ -267,16 +268,24 @@ class Cobranca extends Model
     }
     public function getInadimplencia($filtro = null, $tela = 1, $cd_empresa = 0, $cd_regiao = "")
     {
+        if($tela == 1){
+            $string = 'DT_VENCIMENTO';
+        } else {
+            $string = 'DT_LANCAMENTO';
+        }
         $query = "
             SELECT
-                EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) MES,
-                EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) ANO,
-                MES.O_DS_MES || '/' || EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) MES_ANO,
+                EXTRACT(MONTH FROM CONTAS.$string) MES,
+                EXTRACT(YEAR FROM CONTAS.$string) ANO,
+                MES.O_DS_MES || '/' || EXTRACT(YEAR FROM CONTAS.$string) MES_ANO,
+                CONTAS.$string,
                 CAST(SUM(CONTAS.VL_DOCUMENTO) AS NUMERIC(18,2)) VL_DOCUMENTO,
-                CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO
+                CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO,
+
+                V.CD_VENDEDORGERAL
             FROM CONTAS
             INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
-            LEFT JOIN MES_EXTENSO(CONTAS.DT_VENCIMENTO) MES ON (1 = 1)
+            LEFT JOIN MES_EXTENSO(CONTAS.$string) MES ON (1 = 1)
             LEFT JOIN NOTA NT ON (NT.CD_EMPRESA = CONTAS.CD_EMPRESA
                 AND NT.NR_LANCAMENTO = CONTAS.NR_LANCTONOTA
                 AND NT.TP_NOTA = CONTAS.TP_CONTAS
@@ -288,10 +297,10 @@ class Cobranca extends Model
             LEFT JOIN PESSOA VEND ON (VEND.CD_PESSOA = V.CD_VENDEDOR)
             LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
             WHERE
-                CONTAS.CD_TIPOCONTA IN (2, 10)
-                AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
-                AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
-                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "
+                AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')               
+                " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1" : " AND CONTAS.DT_LANCAMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5") . "
+                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                 " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
                 
@@ -302,19 +311,14 @@ class Cobranca extends Model
 
                 
             GROUP BY MES_ANO,
+                CONTAS.$string,
                 MES,
-                ANO
+                ANO,
+                V.CD_VENDEDORGERAL
             ORDER BY ANO DESC,
                 MES DESC";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
-
-        $key = "recebimentoLiquidadoMesV1" . Auth::user()->id;
-
-        return Cache::remember($key, now()->addMinutes(30), function () use ($query) {
-            $data = DB::connection('firebird')->select($query);
-            return Helper::ConvertFormatText($data);
-        });
     }
 }

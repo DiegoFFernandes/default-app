@@ -4,7 +4,10 @@ function initTableLimiteCredito(route) {
         serverSide: false,
         searching: true,
         responsive: true,
+        pageLength: 30,
         paging: true,
+        // fixedHeader: true,
+        scrollY: 400,
         pagingType: "simple",
         language: {
             url: route['language_datatables'],
@@ -23,7 +26,7 @@ function initTableLimiteCredito(route) {
             {
                 data: "VL_NOTA",
                 title: "Vl Notas",
-
+                visible: false,
                 responsivePriority: 10000,
                 render: $.fn.dataTable.render.number(".", ",", 2, "R$ "),
             },
