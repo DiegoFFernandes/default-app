@@ -11,6 +11,7 @@ use App\Models\GerenteUnidade;
 use App\Models\LimiteCredito;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use App\Services\UserRoleFilterService;
 use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -720,6 +721,7 @@ class RelatorioCobrancaController extends Controller
             'hierarquia' => $hierarquia
         ];
     }
+
     public function getInadimplenciaDetalhes()
     {
         $filtro = null;
@@ -968,9 +970,161 @@ class RelatorioCobrancaController extends Controller
 
     public function getCanhoto()
     {
-        $data = $this->controleCanhoto->canhotoNaoRecebidos();
+        $service = new UserRoleFilterService($this->user, $this->area, $this->supervisorComercial, $this->gerenteUnidade);
 
-        return Datatables::of($data)
-            ->make(true);
+        $filtros = $service->getFiltros();
+
+        $data = $this->controleCanhoto->canhotoNaoRecebidos(
+            $filtros['cd_empresa'],
+            $filtros['cd_regiao']
+        );
+
+        $resultados = self::formataArrayMesesCanhoto($data);
+
+        // Dados formatados
+        $data = $resultados['mesesAgrupados'];
+
+        // Retorna os dados para o DataTables
+        return response()->json([
+            'data' => $data,  // Tabela dos meses
+        ]);
+    }
+    public function getCanhotoDetails()
+    {
+        $filtro = null;
+        if (session()->has('filtro')) {
+            $filtro = session()->get('filtro');
+            if ($filtro['session'] === false) {
+                $filtro = null;
+            }
+        }
+
+        $mes = $this->request->mes;
+        $ano = $this->request->ano;
+
+        $service = new UserRoleFilterService($this->user, $this->area, $this->supervisorComercial, $this->gerenteUnidade);
+
+        $filtros = $service->getFiltros();
+
+        $data = $this->controleCanhoto->canhotoNaoRecebidos(
+            $filtros['cd_empresa'],
+            $filtros['cd_regiao'],
+            $mes,
+            $ano
+        );
+
+        // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+
+        $hierarquia = [];
+
+        foreach ($data as $item) {
+            foreach ($regioes_mysql as $regiao) {
+                if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+                    $nomeGerente = $regiao->name;
+                    // --- GERENTE ---
+                    $nomeGerente = $regiao->name ?? 'Sem gerente';
+                    if (!isset($hierarquia[$nomeGerente])) {
+                        $hierarquia[$nomeGerente] = [
+                            'nome' => $nomeGerente,
+                            'cargo' => 'Gerente',
+                            'qtd_notas' => 0,
+                            'supervisores' => []
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['qtd_notas']++;
+
+                    // --- SUPERVISOR ---
+                    $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor] = [
+                            'nome' => $nomeSupervisor,
+                            'cargo' => 'Supervisor',
+                            'qtd_notas' => 0,
+                            'vendedores' => []
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd_notas']++;
+
+                    // --- VENDEDOR ---
+                    $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem vendedor';   
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
+                            'nome' => $nomeVendedor,
+                            'cargo' => 'Vendedor',
+                            'qtd_notas' => 0,
+                            'clientes' => []
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['qtd_notas']++;
+
+                    // --- PESSOA ---
+                    $nomePessoa = $item->NM_PESSOA ?? 'Sem pessoa';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomePessoa])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomePessoa] = [
+                            'nome' => $nomePessoa,
+                            'qtd_notas' => 0,
+                            'detalhes' => []
+                        ];
+                    }
+
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomePessoa]['qtd_notas']++;
+
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][$nomePessoa]['detalhes'][] = [
+                        'nr_documento' => $item->NR_DOCUMENTO,
+                        'cd_serie' => $item->CD_SERIE,
+                        'dt_lancamento' => $item->DT_LANCAMENTO,
+                    ];
+                }
+            }            
+        }
+
+         // --- Normaliza a hierarquia em arrays 
+        foreach ($hierarquia as &$gerente) {
+            // supervisores
+            $gerente['supervisores'] = array_values($gerente['supervisores']);
+            foreach ($gerente['supervisores'] as &$supervisor) {
+                // vendedores
+                $supervisor['vendedores'] = array_values($supervisor['vendedores']);
+                foreach ($supervisor['vendedores'] as &$vendedor) {
+                    // pessoas
+                    $vendedor['clientes'] = array_values($vendedor['clientes']);
+                }
+            }
+        }
+        unset($gerente);
+        unset($supervisor);
+        unset($vendedor);
+
+
+        // return $hierarquia;
+        return response()->json(array_values($hierarquia));
+    }
+
+
+    static function formataArrayMesesCanhoto($data)
+    {
+        // Inicializa um array vazio para armazenar os objetos
+        $meses = [];
+
+        foreach ($data as $item) {
+
+            // Verifica se já existe um mês no array
+            if (!isset($meses[$item->MES_ANO])) {
+                // Cria um novo objeto para MES_ANO
+                $meses[$item->MES_ANO] = (object)[
+                    'MES' => $item->MES,
+                    'ANO' => $item->ANO,
+                    'MES_ANO' => $item->MES_ANO,
+                    'QTD_NOTA' => 0
+                ];
+            }
+            // Acumula os valores de QTD_NOTA            
+            $meses[$item->MES_ANO]->QTD_NOTA++;
+        }
+
+        return [
+            'mesesAgrupados' => array_values((array)$meses),
+        ];
     }
 }

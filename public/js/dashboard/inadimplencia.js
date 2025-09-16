@@ -9,8 +9,7 @@ function tentarProcessar() {
     if (inadGerente && inadMeses) {      
 
         inadGerente.forEach((gerente, gIndex) => {
-            if (hierarquia !== null) {
-                console.log(hierarquia[gerente.nome].nome);
+            if (hierarquia !== null) {                
                 if (hierarquia[gerente.nome].nome === gerente.nome) {
                     total = hierarquia[gerente.nome]["vl_documento"];
                     let percentual = (gerente.saldo / total) * 100;

@@ -1,6 +1,4 @@
-
 var totalCanhoto = 0;
-
 
 // inicializa a tabela de meses relatorio de gerente
 function initTableCanhotoMeses(
@@ -26,7 +24,7 @@ function initTableCanhotoMeses(
             url: route["language_datatables"],
         },
         ajax: {
-            url: route["tabela_mensal"],
+            url: route["canhoto"],
             data: {
                 filtro: data,
                 tab: tab,
@@ -56,210 +54,185 @@ function initTableCanhotoMeses(
                 data: "MES_ANO",
                 name: "MES_ANO",
                 title: "Mês/Ano",
-                width: "33%",
             },
             {
-                data: "VL_DOCUMENTO",
-                name: "VL_DOCUMENTO",
-                title: "Total",
-                visible: false,
-            },
-            {
-                data: "VL_SALDO",
-                name: "VL_SALDO",
-                title: "Vencido",
-                width: "33%",
-            },
-            {
-                data: "PC_INADIMPLENCIA",
-                name: "PC_INADIMPLENCIA",
-                title: "%",
-                width: "33%",
-                render: function (data) {
-                    return formatarValorBR(data) + "%";
-                },
+                data: "QTD_NOTA",
+                name: "QTD_NOTA",
+                title: "Canhotos",
             },
         ],
-        columnDefs: [
-            {
-                targets: [2, 3],
-                render: $.fn.dataTable.render.number(".", ",", 2),
-            },
-        ],
-        // footerCallback: function (row, data, start, end, display) {
-        //     var api = this.api();
+        footerCallback: function (row, data, start, end, display) {
+            var api = this.api();
 
-        //     inadMeses = data;
-        //     tentarProcessar();
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                return typeof i === "string"
+                    ? i.replace(",", ".") * 1
+                    : typeof i === "number"
+                    ? i
+                    : 0;
+            };
 
-        //     // Remove the formatting to get integer data for summation
-        //     var intVal = function (i) {
-        //         return typeof i === "string"
-        //             ? i.replace(",", ".") * 1
-        //             : typeof i === "number"
-        //             ? i
-        //             : 0;
-        //     };
+            // Total over all pages
+            total = api
+                .column(2)
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
 
-        //     // Total over all pages
-        //     totalTotal = api
-        //         .column(2)
-        //         .data()
-        //         .reduce(function (a, b) {
-        //             return intVal(a) + intVal(b);
-        //         }, 0);
-
-        //     totalVencido = api
-        //         .column(3)
-        //         .data()
-        //         .reduce(function (a, b) {
-        //             return intVal(a) + intVal(b);
-        //         }, 0);
-
-        //     // Update footer
-        //     $(api.column(2).footer()).html(formatarValorBR(totalTotal));
-        //     $(api.column(3).footer()).html(formatarValorBR(totalVencido));
-
-        //     var inadimplenciaPercentual = (inadimplencia / totalTotal) * 100;
-        //     var atrasadosPercentual = (atrasados / totalTotal) * 100;
-
-        //     $("#pc_inadimplencia").html(
-        //         formatarValorBR(inadimplenciaPercentual) + "%"
-        //     );
-        //     $("#pc_atrasados").html(formatarValorBR(atrasadosPercentual) + "%");
-
-        //     $("#vencidos").html(formatarValorBR(totalVencido));
-
-        //     $("#total_carteira").html(formatarValorBR(totalTotal));
-        // },
+            // Update footer
+            $(api.column(2).footer()).html(total);
+        },
     });
 
-    // $("#" + idTable + " tbody").on("click", ".details-control", function () {
-    //     var tr = $(this).closest("tr");
-    //     var row = $("#" + idTable)
-    //         .DataTable()
-    //         .row(tr);
+    $("#" + idTable + " tbody").on("click", ".details-control", function () {
+        var tr = $(this).closest("tr");
+        var row = $("#" + idTable)
+            .DataTable()
+            .row(tr);
 
-    //     $("#" + idAccordion).empty(); // Limpa antes
+        $("#" + idAccordion).empty(); // Limpa antes
 
-    //     $.ajax({
-    //         type: "GET",
-    //         url: route["modal_clientes"],
-    //         data: {
-    //             mes: row.data().MES,
-    //             ano: row.data().ANO,
-    //             tab: tab,
-    //         },
-    //         dataType: "json",
-    //         beforeSend: function () {
-    //             $("#loading").removeClass("invisible");
-    //         },
-    //         success: function (response) {
-    //             data = Object.values(response);
+        $.ajax({
+            type: "GET",
+            url: route["modal_canhotos"],
+            data: {
+                mes: row.data().MES,
+                ano: row.data().ANO,
+            },
+            dataType: "json",
+            beforeSend: function () {
+                $("#loading").removeClass("invisible");
+            },
+            success: function (response) {
+                data = Object.values(response);
 
-    //             $(".modal-table-cliente-label").html(
-    //                 "Detalhes Inadimplência</br>" +
-    //                     row.data().MES_ANO +
-    //                     " (" +
-    //                     formatarValorBR(row.data().VL_SALDO) +
-    //                     ")"
-    //             );
-    //             $("#" + idAccordion).empty(); // limpa antes de popular
+                $(".modal-table-canhoto-label").html(
+                    "Detalhes Canhoto</br>" +
+                        row.data().MES_ANO +
+                        " (" +
+                        row.data().QTD_NOTA +
+                        " Canhotos)"
+                );
+                $("#" + idAccordion).empty(); // limpa antes de popular
 
-    //             data.forEach(function (item) {
-    //                 let accordion = `
-    //                     <div class="card card-outline">
-    //                     <div class="card-header pt-1 pb-1" id="heading${
-    //                         item.CD_PESSOA
-    //                     }">
-    //                         <h6 class="mb-0 d-flex align-items-center justify-content-between">
-    //                             <button class="btn collapsed p-0 m-0 text-left" type="button"
-    //                                     data-toggle="collapse"
-    //                                     data-target="#collapse${item.CD_PESSOA}"
-    //                                     aria-expanded="false"
-    //                                     aria-controls="collapse${
-    //                                         item.CD_PESSOA
-    //                                     }" style="font-size: 13px;">
-    //                             <b>${item.NM_PESSOA}</b>
-    //                             </button>
-    //                             <span class="badge badge-warning ml-2">
-    //                                 ${parseFloat(
-    //                                     item.VL_SALDO_AGRUPADO
-    //                                 ).toLocaleString("pt-BR", {
-    //                                     minimumFractionDigits: 2,
-    //                                     maximumFractionDigits: 2,
-    //                                 })}
-    //                             </span>
-    //                         </h6>
-    //                     </div>
-    //                     <div id="collapse${
-    //                         item.CD_PESSOA
-    //                     }" class="collapse" aria-labelledby="heading${
-    //                     item.CD_PESSOA
-    //                 }">
-    //                 `;
-    //                 item.DETALHES.forEach(function (detalhe) {
-    //                     accordion += `
-    //                             <div class="card-body p-1">
-    //                                 <div class="card-body pt-2 pb-2">
-    //                                 <span class="badge badge-secondary mr-1">${
-    //                                     detalhe.TIPOCONTA
-    //                                 }</span>
-    //                                 <span class="badge badge-dark mr-1">${
-    //                                     detalhe.CD_FORMAPAGTO
-    //                                 }</span>
-    //                                 <table class="table table-sm mb-0">
-    //                                     <tbody>
-    //                                         <tr>
-    //                                             <th class="text-muted">Nota</th>
-    //                                             <td class="td-small-text">${
-    //                                                 detalhe.NR_DOCUMENTO
-    //                                             }</td>
-    //                                             <th class="text-muted">Total</th>
-    //                                             <td><span class="font-weight-bold">${formatarValorBR(
-    //                                                 detalhe.VL_TOTAL
-    //                                             )}</span></td>
-    //                                         </tr>
-    //                                         <tr>
-    //                                             <th class="text-muted">Emissão</th>
-    //                                             <td class="td-small-text">${formatDate(
-    //                                                 detalhe.DT_LANCAMENTO
-    //                                             )}</td>
-    //                                             <th class="text-muted">Venc.</th>
-    //                                             <td>${formatDate(
-    //                                                 detalhe.DT_VENCIMENTO
-    //                                             )}</td>
-    //                                         </tr>
-    //                                         <tr>
-    //                                             <th class="text-muted">Valor</th>
-    //                                             <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
-    //                                                 detalhe.VL_SALDO
-    //                                             )}</span></td>
-    //                                             <th class="text-muted">Juros</th>
-    //                                             <td><span class="text-danger font-weight-bold">${formatarValorBR(
-    //                                                 detalhe.VL_JUROS
-    //                                             )}</span></td>
-    //                                         </tr>
-    //                                     </tbody>
-    //                                 </table>
-    //                             </div>
+                let html = initAccordionCanhoto(data, idAccordion);
+                $("#" + idAccordion).html(html);
+                $("#loading").addClass("invisible");
+                $("#" + idModal).modal("show");
+            },
+        });
+    });
+}
+function initAccordionCanhoto(data, idAccordion) {
+    let html = "";
+    data.forEach((gerente, gIndex) => {
+        html += `
+                            <div class="card">
+                            <div class="card-header p-1">
+                                <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
+                                    👔 ${gerente.nome} (${gerente.qtd_notas} Canhotos)
+                                </button>
+                            </div>
+                            <div id="sup-${gIndex}" class="collapse" data-parent="#${idAccordion}">
+                                <div class="card-body p-2">     `;
 
-    //                         </div>
-    //                         <hr class="mt-0 mb-2">
-    //                     `;
-    //                 });
+        gerente.supervisores.forEach((sup, sIndex) => {
+            html += `
+                            <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
+                                🛡️ ${sup.nome} (${sup.qtd_notas})
+                            </button>
+                            <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
+                            `;
 
-    //                 accordion += `
-    //                         </div>
-    //                     </div>
-    //                 `;
+            sup.vendedores.forEach((vend, vIndex) => {
+                html += `
+                                <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                👤 ${vend.nome} 
+                                <span class="saldo">(${vend.qtd_notas})</span>
+                                </button>
+                                <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">                                
+                            `;
 
-    //                 $("#" + idAccordion).append(accordion);
-    //             });
+                vend.clientes.forEach((cli, cIndex) => {
+                    html += `
+                                <button class="btn btn-sm btn-default d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}-${cIndex}">
+                                🏢 ${cli.nome} 
+                                <span class="saldo">(${cli.qtd_notas})</span>
+                                </button>
+                                <div id="cli-${gIndex}-${sIndex}-${vIndex}-${cIndex}" class="collapse mt-2">
+                                <ul class="list-group">
+                                `;
 
-    //             $("#loading").addClass("invisible");
-    //             $("#" + idModal).modal("show");
-    //         },
-    //     });
-    // });
+                    cli.detalhes.forEach((detalhe, dIndex) => {
+                        html += `
+                                <li class="list-group-item p-1">  
+                                    <span class="badge badge-secondary">${
+                                        cli.nome
+                                    }</span>                                  
+                                     <table class="table table-sm mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <th class="text-muted">Documento</th>
+                                                <td class="td-small-text">${
+                                                    detalhe.nr_documento
+                                                }</td>
+                                                <th class="text-muted">Serie</th>
+                                                <td><span class="font-weight-bold">${
+                                                    detalhe.cd_serie
+                                                }</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th class="text-muted">Emissão</th>
+                                                <td class="td-small-text">${formatDate(
+                                                    detalhe.dt_lancamento
+                                                )}</td>
+                                                <th class="text-muted"></th>
+                                                <td></td>
+                                            </tr>                                            
+                                        </tbody>
+                                    </table>
+                                
+                                </li>
+                                `;
+                    });
+                    html += `</ul></div>`;
+                });
+
+                html += `</ul></div>`;
+            });
+
+            html += `</div>`; // fecha Supervisor
+        });
+
+        html += `</div></div></div>`; // fecha Gerente
+    });
+
+    return html;
+}
+
+function canhotoGerente(tab, data, routes, idAccordion, idCard) {
+    $("#" + idAccordion).empty(); // Limpa antes
+    let valorTotalCanhotos = 0;
+
+    $.ajax({
+        type: "GET",
+        url: routes["modal_canhotos"],
+        data: {
+            mes: 0,
+            ano: 0,
+        },
+        dataType: "json",
+        
+        success: function (response) {
+            data = Object.values(response);         
+            
+            valorTotalCanhotos = data.reduce((acc, gerente) => acc + gerente.qtd_notas, 0);           
+
+            let html = initAccordionCanhoto(data, idAccordion);
+            $("#" + idAccordion).html(html);               
+            $('.valorTotalCanhoto').html(valorTotalCanhotos + ' Canhotos');     
+        },
+    });
 }

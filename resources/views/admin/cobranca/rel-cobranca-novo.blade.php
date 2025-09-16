@@ -156,7 +156,7 @@
     <script src="{{ asset('js/dashboard/inadimplencia.js?v=19') }}"></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=1') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js?v=3') }}"></script>
-    <script src="{{ asset('js/dashboard/canhoto.js?v=1') }}"></script>
+    <script src="{{ asset('js/dashboard/canhoto.js?v=2') }}"></script>
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
@@ -167,7 +167,8 @@
 
         var routes = {
             'inadimplencia_gerente': "{{ route('get-list-cobranca') }}",
-            'canhoto': "{{ route('get-list-canhoto') }}"
+            'canhoto': "{{ route('get-list-canhoto') }}",
+            'modal_canhotos': "{{ route('get-list-canhoto-details') }}",
         };
 
         var routesInadimplenciaMensal = {
@@ -268,19 +269,20 @@
 
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
-            // inadimplenciaGerente(
-            //     tab, {},
-            //     routes['inadimplencia_gerente'],
-            //     'treeAccordionGerente',
-            //     'card-inadimplencia-gerente'
-            // );
+            canhotoGerente(
+                tab, 
+                {},
+                routes,
+                'treeAccordionCanhoto',
+                'card_canhoto'
+            );
 
             initTableCanhotoMeses(
                 tab,
                 'tabela-canhoto-meses',
-                'modal-table-cliente',
-                'accordion-canhoto-gerente', {},
-                routes['canhoto'],
+                'modal-table-canhoto',
+                'accordion-canhoto', {},
+                routes,
             );
             
         });
@@ -313,6 +315,7 @@
 
         //limpa as filtros e retorna tudo novamente
         $('#btn-reset').on('click', function() {
+            hierarquia = null;
             $('#filtro-nome').val('');
             $('#filtro-vendedor').val('');
             $('#filtro-cnpj').val('');

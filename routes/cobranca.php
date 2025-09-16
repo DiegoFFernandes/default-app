@@ -25,7 +25,7 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
         Route::get('get-prazo-medio', [RelatorioCobrancaController::class, 'getPrazoMedio'])->name('get-prazo-medio');
 
         Route::get('get-list-canhoto', [RelatorioCobrancaController::class, 'getCanhoto'])->name('get-list-canhoto');
-
+        Route::get('get-list-canhoto-details', [RelatorioCobrancaController::class, 'getCanhotoDetails'])->name('get-list-canhoto-details');
     });
     
 });

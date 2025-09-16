@@ -3,7 +3,7 @@
     <div class="col-md-4 col-12">
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
-                <h5 class="card-title">Canhatos Mensal</h5>                
+                <h5 class="card-title">Canhotos Mensal</h5>                
             </div>
             <div class="card-body p-2" id="card-canhoto-meses">
                 {{-- Icon loading --}}
@@ -19,10 +19,8 @@
                             <tfoot>
                                 <tr>
                                     <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
+                                    <th></th>   
+                                    <th></th>                                  
                                 </tr>
                             </tfoot>
                         </table>
@@ -55,7 +53,7 @@
     <div class="col-md-8 col-12">
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
-                <h5 class="card-title">Relatório Canhotos</h5>
+                <h5 class="card-title">Canhotos Gerentes</h5>
             </div>
             <div class="card-body p-2" id="{{ $card_canhoto }}">
                 {{-- Icon loading --}}
