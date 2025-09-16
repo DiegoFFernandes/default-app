@@ -13,7 +13,7 @@
                                 <a class="nav-link active" id="tab-relatorio-cobranca" data-toggle="pill"
                                     href="#painel-relatorio-cobranca" role="tab"
                                     aria-controls="painel-relatorio-cobranca" aria-selected="true">
-                                    Relatório
+                                    Inadimplência
                                 </a>
                             </li>
                             <li class="nav-item">

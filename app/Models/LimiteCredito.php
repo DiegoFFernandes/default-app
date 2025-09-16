@@ -76,6 +76,7 @@ class LimiteCredito extends Model
                 SUPERVISOR.NM_PESSOA,
                 VEND.NM_PESSOA,
                 V.CD_VENDEDORGERAL
+            ORDER BY PRAZO_MEDIO DESC
         ";
 
         $data = DB::connection('firebird')->select($query);
