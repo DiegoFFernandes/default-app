@@ -54,7 +54,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                 valorTotalGerente += gerente.saldo;
 
                 html += `
-                            <div class="card">
+                            <div class="card gerente-card">
                             <div class="card-header p-1">
                                 <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
                                     👔 ${gerente.nome} (R$ ${formatarValorBR(
@@ -67,10 +67,11 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                                     </span>
                                 </button>
                             </div>
-                            <div id="sup-${gIndex}" class="collapse" data-parent="#${idAccordion}">
+                            <div id="sup-${gIndex}" class="collapse">
                                 <div class="card-body p-2">     `;
 
                 gerente.supervisores.forEach((sup, sIndex) => {
+                    html += `<div class="supervisor-container">`;
                     html += `
                             <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
                                 🛡️ ${sup.nome} (R$ ${formatarValorBR(
@@ -81,6 +82,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                             `;
 
                     sup.vendedores.forEach((vend, vIndex) => {
+                        html += `<div class="vendedor-container">`;
                         html += `
                                 <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
                                 👤 ${vend.nome} 
@@ -94,7 +96,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
 
                         vend.clientes.forEach((detalhe) => {
                             html += `
-                                <li class="list-group-item p-1">
+                                <li class="list-group-item p-1 cliente-item">
                                     🏢 <span class="badge badge-secondary">${
                                         detalhe.PESSOA
                                     }</span><br>
@@ -138,9 +140,11 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                         });
 
                         html += `</ul></div>`;
+                        html += `   </div>`;
                     });
 
                     html += `</div>`; // fecha Supervisor
+                    html += `</div>`;
                 });
 
                 html += `</div></div></div>`; // fecha Gerente
@@ -154,6 +158,92 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
         },
     });
 }
+
+$(function () {
+    let debounceTimer;
+
+    function normalizeString(str) {
+        if (!str) return "";
+        return str
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    }
+
+    $('.card-input-busca').on('input', '.input-busca-cliente', function () {
+        clearTimeout(debounceTimer);
+        const input = $(this); 
+        
+        const cardContainer = input.closest('.card-input-busca');
+        const treeAccordionId = cardContainer.data('tree-accordion');
+        const accordionContainer = $('#' + treeAccordionId);
+
+        debounceTimer = setTimeout(() => {
+            const termoBusca = normalizeString(input.val());
+            
+            // input vazio volta o accordion para o estado original
+            if (termoBusca === '') {
+                accordionContainer.find('.hidden').removeClass('hidden');
+                accordionContainer.find('.collapse').collapse('hide');
+                accordionContainer.find(".no-results-message").remove(); 
+                return;
+            }
+
+            // filtra os clientes
+            accordionContainer.find('.cliente-item').each(function () {
+                const clienteAtual = $(this);
+                const textoCliente = clienteAtual.text();
+                const textoNormalizado = normalizeString(textoCliente);
+
+                if (textoNormalizado.includes(termoBusca)) {
+                    clienteAtual.removeClass('hidden'); // mostra o cliente
+                } else {
+                    clienteAtual.addClass('hidden'); // esconde o cliente
+                }
+            });
+            const anyVisible = accordionContainer.find('.cliente-item:not(.hidden)').length > 0;
+            accordionContainer.find('.no-results-message').remove();
+
+            // filtra os vendedores
+            accordionContainer.find('.vendedor-container').each(function () {
+                const vendedorAtual = $(this);
+                if (vendedorAtual.find('.cliente-item:not(.hidden)').length === 0) {
+                    vendedorAtual.addClass('hidden'); // esconde o vendedor
+                } else {
+                    vendedorAtual.removeClass('hidden'); // mostra o vendedor
+                }
+            });
+
+            //filtra os supervisores
+            accordionContainer.find('.supervisor-container').each(function () {
+                const supervisorAtual = $(this);
+                if (supervisorAtual.find('.vendedor-container:not(.hidden)').length === 0) {
+                    supervisorAtual.addClass('hidden'); // esconde o supervisor
+                } else {
+                    supervisorAtual.removeClass('hidden'); //mostra o supervisor
+                }
+            });
+
+            // filtra os gerentes
+            accordionContainer.find('.gerente-card').each(function () {
+                const gerenteAtual = $(this);
+                if (gerenteAtual.find('.supervisor-container:not(.hidden)').length === 0) {
+                    gerenteAtual.addClass('hidden'); // esconde o gerente
+                } else {
+                    gerenteAtual.removeClass('hidden'); // mostra o gerente
+                    gerenteAtual.find('.collapse').collapse('show');
+                }
+            });
+
+            if (!anyVisible) {
+                accordionContainer.append(
+                    '<div class="no-results-message">Nenhum cliente encontrado.</div>'
+                );
+            }
+        }, 250);  //tempo para esperar o usuario parar de digitar
+    });
+});
+
 // inicializa a tabela de meses relatorio de gerente
 function initTableInadimplenciaMeses(
     tab,
