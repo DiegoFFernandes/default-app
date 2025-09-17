@@ -852,6 +852,10 @@ class RelatorioCobrancaController extends Controller
 
         $data = $this->limite->getLimiteCredito($cd_empresa, $cd_regiao);
         return Datatables::of($data)
+            ->setRowClass(function ($data) {
+                return $data->DISPONIVEL < 0 ? 'bg-danger' : '';
+            })
+
             ->make(true);
     }
     public function getPrazoMedio()

@@ -154,8 +154,8 @@
 
 @section('js')
     <script src="{{ asset('js/dashboard/inadimplencia.js?v=19') }}"></script>
-    <script src="{{ asset('js/dashboard/prazoMedio.js?v=1') }}"></script>
-    <script src="{{ asset('js/dashboard/limiteCredito.js?v=3') }}"></script>
+    <script src="{{ asset('js/dashboard/prazoMedio.js?v=2') }}"></script>
+    <script src="{{ asset('js/dashboard/limiteCredito.js?v=4') }}"></script>
     <script src="{{ asset('js/dashboard/canhoto.js?v=2') }}"></script>
     <script type="text/javascript">
         const tab = 1;

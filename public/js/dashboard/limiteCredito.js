@@ -4,7 +4,7 @@ function initTableLimiteCredito(route) {
         serverSide: false,
         searching: true,
         responsive: true,
-        pageLength: 30,
+        pageLength: 50,
         paging: true,
         // fixedHeader: true,
         scrollY: 400,
