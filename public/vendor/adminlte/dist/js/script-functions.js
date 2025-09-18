@@ -136,7 +136,7 @@ function configurarDetalhesLinha(selector, options) {
         } else {
             // Se a linha não está expandida
             row.child(options.templateFn(data)).show();
-            options.initFn(tableChildId, data);
+            options.initFn(tableChildId, data, options.routes);
             tr.addClass("shown");
             $(this)
                 .find("i")

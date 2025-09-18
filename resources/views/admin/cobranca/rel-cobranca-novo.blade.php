@@ -265,7 +265,7 @@
 
         $('#tab-canhoto').on('click', function() {            
             dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
-            dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+            dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
 
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 

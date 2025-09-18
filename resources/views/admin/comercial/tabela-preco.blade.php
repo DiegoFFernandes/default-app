@@ -11,16 +11,18 @@
                     <div class="card-header p-0 border-bottom-0">
                         <ul class="nav nav-tabs" role="tablist">
                             <li class="nav-item">
-                                <a class="nav-link active" data-toggle="tab" href="#tabInserir" role="tab">Inserir</a>
+                                <a class="nav-link active" id="tab-inserir" data-toggle="tab" href="#painel-inserir"
+                                    role="tab">Inserir</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" data-toggle="tab" href="#tabCadastradas" role="tab">Cadastradas</a>
+                                <a class="nav-link" id="tab-cadastradas" data-toggle="tab" href="#painel-cadastradas"
+                                    role="tab">Cadastradas</a>
                             </li>
                         </ul>
                     </div>
                     <div class="card-body">
                         <div class="tab-content">
-                            <div class="tab-pane fade show active" id="tabInserir" role="tabpanel">
+                            <div class="tab-pane fade show active" id="painel-inserir" role="tabpanel">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="card">
@@ -28,7 +30,7 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label>Selecione o Cliente</label>
+                                                            <label>Nome da Tabela</label>
                                                             <select name='pessoa' class="form-control" id="pessoa"
                                                                 style="width: 100%">
                                                             </select>
@@ -96,7 +98,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="tabCadastradas" role="tabpanel">
+                            <div class="tab-pane fade" id="painel-cadastradas" role="tabpanel">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card card-primary">
@@ -154,6 +156,7 @@
     </section>
 @stop
 @section('js')
+    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=3') }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
@@ -168,201 +171,42 @@
         @endverbatim
     </script>
     <script>
-        $(document).ready(function() {
-            var tabelaClientesTabela = Handlebars.compile($("#details-template").html());
-            var tabelaPreco = $('#tabela-preco').DataTable({
-                processing: false,
-                serverSide: false,
-                pagingType: "simple",
-                pageLength: 50,
-                language: {
-                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                },
-                ajax: {
-                    url: '{{ route('get-tabela-preco') }}',
-                    type: 'GET'
-                },
-                columns: [{
-                        data: 'clientes_associados',
-                        name: 'clientes_associados',
-                        title: 'Cód',
-                        className: 'text-center',
-                    },
-                    {
-                        data: 'DS_TABPRECO',
-                        name: 'DS_TABPRECO',
-                        title: 'Descrição'
-                    }, {
-                        data: 'QTD_ITENS',
-                        name: 'QTD_ITENS',
-                        title: 'Itens'
-                    }, {
-                        data: 'ASSOCIADOS',
-                        name: 'ASSOCIADOS',
-                        title: 'Clientes'
-                    }, {
-                        data: 'action',
-                        name: 'action',
-                        title: 'Ações',
-                        className: 'text-center',
+        var tabelaClientesTabela = Handlebars.compile($("#details-template").html());
+        var tabelaPreco = null;
+        var itemTabelaCliente = null;
 
-                    }
-                ]
-            });
+        var routes = {
+            tabelaPreco: "{{ route('get-tabela-preco') }}",
+            itemTabelaPrecoCliente: "{{ route('get-tabela-cliente-preco') }}",
+            language_datatables: "{{ asset('vendor/datatables/pt-br.json') }}",
+            itemtabelaPreco: "{{ route('get-item-tabela-preco') }}",
+            searchPessoa: "{{ route('usuario.search-pessoa') }}",
+        };
 
-            $('#tabela-preco').on('click', '.btn-ver-itens', function() {
-                var cd_tabela = $(this).data('cd_tabela');
-                $('.title-nm-tabela').html($(this).data('nm_tabela'));
-                $("#modal-item-tab-preco").modal("show");
-                if ($.fn.DataTable.isDataTable('#table-item-tab-preco')) {
-                    $('#table-item-tab-preco').DataTable().clear().destroy();
-                }
-                $('#table-item-tab-preco').DataTable({
-                    processing: false,
-                    serverSide: false,
-                    pagingType: "simple",
-                    pageLength: 50,
-                    layout: {
-                        topStart: {
-                            buttons: [{
-                                    extend: 'excelHtml5',
-                                    title: $('.title-nm-tabela').html()
-                                },
-                                {
-                                    extend: 'print',
-                                    title: $('.title-nm-tabela').text(),
-                                    customize: function(win) {
-                                        $(win.document.body).find('h1')
-                                            .css('font-size', '12pt')
-                                            .css('color', '#333');
-                                    }
+        initSelect2Pessoa('#pessoa', routes.searchPessoa);
 
-                                }
-                            ]
-                        }
-                    },
-                    language: {
-                        url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                    },
-                    ajax: {
-                        url: '{{ route('get-item-tabela-preco') }}',
-                        type: 'GET',
-                        data: {
-                            cd_tabela: cd_tabela
-                        }
-                    },
-                    columns: [{
-                        data: 'CD_TABPRECO',
-                        name: 'CD_TABPRECO',
-                        title: 'Cód Tabela',
-                        visible: false
-                    }, {
-                        data: 'DS_ITEM',
-                        name: 'DS_ITEM',
-                        "width": "80%",
-                        title: 'Descrição'
-                    }, {
-                        data: 'VL_PRECO',
-                        name: 'VL_PRECO',
-                        title: 'Valor',
-                        // render: $.fn.dataTable.render.number('.', ',', 2),
-                    }],
-                    //    columnsDefs: [{
-                    //        className: 'dt-body-right',
-                    //        targets: [2]
-                    //    }],
-                });
-            });
-
-            //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
-            configurarDetalhesLinha('.details-control', {
-                idPrefixo: 'cliente-tabela-',
-                idCampo: 'CD_TABPRECO',
-                templateFn: tabelaClientesTabela,
-                initFn: initTableClienteTabela,
-                iconeMais: 'fa-plus-circle',
-                iconeMenos: 'fa-minus-circle'
-            });
-
-
-
-
-            function initTableClienteTabela(tableId, data) {
-                console.log(data);
-
-                const tableTabelaCliente = $('#' + tableId).DataTable({
-                    "searching": false,
-                    "paging": false,
-                    sDom: 't',
-                    processing: false,
-                    serverSide: false,
-                    language: {
-                        url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                    },
-                    ajax: {
-                        url: '{{ route('get-tabela-cliente-preco') }}',
-                        type: 'GET',
-                        data: {
-                            cd_tabela: data.CD_TABPRECO
-                        }
-                    },
-                    columns: [{
-                        data: 'NM_PESSOA',
-                        name: 'NM_PESSOA',
-                        title: 'Cliente'
-                    }, {
-                        data: 'VENDEDOR',
-                        name: 'VENDEDOR',
-                        title: 'Vendedor'
-                    }, {
-                        data: 'SUPERVISOR',
-                        name: 'SUPERVISOR',
-                        title: 'Supervisor'
-                    }]
-                });
-
-            }
-
-            const chkNaoAssociados = document.getElementById("checkNaoAssociadas");
-            const chkAssociados = document.getElementById("checkAssociadas");
-
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                const valor = parseInt(data[3]) || 0; // Use data for the "Associados" column
-
-                const naoAssociados = chkNaoAssociados && chkNaoAssociados.checked;
-                const associados = chkAssociados && chkAssociados.checked;
-
-                // Ambos marcados → mostra tudo
-                if (naoAssociados && associados) {
-                    return true;
-                }
-                // Só não associados
-                if (naoAssociados) {
-                    return valor === 0;
-                }
-                // Só associados
-                if (associados) {
-                    return valor > 0;
-                }
-                return true;
-
-            });
-
-            if (chkNaoAssociados) {
-                chkNaoAssociados.addEventListener("change", function() {
-                    tabelaPreco.draw();
-                });
-            }
-            if (chkAssociados) {
-                chkAssociados.addEventListener("change", function() {
-                    tabelaPreco.draw();
-                });
-            }
+        $('#tab-cadastradas').click(function() {
+            tabelaPreco = initTabelaPreco(routes);
         });
-    </script>
-    <script>
-        initSelect2Pessoa('#pessoa');
 
+        $('#tabela-preco').on('click', '.btn-ver-itens', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            $('.title-nm-tabela').html($(this).data('nm_tabela'));
+            initTableItemTabelaPreco(routes, cd_tabela);
+        });
+
+        //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
+        configurarDetalhesLinha('.details-control', {
+            idPrefixo: 'cliente-tabela-',
+            idCampo: 'CD_TABPRECO',
+            templateFn: tabelaClientesTabela,
+            initFn: initTableClienteTabela,
+            iconeMais: 'fa-plus-circle',
+            iconeMenos: 'fa-minus-circle',
+            routes: routes
+        });        
+
+        // Tab para Inserir
         $('#desenho').select2({
             theme: 'bootstrap4'
         });
@@ -370,15 +214,15 @@
             theme: 'bootstrap4'
         });
 
-        $(document).ready(function() {
-            var tabela = $("#inserir").DataTable({
-                paging: true,
-                searching: true,
-                ordering: false,
-                language: {
-                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                }
-            });
+
+        $("#inserir").DataTable({
+            paging: true,
+            searching: true,
+            ordering: false,
+            language: {
+                url: "{{ asset('vendor/datatables/pt-br.json') }}",
+            }
         });
     </script>
+
 @stop

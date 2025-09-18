@@ -44,10 +44,11 @@ class BloqueioPedido extends Model
             CAST(PP.IDPESSOA || ' - ' || PE.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) CLIENTE,
             --PP.TP_BLOQUEIO AS MOTIVO,
             (
-            CASE PP.TP_BLOQUEIO
-            WHEN 'F' THEN 'FINANCEIRO'
-            WHEN 'C' THEN 'COMERCIAL'
-            ELSE 'AMBOS'
+            CASE 
+                WHEN PE.ST_SCPC = 'S' THEN 'CADASTRO'
+                WHEN PP.TP_BLOQUEIO = 'F' THEN 'FINANCEIRO'
+                WHEN PP.TP_BLOQUEIO = 'C' THEN 'COMERCIAL'
+                ELSE 'AMBOS'
             END) MOTIVO,
             EP.CD_REGIAOCOMERCIAL,
             (
