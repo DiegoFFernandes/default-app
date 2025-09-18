@@ -62,9 +62,14 @@
         </div>
     </div>
     <div class="col-md-8 col-12">
-        <div class="card card-secondary card-outline mb-4">
+        <div class="card card-secondary card-outline mb-4 card-input-busca"
+            data-tree-accordion="{{ $treeAccordionGerente }}">
             <div class="card-header">
                 <h5 class="card-title">Relatório Vencidos</h5>
+                <div class="float-right">
+                    <input type="text" class="form-control input-busca input-busca-cliente order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
+                    placeholder="Buscar Cliente...">
+                </div>
             </div>
             <div class="card-body p-2" id="{{ $card_inadimplencia }}">
                 {{-- Icon loading --}}
