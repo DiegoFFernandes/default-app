@@ -280,8 +280,7 @@ function initTableInadimplenciaMeses(
                 $("#pc_atrasados").text(`0,00%`);
                 $("#pc_inadimplencia").text(`0,00%`);
             },
-            dataSrc: function (json) {
-                // console.log(json);
+            dataSrc: function (json) {                
                 // Salva as variáveis globais com os valores do backend
                 atrasados = parseFloat(json.atrasados);
                 inadimplencia = parseFloat(json.inadimplencia);
@@ -346,7 +345,7 @@ function initTableInadimplenciaMeses(
             inadMeses = data;
             tentarProcessar();
 
-            // Remove the formatting to get integer data for summation
+            // Remove a formatação para fazer a soma
             var intVal = function (i) {
                 return typeof i === "string"
                     ? i.replace(",", ".") * 1
@@ -355,7 +354,7 @@ function initTableInadimplenciaMeses(
                     : 0;
             };
 
-            // Total over all pages
+            // Total das colunas
             totalTotal = api
                 .column(2)
                 .data()
@@ -369,10 +368,7 @@ function initTableInadimplenciaMeses(
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0);
-
-            // Update footer
-            $(api.column(2).footer()).html(formatarValorBR(totalTotal));
-            $(api.column(3).footer()).html(formatarValorBR(totalVencido));
+            
 
             var inadimplenciaPercentual = (inadimplencia / totalTotal) * 100;
             var atrasadosPercentual = (atrasados / totalTotal) * 100;
@@ -385,6 +381,11 @@ function initTableInadimplenciaMeses(
             $("#vencidos").html(formatarValorBR(totalVencido));
 
             $("#total_carteira").html(formatarValorBR(totalTotal));
+
+            // Atualiza o footer do DataTable
+            $(api.column(2).footer()).html(formatarValorBR(totalTotal));
+            $(api.column(3).footer()).html(formatarValorBR(totalVencido));
+            $(api.column(4).footer()).html(formatarValorBR(atrasadosPercentual+inadimplenciaPercentual) + "%");
         },
     });
 

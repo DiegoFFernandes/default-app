@@ -15,7 +15,7 @@ class Cobranca extends Model
 
     public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0, $tela = 1, $mes = 0, $ano = 0, $filtro = null)
     {
-        if($tela == 1){
+        if ($tela == 1) {
             $string = 'DT_VENCIMENTO';
         } else {
             $string = 'DT_LANCAMENTO';
@@ -88,16 +88,16 @@ class Cobranca extends Model
                 WHERE 
                     " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "
                     --AND CONTAS.CD_PESSOA in (11283, 18106)
-                    " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1" : " AND CONTAS.DT_LANCAMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5") . "
+                    " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : " AND CONTAS.DT_LANCAMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5") . "
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "                    
-                    " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
-                    " . ($mes != 0 && $tela == 1? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
-                    " . ($ano != 0 && $tela == 1? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
+                    " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('CA','BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                    " . ($mes != 0 && $tela == 1 ? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
+                    " . ($ano != 0 && $tela == 1 ? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
 
-                    " . ($mes != 0 && $tela == 2? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
-                    " . ($ano != 0 && $tela == 2? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
+                    " . ($mes != 0 && $tela == 2 ? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
+                    " . ($ano != 0 && $tela == 2 ? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
 
                     " . (!empty($filtro['nm_pessoa']) ? "AND P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
@@ -268,7 +268,7 @@ class Cobranca extends Model
     }
     public function getInadimplencia($filtro = null, $tela = 1, $cd_empresa = 0, $cd_regiao = "")
     {
-        if($tela == 1){
+        if ($tela == 1) {
             $string = 'DT_VENCIMENTO';
         } else {
             $string = 'DT_LANCAMENTO';
@@ -299,8 +299,8 @@ class Cobranca extends Model
             WHERE
                 " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')               
-                " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1" : " AND CONTAS.DT_LANCAMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5") . "
-                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : " AND CONTAS.DT_LANCAMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5") . "
+                " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('CA','BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                 " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
                 

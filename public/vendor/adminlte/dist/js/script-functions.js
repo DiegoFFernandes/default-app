@@ -79,11 +79,12 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
     });
 }
 
-function initDateRangePicker(daterangeSelector = "#daterange") {
-    let inicioData = 0;
-    let fimData = 0;
-
-    const $daterange = $(daterangeSelector);
+function initDateRangePicker(
+    daterangeSelector = "#daterange",
+    inicioData = 0,
+    fimData = 0
+) {
+    const $daterange = $(daterangeSelector);    
 
     $daterange.on("apply.daterangepicker", function (ev, picker) {
         $(this).val(
@@ -91,8 +92,8 @@ function initDateRangePicker(daterangeSelector = "#daterange") {
                 " - " +
                 picker.endDate.format("DD/MM/YYYY")
         );
-        inicioData = picker.startDate.format("MM/DD/YYYY");
-        fimData = picker.endDate.format("MM/DD/YYYY");
+        inicioData = picker.startDate.format("DD.MM.YYYY");
+        fimData = picker.endDate.format("DD.MM.YYYY");
     });
 
     $daterange.on("cancel.daterangepicker", function (ev, picker) {
@@ -165,6 +166,6 @@ function formatarValorBR(valor) {
 
     return numero.toLocaleString("pt-BR", {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
     });
 }

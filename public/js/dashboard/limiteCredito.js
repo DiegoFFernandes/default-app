@@ -22,14 +22,7 @@ function initTableLimiteCredito(route) {
                 title: "Cliente",
                 className: "text-left",
                 responsivePriority: 1,
-            },
-            {
-                data: "VL_NOTA",
-                title: "Vl Notas",
-                visible: false,
-                responsivePriority: 10000,
-                render: $.fn.dataTable.render.number(".", ",", 2, "R$ "),
-            },
+            },            
             {
                 data: "VL_USADO",
                 title: "Vl Usado",

@@ -79,7 +79,10 @@ class RelatorioCobrancaController extends Controller
             'filtro.nm_supervisor' => 'string|nullable',
             'filtro.cnpj' => 'string|nullable',
             'filtro.filtro_gerente' => 'integer|nullable',
+            'filtro.dtInicio' => 'string|nullable',
+            'filtro.dtFim' => 'string|nullable',
         ]);
+        
         $tab = $this->request->input('tab');
 
         $filtro = $this->request->input('filtro');

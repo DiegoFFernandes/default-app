@@ -139,15 +139,29 @@
             });
 
             $('#daterange').daterangepicker({
+                "showDropdowns": true,
+                locale: {
+                    format: 'DD/MM/YYYY',
+                    separator: ' - ',
+                    applyLabel: 'Aplicar',
+                    cancelLabel: 'Cancelar',
+                    fromLabel: 'De',
+                    toLabel: 'Até',
+                    customRangeLabel: 'Personalizado',
+                    daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                    monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho',
+                        'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+                    ],
+                    firstDay: 0
+                },
                 autoUpdateInput: false,
             }).attr('readonly', true);
-
 
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
                     'DD/MM/YYYY'));
-                inicioData = picker.startDate.format('MM/DD/YYYY');
-                fimData = picker.endDate.format('MM/DD/YYYY');
+                inicioData = picker.startDate.format('DD.MM.YYYY');
+                fimData = picker.endDate.format('DD.MM.YYYY');
             });
             $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
                 $(this).val("");
@@ -180,5 +194,5 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=4') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=6') }}"></script>
 @endpush
