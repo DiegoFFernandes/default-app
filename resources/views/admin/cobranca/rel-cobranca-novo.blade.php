@@ -51,7 +51,7 @@
                                 aria-labelledby="tab-relatorio-cobranca">
                                 @include('admin.cobranca.components.filtros-inadimplencia')
 
-                                {{-- @include('admin.cobranca.components.cards-inadimplencia') --}}
+                                @include('admin.cobranca.components.cards-inadimplencia')
 
                                 @include('admin.cobranca.components.tab-relatorios', [
                                     'tabela_mensal' => 'tabela-inadimplencia-meses',
@@ -153,7 +153,7 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=20') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=22') }}"></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=2') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js?v=5') }}"></script>
     <script src="{{ asset('js/dashboard/canhoto.js?v=2') }}"></script>
@@ -162,10 +162,8 @@
         var tableInadimplencia;
         var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
-        //datas das tabelas
-        const datasSelecionadas = initDateRangePicker();
-
-        
+        //datas selecionadas no date range picker
+        var datasSelecionadas = initDateRangePicker();
 
         $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
@@ -304,9 +302,9 @@
         });
         // faz a pesquisa pelos filtros
         $('#btn-search').on('click', function() {
-            if(!datasSelecionadas.getInicio() === 0){
+            if (!datasSelecionadas.getInicio() == 0) {
                 dtInicio = datasSelecionadas.getInicio();
-                dtFim = datasSelecionadas.getFim();
+                dtFim = datasSelecionadas.getFim();                
             }
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
             hierarquia = null;
@@ -339,6 +337,14 @@
         //limpa as filtros e retorna tudo novamente
         $('#btn-reset').on('click', function() {
             hierarquia = null;
+            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+
+            $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
+
+            datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
+
+            $('#daterange').val('');
             $('#filtro-nome').val('');
             $('#filtro-vendedor').val('');
             $('#filtro-cnpj').val('');
@@ -346,7 +352,7 @@
             $('#filtro-gerente').val(0).change();
 
 
-            const data = {  
+            const data = {
                 nm_pessoa: '',
                 nm_vendedor: '',
                 cnpj: '',

@@ -4,28 +4,41 @@ var total = 0;
 var atrasados = 0;
 var inadimplencia = 0;
 var hierarquia = null;
+var carteira60dias = 0;
+var carteiraMaior60dias = 0;
 
 function tentarProcessar() {
-    if (inadGerente && inadMeses) {      
-
+    if (inadGerente && inadMeses) {
+        // console.log(inadMeses);
         inadGerente.forEach((gerente, gIndex) => {
-            if (hierarquia !== null) {                
+            var pc_atrasados_gerente = 0;
+            var pc_inadimplencia_gerente = 0;
+            if (hierarquia !== null) {
                 if (hierarquia[gerente.nome].nome === gerente.nome) {
-                    total = hierarquia[gerente.nome]["vl_documento"];
-                    let percentual = (gerente.saldo / total) * 100;
-                    let pc_atrasados = (gerente.atrasados / total) * 100;
-                    let pc_inadimplencia =
-                        (gerente.inadimplencia / total) * 100;
+                    const carteira60diasGerente =
+                        hierarquia[gerente.nome]["carteira60diasGerente"];
+                    const carteiraMaior60diasGerente =
+                        hierarquia[gerente.nome]["carteiraMaior60diasGerente"];
 
-                    // $(`.pc_inadidimplencia-gerente-${gIndex}`).text(percentual.toFixed(2) + "%");
-                    $(`.pc_atrasados-gerente-${gIndex}`).html(
-                        `Atrasados: ${pc_atrasados.toFixed(2)}%`
-                    );
-                    $(`.pc_inadimplencia-gerente-${gIndex}`).html(
-                        `Inadimplência: ${pc_inadimplencia.toFixed(2)}%`
-                    );
+                    if (!carteira60diasGerente == 0) {
+                        total = carteira60diasGerente;
+                        pc_atrasados_gerente =
+                            (gerente.atrasados / total) * 100;
+                    }
+                    if (!carteiraMaior60diasGerente == 0) {
+                        total = carteiraMaior60diasGerente;
+                        pc_inadimplencia_gerente =
+                            (gerente.inadimplencia / total) * 100;
+                    }
                 }
             }
+            // $(`.pc_inadidimplencia-gerente-${gIndex}`).text(percentual.toFixed(2) + "%");
+            $(`.pc_atrasados-gerente-${gIndex}`).html(
+                `Atrasados: ${pc_atrasados_gerente.toFixed(2)}%`
+            );
+            $(`.pc_inadimplencia-gerente-${gIndex}`).html(
+                `Inadimplência: ${pc_inadimplencia_gerente.toFixed(2)}%`
+            );
         });
     }
 }
@@ -44,15 +57,19 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
             $(".valorTotalGerente").text(`R$ 0`);
             $("#pc_atrasados").text(`0,00%`);
             $("#pc_inadimplencia").text(`0,00%`);
+            $(".pc_atrasados-gerente").html(
+                '<i class="fas fa-sync-alt fa-spin"></i>'
+            );
+            $(".pc_inadimplencia-gerente").html(
+                '<i class="fas fa-sync-alt fa-spin"></i>'
+            );
         },
         success: function (data) {
             inadGerente = data;
-            tentarProcessar();
             let valorTotalGerente = 0;
             let html = "";
             data.forEach((gerente, gIndex) => {
                 valorTotalGerente += gerente.saldo;
-
                 html += `
                             <div class="card gerente-card">
                             <div class="card-header p-1">
@@ -62,8 +79,8 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                 )}) 
                                     <!--<span class="badge badge-warning pc_inadidimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>-->
                                     <span class="saldo">
-                                        <span class="badge badge-info pc_atrasados-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
-                                        <span class="badge badge-warning pc_inadimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-info pc_atrasados-gerente pc_atrasados-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-warning pc_inadimplencia-gerente pc_inadimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
                                     </span>
                                 </button>
                             </div>
@@ -155,6 +172,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
             $(".valorTotalGerente").text(
                 `R$ ${valorTotalGerente.toLocaleString()}`
             );
+            tentarProcessar();
         },
     });
 }
@@ -170,68 +188,79 @@ $(function () {
             .toLowerCase();
     }
 
-    $('.card-input-busca').on('input', '.input-busca-cliente', function () {
+    $(".card-input-busca").on("input", ".input-busca-cliente", function () {
         clearTimeout(debounceTimer);
-        const input = $(this); 
-        
-        const cardContainer = input.closest('.card-input-busca');
-        const treeAccordionId = cardContainer.data('tree-accordion');
-        const accordionContainer = $('#' + treeAccordionId);
+        const input = $(this);
+
+        const cardContainer = input.closest(".card-input-busca");
+        const treeAccordionId = cardContainer.data("tree-accordion");
+        const accordionContainer = $("#" + treeAccordionId);
 
         debounceTimer = setTimeout(() => {
             const termoBusca = normalizeString(input.val());
-            
+
             // input vazio volta o accordion para o estado original
-            if (termoBusca === '') {
-                accordionContainer.find('.hidden').removeClass('hidden');
-                accordionContainer.find('.collapse').collapse('hide');
-                accordionContainer.find(".no-results-message").remove(); 
+            if (termoBusca === "") {
+                accordionContainer.find(".hidden").removeClass("hidden");
+                accordionContainer.find(".collapse").collapse("hide");
+                accordionContainer.find(".no-results-message").remove();
                 return;
             }
 
             // filtra os clientes
-            accordionContainer.find('.cliente-item').each(function () {
+            accordionContainer.find(".cliente-item").each(function () {
                 const clienteAtual = $(this);
                 const textoCliente = clienteAtual.text();
                 const textoNormalizado = normalizeString(textoCliente);
 
                 if (textoNormalizado.includes(termoBusca)) {
-                    clienteAtual.removeClass('hidden'); // mostra o cliente
+                    clienteAtual.removeClass("hidden"); // mostra o cliente
                 } else {
-                    clienteAtual.addClass('hidden'); // esconde o cliente
+                    clienteAtual.addClass("hidden"); // esconde o cliente
                 }
             });
-            const anyVisible = accordionContainer.find('.cliente-item:not(.hidden)').length > 0;
-            accordionContainer.find('.no-results-message').remove();
+            const anyVisible =
+                accordionContainer.find(".cliente-item:not(.hidden)").length >
+                0;
+            accordionContainer.find(".no-results-message").remove();
 
             // filtra os vendedores
-            accordionContainer.find('.vendedor-container').each(function () {
+            accordionContainer.find(".vendedor-container").each(function () {
                 const vendedorAtual = $(this);
-                if (vendedorAtual.find('.cliente-item:not(.hidden)').length === 0) {
-                    vendedorAtual.addClass('hidden'); // esconde o vendedor
+                if (
+                    vendedorAtual.find(".cliente-item:not(.hidden)").length ===
+                    0
+                ) {
+                    vendedorAtual.addClass("hidden"); // esconde o vendedor
                 } else {
-                    vendedorAtual.removeClass('hidden'); // mostra o vendedor
+                    vendedorAtual.removeClass("hidden"); // mostra o vendedor
                 }
             });
 
             //filtra os supervisores
-            accordionContainer.find('.supervisor-container').each(function () {
+            accordionContainer.find(".supervisor-container").each(function () {
                 const supervisorAtual = $(this);
-                if (supervisorAtual.find('.vendedor-container:not(.hidden)').length === 0) {
-                    supervisorAtual.addClass('hidden'); // esconde o supervisor
+                if (
+                    supervisorAtual.find(".vendedor-container:not(.hidden)")
+                        .length === 0
+                ) {
+                    supervisorAtual.addClass("hidden"); // esconde o supervisor
                 } else {
-                    supervisorAtual.removeClass('hidden'); //mostra o supervisor
+                    supervisorAtual.removeClass("hidden"); //mostra o supervisor
                 }
             });
 
             // filtra os gerentes
-            accordionContainer.find('.gerente-card').each(function () {
+            accordionContainer.find(".gerente-card").each(function () {
                 const gerenteAtual = $(this);
-                if (gerenteAtual.find('.supervisor-container:not(.hidden)').length === 0) {
-                    gerenteAtual.addClass('hidden'); // esconde o gerente
+                if (
+                    gerenteAtual.find(".supervisor-container:not(.hidden)")
+                        .length === 0
+                ) {
+                    gerenteAtual.addClass("hidden"); // esconde o gerente
                 } else {
-                    gerenteAtual.removeClass('hidden'); // mostra o gerente
-                    gerenteAtual.find('.collapse').collapse('show');
+                    gerenteAtual.removeClass("hidden"); // mostra o gerente
+                    gerenteAtual.find(".collapse").collapse("show");
                 }
             });
 
@@ -240,7 +269,7 @@ $(function () {
                     '<div class="no-results-message">Nenhum cliente encontrado.</div>'
                 );
             }
-        }, 250);  //tempo para esperar o usuario parar de digitar
+        }, 250); //tempo para esperar o usuario parar de digitar
     });
 });
 
@@ -277,13 +306,21 @@ function initTableInadimplenciaMeses(
                 $("#card-inadimplencia-meses .loading-card").removeClass(
                     "invisible"
                 );
+                $(".pc_atrasados-gerente").html(
+                    '<i class="fas fa-sync-alt fa-spin"></i>'
+                );
+                $(".pc_inadimplencia-gerente").html(
+                    '<i class="fas fa-sync-alt fa-spin"></i>'
+                );
                 $("#pc_atrasados").text(`0,00%`);
                 $("#pc_inadimplencia").text(`0,00%`);
             },
-            dataSrc: function (json) {                
+            dataSrc: function (json) {
                 // Salva as variáveis globais com os valores do backend
                 atrasados = parseFloat(json.atrasados);
                 inadimplencia = parseFloat(json.inadimplencia);
+                carteira60dias = parseFloat(json.carteira60dias);
+                carteiraMaior60dias = parseFloat(json.carteiraMaior60dias);
 
                 hierarquia = json.hierarquia;
                 return json.data;
@@ -368,10 +405,10 @@ function initTableInadimplenciaMeses(
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0);
-            
 
-            var inadimplenciaPercentual = (inadimplencia / totalTotal) * 100;
-            var atrasadosPercentual = (atrasados / totalTotal) * 100;
+            var inadimplenciaPercentual =
+                (inadimplencia / carteiraMaior60dias) * 100;
+            var atrasadosPercentual = (atrasados / carteira60dias) * 100;
 
             $("#pc_inadimplencia").html(
                 formatarValorBR(inadimplenciaPercentual) + "%"
@@ -382,10 +419,21 @@ function initTableInadimplenciaMeses(
 
             $("#total_carteira").html(formatarValorBR(totalTotal));
 
+            $("#total_60_atrasados").html(formatarValorBR(carteira60dias));
+            $("#vl_60_atrasados").html(formatarValorBR(atrasados));
+
+            $("#total_maior_60_atrasados").html(
+                formatarValorBR(carteiraMaior60dias)
+            );
+            $("#vl_maior_60_atrasados").html(formatarValorBR(inadimplencia));
+
             // Atualiza o footer do DataTable
             $(api.column(2).footer()).html(formatarValorBR(totalTotal));
             $(api.column(3).footer()).html(formatarValorBR(totalVencido));
-            $(api.column(4).footer()).html(formatarValorBR(atrasadosPercentual+inadimplenciaPercentual) + "%");
+            $(api.column(4).footer()).html(
+                formatarValorBR(atrasadosPercentual + inadimplenciaPercentual) +
+                    "%"
+            );
         },
     });
 

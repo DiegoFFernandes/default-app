@@ -82,7 +82,7 @@ class RelatorioCobrancaController extends Controller
             'filtro.dtInicio' => 'string|nullable',
             'filtro.dtFim' => 'string|nullable',
         ]);
-        
+
         $tab = $this->request->input('tab');
 
         $filtro = $this->request->input('filtro');
@@ -646,6 +646,8 @@ class RelatorioCobrancaController extends Controller
         $data = $resultados['mesesAgrupados'];
         $atrasados = $resultados['atrasados'];
         $inadimplencia = $resultados['inadimplencia'];
+        $carteira60dias = $resultados['carteira60dias'];
+        $carteiraMaior60dias = $resultados['carteiraMaior60dias'];
         $hierarquia = $resultados['hierarquia'];
 
         // Retorna os dados para o DataTables, incluindo as variáveis extras
@@ -653,6 +655,8 @@ class RelatorioCobrancaController extends Controller
             'data' => $data,  // Tabela dos meses
             'atrasados' => $atrasados,
             'inadimplencia' => $inadimplencia,
+            'carteira60dias' => $carteira60dias,
+            'carteiraMaior60dias' => $carteiraMaior60dias,
             'hierarquia' => $hierarquia
         ]);
     }
@@ -662,6 +666,10 @@ class RelatorioCobrancaController extends Controller
         $meses = [];
         $hierarquia = [];
         $atrasados = 0;
+        $carteira60dias = 0;
+        $carteiraMaior60dias = 0;
+        $carteira60diasGerente = 0;
+        $carteiraMaior60diasGerente = 0;
         $inadimplencia = 0;
         $dataAtrasoHojeAte60 = Carbon::parse(now()->subDays(60))->format('Y-m-d');
 
@@ -697,8 +705,10 @@ class RelatorioCobrancaController extends Controller
 
             if ($vencimento >= $dataAtrasoHojeAte60) {
                 $atrasados += floatval($item->VL_SALDO);
+                $carteira60dias += floatval($item->VL_DOCUMENTO);
             } else {
                 $inadimplencia += floatval($item->VL_SALDO);
+                $carteiraMaior60dias += floatval($item->VL_DOCUMENTO);
             }
 
             foreach ($regioes_mysql as $regiao) {
@@ -709,8 +719,15 @@ class RelatorioCobrancaController extends Controller
                     if (!isset($hierarquia[$nomeGerente])) {
                         $hierarquia[$nomeGerente] = [
                             'nome' => $nomeGerente,
-                            'vl_documento' => 0
+                            'vl_documento' => 0,
+                            'carteira60diasGerente' => 0,
+                            'carteiraMaior60diasGerente' => 0,
                         ];
+                    }
+                    if ($vencimento >= $dataAtrasoHojeAte60) {
+                        $hierarquia[$nomeGerente]['carteira60diasGerente'] += $item->VL_DOCUMENTO;
+                    } else {
+                        $hierarquia[$nomeGerente]['carteiraMaior60diasGerente'] += $item->VL_DOCUMENTO;
                     }
                     $hierarquia[$nomeGerente]['vl_documento'] += $item->VL_DOCUMENTO;
                 }
@@ -720,6 +737,8 @@ class RelatorioCobrancaController extends Controller
         return [
             'mesesAgrupados' => array_values((array)$meses),
             'atrasados' => $atrasados,
+            'carteira60dias' => $carteira60dias,
+            'carteiraMaior60dias' => $carteiraMaior60dias,
             'inadimplencia' => $inadimplencia,
             'hierarquia' => $hierarquia
         ];
@@ -1054,7 +1073,7 @@ class RelatorioCobrancaController extends Controller
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd_notas']++;
 
                     // --- VENDEDOR ---
-                    $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem vendedor';   
+                    $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem vendedor';
                     if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
                         $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
                             'nome' => $nomeVendedor,
@@ -1083,10 +1102,10 @@ class RelatorioCobrancaController extends Controller
                         'dt_lancamento' => $item->DT_LANCAMENTO,
                     ];
                 }
-            }            
+            }
         }
 
-         // --- Normaliza a hierarquia em arrays 
+        // --- Normaliza a hierarquia em arrays 
         foreach ($hierarquia as &$gerente) {
             // supervisores
             $gerente['supervisores'] = array_values($gerente['supervisores']);

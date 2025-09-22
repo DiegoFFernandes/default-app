@@ -30,7 +30,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css') }}">
 
 
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=10') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=11') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css?v=1') }}">
 @endpush
 

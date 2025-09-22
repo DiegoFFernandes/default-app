@@ -279,6 +279,11 @@ button.select2-selection__choice__remove {
     border-left: 3px solid #F8BC07;
 }
 
+.equal-info-box {
+    min-height: 125px; /* ou o valor exato do info-box com ícone */
+    display: flex;    
+}
+
 
 @media (max-width: 768px) {
     .btn-detalhes {

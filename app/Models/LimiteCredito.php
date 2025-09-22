@@ -32,7 +32,7 @@ class LimiteCredito extends Model
             LEFT JOIN CREDITO ON (CREDITO.CD_PESSOA = CONTAS.CD_PESSOA
                 AND CREDITO.CD_EMPRESA = CONTAS.CD_EMPRESA)
             WHERE CONTAS.ST_CONTAS IN ('T', 'P')
-                AND CONTAS.CD_TIPOCONTA IN (2, 10)
+                AND CONTAS.CD_TIPOCONTA IN (2, 10, 5)
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
             GROUP BY CONTAS.CD_PESSOA,P.NM_PESSOA
         ";
