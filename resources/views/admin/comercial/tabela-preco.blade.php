@@ -29,7 +29,7 @@
                                             <div class="card-body">
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <div class="form-group">
+                                                        <div class="form-group form-group-sm">
                                                             <label>Nome da Tabela</label>
                                                             <select name='pessoa' class="form-control" id="pessoa"
                                                                 style="width: 100%">
@@ -37,28 +37,30 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <div class="form-group">
+                                                        <div class="form-group form-group-sm">
                                                             <label>Selecione o Desenho</label>
                                                             <select class="form-control select2" id="desenho"
-                                                                style="width: 100%; ">
-                                                                <option selected="selected">Selecione</option>
+                                                                name="desenho[]" style="width: 100%;" multiple="multiple">
+                                                                @foreach ($desenho as $item)
+                                                                    <option value="{{ $item->ID }}">
+                                                                        {{ $item->DESCRICAO }}</option>
+                                                                @endforeach
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <div class="form-group">
+                                                        <div class="form-group form-group-sm">
                                                             <label>Selecione a Medida</label>
                                                             <select class="form-control select2" id="medida"
-                                                                style="width: 100%; ">
-                                                                <option selected="selected">Selecione</option>
+                                                                name="medida[]" style="width: 100%; " multiple="multiple">
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <div class="form-group">
+                                                        <div class="form-group form-group-sm">
                                                             <label>Digite o Valor</label>
-                                                            <input type="text" id="valor"
-                                                                class="form-control order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
+                                                            <input type="number" id="valor"
+                                                                class="form-control"
                                                                 placeholder="Digite o Valor...">
                                                         </div>
                                                     </div>
@@ -68,8 +70,8 @@
                                             <div class="card-footer">
                                                 <div class="col-md-2">
                                                     <div class="form-group">
-                                                        <button type="submit" id="btn-cadastrar"
-                                                            class="btn btn-danger btn-sm btn-block">Cadastrar</button>
+                                                        <button id="btn-associar"
+                                                            class="btn btn-danger btn-sm btn-block">Incluir na Previa</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -77,20 +79,24 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="card card-primary">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h3 class="card-title">Previa Tabela</h3>
+                                                <div class="card-tools">
+                                                    <button type="button" class="btn btn-primary btn-xs">
+                                                        Limpar
+                                                    </button>
+                                                    <button type="button" class="btn btn-danger btn-xs">
+                                                        Enviar P/ Avaliar
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <div class="card-body">
                                                 <div class="table-responsive">
-                                                    <table id="inserir"
+                                                    <table id="item-tabela-preco"
                                                         class="table compact table-font-small table-striped table-bordered"
                                                         style="width:100%; font-size: 11px;">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>CD_ITEM</th>
-                                                                <th>DS_ITEM</th>
-                                                                <th>VALOR</th>
-                                                            </tr>
-                                                        </thead>
                                                     </table>
                                                 </div>
                                             </div>
@@ -181,6 +187,8 @@
             language_datatables: "{{ asset('vendor/datatables/pt-br.json') }}",
             itemtabelaPreco: "{{ route('get-item-tabela-preco') }}",
             searchPessoa: "{{ route('usuario.search-pessoa') }}",
+            searchMedida: "{{ route('get-search-medida') }}",
+            previaTabela: "{{ route('get-previa-tabela-preco') }}",
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -204,25 +212,115 @@
             iconeMais: 'fa-plus-circle',
             iconeMenos: 'fa-minus-circle',
             routes: routes
-        });        
-
-        // Tab para Inserir
-        $('#desenho').select2({
-            theme: 'bootstrap4'
-        });
-        $('#medida').select2({
-            theme: 'bootstrap4'
         });
 
 
-        $("#inserir").DataTable({
+        $('#desenho, #medida').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            multiple: true,
+        });
+
+        $('#desenho').on('change', function() {
+            carregaOpcoes('#desenho', '#medida', routes.searchMedida, 'desenho');
+        });
+
+        var itens_preview = new Map();
+        var tabela_preview = null;
+        tabela_preview = $("#item-tabela-preco").DataTable({
             paging: true,
+            height: '300px',
             searching: true,
             ordering: false,
+            pageLength: 50,
+            pagingType: 'simple',
             language: {
-                url: "{{ asset('vendor/datatables/pt-br.json') }}",
-            }
+                url: routes.language_datatables,
+            },
+            data: [],
+            columns: [{
+                    title: 'Cód. Item',
+                    data: 'ID',
+                    width: '20%'
+                },
+                {
+                    title: 'Descrição',
+                    data: 'DESCRICAO',
+                    width: '60%'
+                },
+                {
+                    title: 'Valor',
+                    data: 'VALOR',
+                    width: '20%',
+                    render: $.fn.dataTable.render.number('.', ',', 2)
+                },
+            ],
+
         });
+
+
+        $('#btn-associar').on('click', function() {
+            const valor = $('#valor').val();
+
+            $.ajax({
+                url: routes.previaTabela,
+                type: 'GET',
+                data: {
+                    _csrf: '{{ csrf_token() }}',
+                    select: 'previa',
+                    desenho: $('#desenho').val(),
+                    medida: $('#medida').val(),
+                    valor: valor
+                },
+                success: function(response) {
+
+                    if(response.errors){
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Campos obrigatórios',
+                            html: response.errors
+                        });
+                        return;
+                    }
+                    const novos_dados = response.data;
+
+                    novos_dados.forEach(function(item) {
+                        item.valor = item.VALOR;
+                        itens_preview.set(item.ID, item);
+
+                    });
+                    const dados_atualizados = Array.from(itens_preview.values());                    
+
+                    tabela_preview.clear().rows.add(dados_atualizados).draw();
+                }
+            });
+        });
+
+        function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
+            let selected = $(selectOrigem).val();
+
+            $(selectDestino).empty().trigger('change');
+
+            if (selected && selected.length > 0) {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    data: {
+                        _csrf: '{{ csrf_token() }}',
+                        [paramName]: selected,
+                        select: paramName
+                    },
+                    success: function(data) {
+                        data.forEach(function(item) {
+                            let newOption = new Option(item.DESCRICAO, item.ID, false,
+                                false);
+                            $(selectDestino).append(newOption);
+                        });
+                        $(selectDestino).trigger('change');
+                    }
+                });
+            }
+        }
     </script>
 
 @stop

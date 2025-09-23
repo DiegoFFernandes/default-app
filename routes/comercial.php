@@ -34,6 +34,8 @@ Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
         Route::get('get-item-tabela-preco', [TabelaPrecoController::class, 'getItemTabPreco'])->name('get-item-tabela-preco');
 
         Route::get('get-tabela-cliente-preco', [TabelaPrecoController::class, 'getTabClientePreco'])->name('get-tabela-cliente-preco');
+        Route::get('get-search-medida', [TabelaPrecoController::class, 'getSearchMedida'])->name('get-search-medida');
+        Route::get('get-previa-tabela-preco', [TabelaPrecoController::class, 'getPreviaTabelaPreco'])->name('get-previa-tabela-preco');
     });
 });
 

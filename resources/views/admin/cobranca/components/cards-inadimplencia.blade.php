@@ -1,9 +1,9 @@
 <div class="row">
     <div class="col-6 col-md-2">
         <div class="info-box equal-info-box bg-gradient-light border">
-            <span class="info-box-icon bg-transparent text-primary">
+            {{-- <span class="info-box-icon bg-transparent text-primary">
                 <i class="fas fa-wallet"></i>
-            </span>
+            </span> --}}
             <div class="info-box-content">
                 <span class="info-box-text text-muted">Carteira Total</span>
                 <span class="info-box-number font-weight-bold" id="total_carteira">0,00</span>
@@ -12,9 +12,9 @@
     </div>
     <div class="col-6 col-md-2">
         <div class="info-box equal-info-box bg-light">
-            <span class="info-box-icon bg-transparent text-danger">
+            {{-- <span class="info-box-icon bg-transparent text-danger">
                 <i class="fas fa-calendar-times"></i>
-            </span>
+            </span> --}}
             <div class="info-box-content">
                 <span class="info-box-text text-muted">Vencidos</span>
                 <span class="info-box-number" id="vencidos">0,00</span>
@@ -23,7 +23,7 @@
     </div>
     <div class="col-12 col-md-2">
         <div class="info-box equal-info-box bg-info">
-            <span class="info-box-icon"><i class="fas fa-clock"></i></span>
+            {{-- <span class="info-box-icon"><i class="fas fa-clock"></i></span> --}}
             <div class="info-box-content">
                 <span class="info-box-text">Atrasados até 60 Dias</span>
                 <div class="d-flex justify-content-between">
@@ -43,7 +43,7 @@
     </div>
     <div class="col-12 col-md-2">
         <div class="info-box bg-warning">
-            <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
+            {{-- <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span> --}}
             <div class="info-box-content">
                 <span class="info-box-text">Inadimplência</span>
                 <div class="d-flex justify-content-between">
@@ -55,7 +55,7 @@
                     <small class="info-box-number" id="vl_maior_60_atrasados">0,00</small>
                 </div>
                 <div class="d-flex justify-content-between">
-                    <small>% Inadimplencia</small>
+                    <small>Inadimplencia</small>
                     <small class="info-box-number" id="pc_inadimplencia">0%</small>
                 </div>
             </div>

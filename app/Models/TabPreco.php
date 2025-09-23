@@ -77,4 +77,47 @@ class TabPreco extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+    public function getSelectTabPreco($select = null, $id_desenho = null, $id_medida = null, $valor = null)
+    {
+        // SELECT DISTINCT
+        //     BP.IDDESENHOPNEU,
+        // --REPLACE(DP.DSDESENHO || ' ' || BP.NRLARGURA, '.00', '') DSBANDA,
+        //     DP.DSDESENHO
+        // --BP.IDITEM,
+        // --ITEM.DS_ITEM PRODUTO,
+        // --SP.IDMEDIDAPNEU,
+        // --MP.DSMEDIDAPNEU,
+        // --SERVICO.CD_ITEM CD_ITEM,
+        // --SP.DSSERVICO
+        // --SERVICO.CD_GRUPO,
+        // --SERVICO.CD_SUBGRUPO
+
+        // caso o usuario filtrar por desenho, trazer as medidas associadas disponiveis segundo nivel, senão trazer os desenhos disponiveis primeiro nivel
+        $filtro = $select === 'desenho' ? 'SP.IDMEDIDAPNEU as ID, MP.DSMEDIDAPNEU as DESCRICAO' : 'BP.IDDESENHOPNEU as ID, DP.DSDESENHO as DESCRICAO';
+        if ($select === 'previa') {
+            $filtro = 'SERVICO.CD_ITEM as ID, SP.DSSERVICO as DESCRICAO, CAST(' . ($valor ? $valor : 0) . ' AS numeric(12,2)) as VALOR';
+        }
+
+        $query = "
+            SELECT DISTINCT
+            $filtro
+            FROM BANDAPNEU BP
+            INNER JOIN DESENHOPNEU DP ON (DP.ID = BP.IDDESENHOPNEU)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = BP.IDITEM)
+            INNER JOIN SERVICOPNEU SP ON (SP.IDBANDAPNEU = BP.ID)
+            INNER JOIN MEDIDAPNEU MP ON (MP.ID = SP.IDMEDIDAPNEU)
+            INNER JOIN ITEM SERVICO ON (SERVICO.CD_ITEM = SP.ID)
+            WHERE BP.STATIVO = 'S'
+                AND SERVICO.ST_ATIVO = 'S'
+                " . ($id_desenho ? " AND BP.IDDESENHOPNEU IN ($id_desenho) " : "") . "
+                " . ($id_medida ? " AND SP.IDMEDIDAPNEU IN ($id_medida) " : "") . "
+                AND SERVICO.CD_SUBGRUPO IN (1021, 1022, 1023, 1024, 1026, 1027, 1029)
+            ORDER BY DESCRICAO
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
+    }
 }

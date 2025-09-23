@@ -194,5 +194,5 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=6') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=7') }}"></script>
 @endpush

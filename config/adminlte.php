@@ -386,6 +386,10 @@ return [
                             'route' => 'coleta-empresa-geral',
                             'can' => ['ver-coleta-empresa']
                         ],
+                        [
+                            'text' => 'Tabela de Preço',
+                            'route' => 'tabela-preco.index'
+                        ],
 
                     ],
                 ],
