@@ -59,8 +59,7 @@
                                                     <div class="col-md-6">
                                                         <div class="form-group form-group-sm">
                                                             <label>Digite o Valor</label>
-                                                            <input type="number" id="valor"
-                                                                class="form-control"
+                                                            <input type="number" id="valor" class="form-control"
                                                                 placeholder="Digite o Valor...">
                                                         </div>
                                                     </div>
@@ -71,7 +70,8 @@
                                                 <div class="col-md-2">
                                                     <div class="form-group">
                                                         <button id="btn-associar"
-                                                            class="btn btn-danger btn-sm btn-block">Incluir na Previa</button>
+                                                            class="btn btn-danger btn-sm btn-block">Incluir na
+                                                            Previa</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -79,7 +79,7 @@
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="card">
                                             <div class="card-header">
                                                 <h3 class="card-title">Previa Tabela</h3>
@@ -225,15 +225,17 @@
             carregaOpcoes('#desenho', '#medida', routes.searchMedida, 'desenho');
         });
 
+        formularioDinamico(); // chama a função para deixar a pagina dinamica
         var itens_preview = new Map();
         var tabela_preview = null;
         tabela_preview = $("#item-tabela-preco").DataTable({
             paging: true,
-            height: '300px',
             searching: true,
             ordering: false,
             pageLength: 50,
             pagingType: 'simple',
+            scrollY: '300px',
+            scrollCollapse: true,
             language: {
                 url: routes.language_datatables,
             },
@@ -274,7 +276,7 @@
                 },
                 success: function(response) {
 
-                    if(response.errors){
+                    if (response.errors) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Campos obrigatórios',
@@ -289,7 +291,7 @@
                         itens_preview.set(item.ID, item);
 
                     });
-                    const dados_atualizados = Array.from(itens_preview.values());                    
+                    const dados_atualizados = Array.from(itens_preview.values());
 
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
                 }
