@@ -117,16 +117,25 @@ class TabelaPrecoController extends Controller
 
         $data = $this->tabela->getSelectTabPreco($select, $idDesenho, $idMedida, $valor);
 
-        return response()->json(['data' => $data]);
+        // Número total de registros após filtros
+        $totalFiltered = count($data);
+
+        // Resposta formatada para o DataTables
+        return response()->json([
+            'draw' => (int) $this->request->draw,
+            'recordsTotal' => $totalFiltered,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data
+        ]);
     }
 
     public function _validate($data)
     {
-        $rules =[
-                'desenho' => 'required',
-                'medida' => 'required',
-                'valor' => 'required|numeric|min:0'
-            ];
+        $rules = [
+            'desenho' => 'required',
+            'medida' => 'required',
+            'valor' => 'required|numeric|min:0'
+        ];
         $messages = [
             'desenho.required' => 'O campo Desenho é obrigatório.',
             'medida.required' => 'O campo Medida é obrigatório.',
