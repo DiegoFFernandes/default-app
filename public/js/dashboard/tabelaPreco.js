@@ -198,7 +198,7 @@ function formularioDinamico() {
     $('#desenho, #medida, #valor').closest('.form-group').hide(); // esconde os select
     cardTabela.hide(); // esconde o card da tabela
 
-    // exibe medida quando desenho for selecionado
+    // exibe desenho quando pessoa for selecionado
     $('#pessoa').on('change', function () {
         if ($(this).val() && $(this).val().length > 0) {
             $('#desenho').closest('.form-group').show();
