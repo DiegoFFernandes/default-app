@@ -78,25 +78,13 @@ class TabPreco extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getSelectTabPreco($select = null, $id_desenho = null, $id_medida = null, $valor = null)
+    public function getSelectTabPreco($select = null, $id_pessoa = null, $id_desenho = null, $id_medida = null, $valor = null)
     {
-        // SELECT DISTINCT
-        //     BP.IDDESENHOPNEU,
-        // --REPLACE(DP.DSDESENHO || ' ' || BP.NRLARGURA, '.00', '') DSBANDA,
-        //     DP.DSDESENHO
-        // --BP.IDITEM,
-        // --ITEM.DS_ITEM PRODUTO,
-        // --SP.IDMEDIDAPNEU,
-        // --MP.DSMEDIDAPNEU,
-        // --SERVICO.CD_ITEM CD_ITEM,
-        // --SP.DSSERVICO
-        // --SERVICO.CD_GRUPO,
-        // --SERVICO.CD_SUBGRUPO
-
         // caso o usuario filtrar por desenho, trazer as medidas associadas disponiveis segundo nivel, senão trazer os desenhos disponiveis primeiro nivel
         $filtro = $select === 'desenho' ? 'SP.IDMEDIDAPNEU as ID, MP.DSMEDIDAPNEU as DESCRICAO' : 'BP.IDDESENHOPNEU as ID, DP.DSDESENHO as DESCRICAO';
+
         if ($select === 'previa') {
-            $filtro = 'SERVICO.CD_ITEM as ID, SP.DSSERVICO as DESCRICAO, CAST(' . ($valor ? $valor : 0) . ' AS numeric(12,2)) as VALOR';
+            $filtro = $id_pessoa . ' as CD_TABELA, SERVICO.CD_ITEM as ID, SP.DSSERVICO as DESCRICAO, CAST(' . ($valor ? $valor : 0) . ' as numeric(12,2)) as VALOR';
         }
 
         $query = "
@@ -112,9 +100,62 @@ class TabPreco extends Model
                 AND SERVICO.ST_ATIVO = 'S'
                 " . ($id_desenho ? " AND BP.IDDESENHOPNEU IN ($id_desenho) " : "") . "
                 " . ($id_medida ? " AND SP.IDMEDIDAPNEU IN ($id_medida) " : "") . "
-                AND SERVICO.CD_SUBGRUPO IN (1021, 1022, 1023, 1024, 1026, 1027, 1029)
-            ORDER BY DESCRICAO
-        ";
+                AND SERVICO.CD_SUBGRUPO IN (1021, 1022, 1023, 1024, 1026, 1027, 1029)     
+            ORDER BY DESCRICAO";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
+    }
+    public function getVulcanizacaoManchao($input)
+    {
+        $query = "
+                SELECT
+                    $input[pessoa] AS CD_TABELA,
+                    SP.ID,
+                    SP.DSSERVICO AS DESCRICAO,
+                    --I.CD_GRUPO,
+                    --I.CD_SUBGRUPO,
+                    CASE
+                --VULCANIZACAO CARGA
+                    WHEN I.CD_SUBGRUPO = 10026 THEN $input[vlr_vulc_carga]                    
+                -- VULCANIZACAO AGRICOLA
+                    WHEN I.CD_SUBGRUPO = 122 THEN $input[vlr_vulc_agricola]                   
+                    END VALOR
+                FROM SERVICOPNEU SP
+                INNER JOIN ITEM I ON (I.CD_ITEM = SP.ID)
+                WHERE I.ST_ATIVO = 'S'
+                    AND I.CD_SUBGRUPO IN (10026, 122)
+                    AND CASE
+                            WHEN I.CD_SUBGRUPO = 10026 THEN $input[vlr_vulc_carga] 
+                            WHEN I.CD_SUBGRUPO = 122 THEN $input[vlr_vulc_agricola]                            
+                    END > 0
+
+                UNION ALL
+
+                SELECT
+                    $input[pessoa] AS CD_TABELA,
+                    CP.ID,
+                    CP.DSCONSERTO AS DESCRICAO,
+                    --I.CD_GRUPO,
+                    --I.CD_SUBGRUPO,
+                    CASE
+                --CONSERTO CARGA
+                    WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao]                    
+                -- CONSERTO AGRO
+                    WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]
+                    ELSE 0
+                    END VALOR
+                FROM CONSERTOPNEU CP
+                INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
+                WHERE I.ST_ATIVO = 'S'
+                    AND I.CD_SUBGRUPO IN (10037, 123)
+                    AND CASE
+                            WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao] 
+                            WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
+                    END > 0
+
+    ";
 
         $data = DB::connection('firebird')->select($query);
 

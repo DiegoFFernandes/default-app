@@ -67,11 +67,11 @@
                                                 <!-- /.card-body -->
                                             </div>
                                             <div class="card-footer">
-                                                <div class="col-md-2">
+                                                <div class="col-md-12">
                                                     <div class="form-group">
-                                                        <button id="btn-associar"
-                                                            class="btn btn-danger btn-sm btn-block">Incluir na
-                                                            Previa</button>
+                                                        <button id="btn-associar" class="btn btn-danger btn-sm">
+                                                            Incluir na Previa
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -82,16 +82,18 @@
                                     <div class="col-md-6">
                                         <div class="card">
                                             <div class="card-header">
-                                                <h3 class="card-title">Previa Tabela</h3>
-                                                <div class="card-tools">
-                                                    <button type="button" class="btn btn-primary btn-xs">
-                                                        Limpar
-                                                    </button>
-                                                    <button type="button" class="btn btn-danger btn-xs">
-                                                        Enviar P/ Avaliar
+                                                <h3 class="card-title">
+                                                    <span class="badge badge-secondary">Prévia Tabela</span>
+                                                </h3>
+                                                <div class="card-tools d-flex w-100 justify-content-end">
+                                                    <!-- Botão com ajuste responsivo -->
+                                                    <button type="button" class="btn btn-secondary btn-sm btn-adicional"
+                                                        id="btn-adicional">
+                                                        Itens Adicionais
                                                     </button>
                                                 </div>
                                             </div>
+
                                             <div class="card-body">
                                                 <div class="table-responsive">
                                                     <table id="item-tabela-preco"
@@ -99,6 +101,16 @@
                                                         style="width:100%; font-size: 11px;">
                                                     </table>
                                                 </div>
+                                            </div>
+                                            <div class="card-footer">
+                                                <button type="button" id="btn-recomecar" class="btn btn-secondary btn-sm"
+                                                    style="width: 100px;">
+                                                    Recomecar
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-sm float-right"
+                                                    style="width: 100px;" id="btn-enviar-avaliar">
+                                                    Salvar
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -120,8 +132,8 @@
                                                     </div>
 
                                                     <div class="form-check form-switch m-0 ml-3">
-                                                        <input class="form-check-input" type="checkbox" id="checkAssociadas"
-                                                            name="checkAssociadas">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            id="checkAssociadas" name="checkAssociadas">
                                                         <label class="form-check-label" for="checkAssociadas">
                                                             Tabelas Associadas
                                                         </label>
@@ -159,10 +171,11 @@
                     </div>
                 </div>
             </div>
+            @include('admin.comercial.components.modal-tabela-preco')
     </section>
 @stop
 @section('js')
-    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=3') }}"></script>
+    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=10') }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
@@ -189,6 +202,7 @@
             searchPessoa: "{{ route('usuario.search-pessoa') }}",
             searchMedida: "{{ route('get-search-medida') }}",
             previaTabela: "{{ route('get-previa-tabela-preco') }}",
+            searchAdicional: "{{ route('get-search-adicional') }}",
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -225,43 +239,16 @@
             carregaOpcoes('#desenho', '#medida', routes.searchMedida, 'desenho');
         });
 
-        formularioDinamico(); // chama a função para deixar a pagina dinamica
         var itens_preview = new Map();
         var tabela_preview = null;
-        tabela_preview = $("#item-tabela-preco").DataTable({
-            paging: true,
-            searching: true,
-            ordering: false,
-            pageLength: 50,
-            pagingType: 'simple',
-            scrollY: '300px',
-            scrollCollapse: true,
-            language: {
-                url: routes.language_datatables,
-            },
-            data: [],
-            columns: [{
-                    title: 'Cód. Item',
-                    data: 'ID',
-                    width: '20%'
-                },
-                {
-                    title: 'Descrição',
-                    data: 'DESCRICAO',
-                    width: '60%'
-                },
-                {
-                    title: 'Valor',
-                    data: 'VALOR',
-                    width: '20%',
-                    render: $.fn.dataTable.render.number('.', ',', 2)
-                },
-            ],
-
-        });
 
 
         $('#btn-associar').on('click', function() {
+
+            if (!$.fn.DataTable.isDataTable("#item-tabela-preco")) {
+                initTableTabelaPrecoPrevia();
+            }
+
             const valor = $('#valor').val();
 
             $.ajax({
@@ -270,6 +257,7 @@
                 data: {
                     _csrf: '{{ csrf_token() }}',
                     select: 'previa',
+                    pessoa: $('#pessoa').val(),
                     desenho: $('#desenho').val(),
                     medida: $('#medida').val(),
                     valor: valor
@@ -280,7 +268,10 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Campos obrigatórios',
-                            html: response.errors
+                            html: response.errors,
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            }
                         });
                         return;
                     }
@@ -298,30 +289,98 @@
             });
         });
 
-        function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
-            let selected = $(selectOrigem).val();
+        $('#btn-adicional').on('click', function() {
+            $('#modal-item-adicional').modal('show');
+        });
 
-            $(selectDestino).empty().trigger('change');
+        $('#btn-add-modal').on('click', function() {
+            const vulc_carga_valor = $('#input-vulc-carga-valor').val() || 0;
+            const vulc_agricola_valor = $('#input-vulc-agricola-valor').val() || 0;
+            const manchao_valor = $('#input-manchao-valor').val() || 0;
+            const manchao_agricola_valor = $('#input-manchao-valor-agricola').val() || 0;
+            const pessoa = $('#pessoa').val();
 
-            if (selected && selected.length > 0) {
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    data: {
-                        _csrf: '{{ csrf_token() }}',
-                        [paramName]: selected,
-                        select: paramName
-                    },
-                    success: function(data) {
-                        data.forEach(function(item) {
-                            let newOption = new Option(item.DESCRICAO, item.ID, false,
-                                false);
-                            $(selectDestino).append(newOption);
+            $.ajax({
+                url: routes.searchAdicional,
+                type: 'GET',
+                data: {
+                    _csrf: '{{ csrf_token() }}',
+                    pessoa: pessoa,
+                    vulc_carga_valor: vulc_carga_valor,
+                    vulc_agricola_valor: vulc_agricola_valor,
+                    manchao_valor: manchao_valor,
+                    manchao_agricola_valor: manchao_agricola_valor,
+                },
+                success: function(response) {
+                    if (response.errors) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Campos obrigatórios',
+                            html: response.errors,
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            }
                         });
-                        $(selectDestino).trigger('change');
+                        return;
                     }
-                });
-            }
+                    const novos_dados = response.data;
+
+                    novos_dados.forEach(function(item) {
+                        item.valor = item.VALOR;
+                        itens_preview.set(item.ID, item);
+
+                    });
+                    const dados_atualizados = Array.from(itens_preview.values());
+
+                    tabela_preview.clear().rows.add(dados_atualizados).draw();
+                }
+            });
+
+
+
+            const dados_atualizados = Array.from(itens_preview.values());
+            tabela_preview.clear().rows.add(dados_atualizados).draw();
+            $('#modal-item-adicional').modal('hide');
+            // Limpar os campos do modal
+            $('#input-vulc-carga').val('');
+            $('#input-vulc-agricola').val('');
+            $('#input-manchao').val('');
+        });
+
+        formularioDinamico(); // chama a função para deixar a pagina dinamica
+
+        function initTableTabelaPrecoPrevia() {
+            tabela_preview = $("#item-tabela-preco").DataTable({
+                paging: false,
+                searching: true,
+                ordering: false,
+                // pageLength: all,
+                pagingType: 'simple',
+                scrollY: '300px',
+                scrollCollapse: true,
+                language: {
+                    url: routes.language_datatables,
+                },
+                data: [],
+                columns: [{
+                        title: 'Cód',
+                        data: 'ID',
+                        width: '20%'
+                    },
+                    {
+                        title: 'Descrição',
+                        data: 'DESCRICAO',
+                        width: '60%'
+                    },
+                    {
+                        title: 'Valor',
+                        data: 'VALOR',
+                        width: '20%',
+                        render: $.fn.dataTable.render.number('.', ',', 2)
+                    },
+                ],
+
+            });
         }
     </script>
 

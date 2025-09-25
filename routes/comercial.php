@@ -35,6 +35,9 @@ Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
 
         Route::get('get-tabela-cliente-preco', [TabelaPrecoController::class, 'getTabClientePreco'])->name('get-tabela-cliente-preco');
         Route::get('get-search-medida', [TabelaPrecoController::class, 'getSearchMedida'])->name('get-search-medida');
+
+        // Manchão Agrícola e OTR e Vulcanização
+        Route::get('get-search-adicional', [TabelaPrecoController::class, 'getSearchAdicional'])->name('get-search-adicional');
         Route::get('get-previa-tabela-preco', [TabelaPrecoController::class, 'getPreviaTabelaPreco'])->name('get-previa-tabela-preco');
     });
 });

@@ -183,62 +183,98 @@ function initTableItemTabelaPreco(route, idTabela) {
     });
 }
 
-
 function formatarNome(str) {
-    return str
-        .toLowerCase()
-        .replace(/\b\w/g, function (letra) {
-            return letra.toUpperCase();
-        });
+    return str.toLowerCase().replace(/\b\w/g, function (letra) {
+        return letra.toUpperCase();
+    });
 }
 
 function formularioDinamico() {
-    const cardTabela = $('#item-tabela-preco').closest('.card');
+    const cardTabela = $("#item-tabela-preco").closest(".card");
 
-    $('#desenho, #medida, #valor').closest('.form-group').hide(); // esconde os select
+    $("#desenho, #medida, #valor, #btn-associar").closest(".form-group").hide(); // esconde os select
     cardTabela.hide(); // esconde o card da tabela
 
     // exibe desenho quando pessoa for selecionado
-    $('#pessoa').on('change', function () {
+    $("#pessoa").on("change", function () {
         if ($(this).val() && $(this).val().length > 0) {
-            $('#desenho').closest('.form-group').show();
+            $("#desenho").closest(".form-group").show();
         } else {
-            $('#desenho, #medida, #valor').closest('.form-group').hide();
+            $("#desenho, #medida, #valor, #btn-associar")
+                .closest(".form-group")
+                .hide();
         }
     });
 
     // exibe medida quando desenho for selecionado
-    $('#desenho').on('change', function () {
+    $("#desenho").on("change", function () {
         if ($(this).val() && $(this).val().length > 0) {
-            $('#medida').closest('.form-group').show();
+            $("#medida").closest(".form-group").show();
         } else {
-            $('#medida, #valor').closest('.form-group').hide();
+            $("#medida, #valor").closest(".form-group").hide();
         }
     });
 
     // exibe valor quando medida for selecionado
-    $('#medida').on('change', function () {
+    $("#medida").on("change", function () {
         if ($(this).val() && $(this).val().length > 0) {
-            $('#valor').closest('.form-group').show();
+            $("#valor").closest(".form-group").show();
+            $("#btn-associar").closest(".form-group").show();
         } else {
-            $('#valor').closest('.form-group').hide();
+            $("#valor").closest(".form-group").hide();
+            $("#btn-associar").closest(".form-group").hide();
         }
     });
 
     // exibe a tabela
-    $('#btn-associar').on('click', function () {
-        const nomeTabela = $('#pessoa option:selected').text();
-        $('.card-title').text('Previa Tabela - ' + formatarNome(nomeTabela));
+    $("#btn-associar").on("click", function () {
+        const nomeTabela = $("#pessoa option:selected").text();
+        $(".card-title").html(
+            "<span class='text-muted'>Prévia Tabela - " +
+                formatarNome(nomeTabela) +
+                "</span>"
+        );
         cardTabela.show();
     });
 
     // limpa e esconde
-    cardTabela.find('.btn-primary').on('click', function () {
-        if (typeof tabela_preview !== 'undefined' && tabela_preview) {
-            tabela_preview.clear().draw();
+    cardTabela.find("#btn-recomecar").on("click", function () {
+        if ($.fn.DataTable.isDataTable("#item-tabela-preco")) {
+            $("#item-tabela-preco").DataTable().destroy();
+            console.log("destroy");
         }
 
-        $('#pessoa, #desenho, #medida, #valor').val('').trigger('change');// limpa os inputs
+        $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
         cardTabela.hide();
     });
+}
+
+function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
+    let selected = $(selectOrigem).val();
+
+    $(selectDestino).empty().trigger("change");
+
+    if (selected && selected.length > 0) {
+        $.ajax({
+            url: url,
+            type: "GET",
+            data: {
+                _csrf: "{{ csrf_token() }}",
+                [paramName]: selected,
+                select: paramName,
+            },
+            success: function (data) {
+                data.forEach(function (item) {
+                    let newOption = new Option(
+                        item.DESCRICAO,
+                        item.ID,
+                        false,
+                        false
+                    );
+                    $(selectDestino).append(newOption);
+                });
+                $(selectDestino).trigger("change");
+            },
+        });
+    }
 }

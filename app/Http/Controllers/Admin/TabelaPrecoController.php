@@ -110,12 +110,13 @@ class TabelaPrecoController extends Controller
         $idDesenho = $this->request->input('desenho', []);
         $idMedida = $this->request->input('medida', []);
         $valor = $this->request->input('valor', 0);
+        $IdPessoa = $this->request->input('pessoa');
         $select = $this->request->select;
 
         $idDesenho = is_array($idDesenho) ? implode(',', $idDesenho) : $idDesenho;
         $idMedida = is_array($idMedida) ? implode(',', $idMedida) : $idMedida;
 
-        $data = $this->tabela->getSelectTabPreco($select, $idDesenho, $idMedida, $valor);
+        $data = $this->tabela->getSelectTabPreco($select, $IdPessoa, $idDesenho, $idMedida, $valor);
 
         // Número total de registros após filtros
         $totalFiltered = count($data);
@@ -129,14 +130,62 @@ class TabelaPrecoController extends Controller
         ]);
     }
 
+    public function getSearchAdicional()
+    {
+        $arr = [
+            'pessoa' => $this->request->input('pessoa'),
+            'vlr_vulc_carga' => $this->request->input('vulc_carga_valor', 0),
+            'vlr_vulc_agricola' => $this->request->input('vulc_agricola_valor', 0),
+            'vlr_manchao' => $this->request->input('manchao_valor', 0),
+            'vlr_manchao_agricola' => $this->request->input('manchao_agricola_valor', 0),
+        ];
+
+        $rules = [
+            'pessoa' => 'required|integer',
+            'vulc_carga_valor' => 'required|numeric|min:0',
+            'vulc_agricola_valor' => 'required|numeric|min:0',
+            'manchao_valor' => 'required|numeric|min:0',
+            'manchao_agricola_valor' => 'required|numeric|min:0',
+        ];
+
+        $messages = [
+            'pessoa.required' => 'O campo Nome Tabela é obrigatório.',
+            'pessoa.integer' => 'O Id Pessoa deve ser um número inteiro.',
+            'vulc_carga_valor.required' => 'O campo Valor Vulcanização Carga é obrigatório.',
+            'vulc_carga_valor.numeric' => 'O campo Valor Vulcanização Carga deve ser um número.',
+            'vulc_carga_valor.min' => 'O campo Valor Vulcanização Carga deve ser maior ou igual a zero.',
+            'vulc_agricola_valor.required' => 'O campo Valor Vulcanização Agrícola é obrigatório.',
+            'vulc_agricola_valor.numeric' => 'O campo Valor Vulcanização Agrícola deve ser um número.',
+            'vulc_agricola_valor.min' => 'O campo Valor Vulcanização Agrícola deve ser maior ou igual a zero.',
+            'manchao_valor.required' => 'O campo Valor Manchão Carga é obrigatório.',
+            'manchao_valor.numeric' => 'O campo Valor Manchão Carga deve ser um número.',
+            'manchao_valor.min' => 'O campo Valor Manchão Carga deve ser maior ou igual a zero.',
+            'manchao_agricola_valor.required' => 'O campo Valor Manchão Agrícola é obrigatório.',
+            'manchao_agricola_valor.numeric' => 'O campo Valor Manchão Agrícola deve ser um número.',
+            'manchao_agricola_valor.min' => 'O campo Valor Manchão Agrícola deve ser maior ou igual a zero.',
+        ];
+        $validator = Validator::make($this->request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return Helper::formatErrorsAsHtml($validator);
+        }
+
+        $data = $this->tabela->getVulcanizacaoManchao($arr);
+
+        return response()->json(['data' => $data]);
+    }
+
     public function _validate($data)
     {
         $rules = [
+            'pessoa' => 'required|integer',
             'desenho' => 'required',
             'medida' => 'required',
             'valor' => 'required|numeric|min:0'
         ];
         $messages = [
+            'pessoa.required' => 'O campo Pessoa é obrigatório.',
+            'pessoa.integer' => 'O Id Pessoa deve ser um número inteiro.',
             'desenho.required' => 'O campo Desenho é obrigatório.',
             'medida.required' => 'O campo Medida é obrigatório.',
             'valor.required' => 'O campo Valor é obrigatório.',
