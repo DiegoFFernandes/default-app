@@ -12,11 +12,11 @@
         <div class="row">
             <div class="col-md-4 mb-2">
                 {{-- <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Cliente"> --}}
-                <select name='pessoa' class="form-control" id="pessoa" style="width: 100%">
+                <select name='pessoa' class="form-control" id="{{ $pessoa }}" style="width: 100%">
                 </select>
             </div>
             <div class="col-md-4 mb-2">
-                <select name="gerente" id="filtro-gerente" class="form-control" style="width: 100%">
+                <select name="gerente" id="{{ $filtro_gerente }}" class="form-control" style="width: 100%">
                     <option value="0">Todos Gerentes</option>
                     @foreach ($gerentes as $g)
                         <option value="{{ $g->cd_usuario }}">{{ $g->name }}</option>
@@ -24,26 +24,26 @@
                 </select>
             </div>
             <div class="col-md-4 mb-2">
-                <input id="filtro-supervisor" type="text" class="form-control" placeholder="Filtrar por Supervisor">
+                <input id="{{ $filtro_supervisor }}" type="text" class="form-control" placeholder="Filtrar por Supervisor">
             </div>
             <div class="col-md-4 mb-2">
-                <input id="filtro-vendedor" type="text" class="form-control" placeholder="Filtrar por Vendedor">
+                <input id="{{ $filtro_vendedor }}" type="text" class="form-control" placeholder="Filtrar por Vendedor">
             </div>
             <div class="col-md-4 mb-2">
-                <input id="filtro-cnpj" type="text" class="form-control" placeholder="Filtrar por CNPJ">
+                <input id="{{ $filtro_cnpj }}" type="text" class="form-control" placeholder="Filtrar por CNPJ">
             </div>
             <div class="col-md-4 mb-2">
-                <input id="daterange" type="text" class="form-control" placeholder="Filtrar por Vencimento">
+                <input id="{{ $daterange }}" type="text" class="form-control" placeholder="{{ $placeholderDatarange }}">
             </div>
 
         </div>
         <div class="card-footer">
             <div class="row">
                 <div class="col-md-12">
-                    <button type="button" class="btn btn-default btn-sm float-right" id="btn-reset">
+                    <button type="button" class="btn btn-default btn-sm float-right" id="{{ $btn_reset }}">
                         <i class="fas fa-eraser"></i> Limpar
                     </button>
-                    <button type="button" class="btn btn-success btn-sm float-right mr-2" id="btn-search">
+                    <button type="button" class="btn btn-success btn-sm float-right mr-2" id="{{ $btn_search }}">
                         <i class="fas fa-check"></i> Buscar
                     </button>
                 </div>

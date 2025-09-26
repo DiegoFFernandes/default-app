@@ -8,9 +8,11 @@ var carteira60dias = 0;
 var carteiraMaior60dias = 0;
 
 function tentarProcessar() {
-    if (inadGerente && inadMeses) {
-        // console.log(inadMeses);
+    
+    if (inadGerente && inadMeses) {        
+      
         inadGerente.forEach((gerente, gIndex) => {
+
             var pc_atrasados_gerente = 0;
             var pc_inadimplencia_gerente = 0;
             if (hierarquia !== null) {
@@ -44,7 +46,7 @@ function tentarProcessar() {
 }
 
 // inicializa o accordion da inadimplência por gerente
-function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
+function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {   
     $.ajax({
         url: route,
         method: "GET",
@@ -54,6 +56,8 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
         },
         beforeSend: function () {
             $("#" + idCard + " .loading-card").removeClass("invisible");
+            $(".info-loading.loading-card").removeClass("invisible");
+
             $(".valorTotalGerente").text(`R$ 0`);
             $("#pc_atrasados").text(`0,00%`);
             $("#pc_inadimplencia").text(`0,00%`);
@@ -169,6 +173,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
 
             $("#" + idAccordion).html(html);
             $("#" + idCard + " .loading-card").addClass("invisible");
+            $(".info-loading.loading-card").addClass("invisible");
             $(".valorTotalGerente").text(
                 `R$ ${valorTotalGerente.toLocaleString()}`
             );
@@ -281,7 +286,7 @@ function initTableInadimplenciaMeses(
     idAccordion,
     data,
     route
-) {
+) {    
     if ($.fn.DataTable.isDataTable("#" + idTable)) {
         $("#" + idTable)
             .DataTable()
@@ -306,6 +311,7 @@ function initTableInadimplenciaMeses(
                 $("#card-inadimplencia-meses .loading-card").removeClass(
                     "invisible"
                 );
+                $(".info-loading.loading-card").removeClass("invisible");
                 $(".pc_atrasados-gerente").html(
                     '<i class="fas fa-sync-alt fa-spin"></i>'
                 );
@@ -329,6 +335,7 @@ function initTableInadimplenciaMeses(
                 $("#card-inadimplencia-meses .loading-card").addClass(
                     "invisible"
                 );
+                $(".info-loading.loading-card").addClass("invisible");
             },
         },
 
@@ -588,9 +595,9 @@ function getCardsData(idAccordion) {
     return data;
 }
 
-function buscarTermo(idAccordion) {
+function buscarTermo(idAccordion, idSelector) {
     // faz a busca com debounce
-    $("#buscarCliente").on("input", function () {
+    $(idSelector).on("input", function () {
         clearTimeout(debounceTimer);
         const termo = normalizeString($(this).val());
 

@@ -18,6 +18,10 @@
                                 <a class="nav-link" id="tab-cadastradas" data-toggle="tab" href="#painel-cadastradas"
                                     role="tab">Cadastradas</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-associadas" data-toggle="tab" href="#painel-associadas"
+                                    role="tab">Associadas</a>
+                            </li>
                         </ul>
                     </div>
                     <div class="card-body">
@@ -120,6 +124,20 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card card-primary">
+                                            <div class="card-body">                                                
+                                                <table
+                                                    class="table table-bordered compact table-responsive table-font-small"
+                                                    id="tabela-preco-cadastradas">
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="painel-associadas" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card card-primary">
                                             <div class="card-body">
                                                 <div
                                                     class="d-flex flex-wrap gap-4 align-items-center mb-3 border-bottom pb-2">
@@ -175,7 +193,7 @@
     </section>
 @stop
 @section('js')
-    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=10') }}"></script>
+    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=13') }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
@@ -193,6 +211,7 @@
         var tabelaClientesTabela = Handlebars.compile($("#details-template").html());
         var tabelaPreco = null;
         var itemTabelaCliente = null;
+        var dados_atualizados = [];
 
         var routes = {
             tabelaPreco: "{{ route('get-tabela-preco') }}",
@@ -207,7 +226,7 @@
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
 
-        $('#tab-cadastradas').click(function() {
+        $('#tab-associadas').click(function() {
             tabelaPreco = initTabelaPreco(routes);
         });
 
@@ -282,7 +301,7 @@
                         itens_preview.set(item.ID, item);
 
                     });
-                    const dados_atualizados = Array.from(itens_preview.values());
+                    dados_atualizados = Array.from(itens_preview.values());
 
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
                 }

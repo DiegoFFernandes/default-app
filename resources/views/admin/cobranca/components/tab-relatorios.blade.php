@@ -47,7 +47,7 @@
                                 aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
-                            <input type="text" id="buscarCliente"
+                            <input type="text" id="{{ $buscarCliente }}"
                                 class="form-control input-busca order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
                                 placeholder="Buscar Cliente...">
                         </div>
