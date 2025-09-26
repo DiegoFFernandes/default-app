@@ -115,43 +115,11 @@
             $('#phone').inputmask({
                 mask: ['(99)9999-9999', '(99)99999-9999']
             });
-            $('#daterange').inputmask({
-                mask: ['99/99/9999 - 99/99/9999']
-            });
+            
             $('.date-mask').inputmask({
                 mask: ['99/99/9999']
             });
 
-            $('#daterange').daterangepicker({
-                "showDropdowns": true,
-                locale: {
-                    format: 'DD/MM/YYYY',
-                    separator: ' - ',
-                    applyLabel: 'Aplicar',
-                    cancelLabel: 'Cancelar',
-                    fromLabel: 'De',
-                    toLabel: 'Até',
-                    customRangeLabel: 'Personalizado',
-                    daysOfWeek: ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-                    monthNames: ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho',
-                        'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-                    ],
-                    firstDay: 0
-                },
-                autoUpdateInput: false,
-            }).attr('readonly', true);
-
-            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format(
-                    'DD/MM/YYYY'));
-                inicioData = picker.startDate.format('DD.MM.YYYY');
-                fimData = picker.endDate.format('DD.MM.YYYY');
-            });
-            $('#daterange').on('cancel.daterangepicker', function(ev, picker) {
-                $(this).val("");
-                inicioData = 0;
-                fimData = 0;
-            });
 
             @if (session('success'))
                 toastr.success("{{ session('success') }}");
@@ -178,5 +146,5 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=7') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=10') }}"></script>
 @endpush

@@ -81,10 +81,59 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
 
 function initDateRangePicker(
     daterangeSelector = "#daterange",
-    inicioData = 0,
-    fimData = 0
+    inicioData = null,
+    fimData = null
 ) {
-    const $daterange = $(daterangeSelector);    
+    const $daterange = $(daterangeSelector);
+
+    $daterange.inputmask({
+        mask: ["99/99/9999 - 99/99/9999"],
+    });
+
+    let start = inicioData
+        ? moment(inicioData, "DD.MM.YYYY")
+        : moment().subtract(30, "days");
+    let end = fimData ? moment(fimData, "DD.MM.YYYY") : moment().subtract(1, "days");
+
+    let inicioSelecionado = start.format("DD.MM.YYYY");
+    let fimSelecionado = end.format("DD.MM.YYYY");
+
+    // Evita inicialização duplicada
+    if ($daterange.data("daterangepicker")) {
+        $daterange.data("daterangepicker").remove(); // remove instancia anterior se existir
+    }
+
+    $daterange.daterangepicker({
+        showDropdowns: true,
+        startDate: start,
+        endDate: end,
+        locale: {
+            format: "DD/MM/YYYY",
+            separator: " - ",
+            applyLabel: "Aplicar",
+            cancelLabel: "Cancelar",
+            fromLabel: "De",
+            toLabel: "Até",
+            customRangeLabel: "Personalizado",
+            daysOfWeek: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+            monthNames: [
+                "Janeiro",
+                "Fevereiro",
+                "Março",
+                "Abril",
+                "Maio",
+                "Junho",
+                "Julho",
+                "Agosto",
+                "Setembro",
+                "Outubro",
+                "Novembro",
+                "Dezembro",
+            ],
+            firstDay: 0,
+        },
+        autoUpdateInput: false,
+    });
 
     $daterange.on("apply.daterangepicker", function (ev, picker) {
         $(this).val(
@@ -92,19 +141,21 @@ function initDateRangePicker(
                 " - " +
                 picker.endDate.format("DD/MM/YYYY")
         );
-        inicioData = picker.startDate.format("DD.MM.YYYY");
-        fimData = picker.endDate.format("DD.MM.YYYY");
+        inicioSelecionado = picker.startDate.format("DD.MM.YYYY");
+        fimSelecionado = picker.endDate.format("DD.MM.YYYY");
     });
 
     $daterange.on("cancel.daterangepicker", function (ev, picker) {
         $(this).val("");
-        inicioData = 0;
-        fimData = 0;
+        inicioSelecionado = 0;
+        fimSelecionado = 0;
     });
 
+    $daterange.attr('readonly', true);
+
     return {
-        getInicio: () => inicioData,
-        getFim: () => fimData,
+        getInicio: () => inicioSelecionado,
+        getFim: () => fimSelecionado,
     };
 }
 

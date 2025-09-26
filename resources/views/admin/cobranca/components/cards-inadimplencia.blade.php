@@ -1,9 +1,12 @@
 <div class="row">
     <div class="col-6 col-md-2">
         <div class="info-box equal-info-box bg-gradient-light border">
-            {{-- <span class="info-box-icon bg-transparent text-primary">
-                <i class="fas fa-wallet"></i>
-            </span> --}}
+            {{-- Icon loading --}}
+            <div class="invisible info-loading loading-card">
+                <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
+                    <div class="text-bold pt-2"></div>
+                </div>
+            </div>
             <div class="info-box-content">
                 <span class="info-box-text text-muted">Carteira Total</span>
                 <span class="info-box-number font-weight-bold" id="total_carteira">0,00</span>
@@ -11,10 +14,13 @@
         </div>
     </div>
     <div class="col-6 col-md-2">
-        <div class="info-box equal-info-box bg-light">
-            {{-- <span class="info-box-icon bg-transparent text-danger">
-                <i class="fas fa-calendar-times"></i>
-            </span> --}}
+        <div class="info-box equal-info-box bg-gradient-light border">
+            {{-- Icon loading --}}
+            <div class="invisible info-loading loading-card">
+                <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
+                    <div class="text-bold pt-2"></div>
+                </div>
+            </div>
             <div class="info-box-content">
                 <span class="info-box-text text-muted">Vencidos</span>
                 <span class="info-box-number" id="vencidos">0,00</span>
@@ -23,7 +29,12 @@
     </div>
     <div class="col-12 col-md-2">
         <div class="info-box equal-info-box bg-info">
-            {{-- <span class="info-box-icon"><i class="fas fa-clock"></i></span> --}}
+            {{-- Icon loading --}}
+            <div class="invisible info-loading loading-card">
+                <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
+                    <div class="text-bold pt-2"></div>
+                </div>
+            </div>
             <div class="info-box-content">
                 <span class="info-box-text">Atrasados até 60 Dias</span>
                 <div class="d-flex justify-content-between">
@@ -42,8 +53,13 @@
         </div>
     </div>
     <div class="col-12 col-md-2">
+        {{-- Icon loading --}}
+        <div class="invisible info-loading loading-card">
+            <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
+                <div class="text-bold pt-2"></div>
+            </div>
+        </div>
         <div class="info-box bg-warning">
-            {{-- <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span> --}}
             <div class="info-box-content">
                 <span class="info-box-text">Inadimplência</span>
                 <div class="d-flex justify-content-between">

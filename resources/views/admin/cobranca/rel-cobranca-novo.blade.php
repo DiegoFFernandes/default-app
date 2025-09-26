@@ -49,7 +49,17 @@
                         <div class="tab-content" id="tabContentRelatorio">
                             <div class="tab-pane fade show active" id="painel-relatorio-cobranca" role="tabpanel"
                                 aria-labelledby="tab-relatorio-cobranca">
-                                @include('admin.cobranca.components.filtros-inadimplencia')
+                                @include('admin.cobranca.components.filtros-inadimplencia', [
+                                    'pessoa' => 'pessoa',
+                                    'filtro_gerente' => 'filtro-gerente',
+                                    'filtro_supervisor' => 'filtro-supervisor',
+                                    'filtro_vendedor' => 'filtro-vendedor',
+                                    'filtro_cnpj' => 'filtro-cnpj',
+                                    'btn_search' => 'btn-search',
+                                    'btn_reset' => 'btn-reset',
+                                    'daterange' => 'daterange',
+                                    'placeholderDatarange' => 'Filtrar por Vencimento',
+                                ])
 
                                 @include('admin.cobranca.components.cards-inadimplencia')
 
@@ -61,10 +71,22 @@
                                     'accordion_id' => 'accordion-inadimplencia-gerente',
                                     'treeAccordion' => 'treeAccordion',
                                     'treeAccordionGerente' => 'treeAccordionGerente',
+                                    'buscarCliente' => 'buscarCliente',
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
                                 aria-labelledby="tab-cartao-cheque">
+                                @include('admin.cobranca.components.filtros-inadimplencia', [
+                                    'pessoa' => 'pessoa_ch_cartao',
+                                    'filtro_gerente' => 'filtro-gerente_ch_cartao',
+                                    'filtro_supervisor' => 'filtro-supervisor_ch_cartao',
+                                    'filtro_vendedor' => 'filtro-vendedor_ch_cartao',
+                                    'filtro_cnpj' => 'filtro-cnpj_ch_cartao',
+                                    'btn_search' => 'btn-search-ch-cartao',
+                                    'btn_reset' => 'btn-reset-ch-cartao',
+                                    'daterange' => 'daterange-ch-cartao',
+                                    'placeholderDatarange' => 'Filtrar por Emissão',
+                                ])
                                 @include('admin.cobranca.components.tab-relatorios', [
                                     'tabela_mensal' => 'tabela-inadimplencia-meses-ch-cartao',
                                     'grafico_mensal' => 'grafico-inadimplencia-ch-cartao',
@@ -73,6 +95,7 @@
                                     'accordion_id' => 'accordion-inadimplencia-gerente-ch-cartao',
                                     'treeAccordion' => 'treeAccordion-ch-cartao',
                                     'treeAccordionGerente' => 'treeAccordionGerente-ch-cartao',
+                                    'buscarCliente' => 'buscarCliente-ch-cartao',
                                 ])
                             </div>
                             <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
@@ -153,7 +176,7 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=22') }}"></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=25') }}"></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=2') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js?v=5') }}"></script>
     <script src="{{ asset('js/dashboard/canhoto.js?v=2') }}"></script>
@@ -163,7 +186,7 @@
         var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
         //datas selecionadas no date range picker
-        var datasSelecionadas = initDateRangePicker();
+        var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
 
         $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
@@ -203,69 +226,58 @@
             dtInicio: dtInicio
         };
 
-        inadimplenciaGerente(
-            tab,
-            data,
-            routes['inadimplencia_gerente'],
-            'treeAccordionGerente',
-            'card-inadimplencia-gerente'
-        );
+        carregaDadosTela1(data);
 
-        initTableInadimplenciaMeses(
-            tab,
-            'tabela-inadimplencia-meses',
-            'modal-table-cliente',
-            'accordion-inadimplencia-gerente',
-            data,
-            routesInadimplenciaMensal
-        );
-
-        buscarTermo('accordion-inadimplencia-gerente');
+        buscarTermo('accordion-inadimplencia-gerente', '#buscarCliente');
 
         $('#tab-relatorio-cobranca').on('click', function() {
             const tab = 1;
             dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
             dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
 
+            const data = {
+                nm_pessoa: $("#pessoa option:selected").text(),
+                nm_vendedor: $('#filtro-vendedor').val(),
+                cnpj: $('#filtro-cnpj').val(),
+                filtro_gerente: $('#filtro-gerente').val(),
+                nm_supervisor: $('#filtro-supervisor').val(),
+                session: true,
+                dtFim: dtFim,
+                dtInicio: dtInicio
+            };
+
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
-            inadimplenciaGerente(
-                tab, {},
-                routes['inadimplencia_gerente'],
-                'treeAccordionGerente',
-                'card-inadimplencia-gerente'
-            );
-
-            initTableInadimplenciaMeses(
-                tab,
-                'tabela-inadimplencia-meses',
-                'modal-table-cliente',
-                'accordion-inadimplencia-gerente', {},
-                routesInadimplenciaMensal
-            );
+            carregaDadosTela1(data);
             vincularTabelaAoGrafico("tabela-inadimplencia-meses", "graficoInadimplencia");
         });
 
+        let datasSelecionadasCartao = null;
+
         $('#tab-cartao-cheque').on('click', function() {
+            initSelect2Pessoa('#pessoa_ch_cartao', routesInadimplenciaMensal.searchPessoa);
+
             const tab = 2;
             dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
             dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
-            inadimplenciaGerente(
-                tab, {},
-                routes['inadimplencia_gerente'],
-                'treeAccordionGerente-ch-cartao',
-                'card-inadimplencia-gerente-ch-cartao'
-            );
 
-            initTableInadimplenciaMeses(
-                tab,
-                'tabela-inadimplencia-meses-ch-cartao',
-                'modal-table-cliente-ch-cartao',
-                'accordion-inadimplencia-gerente-ch-cartao', {},
-                routesInadimplenciaMensal
-            );
-            buscarTermo('accordion-inadimplencia-gerente-ch-cartao');
+            if (!datasSelecionadasCartao) {
+                datasSelecionadasCartao = initDateRangePicker('#daterange-ch-cartao', dtInicio, dtFim);
+            }
+            const data = {
+                nm_pessoa: $("#pessoa_ch_cartao option:selected").text(),
+                nm_vendedor: $('#filtro-vendedor_ch_cartao').val(),
+                cnpj: $('#filtro-cnpj_ch_cartao').val(),
+                filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
+                nm_supervisor: $('#filtro-supervisor_ch_cartao').val(),
+                session: true,
+                dtFim: dtFim,
+                dtInicio: dtInicio
+            };
+            carregaDadosTela2(data);
+
+            buscarTermo('accordion-inadimplencia-gerente-ch-cartao', '#buscarCliente-ch-cartao');
             vincularTabelaAoGrafico("tabela-inadimplencia-meses-ch-cartao", "grafico-inadimplencia-ch-cartao");
 
         });
@@ -304,7 +316,7 @@
         $('#btn-search').on('click', function() {
             if (!datasSelecionadas.getInicio() == 0) {
                 dtInicio = datasSelecionadas.getInicio();
-                dtFim = datasSelecionadas.getFim();                
+                dtFim = datasSelecionadas.getFim();
             }
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
             hierarquia = null;
@@ -318,20 +330,27 @@
                 dtFim: dtFim,
                 dtInicio: dtInicio
             };
-            inadimplenciaGerente(
-                tab,
-                data,
-                routes['inadimplencia_gerente'],
-                'treeAccordionGerente',
-                'card-inadimplencia-gerente');
+            carregaDadosTela1(data);
+        });
 
-            initTableInadimplenciaMeses(
-                tab,
-                'tabela-inadimplencia-meses',
-                'modal-table-cliente',
-                'treeAccordion',
-                data,
-                routesInadimplenciaMensal);
+        $('#btn-search-ch-cartao').on('click', function() {
+            if (!datasSelecionadasCartao.getInicio() == 0) {
+                dtInicio = datasSelecionadasCartao.getInicio();
+                dtFim = datasSelecionadasCartao.getFim();
+            }
+            $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
+            // hierarquia = null;
+            const data = {
+                nm_pessoa: $("#pessoa_ch_cartao option:selected").text(),
+                nm_vendedor: $('#filtro-vendedor_ch_cartao').val(),
+                cnpj: $('#filtro-cnpj_ch_cartao').val(),
+                filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
+                nm_supervisor: $('#filtro-supervisor_ch_cartao').val(),
+                session: true,
+                dtFim: dtFim,
+                dtInicio: dtInicio
+            };
+            carregaDadosTela2(data);
         });
 
         //limpa as filtros e retorna tudo novamente
@@ -351,6 +370,34 @@
             $('#filtro-supervisor').val('');
             $('#filtro-gerente').val(0).change();
 
+            const data = {
+                nm_pessoa: '',
+                nm_vendedor: '',
+                cnpj: '',
+                nm_supervisor: '',
+                session: false,
+                dtFim: dtFim,
+                dtInicio: dtInicio
+            };
+
+            carregaDadosTela1(data);
+        });
+
+        $('#btn-reset-ch-cartao').on('click', function() {
+            hierarquia = null;
+            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
+
+            $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
+
+            datasSelecionadasCartao = initDateRangePicker('#daterange-ch-cartao', dtInicio, dtFim);
+
+            $('#daterange-ch-cartao').val('');
+            $('#filtro-nome_ch_cartao').val('');
+            $('#filtro-vendedor_ch_cartao').val('');
+            $('#filtro-cnpj_ch_cartao').val('');
+            $('#filtro-supervisor_ch_cartao').val('');
+            $('#filtro-gerente_ch_cartao').val(0).change();
 
             const data = {
                 nm_pessoa: '',
@@ -362,21 +409,53 @@
                 dtInicio: dtInicio
             };
 
+            carregaDadosTela2(data);
+        });
+
+        function carregaDadosTela1(data) {
+            inadGerente = null;
+            inadMeses = null;
+            hierarquia = null;
             inadimplenciaGerente(
                 tab,
                 data,
                 routes['inadimplencia_gerente'],
                 'treeAccordionGerente',
-                'card-inadimplencia-gerente');
+                'card-inadimplencia-gerente'
+            );
 
             initTableInadimplenciaMeses(
                 tab,
                 'tabela-inadimplencia-meses',
                 'modal-table-cliente',
-                'treeAccordion',
+                'accordion-inadimplencia-gerente',
                 data,
-                routesInadimplenciaMensal);
-        });
+                routesInadimplenciaMensal
+            );
+        }
+
+        function carregaDadosTela2(data) {
+            inadGerente = null;
+            inadMeses = null;
+            hierarquia = null;
+
+            inadimplenciaGerente(
+                2,
+                data,
+                routes['inadimplencia_gerente'],
+                'treeAccordionGerente-ch-cartao',
+                'card-inadimplencia-gerente-ch-cartao'
+            );
+
+            initTableInadimplenciaMeses(
+                2,
+                'tabela-inadimplencia-meses-ch-cartao',
+                'modal-table-cliente-ch-cartao',
+                'accordion-inadimplencia-gerente-ch-cartao',
+                data,
+                routesInadimplenciaMensal
+            );
+        }
     </script>
 
     <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=10') }}"></script>

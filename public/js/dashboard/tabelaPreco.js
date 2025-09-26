@@ -230,7 +230,7 @@ function formularioDinamico() {
     $("#btn-associar").on("click", function () {
         const nomeTabela = $("#pessoa option:selected").text();
         $(".card-title").html(
-            "<span class='text-muted'>Prévia Tabela - " +
+            "<span class='badge bg-gray-dark'>Prévia Tabela - " +
                 formatarNome(nomeTabela) +
                 "</span>"
         );
@@ -239,11 +239,9 @@ function formularioDinamico() {
 
     // limpa e esconde
     cardTabela.find("#btn-recomecar").on("click", function () {
-        if ($.fn.DataTable.isDataTable("#item-tabela-preco")) {
-            $("#item-tabela-preco").DataTable().destroy();
-            console.log("destroy");
-        }
-
+        $("#item-tabela-preco").DataTable().clear().destroy();
+        dados_atualizados = [];
+        itens_preview = new Map();
         $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
         cardTabela.hide();
     });
