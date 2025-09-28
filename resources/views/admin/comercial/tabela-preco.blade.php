@@ -112,7 +112,7 @@
                                                     Recomecar
                                                 </button>
                                                 <button type="button" class="btn btn-danger btn-sm float-right"
-                                                    style="width: 100px;" id="btn-enviar-avaliar">
+                                                    style="width: 100px;" id="btn-enviar-importar">
                                                     Salvar
                                                 </button>
                                             </div>
@@ -124,7 +124,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card card-primary">
-                                            <div class="card-body">                                                
+                                            <div class="card-body">
                                                 <table
                                                     class="table table-bordered compact table-responsive table-font-small"
                                                     id="tabela-preco-cadastradas">
@@ -193,7 +193,7 @@
     </section>
 @stop
 @section('js')
-    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=13') }}"></script>
+    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=') }}{{ time() }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
@@ -222,6 +222,9 @@
             searchMedida: "{{ route('get-search-medida') }}",
             previaTabela: "{{ route('get-previa-tabela-preco') }}",
             searchAdicional: "{{ route('get-search-adicional') }}",
+            verificaTabelaCadastrada: "{{ route('get-verifica-tabela-cadastrada') }}",
+            salvaItemTabelaPreco: "{{ route('salva-item-tabela-preco') }}",
+            tabelaPrecoCadastradasPreview: "{{ route('get-tabela-preco-preview') }}",
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -261,9 +264,7 @@
         var itens_preview = new Map();
         var tabela_preview = null;
 
-
         $('#btn-associar').on('click', function() {
-
             if (!$.fn.DataTable.isDataTable("#item-tabela-preco")) {
                 initTableTabelaPrecoPrevia();
             }
@@ -303,6 +304,10 @@
                     });
                     dados_atualizados = Array.from(itens_preview.values());
 
+                    // Inverte a ordem dos dados para que os novos itens apareçam no topo
+                    dados_atualizados.reverse();
+
+                    // Limpa a tabela e adiciona os dados no topo
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
                 }
             });
@@ -366,39 +371,95 @@
             $('#input-manchao').val('');
         });
 
-        formularioDinamico(); // chama a função para deixar a pagina dinamica
-
-        function initTableTabelaPrecoPrevia() {
-            tabela_preview = $("#item-tabela-preco").DataTable({
-                paging: false,
-                searching: true,
-                ordering: false,
-                // pageLength: all,
-                pagingType: 'simple',
-                scrollY: '300px',
-                scrollCollapse: true,
-                language: {
-                    url: routes.language_datatables,
+        $('#btn-enviar-importar').on('click', function() {
+            const dadosTabela = tabela_preview.rows().data().toArray();
+            if (dadosTabela.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nenhum item adicionado',
+                    text: 'Por favor, adicione itens à tabela antes de salvar.',
+                    customClass: {
+                        confirmButton: 'btn btn-warning'
+                    }
+                });
+                return;
+            }
+            $.ajax({
+                url: routes.salvaItemTabelaPreco,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    dadosTabela: dadosTabela,
                 },
-                data: [],
-                columns: [{
-                        title: 'Cód',
-                        data: 'ID',
-                        width: '20%'
-                    },
-                    {
-                        title: 'Descrição',
-                        data: 'DESCRICAO',
-                        width: '60%'
-                    },
-                    {
-                        title: 'Valor',
-                        data: 'VALOR',
-                        width: '20%',
-                        render: $.fn.dataTable.render.number('.', ',', 2)
-                    },
-                ],
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Atenção',
+                            text: response.message,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-success'
+                            }
+                        });
 
+                        recomecar();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao salvar',
+                            text: response.message ||
+                                'Ocorreu um erro ao salvar os itens. Tente novamente.',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        formularioDinamico(routes); // chama a função para deixar a pagina dinamica
+
+        // Tab para ver as tabelas cadastradas para importar
+        $('#tab-cadastradas').on('click', function() {
+           initTableTabelaPrecoCadastradasPreview(routes);
+        });
+
+
+        function initTableTabelaPrecoCadastradasPreview(route) {
+            $('#tabela-preco-cadastradas').DataTable({
+                processing: false,
+                serverSide: false,
+                pagingType: 'simple',
+                language: {
+                    url: route.language_datatables
+                },
+                ajax: {
+                    url: route.tabelaPrecoCadastradasPreview,
+                    type: 'GET',
+                },
+                columns: [{
+                        title: 'Ações',
+                        data: 'action',
+                        orderable: false,
+                        searchable: false,                       
+                    },
+                    {
+                        title: 'ID',
+                        data: 'CD_TABPRECO',                       
+                        visible: false,
+                    },
+                    {
+                        title: 'Nome da Tabela',
+                        data: 'DS_TABPRECO', 
+                        width: '70%',                     
+                    },
+                    {
+                        title: 'Itens',
+                        data: 'QTD_ITENS',                       
+                    },
+
+                ],
             });
         }
     </script>

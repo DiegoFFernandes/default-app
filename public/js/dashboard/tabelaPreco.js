@@ -163,20 +163,20 @@ function initTableItemTabelaPreco(route, idTabela) {
         },
         columns: [
             {
-                data: "CD_TABPRECO",
-                name: "CD_TABPRECO",
+                data: "CD_TABELA",
+                name: "CD_TABELA",
                 title: "Cód Tabela",
                 visible: false,
             },
             {
-                data: "DS_ITEM",
-                name: "DS_ITEM",
+                data: "DESCRICAO",
+                name: "DESCRICAO",
                 width: "80%",
                 title: "Descrição",
             },
             {
-                data: "VL_PRECO",
-                name: "VL_PRECO",
+                data: "VALOR",
+                name: "VALOR",
                 title: "Valor",
             },
         ],
@@ -189,7 +189,7 @@ function formatarNome(str) {
     });
 }
 
-function formularioDinamico() {
+function formularioDinamico(route) {
     const cardTabela = $("#item-tabela-preco").closest(".card");
 
     $("#desenho, #medida, #valor, #btn-associar").closest(".form-group").hide(); // esconde os select
@@ -197,13 +197,55 @@ function formularioDinamico() {
 
     // exibe desenho quando pessoa for selecionado
     $("#pessoa").on("change", function () {
-        if ($(this).val() && $(this).val().length > 0) {
-            $("#desenho").closest(".form-group").show();
-        } else {
-            $("#desenho, #medida, #valor, #btn-associar")
-                .closest(".form-group")
-                .hide();
+        if ($(this).val() === null || $(this).val().length === 0) {
+            // Impede a requisição caso esteja vazio
+            return false;
         }
+
+        $.ajax({
+            type: "GET",
+            url: route.verificaTabelaCadastrada,
+            data: {
+                idTabela: $(this).val(),
+            },
+            success: function (response) {
+                if (response.data.length > 0) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Atenção",
+                        text: "Já existe uma tabela de preço cadastrada para este cliente, deseja atualiza-la?",
+                        showCancelButton: true,
+                        confirmButtonText: "Sim",
+                        cancelButtonText: "Não",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $("#desenho, #medida, #valor, #btn-associar")
+                                .closest(".form-group")
+                                .show();
+                            cardTabela.show();
+                            initTableTabelaPrecoPrevia();
+
+                            // Adiciona os dados existentes na tabela
+                            response.data.forEach(function (item) {
+                                itens_preview.set(item.ID, item); // Adiciona no Map
+                            });
+
+                            tabela_preview
+                                .clear()
+                                .rows.add(Array.from(itens_preview.values()))
+                                .draw(); // Atualiza a tabela com os dados existentes
+                        } else {
+                            $("#pessoa").val("").trigger("change");
+                            $("#desenho, #medida, #valor, #btn-associar")
+                                .closest(".form-group")
+                                .hide();
+                        }
+                    });
+                } else {
+                    $("#desenho").closest(".form-group").show();
+                }
+            },
+        });
     });
 
     // exibe medida quando desenho for selecionado
@@ -238,12 +280,41 @@ function formularioDinamico() {
     });
 
     // limpa e esconde
-    cardTabela.find("#btn-recomecar").on("click", function () {
-        $("#item-tabela-preco").DataTable().clear().destroy();
-        dados_atualizados = [];
-        itens_preview = new Map();
-        $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
-        cardTabela.hide();
+    $("#btn-recomecar").on("click", function () {
+        recomecar();
+    });
+}
+function initTableTabelaPrecoPrevia() {
+    tabela_preview = $("#item-tabela-preco").DataTable({
+        paging: false,
+        searching: true,
+        // ordering: false,
+        // pagingType: "simple_numbers",
+        scrollY: "300px",
+        scrollCollapse: true,
+        language: {
+            url: routes.language_datatables,
+        },
+        data: [],
+        columns: [
+            {
+                title: "Cód",
+                data: "ID",
+                width: "20%",
+            },
+            {
+                title: "Descrição",
+                data: "DESCRICAO",
+                width: "60%",
+            },
+            {
+                title: "Valor",
+                data: "VALOR",
+                width: "20%",
+                render: $.fn.dataTable.render.number(".", ",", 2),
+            },
+        ],
+        orderBy: [[0, "asc"]],
     });
 }
 
@@ -275,4 +346,13 @@ function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
             },
         });
     }
+}
+
+function recomecar() {
+    $("#item-tabela-preco").DataTable().clear().destroy();
+    dados_atualizados = [];
+    itens_preview = new Map();
+    $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
+    $("#desenho").closest(".form-group").hide(); // esconde os selects
+    $("#item-tabela-preco").closest(".card").hide();
 }

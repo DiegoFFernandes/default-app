@@ -33,16 +33,47 @@ class TabPreco extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getItemTabPreco($cd_tabela)
+    // lista as tabelas cadastradas na tabela temporária para importação
+    public function getTabprecoPreview()
     {
         $query = "
-            SELECT
+            SELECT DISTINCT
                 I.CD_TABPRECO,
-                I.CD_ITEM||' - '||ITEM.DS_ITEM DS_ITEM,
-                CAST(I.VL_PRECO AS numeric(12,2)) VL_PRECO
-            FROM ITEMTABPRECO I
+                PESSOA.NM_PESSOA DS_TABPRECO,
+                COUNT(I.CD_ITEM) QTD_ITENS,
+                I.ST_IMPORTA
+            FROM ITEMTABPRECO_PREVIEW I
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = I.CD_ITEM)
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = I.CD_TABPRECO)
+            GROUP BY I.CD_TABPRECO,
+                PESSOA.NM_PESSOA,  
+                I.ST_IMPORTA
+            ORDER BY PESSOA.NM_PESSOA
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return $data;
+    }
+
+    public function getItemTabPreco($cd_tabela, $ambiente = 'producao')
+    {
+        if ($ambiente === 'producao') {
+            $table = 'ITEMTABPRECO';
+        } else {
+            $table = 'ITEMTABPRECO_PREVIEW';
+        }
+        $query = "
+            SELECT
+                I.CD_TABPRECO CD_TABELA,
+                I.CD_ITEM ID,
+                ITEM.DS_ITEM DESCRICAO,
+                CAST(I.VL_PRECO AS numeric(12,2)) VALOR
+            FROM $table I
+            --INNER JOIN TABPRECO T ON (T.CD_TABPRECO = I.CD_TABPRECO)
             INNER JOIN ITEM  ON (ITEM.CD_ITEM = I.CD_ITEM)
             WHERE I.cd_tabpreco = $cd_tabela
+           
         ";
 
         $data = DB::connection('firebird')->select($query);
@@ -153,9 +184,7 @@ class TabPreco extends Model
                     AND CASE
                             WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao] 
                             WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
-                    END > 0
-
-    ";
+                    END > 0";
 
         $data = DB::connection('firebird')->select($query);
 

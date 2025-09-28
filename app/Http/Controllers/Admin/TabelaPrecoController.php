@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
+use App\Models\ItemTabPreco;
 use App\Models\Pessoa;
 use App\Models\TabPreco;
 use App\Models\User;
@@ -12,24 +13,27 @@ use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\TextUI\Help;
 use Yajra\DataTables\Facades\DataTables;
 
 class TabelaPrecoController extends Controller
 {
-    public $request, $user_auth, $tipo, $pessoa, $empresa, $user, $tabela;
+    public $request, $user_auth, $tipo, $pessoa, $empresa, $user, $tabela, $itemTabPreco;
 
     public function __construct(
         Empresa $empresa,
         Request $request,
         Pessoa $pessoa,
         User $user,
-        TabPreco $tabela
+        TabPreco $tabela,
+        ItemTabPreco $itemTabPreco
     ) {
         $this->empresa  = $empresa;
         $this->request = $request;
         $this->pessoa = $pessoa;
         $this->user = $user;
         $this->tabela = $tabela;
+        $this->itemTabPreco = $itemTabPreco;
         $this->middleware(function ($request, $next) {
             $this->user_auth = Auth::user();
             return $next($request);
@@ -71,6 +75,23 @@ class TabelaPrecoController extends Controller
             ->rawColumns(['action', 'clientes_associados'])
             ->make(true);
     }
+
+    public function getTabPrecoPreview()
+    {
+        $data = $this->tabela->getTabprecoPreview();
+
+        return DataTables::of($data)
+            ->addColumn('action', function ($row) {
+                return '
+                    <button class="btn mb-1 btn-xs btn-danger btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Ver Itens</button> 
+                    <button class="btn mb-1 btn-xs btn-secondary btn-importar" data-cd_tabela="' . $row->CD_TABPRECO . '">Importar</button>
+
+                    <button class="btn mb-1 btn-xs btn-secondary btn-vincular-tabela" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
+                ';
+            })           
+            ->rawColumns(['action'])
+            ->make(true);
+    }
     public function getItemTabPreco()
     {
         $cd_tabela = $this->request->get('cd_tabela');
@@ -100,7 +121,6 @@ class TabelaPrecoController extends Controller
     }
     public function getPreviaTabelaPreco()
     {
-
         $validator = $this->_validate($this->request->all());
 
         if ($validator->fails()) {
@@ -194,5 +214,27 @@ class TabelaPrecoController extends Controller
         ];
 
         return Validator::make($data, $rules, $messages);
+    }
+
+    //verifica se já existe tabela cadastrada para o cliente
+    public function getVerificaExistsTabelaCadastrada()
+    {
+        $idTabela = $this->request->input('idTabela');
+
+        $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'producao');
+
+        if (Helper::is_empty_object($itensTabela)) {
+            $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'preview');
+        }
+
+        return response()->json(['data' => $itensTabela]);
+    }
+
+    //Salva os itens na tabela temporária para importação
+    public function salvaItemTabelaPreco()
+    {
+        $status = $this->itemTabPreco->saveItemTabPreco($this->request->input('dadosTabela'));
+
+        return $status;
     }
 }

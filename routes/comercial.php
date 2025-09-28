@@ -39,6 +39,13 @@ Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
         // Manchão Agrícola e OTR e Vulcanização
         Route::get('get-search-adicional', [TabelaPrecoController::class, 'getSearchAdicional'])->name('get-search-adicional');
         Route::get('get-previa-tabela-preco', [TabelaPrecoController::class, 'getPreviaTabelaPreco'])->name('get-previa-tabela-preco');
+        Route::get('get-verifica-tabela-cadastrada', [TabelaPrecoController::class, 'getVerificaExistsTabelaCadastrada'])->name('get-verifica-tabela-cadastrada');
+   
+        //Salva os itens na tabela temporária para importação
+        Route::post('salva-item-tabela-preco', [TabelaPrecoController::class, 'salvaItemTabelaPreco'])->name('salva-item-tabela-preco');
+
+        // Importa os itens da tabela temporária para a tabela oficial
+        Route::get('get-tabela-preco-preview', [TabelaPrecoController::class, 'getTabPrecoPreview'])->name('get-tabela-preco-preview');
     });
 });
 
