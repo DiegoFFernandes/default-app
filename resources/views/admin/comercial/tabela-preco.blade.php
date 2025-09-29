@@ -422,6 +422,7 @@
 
         // Tab para ver as tabelas cadastradas para importar
         $('#tab-cadastradas').on('click', function() {
+             $('#tabela-preco-cadastradas').DataTable().destroy();
            initTableTabelaPrecoCadastradasPreview(routes);
         });
 
