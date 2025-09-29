@@ -65,7 +65,8 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <table class="table compact" id="table-gerente-unidade" style="width: 100%">
+                        <table class="table compact table-font-small table-striped table-bordered nowrap"
+                            id="table-gerente-unidade" style="width: 100%">
                         </table>
                     </div>
                 </div>
@@ -158,7 +159,7 @@
             theme: 'bootstrap4'
         });
         $('#formGerenteUnidade').on('submit', function(e) {
-            e.preventDefault();            
+            e.preventDefault();
 
             $.ajax({
                 type: "POST",
@@ -194,6 +195,7 @@
                     data: 'id',
                     name: 'id',
                     title: 'Cód.',
+                    responsivePriority: 1,
                 },
                 {
                     data: 'cd_empresa',
@@ -211,6 +213,7 @@
                     data: 'name',
                     name: 'name',
                     title: 'Usuário',
+                    responsivePriority: 2,
                 },
                 {
                     data: 'cd_gerenteunidade',
@@ -234,6 +237,10 @@
                 url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
             },
             responsive: true,
+            pagingType: "simple",
+            scrollY: 300,
+            scrollCollapse: true,
+            pageLength: 20,
         });
         //dataTable e um variavel que tras a informação da tabela.
         $('#table-gerente-unidade').on('click', '.btn-edit', function() {

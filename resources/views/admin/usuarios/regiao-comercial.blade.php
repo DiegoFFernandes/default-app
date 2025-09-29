@@ -53,7 +53,7 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <table class="table display table-sm table-font-small" id="table-regiao" style="width: 100%">
+                        <table class="table compact table-font-small table-striped table-bordered" id="table-regiao" style="width: 100%">
                             <thead>
                                 <tr>
                                     <th>Cód.</th>
@@ -207,6 +207,9 @@
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
                 },
                 responsive: true,
+                pagingType: "simple",
+                scrollY: 300,
+                pageLength: 20,
             });
             //dataTable e um variavel que tras a informação da tabela.
             $('#table-regiao').on('click', '.btn-edit', function() {

@@ -78,7 +78,7 @@
                         </div>
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <table class="table compact" id="table-supervisor" style="width: 100%">
+                            <table class="table compact table-font-small table-striped table-bordered nowrap" id="table-supervisor" style="width: 100%">
                                 <thead>
                                     <tr>
                                         <th>Cód.</th>
@@ -246,6 +246,10 @@
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
                 },
                 responsive: true,
+                pagingType: "simple",
+                scrollY: 300,
+                scrollCollapse: true,
+                pageLength: 20,
             });
             //dataTable e um variavel que tras a informação da tabela.
             $('#table-supervisor').on('click', '.btn-edit', function() {
