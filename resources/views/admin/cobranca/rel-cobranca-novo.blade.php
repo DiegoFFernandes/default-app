@@ -127,6 +127,19 @@
 
 @section('css')
     <style>
+        /* limita o tamanho da celula do nome*/
+        #tabela-limite-credito td:nth-child(1) {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 768px) {
+            #tabela-limite-credito td:nth-child(1) {
+                max-width: 250px;
+            }
+        }
+
         #tabela-inadimplencia-meses div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
             display: none;
         }

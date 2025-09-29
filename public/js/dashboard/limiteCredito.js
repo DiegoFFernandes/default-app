@@ -3,11 +3,11 @@ function initTableLimiteCredito(route) {
         processing: false,
         serverSide: false,
         searching: true,
-        // responsive: true,
+        responsive: true,
         pageLength: 50,
         paging: true,
         // fixedHeader: true,
-        scrollY: 400,
+        scrollY: 300,
         pagingType: "simple",
         language: {
             url: route['language_datatables'],

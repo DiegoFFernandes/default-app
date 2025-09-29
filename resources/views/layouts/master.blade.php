@@ -1,7 +1,7 @@
 @extends('adminlte::page')
 
 @push('content')
-    <button class="btn btn-secondary btnTopo" id="btnTopo"><i class="fas fa-arrow-up"></i></button>
+    @include('layouts.components.btn-expansivo-modal')
 @endpush
 
 @push('css')
@@ -106,22 +106,6 @@
 
         document.addEventListener("DOMContentLoaded", function() {
 
-            const btnTopo = document.getElementById("btnTopo");
-
-            window.addEventListener("scroll", function() {
-                if (window.scrollY > 300) {
-                    btnTopo.style.display = "block";
-                } else {
-                    btnTopo.style.display = "none";
-                }
-            });
-
-            btnTopo.addEventListener("click", function() {
-                window.scrollTo({
-                    top: 10,
-                    behavior: "smooth"
-                });
-            });
 
             $('.input-venda').inputmask({
                 mask: 'decimal',
