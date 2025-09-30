@@ -46,9 +46,6 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <input type="hidden" name="usuarioTabela" id="usuarioTabela">
-                    </div>
                     <div class="col-md-12">
                         <div class="form-group">
                             <label for="name">Nome:</label>
@@ -124,7 +121,6 @@
         });
 
         function resetModal() {
-            $('#usuarioTabela').val('');
             $('#nome').val('').hide();
             $('#usuario').val(null).trigger('change').show();
             $('#usuario').next('.select2-container').show();
