@@ -27,7 +27,7 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
     });
 });
 
-Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
+Route::middleware(['auth', 'role:admin|gerente comercial|supervisor'])->group(function () {
     Route::prefix('tabela')->group(function () {
         Route::get('tabela-preco', [TabelaPrecoController::class, 'index'])->name('tabela-preco.index');
         Route::get('get-tabela-preco', [TabelaPrecoController::class, 'getTabPreco'])->name('get-tabela-preco');
@@ -46,6 +46,8 @@ Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
 
         // Importa os itens da tabela temporária para a tabela oficial
         Route::get('get-tabela-preco-preview', [TabelaPrecoController::class, 'getTabPrecoPreview'])->name('get-tabela-preco-preview');
+        Route::get('get-importar-tabela-preco', [TabelaPrecoController::class, 'importarTabelaPreco'])->name('importar-tabela-preco');
+        Route::get('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
     });
 });
 

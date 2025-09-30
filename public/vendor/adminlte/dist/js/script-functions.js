@@ -38,8 +38,6 @@ function exportarParaExcel(
 function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
     const $element = $(selector);
 
-    // console.log(routeUrl);
-
     $element.select2({
         placeholder: "Pessoa",
         theme: "bootstrap4",
@@ -77,6 +75,10 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
         $("#phone").val(data.phone || "");
         $("#cd_pessoa").val(data.id || "");
     });
+
+    $element.on("select2:open", function () {
+        $(".select2-search__field").css("width", "100%");
+    });
 }
 
 function initDateRangePicker(
@@ -93,7 +95,9 @@ function initDateRangePicker(
     let start = inicioData
         ? moment(inicioData, "DD.MM.YYYY")
         : moment().subtract(30, "days");
-    let end = fimData ? moment(fimData, "DD.MM.YYYY") : moment().subtract(1, "days");
+    let end = fimData
+        ? moment(fimData, "DD.MM.YYYY")
+        : moment().subtract(1, "days");
 
     let inicioSelecionado = start.format("DD.MM.YYYY");
     let fimSelecionado = end.format("DD.MM.YYYY");
@@ -151,7 +155,7 @@ function initDateRangePicker(
         fimSelecionado = 0;
     });
 
-    $daterange.attr('readonly', true);
+    $daterange.attr("readonly", true);
 
     return {
         getInicio: () => inicioSelecionado,
@@ -207,7 +211,6 @@ function formatDate(value) {
         date.toLocaleTimeString("pt-BR")
     );
 }
-
 function formatarValorBR(valor) {
     const numero = Number(valor);
 

@@ -34,21 +34,32 @@ class TabPreco extends Model
     }
 
     // lista as tabelas cadastradas na tabela temporária para importação
-    public function getTabprecoPreview()
+    public function getTabprecoPreview($st_importa = 'N', $cd_regiao = '', $cd_tabela = null)
     {
         $query = "
             SELECT DISTINCT
                 I.CD_TABPRECO,
                 PESSOA.NM_PESSOA DS_TABPRECO,
                 COUNT(I.CD_ITEM) QTD_ITENS,
-                I.ST_IMPORTA
+                I.ST_IMPORTA,
+                COALESCE(SUPERVISOR.NM_PESSOA, 'SEM SUPERVISOR') SUPERVISOR,
+                CAST(I.DT_REGISTRO AS DATE) DT_REGISTRO
             FROM ITEMTABPRECO_PREVIEW I
             INNER JOIN ITEM ON (ITEM.CD_ITEM = I.CD_ITEM)
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = I.CD_TABPRECO)
+            INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PESSOA.CD_PESSOA
+                AND EP.CD_ENDERECO = 1)
+            LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = EP.CD_VENDEDOR)
+            LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
+            WHERE I.ST_IMPORTA IN ('N', 'V')                
+                " . (!empty($cd_regiao) ? " AND V.CD_VENDEDORGERAL IN ({$cd_regiao}) " : "") . "
+                " . (!empty($cd_tabela) ? " AND I.CD_TABPRECO = {$cd_tabela} " : "") . "
             GROUP BY I.CD_TABPRECO,
-                PESSOA.NM_PESSOA,  
-                I.ST_IMPORTA
-            ORDER BY PESSOA.NM_PESSOA
+                PESSOA.NM_PESSOA,
+                I.ST_IMPORTA,
+                SUPERVISOR.NM_PESSOA,
+                CAST(I.DT_REGISTRO AS DATE)
+            ORDER BY CAST(I.DT_REGISTRO AS DATE) DESC
         ";
 
         $data = DB::connection('firebird')->select($query);
@@ -56,9 +67,9 @@ class TabPreco extends Model
         return $data;
     }
 
-    public function getItemTabPreco($cd_tabela, $ambiente = 'producao')
+    public function getItemTabPreco($cd_tabela, $tela = 'tabela_preco')
     {
-        if ($ambiente === 'producao') {
+        if ($tela == 'tabela_preco') {
             $table = 'ITEMTABPRECO';
         } else {
             $table = 'ITEMTABPRECO_PREVIEW';
@@ -189,5 +200,107 @@ class TabPreco extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    public  function importarTabelaPreco($tabela, $itensTabela)
+    {
+        return DB::transaction(function () use ($tabela, $itensTabela) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "UPDATE OR INSERT INTO TABPRECO (CD_TABPRECO, DS_TABPRECO, DT_REGISTRO, ST_SINCRONIZACAO, ST_CALCULAJUROS)
+                  VALUES ($tabela->CD_TABPRECO, '$tabela->DS_TABPRECO', CURRENT_TIMESTAMP, 'S', 'S')
+                  MATCHING (CD_TABPRECO);";
+
+            $resultImportTabela = DB::connection('firebird')->statement($query);
+
+            if ($resultImportTabela) {
+                foreach ($itensTabela as $item) {
+                    $queryItem = "
+                        UPDATE OR INSERT INTO ITEMTABPRECO (CD_TABPRECO, CD_ITEM, VL_PRECO, DT_REGISTRO, ST_CALCACRESCIMO, ST_CALCFLEX)
+                        VALUES ($item->CD_TABELA, $item->ID, $item->VALOR, CURRENT_TIMESTAMP, 'S', 'S')
+                        MATCHING (CD_TABPRECO, CD_ITEM)
+                    ";
+                    DB::connection('firebird')->statement($queryItem);
+                }
+
+                // Após importar os itens, atualizar o status de importação na tabela temporária, para 'V' (VINCULAR CLIENTE)
+                $updateStatus = "UPDATE ITEMTABPRECO_PREVIEW SET ST_IMPORTA = 'V' WHERE CD_TABPRECO = $tabela->CD_TABPRECO";
+                $statusDB = DB::connection('firebird')->statement($updateStatus);
+
+                return response()->json(['success' => true, 'message' => 'Tabela e itens importados com sucesso, faça o vínculo com o(s) cliente(s) para iniciar seu uso!']);
+            }
+        });
+    }
+
+    public function vincularTabelaPreco($cd_tabela, $cd_pessoa)
+    {
+
+        $nr_sequencia = $this->retornaUltimoID();
+        return DB::transaction(function () use ($cd_tabela, $cd_pessoa, $nr_sequencia) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            foreach ($cd_pessoa as $pessoa) {
+
+                $query = "
+                    UPDATE OR INSERT INTO PARMTABPRECO (NR_SEQUENCIA, CD_PESSOA, CD_TABPRECO, DT_REGISTRO)
+                    VALUES ($nr_sequencia, $pessoa, $cd_tabela, CURRENT_TIMESTAMP)
+                    MATCHING (CD_TABPRECO, CD_PESSOA)
+                ";
+                DB::connection('firebird')->statement($query);
+
+                $nr_sequencia++;
+            }
+
+            $this->alterSequencia($nr_sequencia + 1);
+
+            // Após importar os itens, atualizar o status de importação na tabela temporária, para 'S' (SUCESSO)
+            $updateStatus = "UPDATE ITEMTABPRECO_PREVIEW SET ST_IMPORTA = 'S' WHERE CD_TABPRECO = $cd_tabela";
+            $statusDB = DB::connection('firebird')->statement($updateStatus);
+
+            return response()->json(['success' => true, 'message' => 'Tabela vinculada com sucesso ao(s) cliente(s)!']);
+        });
+    }
+    public function retornaUltimoID()
+    {
+        $query = "
+            SELECT FIRST 1
+                E.NR_SEQUENCIA AS ID
+            FROM PARMTABPRECO E
+            ORDER BY E.NR_SEQUENCIA DESC";
+
+        $data = DB::connection('firebird')->select($query);
+
+        $id = Helper::ConvertFormatText($data)[0]->ID ?? null;
+        //retorna o próximo ID baseado no último ID encontrado
+        //se não houver ID, retorna 1
+        return $id ? (int)$id + 1 : 1;
+    }
+    public function alterSequencia($idValido)
+    {
+        return DB::transaction(function () use ($idValido) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE ALTER_SEQUENCE('SEQ_PARMTABPRECO', $idValido, 'U')");
+        });
+    }
+
+    public function verificaVinculoClienteTabela($cd_pessoa)
+    {
+        $query = "
+            SELECT
+                TABPRECO.DS_TABPRECO,
+                COUNT(*) AS TOTAL
+            FROM PARMTABPRECO
+            INNER JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = PARMTABPRECO.CD_TABPRECO)
+            WHERE CD_PESSOA = $cd_pessoa
+            GROUP BY TABPRECO.DS_TABPRECO
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return $total = Helper::ConvertFormatText($data);
+
+        
     }
 }

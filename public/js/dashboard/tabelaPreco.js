@@ -121,12 +121,12 @@ function initTableClienteTabela(tableId, data, route) {
     return itemTabelaCliente;
 }
 
-function initTableItemTabelaPreco(route, idTabela) {
-    $("#modal-item-tab-preco").modal("show");
-    if ($.fn.DataTable.isDataTable("#table-item-tab-preco")) {
-        $("#table-item-tab-preco").DataTable().clear().destroy();
+function initTableItemTabelaPreco(route, idTabela, tela, idTabelaItem, idModal) {
+    $("#" + idModal).modal("show");
+    if ($.fn.DataTable.isDataTable("#" + idTabelaItem)) {
+        $("#" + idTabelaItem).DataTable().clear().destroy();
     }
-    $("#table-item-tab-preco").DataTable({
+    $("#" + idTabelaItem).DataTable({
         processing: false,
         serverSide: false,
         pagingType: "simple",
@@ -159,6 +159,7 @@ function initTableItemTabelaPreco(route, idTabela) {
             type: "GET",
             data: {
                 cd_tabela: idTabela,
+                tela: tela
             },
         },
         columns: [
@@ -284,6 +285,7 @@ function formularioDinamico(route) {
         recomecar();
     });
 }
+
 function initTableTabelaPrecoPrevia() {
     tabela_preview = $("#item-tabela-preco").DataTable({
         paging: false,

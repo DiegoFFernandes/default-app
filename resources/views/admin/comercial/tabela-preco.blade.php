@@ -18,10 +18,12 @@
                                 <a class="nav-link" id="tab-cadastradas" data-toggle="tab" href="#painel-cadastradas"
                                     role="tab">Cadastradas</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-associadas" data-toggle="tab" href="#painel-associadas"
-                                    role="tab">Associadas</a>
-                            </li>
+                            @if (auth()->user()->hasRole('admin|gerente comercial'))
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-associadas" data-toggle="tab" href="#painel-associadas"
+                                        role="tab">Associadas</a>
+                                </li>
+                            @endif
                         </ul>
                     </div>
                     <div class="card-body">
@@ -44,7 +46,7 @@
                                                         <div class="form-group form-group-sm">
                                                             <label>Selecione o Desenho</label>
                                                             <select class="form-control select2" id="desenho"
-                                                                name="desenho[]" style="width: 100%;" multiple="multiple">
+                                                                name="desenho[]" style="width: 100%;" multiple>
                                                                 @foreach ($desenho as $item)
                                                                     <option value="{{ $item->ID }}">
                                                                         {{ $item->DESCRICAO }}</option>
@@ -132,6 +134,16 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @include('admin.comercial.components.modal-item-tabela-preco', [
+                                        'idModal' => 'modal-item-tab-preco-cadastradas',
+                                        'idTabelaItem' => 'table-item-tab-preco-cadastradas',
+                                    ])
+                                    @include('admin.comercial.components.modal-vincular-tabela-preco', [
+                                        'idModal' => 'modal-vincular-tab-preco-pessoas',
+                                        'idPessoa' => 'cd_pessoa_multi',
+                                        'idTabelaPreco' => 'cd_tabela_preco',
+                                        'dsTabelaPreco' => 'ds_tabela_preco',
+                                    ])
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="painel-associadas" role="tabpanel">
@@ -165,25 +177,10 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="modal fade" id="modal-item-tab-preco" tabindex="-1" role="dialog"
-                                    aria-labelledby="modal-item-tab-preco" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title title-nm-tabela">Item Tabela Preço</h5>
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Fechar">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <table id="table-item-tab-preco"
-                                                    class="table table-bordered compact table-responsive table-font-small">
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                @include('admin.comercial.components.modal-item-tabela-preco', [
+                                    'idModal' => 'modal-item-tab-preco',
+                                    'idTabelaItem' => 'table-item-tab-preco',
+                                ])
                             </div>
                         </div>
                     </div>
@@ -191,6 +188,15 @@
             </div>
             @include('admin.comercial.components.modal-tabela-preco')
     </section>
+@stop
+
+@section('css')
+    <style>
+        #cd_pessoa_multi+.select2-container--bootstrap4 .select2-search__field {
+            min-width: 100px !important;
+            width: auto !important;
+        }
+    </style>
 @stop
 @section('js')
     <script src="{{ asset('js/dashboard/TabelaPreco.js?v=') }}{{ time() }}"></script>
@@ -225,6 +231,8 @@
             verificaTabelaCadastrada: "{{ route('get-verifica-tabela-cadastrada') }}",
             salvaItemTabelaPreco: "{{ route('salva-item-tabela-preco') }}",
             tabelaPrecoCadastradasPreview: "{{ route('get-tabela-preco-preview') }}",
+            importarTabelaPreco: "{{ route('importar-tabela-preco') }}",
+            vincularTabelaPreco: "{{ route('vincular-tabela-preco') }}",
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -236,7 +244,8 @@
         $('#tabela-preco').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('.title-nm-tabela').html($(this).data('nm_tabela'));
-            initTableItemTabelaPreco(routes, cd_tabela);
+            initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco', 'table-item-tab-preco',
+                'modal-item-tab-preco');
         });
 
         //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
@@ -387,9 +396,13 @@
             $.ajax({
                 url: routes.salvaItemTabelaPreco,
                 type: 'POST',
+
                 data: {
                     _token: '{{ csrf_token() }}',
                     dadosTabela: dadosTabela,
+                },
+                beforeSend: function() {
+                    $("#loading").removeClass('invisible');
                 },
                 success: function(response) {
                     if (response.success) {
@@ -401,7 +414,6 @@
                                 confirmButton: 'btn btn-success'
                             }
                         });
-
                         recomecar();
                     } else {
                         Swal.fire({
@@ -414,6 +426,7 @@
                             }
                         });
                     }
+                    $("#loading").addClass('invisible');
                 }
             });
         });
@@ -422,8 +435,131 @@
 
         // Tab para ver as tabelas cadastradas para importar
         $('#tab-cadastradas').on('click', function() {
-             $('#tabela-preco-cadastradas').DataTable().destroy();
-           initTableTabelaPrecoCadastradasPreview(routes);
+            $('#tabela-preco-cadastradas').DataTable().destroy();
+            initTableTabelaPrecoCadastradasPreview(routes);
+        });
+
+        $('#tabela-preco-cadastradas').on('click', '.btn-ver-itens', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            $('.title-nm-tabela').html($(this).data('nm_tabela'));
+            initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco_cadastradas',
+                'table-item-tab-preco-cadastradas', 'modal-item-tab-preco-cadastradas');
+        });
+
+        $('#tabela-preco-cadastradas').on('click', '.btn-importar', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            $.ajax({
+                type: "GET",
+                url: routes.importarTabelaPreco,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    cd_tabela: cd_tabela
+                },
+                dataType: "json",
+                beforeSend: function() {
+                    $("#loading").removeClass('invisible');
+                },
+                success: function(response) {
+                    if (response.error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao importar',
+                            text: response.error ||
+                                'Ocorreu um erro ao importar a tabela. Tente novamente.',
+                            customClass: {
+                                confirmButton: 'btn btn-danger'
+                            }
+                        });
+                        $("#loading").addClass('invisible');
+                        return;
+                    } else {
+                        $('#tabela-preco-cadastradas').DataTable().destroy();
+                        initTableTabelaPrecoCadastradasPreview(routes);
+                        Swal.fire({
+                            title: 'Atenção',
+                            text: response.message,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-success'
+                            }
+                        });
+                        $("#loading").addClass('invisible');
+                    }
+
+                }
+            });
+
+        });
+
+        $('#tabela-preco-cadastradas').on('click', '.btn-vincular-tabela', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            $('#cd_tabela_preco').val(cd_tabela);
+            var ds_tabela = $(this).closest('tr').find('td:eq(1)').text();
+            $('#ds_tabela_preco').val(ds_tabela);
+            $('#modal-vincular-tab-preco-pessoas').modal('show');
+            initSelect2Pessoa('#cd_pessoa_multi', routes.searchPessoa, '#modal-vincular-tab-preco-pessoas');
+
+        });
+
+        $('#btn-salvar-vinculo').on('click', function() {
+            var cd_tabela = $('#cd_tabela_preco').val();
+            var cd_pessoa = $('#cd_pessoa_multi').val();
+
+            if (!cd_pessoa || cd_pessoa.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Por favor, selecione pelo menos um cliente para vincular.',
+                    customClass: {
+                        confirmButton: 'btn btn-warning'
+                    }
+                });
+                return;
+            }
+
+            $.ajax({
+                type: "GET",
+                url: routes.vincularTabelaPreco,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    cd_tabela: cd_tabela,
+                    cd_pessoa: cd_pessoa
+                },
+                dataType: "json",
+                beforeSend: function() {
+                    $("#loading").removeClass('invisible');
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#modal-vincular-tab-preco-pessoas').modal('hide');
+                        $('#tabela-preco-cadastradas').DataTable().destroy();
+                        initTableTabelaPrecoCadastradasPreview(routes);
+                        Swal.fire({
+                            title: 'Atenção',
+                            text: response.message,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-success'
+                            }
+                        });
+                        $("#loading").addClass('invisible');
+                        $('#cd_pessoa_multi').val('').trigger('change');
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Atenção',
+                            text: response.message ||
+                                'Ocorreu um erro ao vincular a tabela. Tente novamente.',
+                            customClass: {
+                                confirmButton: 'btn btn-warning'
+                            }
+                        });
+                        $("#loading").addClass('invisible');
+                        return;
+                    }
+
+                }
+            });
         });
 
 
@@ -443,21 +579,24 @@
                         title: 'Ações',
                         data: 'action',
                         orderable: false,
-                        searchable: false,                       
+                        searchable: false,
                     },
                     {
                         title: 'ID',
-                        data: 'CD_TABPRECO',                       
+                        data: 'CD_TABPRECO',
                         visible: false,
                     },
                     {
                         title: 'Nome da Tabela',
-                        data: 'DS_TABPRECO', 
-                        width: '70%',                     
+                        data: 'DS_TABPRECO',
+                    },
+                    {
+                        title: 'Supervisor',
+                        data: 'SUPERVISOR',
                     },
                     {
                         title: 'Itens',
-                        data: 'QTD_ITENS',                       
+                        data: 'QTD_ITENS',
                     },
 
                 ],
