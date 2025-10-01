@@ -337,6 +337,11 @@ button.select2-selection__choice__remove {
         background: #f0f0f0;
         cursor: pointer;
     }
+    .btn-block {        
+        display: block !important;
+        width: 100% !important;
+
+    }
 }
 
 @media (max-width: 600px) {

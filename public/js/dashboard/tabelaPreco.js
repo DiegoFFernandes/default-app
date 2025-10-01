@@ -42,6 +42,8 @@ function initTabelaPreco(route) {
         serverSide: false,
         pagingType: "simple",
         pageLength: 50,
+        scrollY: "400px",
+        scrollCollapse: true,        
         language: {
             url: route.language_datatables,
         },
@@ -75,6 +77,7 @@ function initTabelaPreco(route) {
                 data: "action",
                 name: "action",
                 title: "Ações",
+                visible: false,
                 className: "text-center",
             },
         ],
@@ -102,6 +105,11 @@ function initTableClienteTabela(tableId, data, route) {
         },
         columns: [
             {
+                data: "action",
+                name: "action",
+                title: "Ações"
+            },
+            {
                 data: "NM_PESSOA",
                 name: "NM_PESSOA",
                 title: "Cliente",
@@ -115,7 +123,7 @@ function initTableClienteTabela(tableId, data, route) {
                 data: "SUPERVISOR",
                 name: "SUPERVISOR",
                 title: "Supervisor",
-            },
+            }
         ],
     });
     return itemTabelaCliente;
@@ -131,6 +139,8 @@ function initTableItemTabelaPreco(route, idTabela, tela, idTabelaItem, idModal) 
         serverSide: false,
         pagingType: "simple",
         pageLength: 50,
+        scrollY: "300px",
+        scrollCollapse: true,
         layout: {
             topStart: {
                 buttons: [
@@ -161,6 +171,12 @@ function initTableItemTabelaPreco(route, idTabela, tela, idTabelaItem, idModal) 
                 cd_tabela: idTabela,
                 tela: tela
             },
+            beforeSend: function () {
+                $("#loading").removeClass('invisible');
+            },
+            complete: function () {
+                $("#loading").addClass('invisible');
+            }
         },
         columns: [
             {
@@ -202,7 +218,6 @@ function formularioDinamico(route) {
             // Impede a requisição caso esteja vazio
             return false;
         }
-
         $.ajax({
             type: "GET",
             url: route.verificaTabelaCadastrada,
@@ -269,16 +284,16 @@ function formularioDinamico(route) {
         }
     });
 
-    // exibe a tabela
-    $("#btn-associar").on("click", function () {
-        const nomeTabela = $("#pessoa option:selected").text();
-        $(".card-title").html(
-            "<span class='badge bg-gray-dark'>Prévia Tabela - " +
-                formatarNome(nomeTabela) +
-                "</span>"
-        );
-        cardTabela.show();
-    });
+    // // exibe a tabela
+    // $("#btn-associar").on("click", function () {
+    //     const nomeTabela = $("#pessoa option:selected").text();
+    //     $(".card-title").html(
+    //         "<span class='badge bg-gray-dark'>Prévia Tabela - " +
+    //             formatarNome(nomeTabela) +
+    //             "</span>"
+    //     );
+    //     cardTabela.show();
+    // });
 
     // limpa e esconde
     $("#btn-recomecar").on("click", function () {

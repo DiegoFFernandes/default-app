@@ -161,7 +161,8 @@
                                                         </label>
                                                     </div>
 
-                                                    <div class="form-check form-switch m-0 ml-3">
+                                                    <!-- Margem somente em telas maiores que sm -->
+                                                    <div class="form-check form-switch m-0 ml-sm-3">
                                                         <input class="form-check-input" type="checkbox"
                                                             id="checkAssociadas" name="checkAssociadas">
                                                         <label class="form-check-label" for="checkAssociadas">
@@ -169,6 +170,7 @@
                                                         </label>
                                                     </div>
                                                 </div>
+
                                                 <table
                                                     class="table table-bordered compact table-responsive table-font-small"
                                                     id="tabela-preco">
@@ -192,10 +194,8 @@
 
 @section('css')
     <style>
-        #cd_pessoa_multi+.select2-container--bootstrap4 .select2-search__field {
-            min-width: 100px !important;
-            width: auto !important;
-        }
+
+
     </style>
 @stop
 @section('js')
@@ -233,6 +233,7 @@
             tabelaPrecoCadastradasPreview: "{{ route('get-tabela-preco-preview') }}",
             importarTabelaPreco: "{{ route('importar-tabela-preco') }}",
             vincularTabelaPreco: "{{ route('vincular-tabela-preco') }}",
+            deleteTabelaPreco: "{{ route('deletar-tabela-preco') }}",
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -259,7 +260,6 @@
             routes: routes
         });
 
-
         $('#desenho, #medida').select2({
             theme: 'bootstrap4',
             width: '100%',
@@ -274,11 +274,33 @@
         var tabela_preview = null;
 
         $('#btn-associar').on('click', function() {
+
+            const valor = $('#valor').val();
+            const nomeTabela = $("#pessoa option:selected").text();
+            $(".card-title").html(
+                "<span class='badge bg-gray-dark'>Prévia Tabela - " +
+                formatarNome(nomeTabela) +
+                "</span>"
+            );
+
+            if (valor === '') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Por favor, insira um valor válido maior que zero.',
+                    customClass: {
+                        confirmButton: 'btn btn-warning'
+                    }
+                });
+                return;
+            } else {
+                $("#item-tabela-preco").closest(".card").show();
+            }
+
             if (!$.fn.DataTable.isDataTable("#item-tabela-preco")) {
                 initTableTabelaPrecoPrevia();
             }
 
-            const valor = $('#valor').val();
 
             $.ajax({
                 url: routes.previaTabela,
@@ -562,12 +584,75 @@
             });
         });
 
+        $('#tabela-preco-cadastradas').on('click', '.btn-delete', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            var nm_tabela = $(this).data('nm_tabela');
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                html: 'Deseja realmente excluir esta tabela de preço?</br>' + nm_tabela,
+                confirmButtonText: "Sim",
+                cancelButtonText: "Não",
+                showCancelButton: true,
+                customClass: {
+                    confirmButton: 'btn btn-delete'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: routes.deleteTabelaPreco,
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            cd_tabela: cd_tabela
+                        },
+                        dataType: "json",
+                        beforeSend: function() {
+                            $("#loading").removeClass('invisible');
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#tabela-preco-cadastradas').DataTable().ajax.reload();
+
+                                $("#loading").addClass('invisible');
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Atenção',
+                                    text: response.message,
+                                    customClass: {
+                                        confirmButton: 'btn btn-success'
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Atenção',
+                                    text: response.message ||
+                                        'Ocorreu um erro ao deletar a tabela. Tente novamente.',
+                                    customClass: {
+                                        confirmButton: 'btn btn-warning'
+                                    }
+                                });
+                                $("#loading").addClass('invisible');
+                                return;
+                            }
+                        }
+                    });
+                }
+            });
+            return;
+        });
+
 
         function initTableTabelaPrecoCadastradasPreview(route) {
             $('#tabela-preco-cadastradas').DataTable({
                 processing: false,
                 serverSide: false,
                 pagingType: 'simple',
+                scrollY: '300px',
+                scrollCollapse: true,
                 language: {
                     url: route.language_datatables
                 },

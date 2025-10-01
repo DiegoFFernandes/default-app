@@ -17,7 +17,7 @@ class TabPreco extends Model
             SELECT
                 T.CD_TABPRECO,
                 T.DS_TABPRECO,
-                COUNT(I.CD_ITEM) QTD_ITENS,
+                COUNT(DISTINCT I.CD_ITEM) QTD_ITENS,
                 COUNT(DISTINCT P.NR_SEQUENCIA) ASSOCIADOS
             FROM TABPRECO T
             INNER JOIN ITEMTABPRECO I ON (I.CD_TABPRECO = T.CD_TABPRECO)
@@ -83,8 +83,7 @@ class TabPreco extends Model
             FROM $table I
             --INNER JOIN TABPRECO T ON (T.CD_TABPRECO = I.CD_TABPRECO)
             INNER JOIN ITEM  ON (ITEM.CD_ITEM = I.CD_ITEM)
-            WHERE I.cd_tabpreco = $cd_tabela
-           
+            WHERE I.cd_tabpreco = $cd_tabela           
         ";
 
         $data = DB::connection('firebird')->select($query);
@@ -97,8 +96,9 @@ class TabPreco extends Model
         $query = "
             SELECT
                 P.CD_TABPRECO,
+                P.CD_PESSOA,
                 CASE
-                WHEN P.CD_PESSOA IS NULL THEN 'GRUPO -' || P.CD_GRUPO || '' || GRUPO.DS_GRUPO
+                WHEN P.CD_PESSOA IS NULL THEN 'GRUPO - ' || P.CD_GRUPO || '' || GRUPO.DS_GRUPO
                 ELSE P.CD_PESSOA || '-' || PESSOA.NM_PESSOA
                 END NM_PESSOA,
                 COALESCE(P.CD_VENDEDOR || ' - ' || VP.NM_PESSOA, EPV.CD_PESSOA || ' - ' || EPV.NM_PESSOA) VENDEDOR,
@@ -262,6 +262,7 @@ class TabPreco extends Model
             return response()->json(['success' => true, 'message' => 'Tabela vinculada com sucesso ao(s) cliente(s)!']);
         });
     }
+
     public function retornaUltimoID()
     {
         $query = "
@@ -299,8 +300,46 @@ class TabPreco extends Model
 
         $data = DB::connection('firebird')->select($query);
 
-        return $total = Helper::ConvertFormatText($data);
+        return Helper::ConvertFormatText($data);
+    } 
 
-        
+    public function deletaRecriaVinculoClienteTabela($cd_tabela, $cd_pessoa)
+    {
+        return DB::transaction(function () use ($cd_tabela, $cd_pessoa) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $delete = "DELETE FROM PARMTABPRECO WHERE CD_TABPRECO = $cd_tabela AND CD_PESSOA = $cd_pessoa";
+            DB::connection('firebird')->statement($delete);
+
+            $nr_sequencia = $this->retornaUltimoID();
+
+            $query = "
+                UPDATE OR INSERT INTO PARMTABPRECO (NR_SEQUENCIA, CD_PESSOA, CD_TABPRECO, DT_REGISTRO)
+                VALUES ($nr_sequencia, $cd_pessoa, $cd_tabela, CURRENT_TIMESTAMP)
+                MATCHING (CD_TABPRECO, CD_PESSOA)
+            ";
+            DB::connection('firebird')->statement($query);
+
+            $this->alterSequencia($nr_sequencia + 1);
+
+            // Após importar os itens, atualizar o status de importação na tabela temporária, para 'S' (SUCESSO)
+            $updateStatus = "UPDATE ITEMTABPRECO_PREVIEW SET ST_IMPORTA = 'S' WHERE CD_TABPRECO = $cd_tabela";
+            DB::connection('firebird')->statement($updateStatus);
+
+            return response()->json(['success' => true, 'message' => 'Tabela vinculada com sucesso ao(s) cliente(s)!']);
+        });
+    }
+
+    public function destroyTabelaPreco($cd_tabela)
+    {
+        DB::transaction(function () use ($cd_tabela) {
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+            // Após importar os itens, atualizar o status de importação na tabela temporária, para 'D' (DELETAR)
+            $delete = "DELETE FROM ITEMTABPRECO_PREVIEW WHERE CD_TABPRECO = $cd_tabela";
+            return DB::connection('firebird')->statement($delete);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Tabela deletada com sucesso!']);
     }
 }

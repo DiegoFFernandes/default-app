@@ -73,12 +73,13 @@ class TabelaPrecoController extends Controller
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
                 return '
-                    <button class="btn btn-xs btn-danger btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
-                ';
+                    <button class="btn btn-xs btn-secondary details-control mr-2" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>                
+                    ';
             })
             ->addColumn('clientes_associados', function ($row) {
-                $btn = '<span class="btn-detalhes details-control mr-2" data-cd_tabela="' . $row->CD_TABPRECO . '"><i class="fas fa-plus-circle"></i></span> ' . $row->CD_TABPRECO;
-                return $btn;
+                return '
+                    <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
+                    <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>';
             })
             ->setRowClass(function ($row) {
                 return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
@@ -98,11 +99,12 @@ class TabelaPrecoController extends Controller
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
                 $btn = '
-                    <button class="btn mb-1 btn-xs btn-danger btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Ver Itens</button> 
+                    <button class="btn mb-1 btn-xs btn-secondary btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Ver Itens</button> 
                   ';
                 if ($this->user->hasPermissionTo('ver-tabela-preco')) {
                     if ($row->ST_IMPORTA === 'N') {
                         $btn .= '<button class="btn mb-1 btn-xs btn-secondary btn-importar" data-cd_tabela="' . $row->CD_TABPRECO . '">Importar</button>';
+                        $btn .= '<button class="btn mb-1 ml-1 btn-xs btn-danger btn-delete" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Excluir</button>';
                     } else if ($row->ST_IMPORTA === 'V') {
                         $btn .= '<button class="btn mb-1 btn-xs btn-warning btn-vincular-tabela" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>';
                     }
@@ -127,6 +129,10 @@ class TabelaPrecoController extends Controller
         $data = $this->tabela->getTabClientePreco($cd_tabela);
 
         return DataTables::of($data)
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-xs btn-secondary btn-cancelar-vinculo" data-cd_pessoa="' . $row->CD_PESSOA . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Cancelar Vinculo</button>';
+            })
+            ->rawColumns(['action'])
             ->make(true);
     }
 
@@ -246,9 +252,18 @@ class TabelaPrecoController extends Controller
 
         if (Helper::is_empty_object($itensTabela)) {
             $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'preview');
+            return response()->json([
+                'data' => $itensTabela,
+                'success' => true,
+                'message' => 'Cliente sem tabela de preço cadastrada.',
+            ]);
         }
 
-        return response()->json(['data' => $itensTabela]);
+        return response()->json([
+            'data' => $itensTabela,
+            'success' => true,
+            'message' => 'Já existe uma tabela de preço cadastrada para este cliente, deseja atualiza-la?',
+        ]);
     }
 
     //Salva os itens na tabela temporária para importação
@@ -285,16 +300,27 @@ class TabelaPrecoController extends Controller
         $cd_pessoa = $this->request->input('cd_pessoa');
 
         foreach ($cd_pessoa as $key => $value) {
-            $verificaVinculoClienteTabela = $this->tabela->verificaVinculoClienteTabela($cd_tabela, $cd_pessoa);
+            $verificaVinculoClienteTabela = $this->tabela->verificaVinculoClienteTabela($cd_tabela, $value);
 
             if (!Helper::is_empty_object($verificaVinculoClienteTabela)) {
-                return response()->json(['warning' => false, 'message' => 'Vínculo de tabela já existe com o cliente ' . $value .
-                    '. Verifique os clientes da tabela associada ' . $verificaVinculoClienteTabela[0]->DS_TABPRECO . '!']);
+                return  $this->tabela->deletaRecriaVinculoClienteTabela($cd_tabela, $value);
             }
         }
+        return  $this->tabela->vincularTabelaPreco($cd_tabela, $cd_pessoa);
+    }
+    public function deletarTabelaPreco()
+    {
+        $cd_tabela = $this->request->input('cd_tabela');
 
-        return $status = $this->tabela->vincularTabelaPreco($cd_tabela, $cd_pessoa);
+        $tabela = $this->tabela->getTabprecoPreview('N', '', $cd_tabela);
 
-        return $status;
+        if (Helper::is_empty_object($tabela)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Não existe tabela para excluir ou já foi importada!'
+            ]);
+        }
+
+        return $this->tabela->destroyTabelaPreco($cd_tabela);
     }
 }

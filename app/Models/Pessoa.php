@@ -31,7 +31,7 @@ class Pessoa extends Model
                     inner join enderecopessoa ep on (ep.cd_pessoa = p.cd_pessoa)
                     where p.st_ativa = 'S'
                         --and p.cd_tipopessoa in (1,3)
-                        and p.nm_pessoa like '%$search%'";
+                        and p.nm_pessoa||'-'||p.cd_pessoa like '%$search%'";
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);

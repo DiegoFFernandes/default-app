@@ -48,6 +48,8 @@ Route::middleware(['auth', 'role:admin|gerente comercial|supervisor'])->group(fu
         Route::get('get-tabela-preco-preview', [TabelaPrecoController::class, 'getTabPrecoPreview'])->name('get-tabela-preco-preview');
         Route::get('get-importar-tabela-preco', [TabelaPrecoController::class, 'importarTabelaPreco'])->name('importar-tabela-preco');
         Route::get('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
+
+        Route::post('deletar-tabela-preco', [TabelaPrecoController::class, 'deletarTabelaPreco'])->name('deletar-tabela-preco');
     });
 });
 

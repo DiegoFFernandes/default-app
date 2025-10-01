@@ -173,9 +173,7 @@ function configurarDetalhesLinha(selector, options) {
             .DataTable()
             .row(tr);
 
-        const data = row.data();
-
-        console.log(data);
+        const data = row.data();        
 
         const tableChildId =
             options.idPrefixo +
