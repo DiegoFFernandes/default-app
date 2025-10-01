@@ -26,8 +26,8 @@
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/toastr.min.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2.min.css?v=2') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css?v=2') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css') }}">
 
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=13') }}">
@@ -67,7 +67,7 @@
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
 
     <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js?v=2') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/pt-BR.js"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/select2-pt-br.min.js?v=2') }}"></script>
 
 
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.js') }}"></script>
