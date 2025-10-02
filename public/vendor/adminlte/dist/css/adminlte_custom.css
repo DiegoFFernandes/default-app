@@ -228,12 +228,10 @@ button.select2-selection__choice__remove {
 }
 
 /* Ajuste para não quebrar a largura do input */
-.select2-selection--multiple {
+/* .select2-selection--multiple {
     min-height: auto !important;
-    max-height: 100px;
-    /* define o limite de altura */
-    overflow-y: auto !important;
-    /* ativa o scroll vertical */
+    max-height: 100px;   
+    overflow-y: auto !important;    
     height: auto !important;
     padding-bottom: 5px;
 }
@@ -241,7 +239,7 @@ button.select2-selection__choice__remove {
 .select2-selection__rendered {
     display: flex !important;
     flex-wrap: wrap !important;
-}
+} */
 .btnTopoModal{
     position: fixed;
     right: 20px;

@@ -301,7 +301,6 @@
                 initTableTabelaPrecoPrevia();
             }
 
-
             $.ajax({
                 url: routes.previaTabela,
                 type: 'GET',
@@ -314,7 +313,6 @@
                     valor: valor
                 },
                 success: function(response) {
-
                     if (response.errors) {
                         Swal.fire({
                             icon: 'error',
@@ -340,6 +338,8 @@
 
                     // Limpa a tabela e adiciona os dados no topo
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
+
+                    msgToastr('Itens adicionados à prévia com sucesso!', 'success');
                 }
             });
         });
@@ -646,47 +646,7 @@
         });
 
 
-        function initTableTabelaPrecoCadastradasPreview(route) {
-            $('#tabela-preco-cadastradas').DataTable({
-                processing: false,
-                serverSide: false,
-                pagingType: 'simple',
-                scrollY: '300px',
-                scrollCollapse: true,
-                language: {
-                    url: route.language_datatables
-                },
-                ajax: {
-                    url: route.tabelaPrecoCadastradasPreview,
-                    type: 'GET',
-                },
-                columns: [{
-                        title: 'Ações',
-                        data: 'action',
-                        orderable: false,
-                        searchable: false,
-                    },
-                    {
-                        title: 'ID',
-                        data: 'CD_TABPRECO',
-                        visible: false,
-                    },
-                    {
-                        title: 'Nome da Tabela',
-                        data: 'DS_TABPRECO',
-                    },
-                    {
-                        title: 'Supervisor',
-                        data: 'SUPERVISOR',
-                    },
-                    {
-                        title: 'Itens',
-                        data: 'QTD_ITENS',
-                    },
-
-                ],
-            });
-        }
+        
     </script>
 
 @stop

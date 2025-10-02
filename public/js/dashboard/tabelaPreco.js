@@ -43,13 +43,19 @@ function initTabelaPreco(route) {
         pagingType: "simple",
         pageLength: 50,
         scrollY: "400px",
-        scrollCollapse: true,        
+        scrollCollapse: true,
         language: {
             url: route.language_datatables,
         },
         ajax: {
             url: route.tabelaPreco,
             type: "GET",
+            beforeSend: function () {
+                $("#loading").removeClass("invisible");
+            },
+            complete: function () {
+                $("#loading").addClass("invisible");
+            },
         },
         columns: [
             {
@@ -107,7 +113,7 @@ function initTableClienteTabela(tableId, data, route) {
             {
                 data: "action",
                 name: "action",
-                title: "Ações"
+                title: "Ações",
             },
             {
                 data: "NM_PESSOA",
@@ -123,16 +129,25 @@ function initTableClienteTabela(tableId, data, route) {
                 data: "SUPERVISOR",
                 name: "SUPERVISOR",
                 title: "Supervisor",
-            }
+            },
         ],
     });
     return itemTabelaCliente;
 }
 
-function initTableItemTabelaPreco(route, idTabela, tela, idTabelaItem, idModal) {
+function initTableItemTabelaPreco(
+    route,
+    idTabela,
+    tela,
+    idTabelaItem,
+    idModal
+) {
     $("#" + idModal).modal("show");
     if ($.fn.DataTable.isDataTable("#" + idTabelaItem)) {
-        $("#" + idTabelaItem).DataTable().clear().destroy();
+        $("#" + idTabelaItem)
+            .DataTable()
+            .clear()
+            .destroy();
     }
     $("#" + idTabelaItem).DataTable({
         processing: false,
@@ -169,14 +184,14 @@ function initTableItemTabelaPreco(route, idTabela, tela, idTabelaItem, idModal) 
             type: "GET",
             data: {
                 cd_tabela: idTabela,
-                tela: tela
+                tela: tela,
             },
             beforeSend: function () {
-                $("#loading").removeClass('invisible');
+                $("#loading").removeClass("invisible");
             },
             complete: function () {
-                $("#loading").addClass('invisible');
-            }
+                $("#loading").addClass("invisible");
+            },
         },
         columns: [
             {
@@ -195,6 +210,54 @@ function initTableItemTabelaPreco(route, idTabela, tela, idTabelaItem, idModal) 
                 data: "VALOR",
                 name: "VALOR",
                 title: "Valor",
+            },
+        ],
+    });
+}
+
+function initTableTabelaPrecoCadastradasPreview(route) {
+    $("#tabela-preco-cadastradas").DataTable({
+        processing: false,
+        serverSide: false,
+        pagingType: "simple",
+        scrollY: "300px",
+        scrollCollapse: true,
+        language: {
+            url: route.language_datatables,
+        },
+        ajax: {
+            url: route.tabelaPrecoCadastradasPreview,
+            type: "GET",
+            beforeSend: function () {
+                $("#loading").removeClass("invisible");
+            },
+            complete: function () {
+                $("#loading").addClass("invisible");
+            },
+        },
+        columns: [
+            {
+                title: "Ações",
+                data: "action",
+                orderable: false,
+                searchable: false,
+            },
+            {
+                title: "ID",
+                data: "CD_TABPRECO",
+                visible: false,
+            },
+            {
+                title: "Nome da Tabela",
+                data: "DS_TABPRECO",
+            },
+            {
+                title: "Supervisor",
+                data: "SUPERVISOR",
+            },
+            {
+                title: "Itens",
+                data: "QTD_ITENS",
             },
         ],
     });
@@ -233,6 +296,11 @@ function formularioDinamico(route) {
                         showCancelButton: true,
                         confirmButtonText: "Sim",
                         cancelButtonText: "Não",
+                        customClass: {
+                            confirmButton: "btn btn-danger mr-2",
+                            cancelButton: "btn btn-secondary",
+                        },
+                        buttonsStyling: false,
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $("#desenho, #medida, #valor, #btn-associar")
