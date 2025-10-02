@@ -30,7 +30,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css') }}">
 
 
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=12') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=14') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css?v=1') }}">
 @endpush
 
@@ -66,8 +66,8 @@
 
     <script src="{{ asset('vendor/adminlte/dist/js/toastr.min.js') }}"></script>
 
-    <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/pt-BR.js"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js?v=2') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/select2-pt-br.min.js?v=2') }}"></script>
 
 
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.js') }}"></script>
@@ -146,5 +146,5 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=10') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=13') }}"></script>
 @endpush

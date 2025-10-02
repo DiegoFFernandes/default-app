@@ -14,16 +14,18 @@ class ItemTabPreco extends Model
 
     public function saveItemTabPreco($input)
     {
+        $name_usuario = auth()->user()->name; // Obtém o nome do usuário autenticado
+
         try {
-            return DB::transaction(function () use ($input) {
+            return DB::transaction(function () use ($input, $name_usuario) {
                 // Executando o procedimento no Firebird
                 DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
                 // Processando os itens
                 foreach ($input as $item) {
                     $query = "
-                        UPDATE OR INSERT INTO ITEMTABPRECO_PREVIEW (CD_TABPRECO, CD_ITEM, VL_PRECO, DT_REGISTRO)
-                        VALUES ($item[CD_TABELA], $item[ID], $item[VALOR], CURRENT_TIMESTAMP)
+                        UPDATE OR INSERT INTO ITEMTABPRECO_PREVIEW (CD_TABPRECO, CD_ITEM, VL_PRECO, DT_REGISTRO, ST_IMPORTA, DS_USUARIO_PORTAL)
+                        VALUES ($item[CD_TABELA], $item[ID], $item[VALOR], CURRENT_TIMESTAMP, 'N', '$name_usuario')
                         MATCHING (CD_TABPRECO, CD_ITEM)
             ";
                     DB::connection('firebird')->statement($query);
@@ -39,7 +41,5 @@ class ItemTabPreco extends Model
                 'message' => 'Erro ao salvar os itens: ' . $e->getMessage()
             ], 500); // 500 - Internal Server Error
         }
-    }
-
-   
+    }      
 }

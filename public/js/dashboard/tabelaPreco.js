@@ -42,12 +42,20 @@ function initTabelaPreco(route) {
         serverSide: false,
         pagingType: "simple",
         pageLength: 50,
+        scrollY: "400px",
+        scrollCollapse: true,
         language: {
             url: route.language_datatables,
         },
         ajax: {
             url: route.tabelaPreco,
             type: "GET",
+            beforeSend: function () {
+                $("#loading").removeClass("invisible");
+            },
+            complete: function () {
+                $("#loading").addClass("invisible");
+            },
         },
         columns: [
             {
@@ -75,6 +83,7 @@ function initTabelaPreco(route) {
                 data: "action",
                 name: "action",
                 title: "Ações",
+                visible: false,
                 className: "text-center",
             },
         ],
@@ -102,6 +111,11 @@ function initTableClienteTabela(tableId, data, route) {
         },
         columns: [
             {
+                data: "action",
+                name: "action",
+                title: "Ações",
+            },
+            {
                 data: "NM_PESSOA",
                 name: "NM_PESSOA",
                 title: "Cliente",
@@ -121,16 +135,27 @@ function initTableClienteTabela(tableId, data, route) {
     return itemTabelaCliente;
 }
 
-function initTableItemTabelaPreco(route, idTabela) {
-    $("#modal-item-tab-preco").modal("show");
-    if ($.fn.DataTable.isDataTable("#table-item-tab-preco")) {
-        $("#table-item-tab-preco").DataTable().clear().destroy();
+function initTableItemTabelaPreco(
+    route,
+    idTabela,
+    tela,
+    idTabelaItem,
+    idModal
+) {
+    $("#" + idModal).modal("show");
+    if ($.fn.DataTable.isDataTable("#" + idTabelaItem)) {
+        $("#" + idTabelaItem)
+            .DataTable()
+            .clear()
+            .destroy();
     }
-    $("#table-item-tab-preco").DataTable({
+    $("#" + idTabelaItem).DataTable({
         processing: false,
         serverSide: false,
         pagingType: "simple",
         pageLength: 50,
+        scrollY: "300px",
+        scrollCollapse: true,
         layout: {
             topStart: {
                 buttons: [
@@ -159,6 +184,13 @@ function initTableItemTabelaPreco(route, idTabela) {
             type: "GET",
             data: {
                 cd_tabela: idTabela,
+                tela: tela,
+            },
+            beforeSend: function () {
+                $("#loading").removeClass("invisible");
+            },
+            complete: function () {
+                $("#loading").addClass("invisible");
             },
         },
         columns: [
@@ -183,6 +215,54 @@ function initTableItemTabelaPreco(route, idTabela) {
     });
 }
 
+function initTableTabelaPrecoCadastradasPreview(route) {
+    $("#tabela-preco-cadastradas").DataTable({
+        processing: false,
+        serverSide: false,
+        pagingType: "simple",
+        scrollY: "300px",
+        scrollCollapse: true,
+        language: {
+            url: route.language_datatables,
+        },
+        ajax: {
+            url: route.tabelaPrecoCadastradasPreview,
+            type: "GET",
+            beforeSend: function () {
+                $("#loading").removeClass("invisible");
+            },
+            complete: function () {
+                $("#loading").addClass("invisible");
+            },
+        },
+        columns: [
+            {
+                title: "Ações",
+                data: "action",
+                orderable: false,
+                searchable: false,
+            },
+            {
+                title: "ID",
+                data: "CD_TABPRECO",
+                visible: false,
+            },
+            {
+                title: "Nome da Tabela",
+                data: "DS_TABPRECO",
+            },
+            {
+                title: "Supervisor",
+                data: "SUPERVISOR",
+            },
+            {
+                title: "Itens",
+                data: "QTD_ITENS",
+            },
+        ],
+    });
+}
+
 function formatarNome(str) {
     return str.toLowerCase().replace(/\b\w/g, function (letra) {
         return letra.toUpperCase();
@@ -201,7 +281,6 @@ function formularioDinamico(route) {
             // Impede a requisição caso esteja vazio
             return false;
         }
-
         $.ajax({
             type: "GET",
             url: route.verificaTabelaCadastrada,
@@ -217,6 +296,11 @@ function formularioDinamico(route) {
                         showCancelButton: true,
                         confirmButtonText: "Sim",
                         cancelButtonText: "Não",
+                        customClass: {
+                            confirmButton: "btn btn-danger mr-2",
+                            cancelButton: "btn btn-secondary",
+                        },
+                        buttonsStyling: false,
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $("#desenho, #medida, #valor, #btn-associar")
@@ -268,22 +352,23 @@ function formularioDinamico(route) {
         }
     });
 
-    // exibe a tabela
-    $("#btn-associar").on("click", function () {
-        const nomeTabela = $("#pessoa option:selected").text();
-        $(".card-title").html(
-            "<span class='badge bg-gray-dark'>Prévia Tabela - " +
-                formatarNome(nomeTabela) +
-                "</span>"
-        );
-        cardTabela.show();
-    });
+    // // exibe a tabela
+    // $("#btn-associar").on("click", function () {
+    //     const nomeTabela = $("#pessoa option:selected").text();
+    //     $(".card-title").html(
+    //         "<span class='badge bg-gray-dark'>Prévia Tabela - " +
+    //             formatarNome(nomeTabela) +
+    //             "</span>"
+    //     );
+    //     cardTabela.show();
+    // });
 
     // limpa e esconde
     $("#btn-recomecar").on("click", function () {
         recomecar();
     });
 }
+
 function initTableTabelaPrecoPrevia() {
     tabela_preview = $("#item-tabela-preco").DataTable({
         paging: false,

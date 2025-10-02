@@ -88,8 +88,8 @@ class Cobranca extends Model
                 WHERE 
                     " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "                    
                     " . ($tela == 1 ?
-            "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
-            "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
+                    "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
+                    "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     AND COALESCE(CONTAS.CD_SERIE, 'NA') NOT IN ('S') 
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
@@ -101,7 +101,7 @@ class Cobranca extends Model
                     " . ($mes != 0 && $tela == 2 ? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
                     " . ($ano != 0 && $tela == 2 ? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
 
-                    " . (!empty($filtro['nm_pessoa']) ? "AND P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
+                    " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                     " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                     " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "                  
@@ -309,7 +309,7 @@ class Cobranca extends Model
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                 " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
                 
-                " . (!empty($filtro['nm_pessoa']) ? "AND P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
+                " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                 " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                 " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                 " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
