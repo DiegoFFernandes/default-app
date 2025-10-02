@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ColetaController;
 use App\Http\Controllers\Admin\ComissaoController;
 use App\Http\Controllers\Admin\GerenteUnidadeController;
 use App\Http\Controllers\admin\TabelaPrecoController;
+use App\Http\Controllers\Admin\TarefasController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -157,5 +158,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('exame-inicial', [ColetaController::class, 'exameInicial'])->name('exame-inicial');
         Route::get('retrabalho', [ColetaController::class, 'retrabalho'])->name('retrabalho');
         Route::get('inventario', [ColetaController::class, 'inventario'])->name('inventario');
+    });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('tarefas')->group(function () {
+        Route::get('quadro-tarefas', [TarefasController::class, 'tarefas'] )->name('tarefas-quadro');
     });
 });
