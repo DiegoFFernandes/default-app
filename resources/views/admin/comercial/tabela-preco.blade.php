@@ -170,7 +170,6 @@
                                                         </label>
                                                     </div>
                                                 </div>
-
                                                 <table
                                                     class="table table-bordered compact table-responsive table-font-small"
                                                     id="tabela-preco">
@@ -178,11 +177,17 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @include('admin.comercial.components.modal-vincular-tabela-preco', [
+                                        'idModal' => 'modal-vincular-tab-preco-pessoas2',
+                                        'idPessoa' => 'cd_pessoa_multi2',
+                                        'idTabelaPreco' => 'cd_tabela_preco2',
+                                        'dsTabelaPreco' => 'ds_tabela_preco2',
+                                    ]);
+                                    @include('admin.comercial.components.modal-item-tabela-preco', [
+                                        'idModal' => 'modal-item-tab-preco',
+                                        'idTabelaItem' => 'table-item-tab-preco',
+                                    ]);
                                 </div>
-                                @include('admin.comercial.components.modal-item-tabela-preco', [
-                                    'idModal' => 'modal-item-tab-preco',
-                                    'idTabelaItem' => 'table-item-tab-preco',
-                                ])
                             </div>
                         </div>
                     </div>
@@ -249,6 +254,15 @@
                 'modal-item-tab-preco');
         });
 
+        $('#tabela-preco').on('click', '.btn-vincular-tabela', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            $('#cd_tabela_preco2').val(cd_tabela);
+            var ds_tabela = $(this).closest('tr').find('td:eq(1)').text();
+            $('#ds_tabela_preco2').val(ds_tabela);
+            $('#modal-vincular-tab-preco-pessoas2').modal('show');
+            initSelect2Pessoa('#cd_pessoa_multi2', routes.searchPessoa, '#modal-vincular-tab-preco-pessoas2');
+        });
+
         //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
         configurarDetalhesLinha('.details-control', {
             idPrefixo: 'cliente-tabela-',
@@ -278,9 +292,7 @@
             const valor = $('#valor').val();
             const nomeTabela = $("#pessoa option:selected").text();
             $(".card-title").html(
-                "<span class='badge bg-gray-dark'>Prévia Tabela - " +
-                formatarNome(nomeTabela) +
-                "</span>"
+                "<span class='badge bg-gray-dark'>" + formatarNome(nomeTabela) + "</span>"
             );
 
             if (valor === '') {
@@ -464,7 +476,7 @@
         $('#tabela-preco-cadastradas').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('.title-nm-tabela').html($(this).data('nm_tabela'));
-            initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco_cadastradas',
+            initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco_preview',
                 'table-item-tab-preco-cadastradas', 'modal-item-tab-preco-cadastradas');
         });
 
@@ -520,7 +532,6 @@
             $('#ds_tabela_preco').val(ds_tabela);
             $('#modal-vincular-tab-preco-pessoas').modal('show');
             initSelect2Pessoa('#cd_pessoa_multi', routes.searchPessoa, '#modal-vincular-tab-preco-pessoas');
-
         });
 
         $('#btn-salvar-vinculo').on('click', function() {
@@ -644,9 +655,6 @@
             });
             return;
         });
-
-
-        
     </script>
 
 @stop

@@ -79,7 +79,10 @@ class TabelaPrecoController extends Controller
             ->addColumn('clientes_associados', function ($row) {
                 return '
                     <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
-                    <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>';
+                    <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
+                    ';
+
+                    // <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
             })
             ->setRowClass(function ($row) {
                 return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
@@ -248,10 +251,10 @@ class TabelaPrecoController extends Controller
     {
         $idTabela = $this->request->input('idTabela');
 
-        $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'producao');
+        $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'tabela_preco');
 
         if (Helper::is_empty_object($itensTabela)) {
-            $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'preview');
+            $itensTabela = $this->tabela->getItemTabPreco($idTabela, 'tabela_preco_preview');
             return response()->json([
                 'data' => $itensTabela,
                 'success' => true,
@@ -287,7 +290,7 @@ class TabelaPrecoController extends Controller
             ], 400); // 400 - Bad Request
         }
 
-        $itensTabela = $this->tabela->getItemTabPreco($cd_tabela, 'tabela_preco_cadastradas');
+        $itensTabela = $this->tabela->getItemTabPreco($cd_tabela, 'tabela_preco_preview');
 
         $status = $this->tabela->importarTabelaPreco($tabela[0], $itensTabela);
 

@@ -248,7 +248,7 @@ function initTableTabelaPrecoCadastradasPreview(route) {
                 visible: false,
             },
             {
-                title: "Nome da Tabela",
+                title: "Tabela",
                 data: "DS_TABPRECO",
             },
             {

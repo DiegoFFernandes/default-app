@@ -192,10 +192,10 @@ class TabPreco extends Model
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
                 WHERE I.ST_ATIVO = 'S'
                     AND I.CD_SUBGRUPO IN (10037, 123)
-                    AND CASE
-                            WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao] 
-                            WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
-                    END > 0";
+                    --AND CASE
+                            --WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao] 
+                            --WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
+                    --END > 0";
 
         $data = DB::connection('firebird')->select($query);
 
