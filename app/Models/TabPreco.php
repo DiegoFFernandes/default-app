@@ -149,6 +149,7 @@ class TabPreco extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
     public function getVulcanizacaoManchao($input)
     {
         $query = "
@@ -362,5 +363,17 @@ class TabPreco extends Model
         });
 
         return response()->json(['success' => true, 'message' => 'Tabela deletada com sucesso!']);
+    }
+
+    public function cancelarVinculo($cd_tabela, $cd_pessoa)
+    {
+        DB::transaction(function () use ($cd_tabela, $cd_pessoa) {
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+            // Após importar os itens, atualizar o status de importação na tabela temporária, para 'D' (DELETAR)
+            $delete = "DELETE FROM PARMTABPRECO WHERE CD_TABPRECO = $cd_tabela AND CD_PESSOA = $cd_pessoa";
+            return DB::connection('firebird')->statement($delete);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Vínculo cancelado com sucesso!']);
     }
 }

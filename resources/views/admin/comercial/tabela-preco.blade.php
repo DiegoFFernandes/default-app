@@ -113,8 +113,8 @@
                                                     style="width: 80px;">
                                                     Recomecar
                                                 </button>
-                                                <button type="button" id="btn-deletar-itens" class="btn btn-secondary btn-xs"
-                                                    style="width: 80px;">
+                                                <button type="button" id="btn-deletar-itens"
+                                                    class="btn btn-secondary btn-xs" style="width: 80px;">
                                                     Deletar Itens
                                                 </button>
                                                 <button type="button" class="btn btn-danger btn-xs float-right"
@@ -147,6 +147,7 @@
                                         'idPessoa' => 'cd_pessoa_multi',
                                         'idTabelaPreco' => 'cd_tabela_preco',
                                         'dsTabelaPreco' => 'ds_tabela_preco',
+                                        'idBtnSalvarVinculo' => 'btn-salvar-vinculo',
                                     ])
                                 </div>
                             </div>
@@ -186,6 +187,7 @@
                                         'idPessoa' => 'cd_pessoa_multi2',
                                         'idTabelaPreco' => 'cd_tabela_preco2',
                                         'dsTabelaPreco' => 'ds_tabela_preco2',
+                                        'idBtnSalvarVinculo' => 'btn-salvar-vinculo2',
                                     ]);
                                     @include('admin.comercial.components.modal-item-tabela-preco', [
                                         'idModal' => 'modal-item-tab-preco',
@@ -212,7 +214,7 @@
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
-            <table class="table row-border table-left" id="cliente-tabela-{{ CD_TABPRECO }}" style="width:80%; ">
+            <table class="table row-border table-left" id="cliente-tabela-{{ CD_TABPRECO }}" style="width:90%; ">
                 <thead>
                     <tr>
                         <th>Cliente</th>
@@ -243,6 +245,7 @@
             importarTabelaPreco: "{{ route('importar-tabela-preco') }}",
             vincularTabelaPreco: "{{ route('vincular-tabela-preco') }}",
             deleteTabelaPreco: "{{ route('deletar-tabela-preco') }}",
+            cancelarVinculo: "{{ route('cancelar-vinculo') }}"
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -265,6 +268,48 @@
             $('#ds_tabela_preco2').val(ds_tabela);
             $('#modal-vincular-tab-preco-pessoas2').modal('show');
             initSelect2Pessoa('#cd_pessoa_multi2', routes.searchPessoa, '#modal-vincular-tab-preco-pessoas2');
+        });
+
+        //Cancelar o vinculo da tabela de preço com o cliente
+        $(document).on('click', '.btn-cancelar-vinculo', function() {
+            const cd_tabela = $(this).data('cd_tabela');
+            const cd_pessoa = $(this).data('cd_pessoa');
+
+            Swal.fire({
+                title: 'Confirmar Cancelamento',
+                text: "Você tem certeza que deseja cancelar o vínculo?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, cancelar',
+                cancelButtonText: 'Não, manter',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: routes.cancelarVinculo,
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            cd_tabela: cd_tabela,
+                            cd_pessoa: cd_pessoa
+                        },
+                        success: function(response) {
+                            $('#cliente-tabela-' + cd_tabela).DataTable().ajax.reload();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Vínculo Cancelado',
+                                text: response.message,
+                                customClass: {
+                                    confirmButton: 'btn btn-success'
+                                }
+                            });
+                        }
+                    });
+                }
+            });
         });
 
         //Aguarda Click para buscar os detalhes dos pedidos dos vendedores
@@ -366,7 +411,9 @@
         });
 
         $('#btn-deletar-itens').on('click', function() {
-            var linhasSelecionadas = tabela_preview.rows({ selected: true });
+            var linhasSelecionadas = tabela_preview.rows({
+                selected: true
+            });
 
             if (linhasSelecionadas.count() === 0) {
                 Swal.fire({
@@ -594,8 +641,16 @@
         $('#btn-salvar-vinculo').on('click', function() {
             var cd_tabela = $('#cd_tabela_preco').val();
             var cd_pessoa = $('#cd_pessoa_multi').val();
-            salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes);
+            salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes, 'modal-vincular-tab-preco-pessoas',
+                'tabela-preco-cadastradas', 'cd_pessoa_multi');
 
+        });
+
+        $('#btn-salvar-vinculo2').on('click', function() {
+            var cd_tabela = $('#cd_tabela_preco2').val();
+            var cd_pessoa = $('#cd_pessoa_multi2').val();
+            salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes, 'modal-vincular-tab-preco-pessoas2',
+                'tabela-preco', 'cd_pessoa_multi2');
         });
 
         $('#tabela-preco-cadastradas').on('click', '.btn-delete', function() {
@@ -659,7 +714,7 @@
             return;
         });
 
-        function salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes) {
+        function salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes, idModal, idTabela, inputCdPessoaMulti) {
             if (!cd_pessoa || cd_pessoa.length === 0) {
                 Swal.fire({
                     icon: 'warning',
@@ -686,9 +741,17 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        $('#modal-vincular-tab-preco-pessoas').modal('hide');
-                        $('#tabela-preco-cadastradas').DataTable().destroy();
-                        initTableTabelaPrecoCadastradasPreview(routes);
+                        $('#' + idModal).modal('hide');
+                        $('#' + idTabela).DataTable().destroy();
+                        if (idTabela === 'tabela-preco')
+                            initTabelaPreco(routes);
+                        else {
+                            initTableTabelaPrecoCadastradasPreview(routes);
+                        }
+
+                        $("#loading").addClass('invisible');
+                        $('#' + inputCdPessoaMulti).val('').trigger('change');
+
                         Swal.fire({
                             title: 'Atenção',
                             text: response.message,
@@ -697,9 +760,8 @@
                                 confirmButton: 'btn btn-success'
                             }
                         });
-                        $("#loading").addClass('invisible');
-                        $('#cd_pessoa_multi').val('').trigger('change');
                     } else {
+                        $("#loading").addClass('invisible');
                         Swal.fire({
                             icon: 'warning',
                             title: 'Atenção',
@@ -709,7 +771,6 @@
                                 confirmButton: 'btn btn-warning'
                             }
                         });
-                        $("#loading").addClass('invisible');
                         return;
                     }
 

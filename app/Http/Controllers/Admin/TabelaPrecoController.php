@@ -80,9 +80,8 @@ class TabelaPrecoController extends Controller
                 return '
                     <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
                     <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
-                    ';
-
-                // <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
+                    <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
+                    ';             
             })
             ->setRowClass(function ($row) {
                 return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
@@ -328,5 +327,12 @@ class TabelaPrecoController extends Controller
         }
 
         return $this->tabela->destroyTabelaPreco($cd_tabela);
+    }
+    public function cancelarVinculo()
+    {
+        $cd_tabela = $this->request->input('cd_tabela');
+        $cd_pessoa = $this->request->input('cd_pessoa');
+
+        return $this->tabela->cancelarVinculo($cd_tabela, $cd_pessoa);
     }
 }

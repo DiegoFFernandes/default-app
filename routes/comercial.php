@@ -50,6 +50,7 @@ Route::middleware(['auth', 'role:admin|gerente comercial|supervisor'])->group(fu
         Route::get('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
 
         Route::post('deletar-tabela-preco', [TabelaPrecoController::class, 'deletarTabelaPreco'])->name('deletar-tabela-preco');
+        Route::post('cancelar-vinculo', [TabelaPrecoController::class, 'cancelarVinculo'])->name('cancelar-vinculo');
     });
 });
 

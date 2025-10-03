@@ -36,7 +36,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-primary btn-sm" id="btn-salvar-vinculo">Vincular</button>
+                <button type="button" class="btn btn-primary btn-sm" id="{{ $idBtnSalvarVinculo }}">Vincular</button>
             </div>
         </div>
     </div>
