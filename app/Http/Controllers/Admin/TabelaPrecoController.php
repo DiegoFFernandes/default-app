@@ -81,7 +81,7 @@ class TabelaPrecoController extends Controller
                     <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
                     <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
                     <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
-                    ';             
+                    ';
             })
             ->setRowClass(function ($row) {
                 return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
@@ -185,16 +185,22 @@ class TabelaPrecoController extends Controller
             'pessoa' => $this->request->input('pessoa'),
             'vlr_vulc_carga' => $this->request->input('vulc_carga_valor', 0),
             'vlr_vulc_agricola' => $this->request->input('vulc_agricola_valor', 0),
-            'vlr_manchao' => $this->request->input('manchao_valor', 0),
+            'vlr_manchao' => $this->request->input('manchao_valor', null),
             'vlr_manchao_agricola' => $this->request->input('manchao_agricola_valor', 0),
+            'vlr_enchimento' => $this->request->input('enchimento_valor', 0),
+            'vlr_enchimento_ombro_1' => $this->request->input('enchimento_ombro_1_valor', 0),
+            'vlr_enchimento_ombro_2' => $this->request->input('enchimento_ombro_2_valor', 0),
         ];
 
         $rules = [
             'pessoa' => 'required|integer',
             'vulc_carga_valor' => 'required|numeric|min:0',
             'vulc_agricola_valor' => 'required|numeric|min:0',
-            'manchao_valor' => 'required|numeric|min:0',
+            'manchao_valor' => 'nullable|numeric|min:0',
             'manchao_agricola_valor' => 'required|numeric|min:0',
+            'enchimento_valor' => 'required|numeric|min:0',
+            'enchimento_ombro_1_valor' => 'required|numeric|min:0',
+            'enchimento_ombro_2_valor' => 'required|numeric|min:0',
         ];
 
         $messages = [
@@ -206,12 +212,20 @@ class TabelaPrecoController extends Controller
             'vulc_agricola_valor.required' => 'O campo Valor Vulcanização Agrícola é obrigatório.',
             'vulc_agricola_valor.numeric' => 'O campo Valor Vulcanização Agrícola deve ser um número.',
             'vulc_agricola_valor.min' => 'O campo Valor Vulcanização Agrícola deve ser maior ou igual a zero.',
-            'manchao_valor.required' => 'O campo Valor Manchão Carga é obrigatório.',
             'manchao_valor.numeric' => 'O campo Valor Manchão Carga deve ser um número.',
             'manchao_valor.min' => 'O campo Valor Manchão Carga deve ser maior ou igual a zero.',
             'manchao_agricola_valor.required' => 'O campo Valor Manchão Agrícola é obrigatório.',
             'manchao_agricola_valor.numeric' => 'O campo Valor Manchão Agrícola deve ser um número.',
             'manchao_agricola_valor.min' => 'O campo Valor Manchão Agrícola deve ser maior ou igual a zero.',
+            'enchimento_valor.required' => 'O campo Valor Enchimento é obrigatório.',
+            'enchimento_valor.numeric' => 'O campo Valor Enchimento deve ser um número.',
+            'enchimento_valor.min' => 'O campo Valor Enchimento deve ser maior ou igual a zero.',
+            'enchimento_ombro_1_valor.required' => 'O campo Valor Enchimento Ombro 1 é obrigatório.',
+            'enchimento_ombro_1_valor.numeric' => 'O campo Valor Enchimento Ombro 1 deve ser um número.',
+            'enchimento_ombro_1_valor.min' => 'O campo Valor Enchimento Ombro 1 deve ser maior ou igual a zero.',
+            'enchimento_ombro_2_valor.required' => 'O campo Valor Enchimento Ombro 2 é obrigatório.',
+            'enchimento_ombro_2_valor.numeric' => 'O campo Valor Enchimento Ombro 2 deve ser um número.',
+            'enchimento_ombro_2_valor.min' => 'O campo Valor Enchimento Ombro 2 deve ser maior ou igual a zero.',   
         ];
         $validator = Validator::make($this->request->all(), $rules, $messages);
 

@@ -152,13 +152,28 @@ class TabPreco extends Model
 
     public function getVulcanizacaoManchao($input)
     {
+        if (is_null($input['vlr_manchao'])) {
+            $validaValorManchaoSelect = "
+                CASE                             
+                        WHEN I.CD_SUBGRUPO = 10037 THEN 0                            
+                    END";
+            $validaValorManchaoWhere = "
+                AND CASE                             
+                        WHEN I.CD_SUBGRUPO = 10037 THEN 0                            
+                    END > 0";
+        } else {
+            $validaValorManchaoSelect = "
+                CASE                             
+                        WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao]                            
+                    END ";
+            $validaValorManchaoWhere = "";
+        }
+
         $query = "
                 SELECT
                     $input[pessoa] AS CD_TABELA,
                     SP.ID,
-                    SP.DSSERVICO AS DESCRICAO,
-                    --I.CD_GRUPO,
-                    --I.CD_SUBGRUPO,
+                    SP.DSSERVICO AS DESCRICAO,                    
                     CASE
                 --VULCANIZACAO CARGA
                     WHEN I.CD_SUBGRUPO = 10026 THEN $input[vlr_vulc_carga]                    
@@ -180,9 +195,7 @@ class TabPreco extends Model
                 SELECT
                     $input[pessoa] AS CD_TABELA,
                     CP.ID,
-                    CP.DSCONSERTO AS DESCRICAO,
-                    --I.CD_GRUPO,
-                    --I.CD_SUBGRUPO,
+                    CP.DSCONSERTO AS DESCRICAO,                    
                     CASE                                       
                         -- CONSERTO AGRO
                         WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]
@@ -202,18 +215,64 @@ class TabPreco extends Model
                 SELECT
                     $input[pessoa] AS CD_TABELA,
                     CP.ID,
-                    CP.DSCONSERTO AS DESCRICAO,
-                    --I.CD_GRUPO,
-                    --I.CD_SUBGRUPO,
-                    CASE
-                        --CONSERTO CARGA
-                        WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao]                  
-                        ELSE 0
-                    END VALOR
+                    CP.DSCONSERTO AS DESCRICAO,                    
+                    $validaValorManchaoSelect as VALOR
                 FROM CONSERTOPNEU CP
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
                 WHERE I.ST_ATIVO = 'S'
                     AND I.CD_SUBGRUPO IN (10037)
+                    $validaValorManchaoWhere
+
+                UNION ALL 
+                
+                --ENCHIMENTO NORMAL
+                SELECT
+                    $input[pessoa] AS CD_TABELA,
+                    ITEM.CD_ITEM ID,
+                    ITEM.DS_ITEM AS DESCRICAO,
+                    $input[vlr_enchimento] AS VALOR
+                FROM ITEM
+                WHERE ITEM.CD_GRUPO = 105
+                    AND ITEM.CD_SUBGRUPO = 10027
+                    AND COALESCE(ITEM.CD_SECAO, 99) = 99
+                    AND CASE
+                            WHEN COALESCE(ITEM.CD_SECAO, 99) = 99 THEN $input[vlr_enchimento]
+                            ELSE 0
+                        END > 0  
+
+                UNION ALL 
+                
+                --ENCHIMENTO OMBRO 1
+                SELECT
+                    $input[pessoa] AS CD_TABELA,
+                    ITEM.CD_ITEM ID,
+                    ITEM.DS_ITEM AS DESCRICAO,
+                    $input[vlr_enchimento_ombro_1] AS VALOR
+                FROM ITEM
+                WHERE ITEM.CD_GRUPO = 105
+                    AND ITEM.CD_SUBGRUPO = 10027
+                    AND COALESCE(ITEM.CD_SECAO, 99) = 55 
+                    AND CASE
+                            WHEN COALESCE(ITEM.CD_SECAO, 99) = 55 THEN $input[vlr_enchimento_ombro_1]
+                            ELSE 0
+                        END > 0   
+
+                UNION ALL 
+
+                --ENCHIMENTO OMBRO 2
+                SELECT
+                    $input[pessoa] AS CD_TABELA,
+                    ITEM.CD_ITEM ID,
+                    ITEM.DS_ITEM AS DESCRICAO,
+                    $input[vlr_enchimento_ombro_2] AS VALOR
+                FROM ITEM
+                WHERE ITEM.CD_GRUPO = 105
+                    AND ITEM.CD_SUBGRUPO = 10027
+                    AND COALESCE(ITEM.CD_SECAO, 99) = 56 
+                    AND CASE
+                            WHEN COALESCE(ITEM.CD_SECAO, 99) = 56 THEN $input[vlr_enchimento_ombro_2]
+                            ELSE 0
+                        END > 0         
             ";
 
         $data = DB::connection('firebird')->select($query);

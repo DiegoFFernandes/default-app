@@ -64,7 +64,8 @@
                 @hasrole('admin|gerente comercial')
                     <a class="btn btn-info btn-xs float-right mr-2" href="{{ route('tabela-preco.index') }}">Tabela Preço</a>
                 @endhasrole
-                <table class="table compact table-font-small" style="width:100%" id="table-ordem-block">
+
+                <table class="table table-responsive compact table-font-small" id="table-ordem-block">
                 </table>
             </div>
         </div>
@@ -145,7 +146,7 @@
         </div>
         <x-btn-topo-modal :modalId="'modal-table-pedido'" />
 
-        
+
 
     </div>
 
@@ -199,16 +200,15 @@
         var tableId = 0;
         var table_item_pedido;
         var table = $('#table-ordem-block').DataTable({
-            language: {
-                url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
-            },
-            "searching": true,
-            "paging": false,
-            // "bInfo": false,
             processing: false,
             serverSide: false,
-            scrollX: true,
-            // scrollY: '60vh',
+            pagingType: "simple",
+            pageLength: 50,
+            // scrollY: "400px",
+            // scrollX: true,
+            language: {
+                url: "{{ asset('vendor/datatables/pt-br.json') }}",
+            },
             ajax: "{{ route('get-ordens-bloqueadas-comercial') }}",
             columns: [{
                     data: "actions",
@@ -226,33 +226,33 @@
                     data: 'PEDIDO',
                     "width": "6%",
                     name: 'PEDIDO',
-                    title: 'Pedido'
+                    title: 'Pedido',
+                    className: 'text-center',
                 },
                 {
                     data: 'PESSOA',
                     name: 'PESSOA',
                     title: 'Cliente'
-                }, {
+                },
+                {
                     data: 'QTDPNEUS',
                     name: 'QTDPNEUS',
                     title: 'Pneus'
-                }, {
+                },
+                {
                     data: 'VENDEDOR',
                     name: 'VENDEDOR',
-                    title: 'Vendedor',
-                    visible: true
+                    title: 'Vendedor'
                 },
                 {
                     data: 'TABPRECO',
                     name: 'TABPRECO',
-                    title: 'Tabela',
-                    visible: true
+                    title: 'Tabela'
                 },
                 {
                     data: 'NM_SUPERVISOR',
                     name: 'NM_SUPERVISOR',
-                    title: 'Supervisor',
-                    visible: true
+                    title: 'Supervisor'
                 }
             ],
             order: [2, 'asc']
@@ -504,16 +504,15 @@
             $('#' + tableId).DataTable().destroy();
 
             table_item_pedido = $('#' + tableId).DataTable({
-                language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
-                },
-                "searching": false,
-                "paging": false,
-                "bInfo": false,
                 processing: false,
                 serverSide: false,
-                ordering: false,
-                // scrollX: true,
+                pagingType: "simple",
+                pageLength: 50,
+                scrollY: "400px",
+                scrollCollapse: true,
+                language: {
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                },
                 ajax: {
                     url: url,
                     dataSrc: function(json) {

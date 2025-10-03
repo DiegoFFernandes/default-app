@@ -463,8 +463,12 @@
         $('#btn-add-modal').on('click', function() {
             const vulc_carga_valor = $('#input-vulc-carga-valor').val() || 0;
             const vulc_agricola_valor = $('#input-vulc-agricola-valor').val() || 0;
-            const manchao_valor = $('#input-manchao-valor').val() || 0;
+            const manchao_valor = $('#input-manchao-valor').val() || null;
             const manchao_agricola_valor = $('#input-manchao-valor-agricola').val() || 0;
+            const enchimento_valor = $('#input-enchimento-valor').val() || 0;
+            const enchimento_ombro_1_valor = $('#input-enchimento-ombro-1-valor').val() || 0;
+            const enchimento_ombro_2_valor = $('#input-enchimento-ombro-2-valor').val() || 0;
+
             const pessoa = $('#pessoa').val();
 
             $.ajax({
@@ -477,6 +481,9 @@
                     vulc_agricola_valor: vulc_agricola_valor,
                     manchao_valor: manchao_valor,
                     manchao_agricola_valor: manchao_agricola_valor,
+                    enchimento_valor: enchimento_valor,
+                    enchimento_ombro_1_valor: enchimento_ombro_1_valor,
+                    enchimento_ombro_2_valor: enchimento_ombro_2_valor
                 },
                 success: function(response) {
                     if (response.errors) {
@@ -515,6 +522,9 @@
             $('#input-vulc-agricola-valor').val('');
             $('#input-manchao-valor').val('');
             $('#input-manchao-valor-agricola').val('');
+            $('#input-enchimento-valor').val('');
+            $('#input-enchimento-ombro-1-valor').val('');
+            $('#input-enchimento-ombro-2-valor').val('');
         });
 
         $('#btn-enviar-importar').on('click', function() {

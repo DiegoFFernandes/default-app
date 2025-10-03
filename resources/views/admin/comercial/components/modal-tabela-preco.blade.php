@@ -77,6 +77,57 @@
                         </div>
                     </div>
 
+                    <div class="col-md-8 col-8">
+                        <div class="form-group">
+                            <label for="select-enchimento">Grupo</label>
+                            <select id="select-enchimento" name="select-enchimento" class="form-control form-control-sm"
+                                style="width: 100%">
+                                <option value="105">Enchimento</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-4">
+                        <div class="form-group">
+                            <label for="input-enchimento">Valor</label>
+                            <input type="number" id="input-enchimento-valor" name="input-enchimento"
+                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <div class="col-md-8 col-8">
+                        <div class="form-group">
+                            <label for="select-enchimento-ombro-1">Grupo</label>
+                            <select id="select-enchimento-ombro-1" name="select-enchimento-ombro-1" class="form-control form-control-sm"
+                                style="width: 100%">
+                                <option value="105">Enchimento Ombro 1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-4">
+                        <div class="form-group">
+                            <label for="input-enchimento-ombro-1">Valor</label>
+                            <input type="number" id="input-enchimento-ombro-1-valor" name="input-enchimento-ombro-1-valor"
+                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
+                        </div>
+                    </div>
+
+                    <div class="col-md-8 col-8">
+                        <div class="form-group">
+                            <label for="select-enchimento-ombro-2">Grupo</label>
+                            <select id="select-enchimento-ombro-2" name="select-enchimento-ombro-2" class="form-control form-control-sm"
+                                style="width: 100%">
+                                <option value="105">Enchimento Ombro 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-4">
+                        <div class="form-group">
+                            <label for="input-enchimento-ombro-2">Valor</label>
+                            <input type="number" id="input-enchimento-ombro-2-valor" name="input-enchimento-ombro-2-valor"
+                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <div class="modal-footer">
