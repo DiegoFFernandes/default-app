@@ -22,15 +22,8 @@
 "rows": {
 "1": "Selecionado 1 linha",
 "_": "Selecionado %d linhas"
-},
-"cells": {
-"1": "1 célula selecionada",
-"_": "%d células selecionadas"
-},
-"columns": {
-"1": "1 coluna selecionada",
-"_": "%d colunas selecionadas"
 }
+
 },
 "buttons": {
 "copySuccess": {

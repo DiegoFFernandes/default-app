@@ -109,12 +109,16 @@
                                                 </div>
                                             </div>
                                             <div class="card-footer">
-                                                <button type="button" id="btn-recomecar" class="btn btn-secondary btn-sm"
-                                                    style="width: 100px;">
+                                                <button type="button" id="btn-recomecar" class="btn btn-secondary btn-xs"
+                                                    style="width: 80px;">
                                                     Recomecar
                                                 </button>
-                                                <button type="button" class="btn btn-danger btn-sm float-right"
-                                                    style="width: 100px;" id="btn-enviar-importar">
+                                                <button type="button" id="btn-deletar-itens" class="btn btn-secondary btn-xs"
+                                                    style="width: 80px;">
+                                                    Deletar Itens
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-xs float-right"
+                                                    style="width: 80px;" id="btn-enviar-importar">
                                                     Salvar
                                                 </button>
                                             </div>
@@ -352,12 +356,61 @@
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
 
                     msgToastr('Itens adicionados à prévia com sucesso!', 'success');
+                    $("#desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
                 }
             });
         });
 
         $('#btn-adicional').on('click', function() {
             $('#modal-item-adicional').modal('show');
+        });
+
+        $('#btn-deletar-itens').on('click', function() {
+            var linhasSelecionadas = tabela_preview.rows({ selected: true });
+
+            if (linhasSelecionadas.count() === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Por favor, selecione pelo menos um item para deletar.',
+                    customClass: {
+                        confirmButton: 'btn btn-warning'
+                    }
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Atenção',
+                text: 'Deseja realmente deletar os itens selecionados?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, deletar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn btn-danger',
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    linhasSelecionadas.every(function(rowIdx, tableLoop, rowLoop) {
+                        var data = this.data();
+                        itens_preview.delete(data.ID); // Remove do Map
+                        return true;
+                    });
+
+                    var dados_atualizados = Array.from(itens_preview.values());
+                    tabela_preview.clear().rows.add(dados_atualizados).draw();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Itens deletados com sucesso!',
+                        customClass: {
+                            confirmButton: 'btn btn-success'
+                        }
+                    });
+                }
+            });
         });
 
         $('#btn-add-modal').on('click', function() {
@@ -400,6 +453,8 @@
                     const dados_atualizados = Array.from(itens_preview.values());
 
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
+
+                    msgToastr('Itens adicionados à prévia com sucesso!', 'success');
                 }
             });
 
@@ -409,9 +464,10 @@
             tabela_preview.clear().rows.add(dados_atualizados).draw();
             $('#modal-item-adicional').modal('hide');
             // Limpar os campos do modal
-            $('#input-vulc-carga').val('');
-            $('#input-vulc-agricola').val('');
-            $('#input-manchao').val('');
+            $('#input-vulc-carga-valor').val('');
+            $('#input-vulc-agricola-valor').val('');
+            $('#input-manchao-valor').val('');
+            $('#input-manchao-valor-agricola').val('');
         });
 
         $('#btn-enviar-importar').on('click', function() {
@@ -430,7 +486,6 @@
             $.ajax({
                 url: routes.salvaItemTabelaPreco,
                 type: 'POST',
-
                 data: {
                     _token: '{{ csrf_token() }}',
                     dadosTabela: dadosTabela,
@@ -439,6 +494,8 @@
                     $("#loading").removeClass('invisible');
                 },
                 success: function(response) {
+
+                    console.log(response);
                     if (response.success) {
                         Swal.fire({
                             title: 'Atenção',
@@ -537,62 +594,8 @@
         $('#btn-salvar-vinculo').on('click', function() {
             var cd_tabela = $('#cd_tabela_preco').val();
             var cd_pessoa = $('#cd_pessoa_multi').val();
+            salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes);
 
-            if (!cd_pessoa || cd_pessoa.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Atenção',
-                    text: 'Por favor, selecione pelo menos um cliente para vincular.',
-                    customClass: {
-                        confirmButton: 'btn btn-warning'
-                    }
-                });
-                return;
-            }
-
-            $.ajax({
-                type: "GET",
-                url: routes.vincularTabelaPreco,
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    cd_tabela: cd_tabela,
-                    cd_pessoa: cd_pessoa
-                },
-                dataType: "json",
-                beforeSend: function() {
-                    $("#loading").removeClass('invisible');
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $('#modal-vincular-tab-preco-pessoas').modal('hide');
-                        $('#tabela-preco-cadastradas').DataTable().destroy();
-                        initTableTabelaPrecoCadastradasPreview(routes);
-                        Swal.fire({
-                            title: 'Atenção',
-                            text: response.message,
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-success'
-                            }
-                        });
-                        $("#loading").addClass('invisible');
-                        $('#cd_pessoa_multi').val('').trigger('change');
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Atenção',
-                            text: response.message ||
-                                'Ocorreu um erro ao vincular a tabela. Tente novamente.',
-                            customClass: {
-                                confirmButton: 'btn btn-warning'
-                            }
-                        });
-                        $("#loading").addClass('invisible');
-                        return;
-                    }
-
-                }
-            });
         });
 
         $('#tabela-preco-cadastradas').on('click', '.btn-delete', function() {
@@ -655,6 +658,64 @@
             });
             return;
         });
+
+        function salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes) {
+            if (!cd_pessoa || cd_pessoa.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Por favor, selecione pelo menos um cliente para vincular.',
+                    customClass: {
+                        confirmButton: 'btn btn-warning'
+                    }
+                });
+                return;
+            }
+
+            $.ajax({
+                type: "GET",
+                url: routes.vincularTabelaPreco,
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    cd_tabela: cd_tabela,
+                    cd_pessoa: cd_pessoa
+                },
+                dataType: "json",
+                beforeSend: function() {
+                    $("#loading").removeClass('invisible');
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#modal-vincular-tab-preco-pessoas').modal('hide');
+                        $('#tabela-preco-cadastradas').DataTable().destroy();
+                        initTableTabelaPrecoCadastradasPreview(routes);
+                        Swal.fire({
+                            title: 'Atenção',
+                            text: response.message,
+                            icon: 'success',
+                            customClass: {
+                                confirmButton: 'btn btn-success'
+                            }
+                        });
+                        $("#loading").addClass('invisible');
+                        $('#cd_pessoa_multi').val('').trigger('change');
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Atenção',
+                            text: response.message ||
+                                'Ocorreu um erro ao vincular a tabela. Tente novamente.',
+                            customClass: {
+                                confirmButton: 'btn btn-warning'
+                            }
+                        });
+                        $("#loading").addClass('invisible');
+                        return;
+                    }
+
+                }
+            });
+        }
     </script>
 
 @stop

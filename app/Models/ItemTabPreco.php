@@ -21,6 +21,9 @@ class ItemTabPreco extends Model
                 // Executando o procedimento no Firebird
                 DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
+                $queryDelete = "DELETE FROM ITEMTABPRECO_PREVIEW WHERE CD_TABPRECO = {$input[0]['CD_TABELA']}";
+                DB::connection('firebird')->statement($queryDelete);
+
                 // Processando os itens
                 foreach ($input as $item) {
                     $query = "

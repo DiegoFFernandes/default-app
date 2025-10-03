@@ -352,17 +352,6 @@ function formularioDinamico(route) {
         }
     });
 
-    // // exibe a tabela
-    // $("#btn-associar").on("click", function () {
-    //     const nomeTabela = $("#pessoa option:selected").text();
-    //     $(".card-title").html(
-    //         "<span class='badge bg-gray-dark'>Prévia Tabela - " +
-    //             formatarNome(nomeTabela) +
-    //             "</span>"
-    //     );
-    //     cardTabela.show();
-    // });
-
     // limpa e esconde
     $("#btn-recomecar").on("click", function () {
         recomecar();
@@ -373,19 +362,25 @@ function initTableTabelaPrecoPrevia() {
     tabela_preview = $("#item-tabela-preco").DataTable({
         paging: false,
         searching: true,
-        // ordering: false,
-        // pagingType: "simple_numbers",
         scrollY: "300px",
         scrollCollapse: true,
         language: {
             url: routes.language_datatables,
         },
+        select: {
+            style: "multi",
+        },
         data: [],
         columns: [
             {
+                data: null,
+                width: "1%",
+                render: DataTable.render.select(),
+            },
+            {
                 title: "Cód",
-                data: "ID",
-                width: "20%",
+                data: "ID",               
+                visible: false,
             },
             {
                 title: "Descrição",

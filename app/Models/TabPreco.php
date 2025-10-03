@@ -39,7 +39,7 @@ class TabPreco extends Model
         $query = "
             SELECT DISTINCT
                 I.CD_TABPRECO,
-                PESSOA.NM_PESSOA DS_TABPRECO,
+                I.CD_TABPRECO||'-'||PESSOA.NM_PESSOA DS_TABPRECO,
                 COUNT(I.CD_ITEM) QTD_ITENS,
                 I.ST_IMPORTA,
                 COALESCE(SUPERVISOR.NM_PESSOA, 'SEM SUPERVISOR') SUPERVISOR,
@@ -175,6 +175,29 @@ class TabPreco extends Model
 
                 UNION ALL
 
+                --MANHCAO AGRICOLA E CARGA NÃO PODE SER 0,00
+                SELECT
+                    $input[pessoa] AS CD_TABELA,
+                    CP.ID,
+                    CP.DSCONSERTO AS DESCRICAO,
+                    --I.CD_GRUPO,
+                    --I.CD_SUBGRUPO,
+                    CASE                                       
+                        -- CONSERTO AGRO
+                        WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]
+                        ELSE 0
+                    END VALOR
+                FROM CONSERTOPNEU CP
+                INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
+                WHERE I.ST_ATIVO = 'S'
+                    AND I.CD_SUBGRUPO IN (123)
+                    AND CASE                             
+                            WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
+                    END > 0
+
+                UNION ALL
+
+                --MANCHAO CARGA PODE SER 0,00
                 SELECT
                     $input[pessoa] AS CD_TABELA,
                     CP.ID,
@@ -182,20 +205,15 @@ class TabPreco extends Model
                     --I.CD_GRUPO,
                     --I.CD_SUBGRUPO,
                     CASE
-                --CONSERTO CARGA
-                    WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao]                    
-                -- CONSERTO AGRO
-                    WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]
-                    ELSE 0
+                        --CONSERTO CARGA
+                        WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao]                  
+                        ELSE 0
                     END VALOR
                 FROM CONSERTOPNEU CP
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
                 WHERE I.ST_ATIVO = 'S'
-                    AND I.CD_SUBGRUPO IN (10037, 123)
-                    --AND CASE
-                            --WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao] 
-                            --WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
-                    --END > 0";
+                    AND I.CD_SUBGRUPO IN (10037)
+            ";
 
         $data = DB::connection('firebird')->select($query);
 
@@ -215,6 +233,9 @@ class TabPreco extends Model
             $resultImportTabela = DB::connection('firebird')->statement($query);
 
             if ($resultImportTabela) {
+                $queryDelete = "DELETE FROM ITEMTABPRECO WHERE CD_TABPRECO = $tabela->CD_TABPRECO";
+                DB::connection('firebird')->statement($queryDelete);
+
                 foreach ($itensTabela as $item) {
                     $queryItem = "
                         UPDATE OR INSERT INTO ITEMTABPRECO (CD_TABPRECO, CD_ITEM, VL_PRECO, DT_REGISTRO, ST_CALCACRESCIMO, ST_CALCFLEX)
@@ -301,7 +322,7 @@ class TabPreco extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
-    } 
+    }
 
     public function deletaRecriaVinculoClienteTabela($cd_tabela, $cd_pessoa)
     {

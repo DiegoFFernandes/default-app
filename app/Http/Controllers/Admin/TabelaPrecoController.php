@@ -82,7 +82,7 @@ class TabelaPrecoController extends Controller
                     <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
                     ';
 
-                    // <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
+                // <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
             })
             ->setRowClass(function ($row) {
                 return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
@@ -281,17 +281,20 @@ class TabelaPrecoController extends Controller
     {
         $cd_tabela = $this->request->input('cd_tabela');
 
+        // Verifica se existe tabela para importar, pega o nome da tabela
         $tabela = $this->tabela->getTabprecoPreview('N', '', $cd_tabela);
 
         if (Helper::is_empty_object($tabela)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Não existe tabela para importar ou já foi importada!'
-            ], 400); // 400 - Bad Request
+            ]);
         }
 
+        // Pega os itens da tabela temporária, e o nome da tabela 
         $itensTabela = $this->tabela->getItemTabPreco($cd_tabela, 'tabela_preco_preview');
 
+        // Realiza a importação dos itens
         $status = $this->tabela->importarTabelaPreco($tabela[0], $itensTabela);
 
         return $status;
