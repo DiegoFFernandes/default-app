@@ -22,7 +22,7 @@ class LiberaOrdemComercial extends Model
                     PP.TP_BLOQUEIO,
                     PP.IDPEDIDOMOVEL,
                     PP.DSOBSFATURAMENTO,
-                    CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET ISO8859_1) PESSOA,
+                    P.CD_PESSOA||'-'||P.NM_PESSOA PESSOA,
                     --CAST(PP.DSBLOQUEIO AS VARCHAR(8100) CHARACTER SET UTF8) DSBLOQUEIO,
                     PP.DSLIBERACAO,
                     CAST(PV.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) VENDEDOR,
