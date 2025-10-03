@@ -150,10 +150,8 @@ function initTableItemTabelaPreco(
             .destroy();
     }
     $("#" + idTabelaItem).DataTable({
-        processing: false,
-        serverSide: false,
-        pagingType: "simple",
-        pageLength: 50,
+        paging: false,
+        searching: true,
         scrollY: "300px",
         scrollCollapse: true,
         layout: {
@@ -217,9 +215,8 @@ function initTableItemTabelaPreco(
 
 function initTableTabelaPrecoCadastradasPreview(route) {
     $("#tabela-preco-cadastradas").DataTable({
-        processing: false,
-        serverSide: false,
-        pagingType: "simple",
+        paging: false,
+        searching: true,
         scrollY: "300px",
         scrollCollapse: true,
         language: {
