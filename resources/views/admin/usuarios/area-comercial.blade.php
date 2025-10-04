@@ -57,7 +57,7 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="card-body">
-                        <table class="table display table-sm" id="table-area" style="width: 100%">
+                        <table class="table compact table-font-small table-striped table-bordered" id="table-area" style="width: 100%">
                             <thead>
                                 <tr>
                                     <th>Cód.</th>
@@ -209,6 +209,9 @@
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
                 },
                 responsive: true,
+                pagingType: "simple",
+                scrollY: 300,
+                scrollCollapse: true,
             });
             //dataTable e um variavel que tras a informação da tabela.
             $('#table-area').on('click', '.btn-edit', function() {
