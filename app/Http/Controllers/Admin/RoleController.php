@@ -27,8 +27,17 @@ class RoleController extends Controller
     {
         $title_page = 'Funções Usuários';
         $uri  = $this->request->route()->uri();
+        //usuarios sem função
+        $users = User::select('users.id', 'users.name', 'users.email', 'users.empresa', 'users.created_at')
+            ->leftJoin('model_has_roles', 'model_has_roles.model_id', '=', 'users.id')
+            ->whereNull('model_has_roles.model_id')
+            ->where('users.id', '<>', '1')
+            ->groupBy('users.id', 'users.name')
+            ->orderBy('id')->get();
+        // funções existentes
+        $all_roles = Role::all()->pluck('name');
 
-        return view('admin.usuarios.roles', compact('title_page', 'uri'));
+        return view('admin.usuarios.roles', compact('title_page', 'uri', 'users', 'all_roles'));
     }
     public function listUserRole()
     {
@@ -78,12 +87,12 @@ class RoleController extends Controller
     }
     public function update(Request $request)
     {
-        $user     = User::findOrFail($request->id);
+        $user = User::findOrFail($request->user_id);
         $userRole = $request->roles;
         //$user->assignRole($userRole);
         $user->syncRoles($userRole);
 
-        return redirect()->route('admin.usuarios.role')->with('status', 'Nova função Usuário atualizado com sucesso!');
+        return response()->json(['success' => 'Função de usuário atualizada com sucesso!']);
     }
     public function create()
     {
@@ -111,16 +120,16 @@ class RoleController extends Controller
     }
     public function save(Request $request)
     {
-        $user = User::findOrFail($request->id);
+        $user = User::findOrFail($request->user_id);
         $userRole = $request->roles;
         $user->syncRoles($userRole);
-        return redirect()->route('admin.usuarios.role')->with('status', 'Nova função usuário criada  com sucesso!');
+        return response()->json(['success' => 'Nova função de usuário criada com sucesso!']);
     }
 
-    public function delete($id)
+    public function delete(Request $request)
     {
+        $id = $request->input('id');
         DB::table("model_has_roles")->where('model_id', $id)->delete();
-        return redirect()->route('admin.usuarios.role')
-            ->with('status', 'Função usuario deletado com successo');
+        return response()->json(['success' => 'Função do usuário deletada com sucesso!']);
     }
 }

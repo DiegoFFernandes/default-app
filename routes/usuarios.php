@@ -23,7 +23,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('funcao/editar', [RoleController::class, 'update'])->name('usuario.role.edit.do');
         Route::get('funcao/novo', [RoleController::class, 'create'])->name('usuario.role.create');
         Route::post('funcao/novo', [RoleController::class, 'save'])->name('usuario.role.create.do');
-        Route::get('funcao/delete/{id}', [RoleController::class, 'delete'])->name('usuario.role.delete');
+        Route::delete('funcao/delete', [RoleController::class, 'delete'])->name('usuario.role.delete');
 
         /*Rotas permission*/
         Route::get('permissao', [PermissionController::class, 'index'])->name('usuario.permission');
