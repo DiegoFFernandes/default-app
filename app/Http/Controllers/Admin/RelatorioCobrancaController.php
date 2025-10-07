@@ -803,12 +803,12 @@ class RelatorioCobrancaController extends Controller
                 $pessoa[$item->CD_PESSOA] = [
                     'CD_PESSOA' => $item->CD_PESSOA,
                     'NM_PESSOA' => $item->NM_PESSOA,
-                    'VL_SALDO_AGRUPADO'  => 0,
+                    'VL_SALDO_AGRUPADO' => 0,
                     'DETALHES' => []
                 ];
             }
 
-            $pessoa[$item->CD_PESSOA]['VL_SALDO_AGRUPADO'] += $item->VL_SALDO;
+            $pessoa[$item->CD_PESSOA]['VL_SALDO_AGRUPADO'] += (float)$item->VL_SALDO;
 
             $pessoa[$item->CD_PESSOA]['DETALHES'][] = [
                 'NR_DOCUMENTO' => $item->NR_DOCUMENTO,
@@ -823,7 +823,14 @@ class RelatorioCobrancaController extends Controller
             ];
         }
 
-        return $pessoa;
+        // Ordena o array $pessoa com base no VL_SALDO_AGRUPADO (do maior para o menor)
+        uasort($pessoa, function ($a, $b) {
+            return (float)$b['VL_SALDO_AGRUPADO'] <=> (float)$a['VL_SALDO_AGRUPADO'];
+        });
+
+        return array_values($pessoa);
+
+        dd($pessoa);
     }
     public function relatorioFinanceiroCliente()
     {

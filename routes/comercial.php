@@ -12,7 +12,6 @@ use App\Http\Controllers\Admin\ColetaController;
 use App\Http\Controllers\Admin\ComissaoController;
 use App\Http\Controllers\Admin\GerenteUnidadeController;
 use App\Http\Controllers\admin\TabelaPrecoController;
-use App\Http\Controllers\Admin\TarefasController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -41,15 +40,19 @@ Route::middleware(['auth', 'role:admin|gerente comercial|supervisor'])->group(fu
         Route::get('get-search-adicional', [TabelaPrecoController::class, 'getSearchAdicional'])->name('get-search-adicional');
         Route::get('get-previa-tabela-preco', [TabelaPrecoController::class, 'getPreviaTabelaPreco'])->name('get-previa-tabela-preco');
         Route::get('get-verifica-tabela-cadastrada', [TabelaPrecoController::class, 'getVerificaExistsTabelaCadastrada'])->name('get-verifica-tabela-cadastrada');
-   
+
         //Salva os itens na tabela temporária para importação
         Route::post('salva-item-tabela-preco', [TabelaPrecoController::class, 'salvaItemTabelaPreco'])->name('salva-item-tabela-preco');
 
         // Importa os itens da tabela temporária para a tabela oficial
         Route::get('get-tabela-preco-preview', [TabelaPrecoController::class, 'getTabPrecoPreview'])->name('get-tabela-preco-preview');
-        Route::get('get-importar-tabela-preco', [TabelaPrecoController::class, 'importarTabelaPreco'])->name('importar-tabela-preco');
-        Route::get('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
+    });
+});
 
+Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
+    Route::prefix('tabela')->group(function () {        
+        Route::post('get-importar-tabela-preco', [TabelaPrecoController::class, 'importarTabelaPreco'])->name('importar-tabela-preco');
+        Route::post('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
         Route::post('deletar-tabela-preco', [TabelaPrecoController::class, 'deletarTabelaPreco'])->name('deletar-tabela-preco');
         Route::post('cancelar-vinculo', [TabelaPrecoController::class, 'cancelarVinculo'])->name('cancelar-vinculo');
     });
@@ -138,7 +141,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('coleta-medidas', [ColetaController::class, 'coletaMedidas'])->name('coleta-medidas');
         Route::get('get-coleta-medidas', [ColetaController::class, 'getColeta'])->name('get-coleta-medidas');
-        
+
         Route::get('coleta-vendedor', [ColetaController::class, 'coletaVendedor'])->name('coleta-vendedor');
         Route::get('get-coleta-vendedor-mes', [ColetaController::class, 'getColetaVendedorMes'])->name('get-coleta-vendedor-mes');
 
@@ -159,11 +162,5 @@ Route::middleware(['auth'])->group(function () {
         Route::get('exame-inicial', [ColetaController::class, 'exameInicial'])->name('exame-inicial');
         Route::get('retrabalho', [ColetaController::class, 'retrabalho'])->name('retrabalho');
         Route::get('inventario', [ColetaController::class, 'inventario'])->name('inventario');
-    });
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('tarefas')->group(function () {
-        Route::get('quadro-tarefas', [TarefasController::class, 'tarefas'] )->name('tarefas-quadro');
     });
 });

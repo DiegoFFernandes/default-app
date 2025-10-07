@@ -8,11 +8,8 @@ var carteira60dias = 0;
 var carteiraMaior60dias = 0;
 
 function tentarProcessar() {
-    
-    if (inadGerente && inadMeses) {        
-      
+    if (inadGerente && inadMeses) {
         inadGerente.forEach((gerente, gIndex) => {
-
             var pc_atrasados_gerente = 0;
             var pc_inadimplencia_gerente = 0;
             if (hierarquia !== null) {
@@ -46,7 +43,7 @@ function tentarProcessar() {
 }
 
 // inicializa o accordion da inadimplência por gerente
-function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {   
+function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
     $.ajax({
         url: route,
         method: "GET",
@@ -286,7 +283,7 @@ function initTableInadimplenciaMeses(
     idAccordion,
     data,
     route
-) {    
+) {
     if ($.fn.DataTable.isDataTable("#" + idTable)) {
         $("#" + idTable)
             .DataTable()
@@ -413,6 +410,16 @@ function initTableInadimplenciaMeses(
                     return intVal(a) + intVal(b);
                 }, 0);
 
+            totalPercentual = api
+                .column(4)
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            qtdLinhas = api.column(4).data().length;   
+                
+
             var inadimplenciaPercentual =
                 (inadimplencia / carteiraMaior60dias) * 100;
             var atrasadosPercentual = (atrasados / carteira60dias) * 100;
@@ -438,7 +445,7 @@ function initTableInadimplenciaMeses(
             $(api.column(2).footer()).html(formatarValorBR(totalTotal));
             $(api.column(3).footer()).html(formatarValorBR(totalVencido));
             $(api.column(4).footer()).html(
-                formatarValorBR(atrasadosPercentual + inadimplenciaPercentual) +
+                formatarValorBR(totalPercentual / qtdLinhas) +
                     "%"
             );
         },
@@ -449,7 +456,7 @@ function initTableInadimplenciaMeses(
         var row = $("#" + idTable)
             .DataTable()
             .row(tr);
-
+         
         $("#" + idAccordion).empty(); // Limpa antes
 
         $.ajax({

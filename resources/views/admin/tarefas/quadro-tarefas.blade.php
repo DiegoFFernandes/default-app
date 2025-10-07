@@ -107,7 +107,7 @@
             //modal adicionar card
             $('.btn-add-card').click(function() {
                 var coluna = $(this).data('coluna');
-                $('#modalCardTitle').text('Criar Card');
+                $('#').text('Criar Card');
                 $('#colunaDestino').val(coluna);
                 $('#cardId').val('');
                 $('#inputTitulo').val('');

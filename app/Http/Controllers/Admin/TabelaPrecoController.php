@@ -77,11 +77,16 @@ class TabelaPrecoController extends Controller
                     ';
             })
             ->addColumn('clientes_associados', function ($row) {
-                return '
+                $btn = '
                     <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
                     <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
-                    <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>
+                    <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>';
+                if (!in_array($row->CD_TABPRECO, [1, 2, 3, 4, 5, 6, 7, 8]) && $row->ASSOCIADOS == 0) {
+                    $btn .= '
+                    <button class="btn btn-xs btn-danger btn-block btn-delete-tabela mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>
                     ';
+                }
+                return $btn;
             })
             ->setRowClass(function ($row) {
                 return $row->ASSOCIADOS > 0 ? 'bg-green' : '';
@@ -106,7 +111,7 @@ class TabelaPrecoController extends Controller
                 if ($this->user->hasPermissionTo('ver-tabela-preco')) {
                     if ($row->ST_IMPORTA === 'N') {
                         $btn .= '<button class="btn mb-1 btn-xs btn-secondary btn-importar" data-cd_tabela="' . $row->CD_TABPRECO . '">Importar</button>';
-                        $btn .= '<button class="btn mb-1 ml-1 btn-xs btn-danger btn-delete" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Excluir</button>';
+                        $btn .= '<button class="btn mb-1 ml-1 btn-xs btn-danger btn-delete-tabela" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>';
                     } else if ($row->ST_IMPORTA === 'V') {
                         $btn .= '<button class="btn mb-1 btn-xs btn-warning btn-vincular-tabela" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>';
                     }
@@ -225,7 +230,7 @@ class TabelaPrecoController extends Controller
             'enchimento_ombro_1_valor.min' => 'O campo Valor Enchimento Ombro 1 deve ser maior ou igual a zero.',
             'enchimento_ombro_2_valor.required' => 'O campo Valor Enchimento Ombro 2 é obrigatório.',
             'enchimento_ombro_2_valor.numeric' => 'O campo Valor Enchimento Ombro 2 deve ser um número.',
-            'enchimento_ombro_2_valor.min' => 'O campo Valor Enchimento Ombro 2 deve ser maior ou igual a zero.',   
+            'enchimento_ombro_2_valor.min' => 'O campo Valor Enchimento Ombro 2 deve ser maior ou igual a zero.',
         ];
         $validator = Validator::make($this->request->all(), $rules, $messages);
 
@@ -329,18 +334,24 @@ class TabelaPrecoController extends Controller
     }
     public function deletarTabelaPreco()
     {
-        $cd_tabela = $this->request->input('cd_tabela');
+        $cd_tabela = decrypt($this->request->input('cd_tabela'));
+        $tipo_tabela = $this->request->input('tipo_tabela');
 
-        $tabela = $this->tabela->getTabprecoPreview('N', '', $cd_tabela);
+        if ($tipo_tabela === 'tabela_preco') {
+            return $this->tabela->destroyTabelaPreco($cd_tabela, $tipo_tabela);
+        } else {
 
-        if (Helper::is_empty_object($tabela)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Não existe tabela para excluir ou já foi importada!'
-            ]);
+            $tabela = $this->tabela->getTabprecoPreview('N', '', $cd_tabela);
+
+            if (Helper::is_empty_object($tabela)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Não existe tabela para excluir ou já foi importada!'
+                ]);
+            }
+
+            return $this->tabela->destroyTabelaPreco($cd_tabela, $tipo_tabela);
         }
-
-        return $this->tabela->destroyTabelaPreco($cd_tabela);
     }
     public function cancelarVinculo()
     {
