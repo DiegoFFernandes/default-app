@@ -112,6 +112,8 @@ class AcompanhamentoPneu extends Model
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
                         CASE
+                            WHEN PP.STPEDIDO = 'B' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+                            WHEN PC.ST_SCPC = 'S' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
                             WHEN PP.STPEDIDO = 'A' THEN 'ATENDIDO'
                             WHEN PC.ST_SCPC = 'S' THEN 'BLOQUEADO'
                             WHEN PP.STPEDIDO = 'C' THEN 'CANCELADO'
@@ -120,7 +122,7 @@ class AcompanhamentoPneu extends Model
                             WHEN PP.STPEDIDO = 'B' THEN 'BLOQUEADO'
                             WHEN PP.STPEDIDO = 'P' THEN 'PRODUCAO PARCIAL'
                             ELSE PP.STPEDIDO
-                        END STPEDIDO,
+                        END STPEDIDO,                        
                         TP.DSTIPOPEDIDO,
                         COUNT(IPP.id) QTDPNEUS,
                         CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO, 
@@ -177,6 +179,7 @@ class AcompanhamentoPneu extends Model
                         PP.STPEDIDO,  
                         PP.TP_BLOQUEIO,                      
                         TP.DSTIPOPEDIDO,
+                        TP.ID,
                         FORMAPAGTO.DS_FORMAPAGTO,
                         CONDPAGTO.DS_CONDPAGTO,
                         PP.DSOBSERVACAO, 

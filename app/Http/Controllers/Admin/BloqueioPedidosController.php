@@ -106,10 +106,19 @@ class BloqueioPedidosController extends Controller
 
         return DataTables::of($bloqueio)
             ->addColumn('action', function ($b) {
-                $button = '<a href="https://api.whatsapp.com/send?phone=+5541985227055&text=
+                $button = "";
+                if ($b->MOTIVO === 'CADASTRO  ') {
+                    $button .= '<a href="https://api.whatsapp.com/send?phone=+5543991685071&text=
                 Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
-                    . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
+                        . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
                 <i class="fab fa-whatsapp"></i></a>';
+                } else if ($b->MOTIVO === 'FINANCEIRO' || $b->MOTIVO === 'AMBOS     ') {
+                    $button .= '<a href="https://api.whatsapp.com/send?phone=+5543991088745&text=
+                Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
+                        . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
+                <i class="fab fa-whatsapp"></i></a>';
+                }
+
                 $button .= '<button type="button" class="btn btn-info ml-1 btn-xs" data-toggle="popover" title="Detalhes" 
                 data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';
 

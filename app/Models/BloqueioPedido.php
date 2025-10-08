@@ -32,40 +32,39 @@ class BloqueioPedido extends Model
     {
         $query = "
             SELECT (CASE PP.STPEDIDO
-                WHEN 'B' THEN 'BLOQUEADO'
-                WHEN 'N' THEN 'LIBERADO'
-                ELSE PP.STPEDIDO
-                END)
-            STPEDIDO,
-            PP.IDEMPRESA CD_EMPRESA,
-            PP.DTEMISSAO DATA,
-            PP.ID AS PEDIDO,
-            PP.IDPEDIDOMOVEL AS MOBILE,
-            CAST(PP.IDPESSOA || ' - ' || PE.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) CLIENTE,
-            --PP.TP_BLOQUEIO AS MOTIVO,
-            (
-            CASE 
-                WHEN PE.ST_SCPC = 'S' THEN 'CADASTRO'
-                WHEN PP.TP_BLOQUEIO = 'F' THEN 'FINANCEIRO'
-                WHEN PP.TP_BLOQUEIO = 'C' THEN 'COMERCIAL'
-                ELSE 'AMBOS'
-            END) MOTIVO,
-            EP.CD_REGIAOCOMERCIAL,
-            (
-            CASE PE.ST_ATIVA
-            WHEN 'S' THEN 'SIM'
-            WHEN 'N' THEN 'NAO'
-            END) ST_ATIVA,
-            (
-            CASE PE.ST_SCPC
-            WHEN 'S' THEN 'SIM'
-            WHEN 'N' THEN 'NAO'
-            END) ST_SCPC,
-            CAST(PP.IDVENDEDOR || ' - ' || PV.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) VENDEDOR,
-            SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
-            AC.CD_AREACOMERCIAL,
-            PP.DSBLOQUEIO,
-            TP.DSTIPOPEDIDO
+                    WHEN 'B' THEN 'BLOQUEADO'
+                    WHEN 'N' THEN 'LIBERADO'
+                    ELSE PP.STPEDIDO
+                END) STPEDIDO,
+                PP.IDEMPRESA CD_EMPRESA,
+                PP.DTEMISSAO DATA,
+                PP.ID AS PEDIDO,
+                PP.IDPEDIDOMOVEL AS MOBILE,
+                CAST(PP.IDPESSOA || ' - ' || PE.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) CLIENTE,
+                --PP.TP_BLOQUEIO AS MOTIVO,
+                (
+                CASE 
+                    WHEN PE.ST_SCPC = 'S' THEN 'CADASTRO'
+                    WHEN PP.TP_BLOQUEIO = 'F' THEN 'FINANCEIRO'
+                    WHEN PP.TP_BLOQUEIO = 'C' THEN 'COMERCIAL'
+                    ELSE 'AMBOS'
+                END) MOTIVO,
+                EP.CD_REGIAOCOMERCIAL,
+                (
+                CASE PE.ST_ATIVA
+                WHEN 'S' THEN 'SIM'
+                WHEN 'N' THEN 'NAO'
+                END) ST_ATIVA,
+                (
+                CASE PE.ST_SCPC
+                WHEN 'S' THEN 'SIM'
+                WHEN 'N' THEN 'NAO'
+                END) ST_SCPC,
+                CAST(PP.IDVENDEDOR || ' - ' || PV.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) VENDEDOR,
+                SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
+                AC.CD_AREACOMERCIAL,
+                PP.DSBLOQUEIO,
+                TP.DSTIPOPEDIDO
             FROM PEDIDOPNEU PP
             INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
             INNER JOIN PESSOA PE ON (PE.CD_PESSOA = PP.IDPESSOA)
@@ -82,6 +81,7 @@ class BloqueioPedido extends Model
                 " . (($empresa != 0) ? "AND PP.IDEMPRESA IN ($empresa) " : "") . "
                 " . (($cd_supervisor != 0) ? "AND VE.CD_VENDEDORGERAL = $cd_supervisor" : "") . "
                 " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
+                AND PP.IDTIPOPEDIDO NOT IN (2)
             ORDER BY PP.IDEMPRESA,
                 PP.DTEMISSAO";
 

@@ -5,7 +5,7 @@
     <!-- Main content -->
     <section class="content">
         <div class="row">
-            <div class="col-12 col-sm-4 col-lg-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-success"><a href="#" id="i-finalizados"><i
                                 class="fas fa-check"></i></a></span>
@@ -19,7 +19,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <div class="col-12 col-sm-4 col-lg-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon"><a href="#" id="i-aguardando"><i class="far fa-flag"></i></a></span>
 
@@ -32,7 +32,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <div class="col-12 col-sm-4 col-lg-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-warning"><a href="#" id="i-producao"><i
                                 class="far fa-copy"></i></a></span>
@@ -46,7 +46,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <div class="col-12 col-sm-4 col-lg-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-danger"><a href="#" id="i-bloqueados"><i
                                 class="fas fa-ban"></i></a></span>
@@ -60,8 +60,7 @@
                 <!-- /.info-box -->
             </div>
             <!-- /.col -->
-            <!-- /.col -->
-            <div class="col-12 col-sm-4 col-lg-2">
+            <div class="col-6 col-sm-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><a href="#" id="i-cancelados"><i
                                 class="fas fa-window-close"></i></a></span>
@@ -69,6 +68,21 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Canceladas</span>
                         <span class="info-box-number canceladas"></span>
+                    </div>
+                    <!-- /.info-box-content -->
+                </div>
+                <!-- /.info-box -->
+            </div>
+            <!-- /.col -->
+            <!-- /.col -->
+            <div class="col-6 col-sm-4 col-lg-2">
+                <div class="info-box">
+                    <span class="info-box-icon bg-secondary"><a href="#" id="i-garantias"><i
+                                class="fas fa-shield-alt"></i></a></span>
+
+                    <div class="info-box-content">
+                        <span class="info-box-text">Garantias</span>
+                        <span class="info-box-number garantias"></span>
                     </div>
                     <!-- /.info-box-content -->
                 </div>
@@ -198,10 +212,16 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <table class="table stripe compact nowrap" id="pedido-acompanhar"
-                                    style="width:100%; font-size:12px">
-
-                                </table>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
+                                            <x-loading-card />
+                                            <table class="table stripe compact nowrap table-font-small"
+                                                id="pedido-acompanhar">
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="bloqueio-pedido" role="tabpanel">
                                 <div class="card collapsed-card mb-4">
@@ -253,16 +273,19 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <table class="table stripe compact nowrap" id="bloqueio-pedidos"
-                                    style="width:100%; font-size: 12px">
-                                </table>
+                                <div class="row">
+                                    <div class="table-responsive">
+                                        <x-loading-card />
+                                        <table class="table table-font-small stripe compact nowrap" id="bloqueio-pedidos">
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <!-- /.card -->
                     </div>
-                    <!-- /.card -->
                 </div>
             </div>
-        </div>
     </section>
 @stop
 
@@ -275,11 +298,16 @@
             max-width: 10%;
         }
 
-        table.dataTable {
-            table-layout: fixed;
-        }
+        /* table.dataTable {
+                                        table-layout: fixed;
+                                    } */
 
         @media (max-width: 768px) {
+            .info-box .info-box-icon {
+                width: 40px;
+                font-size: 0.875rem;
+            }
+
             .table-left {
                 margin-left: 0 !important;
             }
@@ -346,17 +374,20 @@
             tableBloqueio = $('#bloqueio-pedidos').DataTable({
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                },
-                fixedHeader: true,
+                }, 100 410 4             
                 pagingType: "simple",
                 processing: false,
                 serverSide: false,
-                pageLength: 100,
-                // responsive: true,
-                scrollX: true,
-                ajax: "{{ route('get-bloqueio-pedidos') }}",
-
-
+                pageLength: 100,                               
+                ajax: {
+                    url: "{{ route('get-bloqueio-pedidos') }}",
+                    beforeSend() {
+                        $("#bloqueio-pedido .info-loading.loading-card").removeClass("invisible");
+                    },
+                    complete() {
+                        $("#bloqueio-pedido .info-loading.loading-card").addClass("invisible");
+                    },
+                },
                 columns: [{
                         data: 'action',
                         name: 'action',
@@ -537,15 +568,20 @@
                 processing: false,
                 serverSide: false,
                 pageLength: 25,
-                retrieve: true,
-                scrollX: true,
+                // scrollX: true,
+                scrollCollapse: true,
                 ajax: {
                     url: "{{ route('get-pedido-acompanhar') }}",
                     data: {
                         data: dados
+                    },
+                    beforeSend: function() {
+                        $("#acompanhamento-pedido .info-loading.loading-card").removeClass("invisible");
+                    },
+                    complete: function() {
+                        $("#acompanhamento-pedido .info-loading.loading-card").addClass("invisible");
                     }
                 },
-
                 columns: [{
                         data: 'actions',
                         name: 'actions',
@@ -617,12 +653,14 @@
                     let bloqueados = data.filter(item => item.STPEDIDO === "BLOQUEADO       ").length;
                     let aguardando = data.filter(item => item.STPEDIDO === "AGUARDANDO      ").length;
                     let canceladas = data.filter(item => item.STPEDIDO === "CANCELADO       ").length;
+                    let garantias = data.filter(item => item.STPEDIDO === "BLOQ. GARANTIA  ").length;
 
                     $('.finalizados').text(finalizados);
                     $('.producao').text(producao);
                     $('.bloqueados').text(bloqueados);
                     $('.aguardando').text(aguardando);
                     $('.canceladas').text(canceladas);
+                    $('.garantias').text(garantias);
                 }
             });
             return table;
@@ -807,6 +845,9 @@
         });
         $('#i-bloqueados').click(function() {
             table.search('BLOQUEADO').draw();
+        });
+        $('#i-garantias').click(function() {
+            table.search('BLOQ. GARANTIA').draw();
         });
     </script>
 @stop
