@@ -9,6 +9,6 @@ class TarefasController extends Controller
 {
     public function tarefas()
     {
-        return view('admin.comercial.quadro-tarefas');
+        return view('admin.tarefas.quadro-tarefas');
     }
 }

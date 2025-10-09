@@ -376,7 +376,7 @@ function initTableTabelaPrecoPrevia() {
             },
             {
                 title: "Cód",
-                data: "ID",               
+                data: "ID",
                 visible: false,
             },
             {
@@ -432,4 +432,151 @@ function recomecar() {
     $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
     $("#desenho").closest(".form-group").hide(); // esconde os selects
     $("#item-tabela-preco").closest(".card").hide();
+}
+
+function salvarVinculoTabelaPessoa(
+    cd_tabela,
+    cd_pessoa,
+    routes,
+    idModal,
+    idTabela,
+    inputCdPessoaMulti,
+    csrf
+) {
+    if (!cd_pessoa || cd_pessoa.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Atenção",
+            text: "Por favor, selecione pelo menos um cliente para vincular.",
+            customClass: {
+                confirmButton: "btn btn-warning",
+            },
+        });
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: routes.vincularTabelaPreco,
+        data: {
+            _token: csrf,
+            cd_tabela: cd_tabela,
+            cd_pessoa: cd_pessoa,
+        },
+        dataType: "json",
+        beforeSend: function () {
+            $("#loading").removeClass("invisible");
+        },
+        success: function (response) {
+            if (response.success) {
+                $("#" + idModal).modal("hide");
+                $("#" + idTabela)
+                    .DataTable()
+                    .destroy();
+                if (idTabela === "tabela-preco") initTabelaPreco(routes);
+                else {
+                    initTableTabelaPrecoCadastradasPreview(routes);
+                }
+
+                $("#loading").addClass("invisible");
+                $("#" + inputCdPessoaMulti)
+                    .val("")
+                    .trigger("change");
+
+                Swal.fire({
+                    title: "Atenção",
+                    text: response.message,
+                    icon: "success",
+                    customClass: {
+                        confirmButton: "btn btn-success",
+                    },
+                });
+            } else {
+                $("#loading").addClass("invisible");
+                Swal.fire({
+                    icon: "warning",
+                    title: "Atenção",
+                    text:
+                        response.message ||
+                        "Ocorreu um erro ao vincular a tabela. Tente novamente.",
+                    customClass: {
+                        confirmButton: "btn btn-warning",
+                    },
+                });
+                return;
+            }
+        },
+    });
+}
+
+function deleteTabelaPreco(
+    routes,
+    cd_tabela,
+    nm_tabela,
+    tipo_tabela,
+    idTabela,
+    csrf
+) {
+    Swal.fire({
+        icon: "warning",
+        title: "Atenção",
+        html:
+            'Deseja realmente excluir esta tabela de preço?</br><span class="font-weight-bold">' +
+            nm_tabela +
+            "</span>",
+        confirmButtonText: "Sim",
+        cancelButtonText: "Não",
+        showCancelButton: true,
+        customClass: {
+            confirmButton: "btn btn-delete",
+        },
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                type: "POST",
+                url: routes.deleteTabelaPreco,
+                data: {
+                    _token: csrf,
+                    cd_tabela: cd_tabela,
+                    tipo_tabela: tipo_tabela,
+                },
+                dataType: "json",
+                beforeSend: function () {
+                    $("#loading").removeClass("invisible");
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $("#" + idTabela)
+                            .DataTable()
+                            .ajax.reload();
+
+                        $("#loading").addClass("invisible");
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Atenção",
+                            text: response.message,
+                            customClass: {
+                                confirmButton: "btn btn-success",
+                            },
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Atenção",
+                            text:
+                                response.message ||
+                                "Ocorreu um erro ao deletar a tabela. Tente novamente.",
+                            customClass: {
+                                confirmButton: "btn btn-warning",
+                            },
+                        });
+                        $("#loading").addClass("invisible");
+                        return;
+                    }
+                },
+            });
+        }
+    });
+    return;
 }

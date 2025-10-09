@@ -597,7 +597,7 @@
         $('#tabela-preco-cadastradas').on('click', '.btn-importar', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $.ajax({
-                type: "GET",
+                type: "POST",
                 url: routes.importarTabelaPreco,
                 data: {
                     _token: '{{ csrf_token() }}',
@@ -636,7 +636,6 @@
 
                 }
             });
-
         });
 
         $('#tabela-preco-cadastradas').on('click', '.btn-vincular-tabela', function() {
@@ -651,142 +650,34 @@
         $('#btn-salvar-vinculo').on('click', function() {
             var cd_tabela = $('#cd_tabela_preco').val();
             var cd_pessoa = $('#cd_pessoa_multi').val();
+            const csrf = '{{ csrf_token() }}';
             salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes, 'modal-vincular-tab-preco-pessoas',
-                'tabela-preco-cadastradas', 'cd_pessoa_multi');
+                'tabela-preco-cadastradas', 'cd_pessoa_multi', csrf);
 
         });
 
         $('#btn-salvar-vinculo2').on('click', function() {
             var cd_tabela = $('#cd_tabela_preco2').val();
             var cd_pessoa = $('#cd_pessoa_multi2').val();
+            const csrf = '{{ csrf_token() }}';
             salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes, 'modal-vincular-tab-preco-pessoas2',
-                'tabela-preco', 'cd_pessoa_multi2');
+                'tabela-preco', 'cd_pessoa_multi2', csrf);
         });
 
-        $('#tabela-preco-cadastradas').on('click', '.btn-delete', function() {
+        // Deletar tabela de preço na tab cadastradas
+        $('#tabela-preco-cadastradas').on('click', '.btn-delete-tabela', function() {
             var cd_tabela = $(this).data('cd_tabela');
             var nm_tabela = $(this).data('nm_tabela');
-
-            Swal.fire({
-                icon: 'warning',
-                title: 'Atenção',
-                html: 'Deseja realmente excluir esta tabela de preço?</br>' + nm_tabela,
-                confirmButtonText: "Sim",
-                cancelButtonText: "Não",
-                showCancelButton: true,
-                customClass: {
-                    confirmButton: 'btn btn-delete'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        type: "POST",
-                        url: routes.deleteTabelaPreco,
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            cd_tabela: cd_tabela
-                        },
-                        dataType: "json",
-                        beforeSend: function() {
-                            $("#loading").removeClass('invisible');
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#tabela-preco-cadastradas').DataTable().ajax.reload();
-
-                                $("#loading").addClass('invisible');
-
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Atenção',
-                                    text: response.message,
-                                    customClass: {
-                                        confirmButton: 'btn btn-success'
-                                    }
-                                });
-                            } else {
-                                Swal.fire({
-                                    icon: 'warning',
-                                    title: 'Atenção',
-                                    text: response.message ||
-                                        'Ocorreu um erro ao deletar a tabela. Tente novamente.',
-                                    customClass: {
-                                        confirmButton: 'btn btn-warning'
-                                    }
-                                });
-                                $("#loading").addClass('invisible');
-                                return;
-                            }
-                        }
-                    });
-                }
-            });
-            return;
+            deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco_preview', 'tabela-preco-cadastradas');
         });
 
-        function salvarVinculoTabelaPessoa(cd_tabela, cd_pessoa, routes, idModal, idTabela, inputCdPessoaMulti) {
-            if (!cd_pessoa || cd_pessoa.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Atenção',
-                    text: 'Por favor, selecione pelo menos um cliente para vincular.',
-                    customClass: {
-                        confirmButton: 'btn btn-warning'
-                    }
-                });
-                return;
-            }
-
-            $.ajax({
-                type: "GET",
-                url: routes.vincularTabelaPreco,
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    cd_tabela: cd_tabela,
-                    cd_pessoa: cd_pessoa
-                },
-                dataType: "json",
-                beforeSend: function() {
-                    $("#loading").removeClass('invisible');
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $('#' + idModal).modal('hide');
-                        $('#' + idTabela).DataTable().destroy();
-                        if (idTabela === 'tabela-preco')
-                            initTabelaPreco(routes);
-                        else {
-                            initTableTabelaPrecoCadastradasPreview(routes);
-                        }
-
-                        $("#loading").addClass('invisible');
-                        $('#' + inputCdPessoaMulti).val('').trigger('change');
-
-                        Swal.fire({
-                            title: 'Atenção',
-                            text: response.message,
-                            icon: 'success',
-                            customClass: {
-                                confirmButton: 'btn btn-success'
-                            }
-                        });
-                    } else {
-                        $("#loading").addClass('invisible');
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Atenção',
-                            text: response.message ||
-                                'Ocorreu um erro ao vincular a tabela. Tente novamente.',
-                            customClass: {
-                                confirmButton: 'btn btn-warning'
-                            }
-                        });
-                        return;
-                    }
-
-                }
-            });
-        }
+        // Deletar tabela de preço na tab associadas
+        $('#tabela-preco').on('click', '.btn-delete-tabela', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            var nm_tabela = $(this).data('nm_tabela');
+            const csrf = '{{ csrf_token() }}';
+            deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco', 'tabela-preco', csrf);
+        });
     </script>
 
 @stop

@@ -106,7 +106,7 @@ class Cobranca extends Model
                     " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                     " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "                  
 
-                ORDER BY CONTAS.$string;
+                ORDER BY CONTAS.$string, CONTAS.VL_SALDO;
              ";
 
         $data = DB::connection('firebird')->select($query);

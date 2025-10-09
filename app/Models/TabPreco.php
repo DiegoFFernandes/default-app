@@ -412,24 +412,54 @@ class TabPreco extends Model
         });
     }
 
-    public function destroyTabelaPreco($cd_tabela)
+    public function destroyTabelaPreco($cd_tabela, $tipo_tabela)
     {
-        DB::transaction(function () use ($cd_tabela) {
+        $result = DB::transaction(function () use ($cd_tabela, $tipo_tabela) {
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
-            // Após importar os itens, atualizar o status de importação na tabela temporária, para 'D' (DELETAR)
-            $delete = "DELETE FROM ITEMTABPRECO_PREVIEW WHERE CD_TABPRECO = $cd_tabela";
-            return DB::connection('firebird')->statement($delete);
+
+            if ($tipo_tabela === 'tabela_preco_preview') {
+                DB::connection('firebird')->delete(
+                    "DELETE FROM ITEMTABPRECO_PREVIEW WHERE CD_TABPRECO = ?",
+                    [$cd_tabela]
+                );
+
+                return ['success' => true, 'message' => 'Itens da tabela de preço preview deletados com sucesso!'];
+            } else {
+                $existsUso = DB::connection('firebird')->select(
+                    "SELECT FIRST 1 IPP.ID
+                 FROM ITEMPEDIDOPNEU IPP
+                 WHERE IPP.IDTABPRECO = ?",
+                    [$cd_tabela]
+                );
+
+                if (Helper::is_empty_object($existsUso)) {
+                    DB::connection('firebird')->delete(
+                        "DELETE FROM ITEMTABPRECO WHERE CD_TABPRECO = ?",
+                        [$cd_tabela]
+                    );
+                    DB::connection('firebird')->delete(
+                        "DELETE FROM TABPRECO WHERE CD_TABPRECO = ?",
+                        [$cd_tabela]
+                    );
+
+                    return ['success' => true, 'message' => 'Tabela de preço deletada com sucesso!'];
+                } else {
+                    return ['success' => false, 'message' => 'Não é possível excluir esta tabela de preço, pois a mesma já foi utilizada!'];
+                }
+            }
         });
 
-        return response()->json(['success' => true, 'message' => 'Tabela deletada com sucesso!']);
+        // Agora sim, responde corretamente com base no resultado da transação
+        return response()->json($result);
     }
+
 
     public function cancelarVinculo($cd_tabela, $cd_pessoa)
     {
         DB::transaction(function () use ($cd_tabela, $cd_pessoa) {
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
             // Após importar os itens, atualizar o status de importação na tabela temporária, para 'D' (DELETAR)
-            $delete = "DELETE FROM PARMTABPRECO WHERE CD_TABPRECO = $cd_tabela AND CD_PESSOA = $cd_pessoa";
+            $delete = "DELETE FROM PARMTABPRECO WHERE CD_TABPRECO = $cd_tabela AND CD_PESSOA in ($cd_pessoa)";
             return DB::connection('firebird')->statement($delete);
         });
 
