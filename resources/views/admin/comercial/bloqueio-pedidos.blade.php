@@ -214,11 +214,19 @@
                                 <hr>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <div class="table-responsive">
+                                        <div class="table-responsive d-none d-md-block">
                                             <x-loading-card />
                                             <table class="table stripe compact nowrap table-font-small"
                                                 id="pedido-acompanhar">
                                             </table>
+                                        </div>
+                                        <div class="d-block d-md-none">
+                                            <div class="card">
+                                                <div class="card-body p-2">
+                                                    <x-loading-card id="loading-accordion"/>
+                                                    <div id="accordion-mobile"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -286,6 +294,24 @@
                     </div>
                 </div>
             </div>
+            <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="detailsModalLabel">Detalhes do Pedido</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="modalBodyContent">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </section>
 @stop
 
@@ -299,8 +325,8 @@
         }
 
         /* table.dataTable {
-                                        table-layout: fixed;
-                                    } */
+                table-layout: fixed;
+        } */
 
         @media (max-width: 768px) {
             .info-box .info-box-icon {
@@ -374,11 +400,11 @@
             tableBloqueio = $('#bloqueio-pedidos').DataTable({
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                }, 100 410 4             
+                }, //100 410 4             
                 pagingType: "simple",
                 processing: false,
                 serverSide: false,
-                pageLength: 100,                               
+                pageLength: 100,
                 ajax: {
                     url: "{{ route('get-bloqueio-pedidos') }}",
                     beforeSend() {
@@ -577,6 +603,13 @@
                     },
                     beforeSend: function() {
                         $("#acompanhamento-pedido .info-loading.loading-card").removeClass("invisible");
+                    },
+                    dataSrc: function(json) {
+                        // constroi o accordion para mobile
+                        if (json && json.data) {
+                            gerarAccordion(json.data);
+                        }
+                        return json.data; // retorna para a tabela
                     },
                     complete: function() {
                         $("#acompanhamento-pedido .info-loading.loading-card").addClass("invisible");
@@ -848,6 +881,201 @@
         });
         $('#i-garantias').click(function() {
             table.search('BLOQ. GARANTIA').draw();
+        });
+
+        function gerarAccordion(data) {
+            const accordionContainer = $('#accordion-mobile');
+            $('#loading-accordion').hide();
+            accordionContainer.empty();
+            if (!data || data.length === 0) {
+                accordionContainer.html('<p class="text-center">Nenhum pedido encontrado.</p>');
+                return;
+            }
+
+            // agrupa os pedidos por cliente
+            const pedidosAgrupados = data.reduce((mapaCliente, pedido) => {
+                const cliente = pedido.PESSOA;
+                const empresa = pedido.NM_EMPRESA || `Empresa ${pedido.CD_EMPRESA}`;
+
+                if (!mapaCliente[cliente]) mapaCliente[cliente] = {
+                    empresa,
+                    pedidos: []
+                };
+                mapaCliente[cliente].pedidos.push(pedido);
+
+                return mapaCliente;
+            }, {});
+
+            let accordionHtml = '<div class="accordion" id="clienteAccordion">';
+
+            Object.keys(pedidosAgrupados).forEach((nomeCliente, clienteIndex) => {
+                const clienteId = `cliente-${clienteIndex}`;
+                const clienteData = pedidosAgrupados[nomeCliente];
+                accordionHtml += `
+                    <div class="card mb-2">
+                        <div class="card-header p-2" id="heading-${clienteId}">
+                            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse-${clienteId}">
+                                <span class="small">👤 ${nomeCliente}</span><br>
+                                <span class="small">🏢 Empresa: ${clienteData.empresa}</span>
+                            </button>
+                        </div>
+                    <div id="collapse-${clienteId}" class="collapse" data-parent="#clienteAccordion">
+                        <div class="card-body p-1">
+                            <ul class="list-group list-group-flush">
+                `;
+                clienteData.pedidos.forEach(pedido => {
+                    // cor do status
+                    let statusClass = 'badge-primary';
+                    const status = pedido.STPEDIDO.trim();
+                    if (status === 'ATENDIDO') statusClass = 'badge-success';
+                    else if (status === 'EM PRODUCAO') statusClass = 'badge-warning';
+                    else if (status === 'BLOQUEADO') statusClass = 'badge-danger';
+                    else if (status === 'AGUARDANDO') statusClass = 'badge-info';
+                    else if (status === 'CANCELADO') statusClass = 'badge-secondary';
+                    accordionHtml += `
+                        <li class="list-group-item mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="mb-1"><i class="fas fa-hashtag"></i>Pedido: ${pedido.ID}</p>
+                                    <p class="mb-1"><i class="fas fa-box-open"></i>Pneus:</strong> ${pedido.QTDPNEUS}</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge ${statusClass} mb-1 small">${status}</span><br>
+                                    <button class="btn btn-primary btn-sm btn-block btn-show-details mb-1 small" data-pedido='${JSON.stringify(pedido)}'>
+                                        Detalhes
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    `;
+                });
+                accordionHtml += `</div></div></div>`;
+            });
+            accordionHtml += '</div>';
+            accordionContainer.html(accordionHtml);
+        }
+        $(document).on('click', '.btn-show-details', function() {
+            //detalhes do pedido no modal
+            const pedidoData = $(this).data('pedido');
+            let modalContent = `
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                <strong>Cliente:</strong> ${pedidoData.PESSOA}
+                            </div>
+                            <div class="col-12 mb-2">
+                                <strong>Pedido:</strong> ${pedidoData.ID}
+                            </div>
+                            <div class="col-12 mb-2">
+                                <strong>Pedido Palm:</strong> ${pedidoData.IDPEDIDOMOVEL}
+                            </div>
+                            <div class="col-12 mb-2">
+                                <strong>Pneus:</strong> ${pedidoData.QTDPNEUS}
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <strong>Data Emissão:</strong>
+                            <p class="mb-0">${moment(pedidoData.DTEMISSAO).format('DD/MM/YYYY')}</p>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <strong>Data Entrega:</strong>
+                            <p class="mb-0">${pedidoData.DTENTREGAPED ? moment(pedidoData.DTENTREGAPED).format('DD/MM/YYYY') : 'Não informada'}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <p><strong>Itens do Pedido:</strong></p>
+                    <div id="modal-items-card-container" class="d-md-none">Carregando itens...</div>
+                </div>
+            `;
+            $('#modalBodyContent').html(modalContent); // atualiza o conteúdo do modal
+            $('#detailsModalLabel').text(`Detalhes do Pedido ${pedidoData.ID}`); // atualiza o título do modal
+            $('#detailsModal').modal('show'); // exibe o modal
+            $.ajax({
+                url: "{{ route('get-item-pedido-acompanhar') }}",
+                method: 'GET',
+                data: {
+                    id: pedidoData.ID
+                },
+                success: function(response) {
+                    //pedidos no modal
+                    const cardContainer = $('#modal-items-card-container');
+                    cardContainer.empty();
+                    if (response.data?.length) {
+                        response.data.forEach(item => {
+                            cardContainer.append(`
+                            <div class="card mb-2 bg-light shadow-sm rounded border">
+                                <div class="card-body p-2">
+                                    <p class="mb-1"><strong>Serviço:</strong> ${item.DSSERVICO}</p>
+                                    <p class="mb-1"><strong>Status:</strong> ${item.STORDEM}</p>
+                                    <p class="mb-2"><strong>Valor:</strong> ${item.VLUNITARIO}</p>
+                                    <button class="btn btn-sm btn-outline-primary w-100 btn-ver-etapas-modal"
+                                            data-item='${JSON.stringify(item)}'>
+                                        <i class="fas fa-plus"></i> Ver Etapas
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                        });
+                    } else {
+                        cardContainer.html('<p>Nenhum item encontrado.</p>');
+                    }
+                },
+                error: function() {
+                    $('#modal-items-card-container').html('<p class="text-danger">Erro ao carregar os itens.</p>');
+                }
+            });
+        });
+
+        // etapas do pedido no modal
+        $('#detailsModal').on('click', '.btn-ver-etapas-modal', function() {
+            const button = $(this); // botão clicado
+            const itemData = button.data('item'); // dados do item do pedido
+            let container = button.siblings('.etapas-container'); // verifica se o container já existe
+
+            if (container.length) {
+                container.toggle();
+                button.find('i').toggleClass('fa-plus fa-minus');
+                return;
+            }
+            button.after('<div class="etapas-container mt-2 p-2 bg-light">Carregando etapas...</div>');
+            container = button.siblings('.etapas-container');
+            button.find('i').removeClass('fa-plus').addClass('fa-minus');// muda o ícone
+            $.ajax({
+                url: itemData.details_item_pedido_url,
+                method: 'GET',
+                success: function(response) {
+                    let etapasHtml = '';
+                    if (response.data?.length) {
+                        etapasHtml += '<ul class="list-group list-group-flush">';
+                        response.data.forEach(etapa => {
+                            etapasHtml += `
+                        <li class="list-group-item p-2 ms-4">
+                            <div class="d-flex justify-content-between flex-wrap">
+                                <div>
+                                    <strong>Etapa:</strong> ${etapa.O_DS_ETAPA}<br>
+                                    <strong>Usuário:</strong> ${etapa.O_NM_USUARIO || '-'}
+                                </div>
+                                <div class="text-end">
+                                    <strong>Entrada:</strong> ${moment(etapa.DT_ENTRADA).format('DD/MM/YYYY HH:mm')}<br>
+                                    <strong>Saída:</strong> ${moment(etapa.DT_SAIDA).format('DD/MM/YYYY HH:mm')}
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Complemento:</strong> ${etapa.O_DS_COMPLEMENTOETAPA}<br>
+                                <strong>Usuário:</strong> ${etapa.O_ST_RETRABALHO}
+                            </div>
+                        </li>`;
+                        });
+                        etapasHtml += '</ul>';
+                    } else {
+                        etapasHtml += '<p>Nenhuma etapa encontrada.</p>';
+                    }
+                    container.html(etapasHtml);
+                }
+            });
         });
     </script>
 @stop
