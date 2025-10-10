@@ -64,7 +64,7 @@ class TabPreco extends Model
 
         $data = DB::connection('firebird')->select($query);
 
-        return $data;
+        return Helper::ConvertFormatText($data);
     }
 
     public function getItemTabPreco($cd_tabela, $tela = 'tabela_preco')
