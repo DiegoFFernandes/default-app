@@ -86,7 +86,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('supervisor-comercial', [SupervisorComercialController::class, 'index'])->name('supervisor-comercial.index');
         Route::get('get-supervisor-comercial', [SupervisorComercialController::class, 'create'])->name('get-supervisor-comercial.create');
         Route::get('get-table-supervisor-usuario', [SupervisorComercialController::class, 'list'])->name('get-table-supervisor-usuario');
-        Route::post('edit-supervisor-usuario', [SupervisorComercialController::class, 'update'])->name('edit-supervisor-usuario');
+        Route::get('edit-supervisor-usuario', [SupervisorComercialController::class, 'update'])->name('edit-supervisor-usuario');
         Route::delete('supervisor-usuario-delete', [SupervisorComercialController::class, 'destroy'])->name('supervisor-usuario.delete');
 
 

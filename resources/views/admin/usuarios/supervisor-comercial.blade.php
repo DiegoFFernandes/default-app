@@ -6,7 +6,7 @@
     <!-- Main content -->
     <section class="content">
         <div class="row">
-            <div class="col-md-12">
+            {{-- <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
                         <div class="row">
@@ -33,6 +33,24 @@
                                     </select>
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="libera-por-subgrupo">Libera por subgrupo</label>
+                                    <div class="form-group">
+                                        <select class="form-control" id="libera-por-subgrupo" multiple="multiple"
+                                            style="width: 100%;">
+                                            <option>Selecione os subgrupos ou deixe em branco</option>
+                                            @foreach ($subgrupo as $sg)
+                                                <option value="{{ $sg->CD_SUBGRUPO }}">{{ $sg->DS_SUBGRUPO }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- /.card-body -->
+                            </div>
                             <div class="col-md-2">
                                 <div class="form-group">
                                     <label>Libera Acima Param?</label>
@@ -52,7 +70,7 @@
                             </div>
                             <div class="col-md-2 d-none" id="div_pc_permitida">
                                 <div class="form-group">
-                                    <label>% Permitida</label>
+                                    <label>% Permitida até:</label>
                                     <div class="form-group">
                                         <input type="text" class="form-control" id="pc_permitida"
                                             placeholder="%permitida">
@@ -60,49 +78,44 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- /.card-body -->
-                    </div>
-                    <div class="card-footer">
-                        <div class="col-md-2" align="center">
-                            <div class="form-group">
-                                <button type="submit" id="btn-vincular"
-                                    class="btn btn-danger btn-sm btn-block">Associar</button>
+                        <div class="card-footer">
+                            <div class="col-md-2" align="center">
+                                <div class="form-group">
+                                    <button type="submit"
+                                        class="btn btn-danger btn-sm btn-block">Associar</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header with-border">
-                            <h3 class="card-title">Supervisores Associados</h3>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body">
-                            <table class="table compact table-font-small table-striped table-bordered nowrap" id="table-supervisor" style="width: 100%">
-                                <thead>
-                                    <tr>
-                                        <th>Cód.</th>
-                                        <th>Cd. Usúario</th>
-                                        <th>Usúario</th>
-                                        <th>Cd. Supervisor</th>
-                                        <th>Supervisor</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                            </table>
+            </div> --}}
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header with-border">
+                        <h3 class="card-title">Supervisores Associados</h3>
+                        <div class="card-tools pull-right">
+                            <button type="button" class="btn btn-danger btn-sm" id="adicionar-supervisor">Adicionar
+                            </button>
                         </div>
                     </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <table class="table compact table-font-small table-striped table-bordered nowrap"
+                            id="table-supervisor" style="width: 100%">
+                        </table>
+                    </div>
                 </div>
-                <!-- /.col -->
             </div>
+            <!-- /.col -->
+        </div>
     </section>
     {{-- Modal Editar --}}
-    <div class="modal" id="CreatePessoaModal">
+    <div class="modal" id="ModalAddEdit">
         <div class="modal-dialog">
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">
-                    <span class="modal-title">Editar Supervisor</span>
+                    <span class="modal-title">Adicionar Supervisor</span>
                     <button type="button" class="close btn-cancel" data-dismiss="modal" data-keyboard="false"
                         aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
@@ -110,41 +123,89 @@
                 </div>
                 <!-- Modal body -->
                 <div class="modal-body">
-                    <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label for="name">Cód.</label>
-                            <input type="text" class="form-control" name="id" id="id" disabled>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Úsuário Dashboard Junsoft</label>
-                            <select class="form-control" name="cd_usuario_modal" id="cd_usuario_modal" style="width: 100%">
-                                @foreach ($user as $u)
-                                    <option value="{{ $u->id }}">{{ strtoupper($u->name) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
+                    <div class="row">
                         <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
-                        <div class="form-group">
-                            <label>Supervisor Junsoft</label>
-                            <select class="form-control" name="cd_supervisorcomercial_modal"
-                                id="cd_supervisorcomercial_modal" style="width: 100%;">
-                                @foreach ($supervisor as $s)
-                                    <option value="{{ $s->CD_VENDEDORGERAL }}">{{ $s->NM_SUPERVISOR }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="col-md-12 d-none" id="div_id_supervisor">
+                            <div class="form-group">
+                                <label for="name">Cód.</label>
+                                <input type="number" class="form-control" name="id" id="id" disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Usuário Dashboard</label>
+                                <select class="form-control" name="cd_usuario" id="cd_usuario" style="width: 100%">
+                                    <option value="" selected="selected">Selecione</option>
+                                    @foreach ($user as $u)
+                                        <option value="{{ $u->id }}">{{ strtoupper($u->name) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <input id="token" name="_token" type="hidden" value="{{ csrf_token() }}">
+                            <div class="form-group">
+                                <label>Supervisor Junsoft</label>
+                                <select class="form-control" name="cd_supervisorcomercial" id="cd_supervisorcomercial"
+                                    style="width: 100%;">
+                                    <option value="" selected="selected">Selecione</option>
+                                    @foreach ($supervisor as $s)
+                                        <option value="{{ $s->CD_VENDEDORGERAL }}">{{ $s->NM_SUPERVISOR }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="libera-por-subgrupo">Libera por subgrupo</label>
+                                <div class="form-group">
+                                    <select class="form-control" id="libera-por-subgrupo" multiple="multiple"
+                                        style="width: 100%;">
+                                        @foreach ($subgrupo as $sg)
+                                            <option value="{{ $sg->CD_SUBGRUPO }}">{{ $sg->DS_SUBGRUPO }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Libera Acima Param?</label>
+                                <div class="form-group">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="radio3" name="radio"
+                                            value="1">
+                                        <label class="form-check-label" for="radio3">Sim</label><br>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" id="radio4" name="radio"
+                                            value="0" checked>
+                                        <label class="form-check-label" for="radio4">Não</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-none" id="div_pc_permitida">
+                            <div class="form-group">
+                                <label>% Permitida até:</label>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="pc_permitida" placeholder="%permitida">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <!-- Modal footer -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-warning btn-update">Editar</button>
-                    <button type="button" class="btn btn-danger btn-cancel" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-warning btn-update d-none">Editar</button>
+                    <button type="button" class="btn btn-sm btn-success btn-add" id="btn-vincular">Vincular</button>
+                    <button type="button" class="btn btn-sm btn-danger btn-cancel"
+                        data-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -152,14 +213,33 @@
     <!-- /.content -->
 @stop
 
+@section('style')
+    <style>
+        /* Para o campo de seleção múltipla */
+        .select2-container--bootstrap4 .select2-selection--multiple {
+            font-size: 10px !important;
+        }
+
+        /* Para a seleção de item único */
+        .select2-container--bootstrap4 .select2-selection--single {
+            font-size: 10px !important;
+        }
+
+        /* Para as opções dentro do dropdown */
+        .select2-results__option {
+            font-size: 10px !important;
+        }
+    </style>
+@stop
+
 @section('js')
     <script type="text/javascript">
         $(document).ready(function() {
             document.querySelectorAll('input[name="radio"]').forEach(radio => {
                 radio.addEventListener('change', function() {
-                    if (this.value === "1") {
+                    if (this.value == "1") {
                         $('#div_pc_permitida').removeClass('d-none');
-                    } else if (this.value === "2") {
+                    } else if (this.value == "0") {
                         $('#div_pc_permitida').addClass('d-none');
                     }
                 });
@@ -176,12 +256,42 @@
             $('#cd_usuario_modal').select2({
                 theme: 'bootstrap4'
             });
+
+            $('#libera-por-subgrupo').select2({
+                theme: 'bootstrap4',
+                placeholder: "Selecione os subgrupos ou deixe em branco",
+                allowClear: true,
+                multiple: true,
+                width: '100%'
+            });
+
+            $('#adicionar-supervisor').click(function() {
+                $('.modal').modal('show');
+                // Resetar os campos do modal
+                $('#div_id_supervisor').addClass('d-none');
+                $('#cd_supervisorcomercial').val('').prop('disabled', false).trigger('change');
+                $('#cd_usuario').val('').prop('disabled', false).trigger('change');
+
+                $('#libera-por-subgrupo').val([]).trigger('change');
+
+                $('#pc_permitida').val('');
+                $('#radio4').prop('checked', true);
+                $('#div_pc_permitida').addClass('d-none');
+
+                $('.modal-title').text('Adicionar Supervisor');
+                $('.btn-update').addClass('d-none');
+                $('.btn-add').removeClass('d-none');
+                $('.modal').modal('show');
+            });
+
+
             $('#btn-vincular').click(function() {
                 let ds_supervisorcomercial = $("#cd_supervisorcomercial option:selected").text();
                 let cd_supervisorcomercial = $('#cd_supervisorcomercial').val();
                 let cd_usuario = $('#cd_usuario').val();
                 let pc_permitida = $('#pc_permitida').val();
                 let libera_acima_param = $('input[name="radio"]:checked').val();
+                let subgrupos = $('#libera-por-subgrupo').val();
 
                 $.ajax({
                     type: "GET",
@@ -191,20 +301,28 @@
                         cd_usuario: cd_usuario,
                         ds_supervisorcomercial: ds_supervisorcomercial,
                         pc_permitida: pc_permitida,
-                        libera_acima_param: libera_acima_param
+                        libera_acima_param: libera_acima_param,
+                        subgrupos: subgrupos
                     },
                     beforeSend: function() {
                         $("#loading").removeClass('hidden');
                     },
-                    success: function(result) {
+                    success: function(response) {
                         $("#loading").addClass('hidden');
 
-                        if (result.errors) {
-                            msgToastr(result.errors, 'warning');
+                        if (response.error) {
+                            msgToastr(response.error, 'warning');
+                        } else if (response.errors) {
+                            msgToastr(response.errors, 'warning');
                         } else {
                             $('.modal').modal('hide');
-                            msgToastr(result.success, 'success');
-                            $('#table-supervisor').DataTable().ajax.reload()
+                            msgToastr(response.message, 'success');
+                            $('#table-supervisor').DataTable().ajax.reload();
+                            $('#cd_supervisorcomercial').val('').trigger('change');
+                            $('#cd_usuario').val('').trigger('change');
+                            $('#pc_permitida').val('');
+                            $('input[name="radio"]').prop('checked', false);
+                            $('#libera-por-subgrupo').val('').trigger('change');
                         }
                     }
                 });
@@ -215,16 +333,20 @@
                 ajax: '{{ route('get-table-supervisor-usuario') }}',
                 columns: [{
                         data: 'id',
-                        name: 'id'
+                        name: 'id',
+                        title: 'Cód.',
+                        width: '5%'
                     },
                     {
                         data: 'cd_usuario',
                         name: 'cd_usuario',
                         visible: false,
+                        title: 'Cód. Usuário'
                     },
                     {
                         data: 'name',
-                        name: 'name'
+                        name: 'name',
+                        title: 'Usuário'
                     },
                     {
                         data: 'cd_supervisorcomercial',
@@ -233,11 +355,28 @@
                     },
                     {
                         data: 'ds_supervisorcomercial',
-                        name: 'ds_supervisorcomercial'
+                        name: 'ds_supervisorcomercial',
+                        title: 'Supervisor'
+                    },
+                    {
+                        data: 'subgrupos',
+                        name: 'subgrupos',
+                        title: 'Subgrupos'
+                    },
+                    {
+                        data: 'pc_permitida',
+                        name: 'pc_permitida',
+                        title: '% Permitida'
+                    },
+                    {
+                        data: 'ds_libera_acima',
+                        name: 'ds_libera_acima',
+                        title: 'Libera Acima?'
                     },
                     {
                         data: 'Actions',
-                        name: 'Actions'
+                        name: 'Actions',
+                        title: 'Ações',
                     }
                 ],
                 pageLength: 20,
@@ -254,13 +393,32 @@
             //dataTable e um variavel que tras a informação da tabela.
             $('#table-supervisor').on('click', '.btn-edit', function() {
                 var rowData = dataTable.row($(this).parents('tr')).data();
+
+                $('#div_id_supervisor').removeClass('d-none');
+                $('.modal-title').text('Editar Supervisor');
+                $('.btn-add').addClass('d-none');
+                $('.btn-update').removeClass('d-none');
+
                 $('#id').val(rowData.id);
-                $('#cd_supervisor_comercial_modal').val(rowData.cd_supervisor_comercial).trigger('change');
-                $('#cd_usuario_modal').val(rowData.cd_usuario).trigger('change');
+                $('#cd_supervisorcomercial').val(rowData.cd_supervisorcomercial).prop('disabled', true)
+                    .trigger('change');
+                $('#cd_usuario').val(rowData.cd_usuario).prop('disabled', true).trigger('change');
+
+                if (rowData.libera_acima_param == 1) {
+                    $('#radio3').prop('checked', true);
+                    $('#div_pc_permitida').removeClass('d-none');
+                } else {
+                    $('#radio4').prop('checked', true);
+                    $('#div_pc_permitida').addClass('d-none');
+                }
+                $('#pc_permitida').val(rowData.pc_permitida);
+
+                $('#libera-por-subgrupo').val(rowData.cd_subgrupos.split(',')).trigger('change');
+
+
                 $('.modal').modal('show');
             });
             $('.btn-update').click(function() {
-
                 Swal.fire({
                     title: 'Tem certeza?',
                     text: "Deseja alterar o supervisor " + deleteId + "?",
@@ -271,22 +429,25 @@
                     confirmButtonText: 'Sim, alterar!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let id = $('#id').val(),
-                            cd_supervisor_comercial = $(
-                                '#cd_supervisor_comercial_modal')
-                            .val(),
-                            ds_regiaocomercial = $(
-                                "#cd_supervisor_comercial_modal option:selected")
-                            .text(),
-                            cd_usuario = $('#cd_usuario_modal').val();
+                        let id = $('#id').val();
+                        let ds_supervisorcomercial = $(
+                            "#cd_supervisorcomercial option:selected").text();
+                        let cd_supervisorcomercial = $('#cd_supervisorcomercial').val();
+                        let cd_usuario = $('#cd_usuario').val();
+                        let pc_permitida = $('#pc_permitida').val();
+                        let libera_acima_param = $('input[name="radio"]:checked').val();
+                        let subgrupos = $('#libera-por-subgrupo').val();
                         $.ajax({
-                            type: 'POST',
-                            url: '{{ route('edit-regiao-usuario') }}',
+                            type: 'GET',
+                            url: '{{ route('edit-supervisor-usuario') }}',
                             data: {
                                 id: id,
-                                cd_supervisor_comercial: cd_supervisor_comercial,
+                                cd_supervisorcomercial: cd_supervisorcomercial,
                                 cd_usuario: cd_usuario,
-                                ds_regiaocomercial: ds_regiaocomercial,
+                                ds_supervisorcomercial: ds_supervisorcomercial,
+                                pc_permitida: pc_permitida,
+                                libera_acima_param: libera_acima_param,
+                                subgrupos: subgrupos,
                                 _token: $('#token').val(),
                             },
                             beforeSend: function() {

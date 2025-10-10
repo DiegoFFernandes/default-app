@@ -9,17 +9,19 @@ use App\Models\PedidoPneu;
 use App\Models\PercentualDescontoComissao;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use App\Models\SupervisorSubgrupo;
 use App\Models\User;
 use App\Services\SupervisorAuthService;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use PHPUnit\TextUI\Help;
 use Yajra\DataTables\Facades\DataTables;
 
 class LiberaOrdemComissaoController extends Controller
 {
-    public $user, $request, $libera, $pedido, $area, $regiao, $supervisorComercial, $supervisorComercialModel;
+    public $user, $request, $libera, $pedido, $area, $regiao, $supervisorComercial, $supervisorComercialModel, $supervisorSubgrupo;
 
     public function __construct(
         User $user,
@@ -29,6 +31,7 @@ class LiberaOrdemComissaoController extends Controller
         RegiaoComercial $regiao,
         SupervisorAuthService $supervisorComercial,
         SupervisorComercial $supervisorComercialModel,
+        SupervisorSubgrupo $supervisorSubgrupo,
         PedidoPneu $pedido,
     ) {
         $this->libera = $libera;
@@ -37,6 +40,7 @@ class LiberaOrdemComissaoController extends Controller
         $this->area = $area;
         $this->supervisorComercialModel = $supervisorComercialModel;
         $this->supervisorComercial = $supervisorComercial;
+        $this->supervisorSubgrupo = $supervisorSubgrupo;
         $this->regiao = $regiao;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -74,6 +78,7 @@ class LiberaOrdemComissaoController extends Controller
     public function getListOrdemBloqueadas()
     {
         $supervisor = null;
+        $subgruposLiberados = null;
 
         if ($this->user->hasRole('supervisor')) {
             $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -81,11 +86,20 @@ class LiberaOrdemComissaoController extends Controller
             if (is_null($supervisor)) {
                 return response()->json(['warning' => 'Usuário com função de supervisor mais sem vinculo com supervisor comercial, fale com o Administrador do sistema!']);
             }
+
+            $subgruposLiberados = $this->supervisorSubgrupo->subgrupoSupervisor($this->user->id)->pluck('CD_SUBGRUPO');
+
+            if (!Helper::is_empty_object($subgruposLiberados)) {
+                //Anula o vinculo de vendedores pega todos os pedidos que tenham o subgrupo liberado
+                $supervisor = null;
+                //verifico se o supervisor tem subgrupo liberado, se tiver, passo os subgrupos para filtrar os pedidos
+                $subgruposLiberados = $subgruposLiberados->implode(',');
+            }
         }
         // Atualiza o status do pedido para filtrar por Gerente, supervisor ou liberação Automatica
         $this->libera->updateStatusPedidos();
 
-        $data = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor);
+        $data = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, $subgruposLiberados);
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
@@ -188,7 +202,7 @@ class LiberaOrdemComissaoController extends Controller
         foreach ($pedidos as $pedido) {
             $resultados[] = $this->saveLiberaPedido($pedido);
         }
-        
+
         $mensagens = [];
 
         foreach ($resultados as $r) {

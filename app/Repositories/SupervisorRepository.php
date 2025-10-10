@@ -7,9 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class SupervisorRepository
 {
-    public function seachSupervisor($id)
+    public function searchSupervisor($id)
     {
-
         return DB::connection('mysql')
             ->table('supervisor_comercial')
             ->select(

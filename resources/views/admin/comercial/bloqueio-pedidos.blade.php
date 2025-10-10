@@ -374,7 +374,7 @@
             tableBloqueio = $('#bloqueio-pedidos').DataTable({
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                }, 100 410 4             
+                },             
                 pagingType: "simple",
                 processing: false,
                 serverSide: false,

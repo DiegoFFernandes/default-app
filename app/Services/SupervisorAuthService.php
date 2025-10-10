@@ -19,7 +19,7 @@ class SupervisorAuthService
         $user = Auth::user();        
 
         if ($user && $user->hasRole('supervisor')) {            
-            $supervisor = $this->supervisorRepo->seachSupervisor($user->id);
+            $supervisor = $this->supervisorRepo->searchSupervisor($user->id);
             return $supervisor->cd_supervisorcomercial ?? null;
         }
 

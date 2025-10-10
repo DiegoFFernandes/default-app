@@ -11,8 +11,14 @@ class LiberaOrdemComercial extends Model
 {
     use HasFactory;
 
-    public function listPedidosBloqueadas($cd_regiao = 0, $pedidos = 0, $iditempedidopneu = 0, $supervisor = null, $st_comercial = null)
-    {
+    public function listPedidosBloqueadas(
+        $cd_regiao = 0,
+        $pedidos = 0,
+        $iditempedidopneu = 0,
+        $supervisor = null,
+        $st_comercial = null,
+        $subgruposLiberados = null
+    ) {
         $query = "
                 SELECT
                     PP.IDEMPRESA EMP,
@@ -60,6 +66,7 @@ class LiberaOrdemComercial extends Model
                     " . (($iditempedidopneu != 0) ? "and ipb.iditempedidopneu = $iditempedidopneu" : "") . "
                     " . (($supervisor != null) ? "and v.CD_VENDEDORGERAL = $supervisor" : "") . "
                     " . (($st_comercial != null) ? "and pp.st_comercial = '$st_comercial'" : "") . "
+                    " . (($subgruposLiberados != null) ? "and I.CD_SUBGRUPO in ($subgruposLiberados)" : "") . "
                 GROUP BY PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
                     PP.IDEMPRESA,
