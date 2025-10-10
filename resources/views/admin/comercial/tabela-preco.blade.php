@@ -668,7 +668,8 @@
         $('#tabela-preco-cadastradas').on('click', '.btn-delete-tabela', function() {
             var cd_tabela = $(this).data('cd_tabela');
             var nm_tabela = $(this).data('nm_tabela');
-            deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco_preview', 'tabela-preco-cadastradas');
+            const csrf = '{{ csrf_token() }}';
+            deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco_preview', 'tabela-preco-cadastradas', csrf);
         });
 
         // Deletar tabela de preço na tab associadas

@@ -423,7 +423,7 @@ class TabPreco extends Model
                     [$cd_tabela]
                 );
 
-                return ['success' => true, 'message' => 'Itens da tabela de preço preview deletados com sucesso!'];
+                return ['success' => true, 'message' => 'Tabela de preço preview deletada com sucesso!'];
             } else {
                 $existsUso = DB::connection('firebird')->select(
                     "SELECT FIRST 1 IPP.ID
