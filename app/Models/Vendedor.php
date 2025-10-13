@@ -8,11 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\TextUI\Help;
 
 class Vendedor extends Model
 {
     use HasFactory;
+
+    protected $table = 'vendedor_comercial';
+    protected $fillable = [
+        'cd_usuario',
+        'cd_vendedorcomercial',
+        'ds_vendedorcomercial',
+        'cd_cadusuario',
+        'created_at',
+        'updated_at',
+    ];
 
     public function FindVendedorJunsoftAll($search)
     {
@@ -683,5 +692,72 @@ class Vendedor extends Model
             $data = DB::connection('firebird')->select($query);
             return Helper::ConvertFormatText($data);
         });
+    }
+
+    public function storeData($input)
+    {
+        $this->connection = 'mysql';
+        //return $input;
+        return Vendedor::insert([
+            'cd_usuario' => $input['cd_usuario'],
+            'cd_vendedorcomercial' => $input['cd_vendedor'],
+            'ds_vendedorcomercial' => $input['ds_vendedor'],
+            'cd_cadusuario' => $input['cd_cadusuario'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function verifyIfExists($input)
+    {
+        $this->connection = 'mysql';
+        return Vendedor::where('cd_usuario', $input['cd_usuario'])->where('cd_vendedorcomercial', $input['cd_vendedor'])->exists();
+    }
+
+    public function showUserVendedor()
+    {
+        $this->connection = 'mysql';
+        return Vendedor::select(
+            'vendedor_comercial.id',
+            'users.id as cd_usuario',
+            'users.name',
+            'vendedor_comercial.cd_vendedorcomercial',
+            'vendedor_comercial.ds_vendedorcomercial',
+        )
+            ->join('users', 'users.id', 'vendedor_comercial.cd_usuario')
+            // ->whereIn('users.empresa', $cd_empresa)
+            ->orderBy('users.name')
+            ->get();
+    }
+    
+    public function destroyData($id)
+    {
+        return Vendedor::find($id)->delete();
+    }
+
+    public function updateData($input)
+    {
+        // return $input;
+        try {
+            $this->connection = 'mysql';
+            Vendedor::find($input->id)
+                ->update([
+                    'cd_usuario' => $input->cd_usuario,
+                    'cd_vendedorcomercial' => $input->cd_vendedor,
+                    'ds_vendedorcomercial' => $input->ds_vendedor,
+                    'updated_at' => now(),
+                ]);
+            return response()->json(['success' => 'Vendedor atualizado para usuário!']);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+            return response()->json(['errors' => 'Erro ao conectar ao banco de dados.']);
+        }
+    }
+
+    public function findVendedorUser($idUser){
+        $this->connection = 'mysql';
+        return Vendedor::select('cd_vendedorcomercial')
+            ->where('cd_usuario', $idUser)
+            ->get();
     }
 }

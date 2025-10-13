@@ -10,13 +10,17 @@ class UserRoleFilterService
     protected $area;
     protected $supervisorComercial;
     protected $gerenteUnidade;
+    protected $vendedorComercial;
+    protected $pessoa;
 
-    public function __construct($user, $area, $supervisorComercial, $gerenteUnidade)
+    public function __construct($user, $area, $supervisorComercial, $gerenteUnidade, $vendedorComercial, $pessoa = null)
     {
         $this->user = $user;
         $this->area = $area;
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
+        $this->vendedorComercial = $vendedorComercial;
+        $this->pessoa = $pessoa;
     }
 
     public function getFiltros()
@@ -25,6 +29,7 @@ class UserRoleFilterService
             return [
                 'cd_regiao' => '',
                 'cd_empresa' => 0,
+                'cd_pessoa' => 0,
             ];
         }
 
@@ -46,6 +51,7 @@ class UserRoleFilterService
             return [
                 'cd_regiao' => $cd_regiao,
                 'cd_empresa' => 0,
+                'cd_pessoa' => 0,
             ];
         }
 
@@ -65,6 +71,7 @@ class UserRoleFilterService
             return [
                 'cd_regiao' => $cd_regiao,
                 'cd_empresa' => 0,
+                'cd_pessoa' => 0,
             ];
         }
 
@@ -76,6 +83,34 @@ class UserRoleFilterService
             return [
                 'cd_regiao' => '',
                 'cd_empresa' => $cd_empresa,
+                'cd_pessoa' => 0,
+            ];
+        }
+
+        if ($this->user->hasRole('vendedor')) {
+            $cd_empresa = 0;
+            $cd_regiao = "";
+            // return $this->user->id;
+            $cd_vendedor = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')->implode(',');
+
+            return [
+                'cd_regiao' => $cd_regiao,
+                'cd_empresa' => $cd_empresa,
+                'cd_vendedor' => $cd_vendedor,
+                'cd_pessoa' => 0,
+            ];
+        }
+
+        if ($this->user->hasRole('cliente')) {
+            $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+                ->pluck('cd_pessoa')
+                ->implode(',');
+
+            return [
+                'cd_regiao' => '',
+                'cd_empresa' => 0,
+                'cd_pessoa' => $cd_pessoa,
             ];
         }
 

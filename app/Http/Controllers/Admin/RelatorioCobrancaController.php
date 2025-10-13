@@ -11,6 +11,7 @@ use App\Models\GerenteUnidade;
 use App\Models\LimiteCredito;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use App\Models\Vendedor;
 use App\Services\UserRoleFilterService;
 use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -22,7 +23,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
 {
-    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite, $controleCanhoto;
+    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite, $controleCanhoto, $vendedorComercial;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
@@ -32,7 +33,8 @@ class RelatorioCobrancaController extends Controller
         Empresa $empresa,
         GerenteUnidade $gerenteUnidade,
         LimiteCredito $limite,
-        ControleCanhoto $controleCanhoto
+        ControleCanhoto $controleCanhoto,
+        Vendedor $vendedor
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -40,6 +42,7 @@ class RelatorioCobrancaController extends Controller
         $this->cobranca = $cobranca;
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
+        $this->vendedorComercial = $vendedor;
         $this->empresa = $empresa;
         $this->limite = $limite;
         $this->controleCanhoto = $controleCanhoto;
@@ -114,6 +117,12 @@ class RelatorioCobrancaController extends Controller
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        } else if ($this->user->hasRole('vendedor')) {
+            $cd_empresa = 0;
+            $cd_regiao = "";
+            // return $this->user->id;
+            $filtro['cd_vendedor'] = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')->implode(',');
         }
 
         if (!$this->user->hasRole('supervisor')) {
@@ -627,7 +636,14 @@ class RelatorioCobrancaController extends Controller
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        } else if ($this->user->hasRole('vendedor')) {
+            $cd_empresa = 0;
+            $cd_regiao = "";
+            // return $this->user->id;
+            $filtro['cd_vendedor'] = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')->implode(',');
         }
+
         //Caso o usuario buscar por gerente comercial
         if (!$this->user->hasRole('supervisor')) {
             if ($filtro['filtro_gerente'] ?? 0 <> 0) {
@@ -785,7 +801,14 @@ class RelatorioCobrancaController extends Controller
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
+        } else if ($this->user->hasRole('vendedor')) {
+            $cd_empresa = 0;
+            $cd_regiao = "";
+            // return $this->user->id;
+            $filtro['cd_vendedor'] = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')->implode(',');
         }
+
         //Caso o usuario buscar por gerente comercial
         if (!$this->user->hasRole('supervisor')) {
             if ($filtro['filtro_gerente'] ?? 0 <> 0) {
@@ -832,6 +855,7 @@ class RelatorioCobrancaController extends Controller
 
         dd($pessoa);
     }
+
     public function relatorioFinanceiroCliente()
     {
         if ($this->user->hasRole('admin')) {
@@ -843,6 +867,8 @@ class RelatorioCobrancaController extends Controller
             $gerentes = $this->area->GerenteAll();
         } elseif ($this->user->hasRole('gerente unidade')) {
             $gerentes = $this->area->GerenteAll();
+        } elseif ($this->user->hasRole('vendedor')) {
+            $gerentes = $this->area->GerenteAll();
         }
 
         return view('admin.cobranca.rel-cobranca-novo', compact('gerentes'));
@@ -850,36 +876,17 @@ class RelatorioCobrancaController extends Controller
 
     public function getLimiteCredito()
     {
-        if ($this->user->hasRole('admin')) {
-            $cd_regiao = "";
-            $cd_empresa = 0;
-            // $regiao = $this->regiao->regiaoAll();
-            // $area = $this->area->areaAll();
-        } elseif ($this->user->hasRole('gerente comercial')) {
-            //Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $cd_empresa = 0;
-            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
-                ->pluck('CD_AREACOMERCIAL')
-                ->implode(',');
-            if (empty($cd_regiao)) {
-                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
-            }
-        } elseif ($this->user->hasRole('supervisor')) {
-            $cd_empresa = 0;
-            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
-                ->pluck('CD_SUPERVISORCOMERCIAL')
-                ->implode(',');
-            if (empty($cd_regiao)) {
-                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
-            }
-        } elseif ($this->user->hasRole('gerente unidade')) {
-            $cd_regiao = "";
-            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
-                ->pluck('cd_empresa')
-                ->implode(',');
-        }
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            $this->vendedorComercial
+        );
 
-        $data = $this->limite->getLimiteCredito($cd_empresa, $cd_regiao);
+        $filtros = $service->getFiltros();
+
+        $data = $this->limite->getLimiteCredito($filtros);
         return Datatables::of($data)
             ->setRowClass(function ($data) {
                 return $data->DISPONIVEL < 0 ? 'bg-danger' : '';
@@ -891,38 +898,20 @@ class RelatorioCobrancaController extends Controller
     {
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
-        if ($this->user->hasRole('admin')) {
-            $cd_regiao = "";
-            $cd_empresa = 0;
-            // $regiao = $this->regiao->regiaoAll();
-            // $area = $this->area->areaAll();
-        } elseif ($this->user->hasRole('gerente comercial')) {
-            //Criar condição caso o usuario for gerente mais não estiver associado no painel
-            $cd_empresa = 0;
-            $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
-                ->pluck('CD_AREACOMERCIAL')
-                ->implode(',');
-            if (empty($cd_regiao)) {
-                return Redirect::route('home')->with('warning', 'Usuario com permissão  de gerente mais sem vinculo com região, fale com o Administrador do sistema!');
-            }
-        } elseif ($this->user->hasRole('supervisor')) {
-            $cd_empresa = 0;
-            $cd_regiao = $this->supervisorComercial->findSupervisorUser($this->user->id)
-                ->pluck('CD_SUPERVISORCOMERCIAL')
-                ->implode(',');
-            if (empty($cd_regiao)) {
-                return Redirect::route('home')->with('warning', 'Usuario com permissão  de supervisor mais sem vinculo com vendedor, fale com o Administrador do sistema!');
-            }
-        } elseif ($this->user->hasRole('gerente unidade')) {
-            $cd_regiao = "";
-            $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
-                ->pluck('cd_empresa')
-                ->implode(',');
-        }
+
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            $this->vendedorComercial
+        );
+
+        $filtros = $service->getFiltros();
 
         //faz a indexação dos valores por gerente comercial
         $hierarquia = [];
-        $data = $this->limite->getPrazoMedio($cd_empresa, $cd_regiao);
+        $data = $this->limite->getPrazoMedio($filtros);
 
         foreach ($data as $r) {
             foreach ($regioes_mysql as $regiao) {
@@ -1003,13 +992,18 @@ class RelatorioCobrancaController extends Controller
 
     public function getCanhoto()
     {
-        $service = new UserRoleFilterService($this->user, $this->area, $this->supervisorComercial, $this->gerenteUnidade);
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            $this->vendedorComercial
+        );
 
         $filtros = $service->getFiltros();
 
         $data = $this->controleCanhoto->canhotoNaoRecebidos(
-            $filtros['cd_empresa'],
-            $filtros['cd_regiao']
+            $filtros
         );
 
         $resultados = self::formataArrayMesesCanhoto($data);
@@ -1022,6 +1016,7 @@ class RelatorioCobrancaController extends Controller
             'data' => $data,  // Tabela dos meses
         ]);
     }
+
     public function getCanhotoDetails()
     {
         $filtro = null;
@@ -1035,13 +1030,18 @@ class RelatorioCobrancaController extends Controller
         $mes = $this->request->mes;
         $ano = $this->request->ano;
 
-        $service = new UserRoleFilterService($this->user, $this->area, $this->supervisorComercial, $this->gerenteUnidade);
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            $this->vendedorComercial
+        );
 
         $filtros = $service->getFiltros();
 
         $data = $this->controleCanhoto->canhotoNaoRecebidos(
-            $filtros['cd_empresa'],
-            $filtros['cd_regiao'],
+            $filtros,
             $mes,
             $ano
         );
@@ -1133,7 +1133,6 @@ class RelatorioCobrancaController extends Controller
         // return $hierarquia;
         return response()->json(array_values($hierarquia));
     }
-
 
     static function formataArrayMesesCanhoto($data)
     {

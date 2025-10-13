@@ -95,6 +95,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('get-table-gerente-usuario', [GerenteUnidadeController::class, 'list'])->name('get-table-gerente-usuario');
         Route::get('edit-gerente-unidade', [GerenteUnidadeController::class, 'update'])->name('edit-gerente-unidade');
         Route::delete('gerente-unidade-delete', [GerenteUnidadeController::class, 'destroy'])->name('gerente-unidade.delete');
+
+        Route::get('vendedor-comercial', [VendedorController::class, 'index'])->name('vendedor-comercial.index');
+        Route::post('create-vendedor-comercial', [VendedorController::class, 'create'])->name('vendedor-comercial.create');
+        Route::get('get-table-vendedor-usuario', [VendedorController::class, 'list'])->name('get-table-vendedor-usuario');
+        Route::post('edit-vendedor-comercial', [VendedorController::class, 'update'])->name('edit-vendedor-comercial');
+        Route::delete('vendedor-comercial-delete', [VendedorController::class, 'destroy'])->name('vendedor-comercial.delete');
     });
 });
 

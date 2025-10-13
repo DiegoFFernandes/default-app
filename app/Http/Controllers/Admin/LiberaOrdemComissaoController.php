@@ -94,6 +94,8 @@ class LiberaOrdemComissaoController extends Controller
                 $supervisor = null;
                 //verifico se o supervisor tem subgrupo liberado, se tiver, passo os subgrupos para filtrar os pedidos
                 $subgruposLiberados = $subgruposLiberados->implode(',');
+            } else {
+                $subgruposLiberados = null;
             }
         }
         // Atualiza o status do pedido para filtrar por Gerente, supervisor ou liberação Automatica

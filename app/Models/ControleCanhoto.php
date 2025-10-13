@@ -11,7 +11,7 @@ class ControleCanhoto extends Model
 {
     use HasFactory;
 
-    public function canhotoNaoRecebidos($cd_empresa = 0, $cd_regiao = '', $mes = 0, $ano = 0)
+    public function canhotoNaoRecebidos($filtros, $mes = 0, $ano = 0)
     {
         $query = "
             SELECT
@@ -59,8 +59,9 @@ class ControleCanhoto extends Model
                 AND NT.DT_EMISSAO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 5
                 " . ($mes != 0  ? "AND EXTRACT(MONTH FROM NT.DT_EMISSAO) = $mes" : "") . "
                 " . ($ano != 0  ? "AND EXTRACT(YEAR FROM NT.DT_EMISSAO) = $ano" : "") . "
-                " . ($cd_empresa != 0 ? " AND NT.CD_EMPRESA = {$cd_empresa} " : "") . "
-                " . (!empty($cd_regiao) ? " AND V.CD_VENDEDORGERAL IN ({$cd_regiao}) " : "") . "
+                " . ($filtros['cd_empresa'] != 0 ? " AND NT.CD_EMPRESA = {$filtros['cd_empresa']} " : "") . "
+                " . (!empty($filtros['cd_regiao']) ? " AND V.CD_VENDEDORGERAL IN ({$filtros['cd_regiao']}) " : "") . "
+                " . (!empty($filtros['cd_vendedor']) ? " AND V.CD_VENDEDOR IN ({$filtros['cd_vendedor']}) " : "") . "
             GROUP BY NT.NR_NOTAFISCAL,
                 NT.CD_SERIE,
                 NS.NR_RPS,

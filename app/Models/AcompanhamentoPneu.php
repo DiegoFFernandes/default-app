@@ -67,7 +67,7 @@ class AcompanhamentoPneu extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data, $cd_pessoa = 0)
+    public function ListPedidoPneu($empresa = 0, $cd_regiao, $supervisor, $data, $cd_pessoa = 0, $cd_vendedor = 0)
     {
         if (is_null($data)) {
             $pedido = "";
@@ -163,6 +163,7 @@ class AcompanhamentoPneu extends Model
                         " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
                         " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
                         " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
+                        " . (($cd_vendedor != 0) ? "AND PP.IDVENDEDOR IN ($cd_vendedor)" : "") . "
                         AND PP.STPEDIDO <> 'C'               
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,

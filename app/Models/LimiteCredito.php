@@ -11,7 +11,7 @@ class LimiteCredito extends Model
 {
     use HasFactory;
 
-    public function getLimiteCredito($cd_empresa, $cd_regiao)
+    public function getLimiteCredito($filtros = null)
     {
         $query = "      
             SELECT
@@ -33,16 +33,16 @@ class LimiteCredito extends Model
                 AND CREDITO.CD_EMPRESA = CONTAS.CD_EMPRESA)
             WHERE CONTAS.ST_CONTAS IN ('T', 'P')
                 AND CONTAS.CD_TIPOCONTA IN (2, 10, 5)
-                " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
+                " . (!empty($filtros['cd_regiao']) ? "AND V.CD_VENDEDORGERAL IN ({$filtros['cd_regiao']})" : "") . "
+                " . (!empty($filtros['cd_vendedor']) ? "AND V.CD_VENDEDOR IN ({$filtros['cd_vendedor']})" : "") . "
             GROUP BY CONTAS.CD_PESSOA,P.NM_PESSOA
         ";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function getPrazoMedio($cd_empresa, $cd_regiao)
+    public function getPrazoMedio($filtros)
     {
-
         $query = "
             SELECT
                 N.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
@@ -70,7 +70,8 @@ class LimiteCredito extends Model
             WHERE N.CD_SERIE = 'F3'
                 AND N.ST_NOTA = 'V'                              
                 AND N.DT_EMISSAO >= CURRENT_DATE - 180
-                " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
+                " . (!empty($filtros['cd_regiao']) ? "AND V.CD_VENDEDORGERAL IN ({$filtros['cd_regiao']})" : "") . "
+                " . (!empty($filtros['cd_vendedor']) ? "AND V.CD_VENDEDOR IN ({$filtros['cd_vendedor']})" : "") . "
             GROUP BY N.CD_PESSOA,
                 P.NM_PESSOA,
                 SUPERVISOR.NM_PESSOA,

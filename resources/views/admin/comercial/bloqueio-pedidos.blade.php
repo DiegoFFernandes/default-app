@@ -573,7 +573,8 @@
                 ajax: {
                     url: "{{ route('get-pedido-acompanhar') }}",
                     data: {
-                        data: dados
+                        data: dados,
+                        tela: 'acompanhamento'
                     },
                     beforeSend: function() {
                         $("#acompanhamento-pedido .info-loading.loading-card").removeClass("invisible");

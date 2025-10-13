@@ -12,7 +12,9 @@ use App\Models\Item;
 use App\Models\Pessoa;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
+use App\Models\Vendedor;
 use App\Services\SupervisorAuthService;
+use App\Services\UserRoleFilterService;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +23,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial, $gerenteUnidade, $pessoa;
+    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial, $gerenteUnidade, $pessoa, $vendedorComercial;
 
     public function __construct(
         Request $request,
@@ -30,6 +32,7 @@ class BloqueioPedidosController extends Controller
         AreaComercial $area,
         AcompanhamentoPneu $acompanha,
         SupervisorComercial $supervisor,
+        Vendedor $vendedorComercial,
         SupervisorAuthService $supervisorComercial,
         GerenteUnidade $gerenteUnidade,
         Pessoa $pessoa,
@@ -43,6 +46,7 @@ class BloqueioPedidosController extends Controller
         $this->acompanha = $acompanha;
         $this->supervisor = $supervisor;
         $this->supervisorComercial = $supervisorComercial;
+        $this->vendedorComercial = $vendedorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
         $this->item = $item;
         $this->empresa = $empresa;
@@ -101,8 +105,12 @@ class BloqueioPedidosController extends Controller
             $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
                 ->pluck('cd_pessoa')
                 ->implode(',');
+        } else if ($this->user->hasRole('vendedor')) {
+            $cd_vendedor = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')
+                ->implode(',');
         }
-        $bloqueio = $this->bloqueio->BloqueioPedido($empresa, $supervisor, $cd_pessoa);
+        $bloqueio = $this->bloqueio->BloqueioPedido($empresa, $supervisor, $cd_pessoa, $cd_vendedor ?? 0);
 
         return DataTables::of($bloqueio)
             ->addColumn('action', function ($b) {
@@ -144,6 +152,7 @@ class BloqueioPedidosController extends Controller
     public function getPedidoAcompanhar()
     {
         $dados = $this->request->data;
+        $tela = $this->request->tela ?? '';
         $cd_regiao = "";
         $empresa = 0;
 
@@ -159,6 +168,10 @@ class BloqueioPedidosController extends Controller
             $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
                 ->pluck('cd_pessoa')
                 ->implode(',');
+        } else if ($this->user->hasRole('vendedor')) {
+            $cd_vendedor = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')
+                ->implode(',');
         }
         // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
         $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -168,9 +181,9 @@ class BloqueioPedidosController extends Controller
         }
 
         if ($supervisor == null) {
-            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao,  0, $dados, $cd_pessoa ?? 0);
+            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao,  0, $dados, $cd_pessoa ?? 0, $cd_vendedor ?? 0);
         } else {
-            $pedidos = $this->acompanha->ListPedidoPneu(0,  $cd_regiao,  $supervisor, $dados, $cd_pessoa ?? 0);
+            $pedidos = $this->acompanha->ListPedidoPneu(0,  $cd_regiao,  $supervisor, $dados, $cd_pessoa ?? 0, $cd_vendedor ?? 0);
         }
 
         // verifica se cd_empresa e nullo ou e igual a 7
@@ -181,7 +194,7 @@ class BloqueioPedidosController extends Controller
         }
 
         return DataTables::of($pedidos)
-            ->addColumn('actions', function ($d) {
+            ->addColumn('actions', function ($d) use ($tela) {
                 $dataAttrs = [
                     'empresa' => $d->NM_EMPRESA,
                     'pedido' => $d->ID,
@@ -205,7 +218,11 @@ class BloqueioPedidosController extends Controller
                         return 'data-' . $key . '="' . $value . '"';
                     })->implode(' ');
 
-                $btn = '<span class="btn-detalhes btn-show-modal right mr-2" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
+                $btn = "";
+
+                if ($tela == '') {
+                    $btn .= '<span class="btn-detalhes btn-show-modal right mr-2" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
+                }
                 $btn .=  '<span class="btn-detalhes details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
                 return $btn;
             })

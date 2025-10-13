@@ -49,6 +49,7 @@
                         <div class="tab-content" id="tabContentRelatorio">
                             <div class="tab-pane fade show active" id="painel-relatorio-cobranca" role="tabpanel"
                                 aria-labelledby="tab-relatorio-cobranca">
+
                                 @include('admin.cobranca.components.filtros-inadimplencia', [
                                     'pessoa' => 'pessoa',
                                     'filtro_gerente' => 'filtro-gerente',
@@ -61,7 +62,9 @@
                                     'placeholderDatarange' => 'Filtrar por Vencimento',
                                 ])
 
-                                @include('admin.cobranca.components.cards-inadimplencia')
+                                @if (!auth()->user()->hasRole('vendedor'))
+                                    @include('admin.cobranca.components.cards-inadimplencia')
+                                @endif
 
                                 @include('admin.cobranca.components.tab-relatorios', [
                                     'tabela_mensal' => 'tabela-inadimplencia-meses',
@@ -189,7 +192,7 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=') }}"{{ time() }}  ></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=') }}" {{ time() }}></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=2') }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js?v=5') }}"></script>
     <script src="{{ asset('js/dashboard/canhoto.js?v=2') }}"></script>

@@ -104,7 +104,8 @@ class Cobranca extends Model
                     " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                     " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
-                    " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "                  
+                    " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "     
+                    " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "             
 
                 ORDER BY CONTAS.$string, CONTAS.VL_SALDO;
              ";
@@ -313,6 +314,7 @@ class Cobranca extends Model
                 " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                 " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                 " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
+                " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "
 
                 
             GROUP BY MES_ANO,

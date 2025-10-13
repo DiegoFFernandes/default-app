@@ -356,6 +356,10 @@ return [
                         [
                             'text' => 'Supervisor x Usuario',
                             'route' => 'supervisor-comercial.index'
+                        ],
+                        [
+                            'text' => 'Vendedor x Usuario',
+                            'route' => 'vendedor-comercial.index'
                         ]
                     ]
 
@@ -364,12 +368,12 @@ return [
                     'text' => 'Movimentos',
                     'url' => '#',
                     'icon' => 'nav-icon fas fa-edit',
-                    'can' => ['ver-libera-ordem-comissao', 'ver-bloqueio-pedidos', 'ver-rel-cobranca', 'ver-coleta-empresa'],
+                    'can' => ['ver-libera-ordem-comercial', 'ver-bloqueio-pedidos', 'ver-rel-cobranca', 'ver-coleta-empresa', 'ver-tabela-preco'],
                     'submenu' => [
                         [
                             'text' => 'Liberação Comercial',
                             'route' => 'libera-ordem-comissao.index',
-                            // 'can' => ['ver-libera-ordem-comissao']
+                            'can' => ['ver-libera-ordem-comercial']
                         ],
                         [
                             'text' => 'Acompanha Pedidos',
@@ -388,7 +392,8 @@ return [
                         ],
                         [
                             'text' => 'Tabela de Preço',
-                            'route' => 'tabela-preco.index'
+                            'route' => 'tabela-preco.index',
+                            'can' => ['ver-tabela-preco']
                         ],
 
                     ],
@@ -450,7 +455,7 @@ return [
             'text' => 'Pessoa',
             'icon' => 'nav-icon fas fa-users',
             'url' => '#',
-            'can' => ['ver-nota-cliente', 'ver-cadastros', 'ver-pedidos-coletados-acompanhamento'],
+            'can' => ['ver-nota-cliente', 'ver-cadastros', 'ver-pedidos-coletados-acompanhamento-cliente'],
             'submenu' => [
                 [
                     'text' => 'Cadastros',
@@ -477,12 +482,12 @@ return [
                         [
                             'text' => 'Acompanha Pedidos',
                             'route' => 'bloqueio-pedidos',
-                            'can' => ['ver-pedidos-coletados-acompanhamento']
+                            'can' => ['ver-pedidos-coletados-acompanhamento-cliente']
                         ],
                         [
                             'text' => 'Produzidos S/ Faturar',
                             'route' => 'produzidos-sem-faturar',
-                            'can' => ['ver-produzidos-sem-faturar'],
+                            'can' => ['ver-produzidos-sem-faturar-cliente'],
                         ],
 
                     ]
