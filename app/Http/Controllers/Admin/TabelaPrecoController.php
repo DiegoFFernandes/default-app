@@ -97,7 +97,13 @@ class TabelaPrecoController extends Controller
 
     public function getTabPrecoPreview()
     {
-        $service = new UserRoleFilterService($this->user, $this->area, $this->supervisorComercial, $this->gerenteUnidade);
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            null
+        );
 
         $filtros = $service->getFiltros();
 

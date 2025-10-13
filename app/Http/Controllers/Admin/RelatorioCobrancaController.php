@@ -881,7 +881,8 @@ class RelatorioCobrancaController extends Controller
             $this->area,
             $this->supervisorComercial,
             $this->gerenteUnidade,
-            $this->vendedorComercial
+            $this->vendedorComercial,
+            null
         );
 
         $filtros = $service->getFiltros();
@@ -904,7 +905,8 @@ class RelatorioCobrancaController extends Controller
             $this->area,
             $this->supervisorComercial,
             $this->gerenteUnidade,
-            $this->vendedorComercial
+            $this->vendedorComercial,
+            null
         );
 
         $filtros = $service->getFiltros();
@@ -997,7 +999,8 @@ class RelatorioCobrancaController extends Controller
             $this->area,
             $this->supervisorComercial,
             $this->gerenteUnidade,
-            $this->vendedorComercial
+            $this->vendedorComercial,
+            null
         );
 
         $filtros = $service->getFiltros();
@@ -1035,7 +1038,8 @@ class RelatorioCobrancaController extends Controller
             $this->area,
             $this->supervisorComercial,
             $this->gerenteUnidade,
-            $this->vendedorComercial
+            $this->vendedorComercial,
+            null
         );
 
         $filtros = $service->getFiltros();
