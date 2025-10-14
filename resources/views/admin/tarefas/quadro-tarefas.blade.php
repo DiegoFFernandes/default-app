@@ -61,7 +61,7 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="modalCardTitle">Criar/Editar Card</h4>
+                        <h5 class="modal-title" id="modalCardTitle">Criar/Editar Card</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
                             <span aria-hidden="true">×</span>
                         </button>
@@ -81,10 +81,10 @@
                         </form>
                     </div>
                     <div class="modal-footer justify-content-between">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Fechar</button>
                         <div>
-                            <button type="button" class="btn btn-danger" id="btn-delete">Excluir</button>
-                            <button type="button" class="btn btn-primary" id="btn-save">Salvar</button>
+                            <button type="button" class="btn btn-sm btn-danger" id="btn-delete">Excluir</button>
+                            <button type="button" class="btn btn-sm btn-primary" id="btn-save">Salvar</button>
                         </div>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
             //modal adicionar card
             $('.btn-add-card').click(function() {
                 var coluna = $(this).data('coluna');
-                $('#').text('Criar Card');
+                $('#modalCardTitle').text('Criar Card');
                 $('#colunaDestino').val(coluna);
                 $('#cardId').val('');
                 $('#inputTitulo').val('');
@@ -181,6 +181,39 @@
                      `;
                     $(`#${colunaId}`).append(cardHTML);
                 }
+            }
+
+            function initColunas() {
+                $.ajax({
+                    url: '{{ route("listar-tarefas") }}',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        data.forEach(function(tarefa) {
+                            var colunaId = '';
+                            switch (tarefa.status) {
+                                case 'pendencias':
+                                    colunaId = 'pendencias';
+                                    break;
+                                case 'fazer':
+                                    colunaId = 'fazer';
+                                    break;
+                                case 'progresso':
+                                    colunaId = 'progresso';
+                                    break;
+                                case 'concluido':
+                                    colunaId = 'concluido';
+                                    break;
+                                default:
+                                    colunaId = 'pendencias';
+                            }
+                            gerarcard(tarefa.id, tarefa.titulo, tarefa.descricao, colunaId);
+                        });
+                    },
+                    error: function() {
+                        console.error('Erro ao carregar as tarefas.');
+                    }
+                });
             }
         });
     </script>
