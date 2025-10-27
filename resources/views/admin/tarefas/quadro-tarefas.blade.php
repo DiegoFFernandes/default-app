@@ -9,93 +9,97 @@
                 <div class="card-header">
                     <h3 class="card-title">Quadro de Tarefas</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="initColunas()" title="Recarregar">
-                            <i class="fas fa-sync-alt"></i>
+                        <button type="button" class="btn btn-sm btn-warning" title="Adicionar Coluna" id="btn-add-coluna">
+                            <i class="fas fa-plus"></i>
                         </button>
-                          <button type="button" class="btn btn-sm btn-warning" title="Colunas Arquivadas">
+                        <button type="button" class="btn btn-sm btn-warning" title="Colunas Arquivadas">
                             <i class="fas fa-archive"></i>
                         </button>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="initColunas()" title="Recarregar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>                        
                     </div>
                 </div>
-                <div class="card-body"  style="background-color: #f4f6f9;>
+                <div class="card-body"
+                    style="background-color: #f4f6f9;>
                     <!-- Main content -->
                     <section class="content">
-                        <div class="container-fluid">
-                            <div class="row d-flex align-items-stretch" id="tarefasContainer">
-                                {{-- as colunas serão carregadas aqui via AJAX --}}
-                            </div>
+                    <div class="container-fluid">
+                        <div class="row d-flex align-items-stretch" id="tarefasContainer">
+                            {{-- as colunas serão carregadas aqui via AJAX --}}
                         </div>
+                    </div>
 
-                        <div class="modal fade" id="modalCard" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalCardTitle">Criar/Editar Card</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-                                            <span aria-hidden="true">×</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="formCard">
-                                            <input type="hidden" id="colunaDestino">
-                                            <input type="hidden" id="cardId">
-                                            <input type="hidden" id="id">
-                                            <div class="mb-3">
-                                                <label for="inputTitulo">Título</label>
-                                                <input type="text" class="form-control" id="inputTitulo" required
-                                                    placeholder="Digite um título">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="inputDescricao">Descrição</label>
-                                                <textarea class="form-control" id="inputDescricao" rows="3" required placeholder="Adicione uma descrição..."></textarea>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer justify-content-between">
-                                        <button type="button" class="btn btn-sm btn-secondary"
-                                            data-dismiss="modal">Fechar</button>
-                                        <div id="btn-action">
-                                            {{-- os botões vem aqui --}}
+                    <div class="modal fade" id="modalCard" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalCardTitle">Criar/Editar Card</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                                        <span aria-hidden="true">×</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="formCard">
+                                        <input type="hidden" id="colunaDestino">
+                                        <input type="hidden" id="cardId">
+                                        <input type="hidden" id="id">
+                                        <div class="mb-3">
+                                            <label for="inputTitulo">Título</label>
+                                            <input type="text" class="form-control" id="inputTitulo" required
+                                                placeholder="Digite um título">
                                         </div>
+                                        <div class="mb-3">
+                                            <label for="inputDescricao">Descrição</label>
+                                            <textarea class="form-control" id="inputDescricao" rows="3" required placeholder="Adicione uma descrição..."></textarea>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-sm btn-secondary"
+                                        data-dismiss="modal">Fechar</button>
+                                    <div id="btn-action">
+                                        {{-- os botões vem aqui --}}
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="modal fade" id="modalColuna" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalColunaTitle">Editar Coluna</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-                                            <span aria-hidden="true">×</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <input type="hidden" id="colunaId">
-                                        <div class="row">
-                                            <div class="form-group col-md-10">
-                                                <label for="inputNomeColuna">Nome da Coluna</label>
-                                                <input type="text" class="form-control" id="inputNomeColuna" required
-                                                    placeholder="Digite o nome da coluna">
-                                            </div>
-                                            <div class="form-group col-md-2">
-                                                <label for="inputCorColuna">Cor</label>
-                                                <input type="color" class="form-control" id="inputCorColuna">
-                                            </div>
+                    <div class="modal fade" id="modalColuna" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalColunaTitle">Editar Coluna</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                                        <span aria-hidden="true">×</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" id="colunaId">
+                                    <div class="row">
+                                        <div class="form-group col-md-10">
+                                            <label for="inputNomeColuna">Nome da Coluna</label>
+                                            <input type="text" class="form-control" id="inputNomeColuna" required
+                                                placeholder="Digite o nome da coluna">
+                                        </div>
+                                        <div class="form-group col-md-2">
+                                            <label for="inputCorColuna">Cor</label>
+                                            <input type="color" class="form-control" id="inputCorColuna">
                                         </div>
                                     </div>
-                                    <div class="modal-footer justify-content-between">
-                                        <button type="button" class="btn btn-sm btn-secondary"
-                                            data-dismiss="modal">Fechar</button>
-                                        <div>
-                                            <button type="button" class="btn btn-sm btn-primary"
-                                                id="btn-modal-coluna">Editar</button>
-                                        </div>
+                                </div>
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-sm btn-secondary"
+                                        data-dismiss="modal">Fechar</button>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-primary"
+                                            id="btn-modal-coluna">Editar</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </section>
                 </div>
             </div>
@@ -329,6 +333,13 @@
 
         });
 
+        $(document).on('click', '#btn-add-coluna', function() {
+            $('#inputNomeColuna').val('');
+            $('#colunaId').val('');
+            $('#modalColunaTitle').text('Adicionar Coluna');
+            $('#modalColuna').modal('show');
+        });
+
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
             return result ? '#' + result.map(x => {
@@ -515,10 +526,10 @@
                 }
             }).disableSelection();
         }
-         
+
         function inicializarSortableColunas() {
             $('#tarefasContainer').sortable({
-                handle: '.card-header',                
+                handle: '.card-header',
             }).disableSelection();
         }
 

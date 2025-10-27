@@ -84,8 +84,11 @@
     <script src="{{ asset('vendor/adminlte/dist/js/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/jquery.ui.touch-punch.min.js') }}"></script>
 
+    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
 
     <script>
+       
         $.extend(true, $.fn.dataTable.defaults, {
             ajax: {
                 error: function(xhr, status, error) {
