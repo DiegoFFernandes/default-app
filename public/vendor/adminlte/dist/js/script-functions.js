@@ -200,6 +200,7 @@ function configurarDetalhesLinha(selector, options) {
         }
     });
 }
+
 function formatDate(value) {
     if (!value) return "";
     const date = new Date(value);
@@ -209,6 +210,7 @@ function formatDate(value) {
         date.toLocaleTimeString("pt-BR")
     );
 }
+
 function formatarValorBR(valor) {
     const numero = Number(valor);
 

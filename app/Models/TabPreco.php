@@ -39,7 +39,7 @@ class TabPreco extends Model
         $query = "
             SELECT DISTINCT
                 I.CD_TABPRECO,
-                I.CD_TABPRECO||'-'||PESSOA.NM_PESSOA DS_TABPRECO,
+                SUBSTRING(I.CD_TABPRECO || '-' || PESSOA.NM_PESSOA FROM 1 FOR 59) AS DS_TABPRECO,
                 COUNT(I.CD_ITEM) QTD_ITENS,
                 I.ST_IMPORTA,
                 COALESCE(SUPERVISOR.NM_PESSOA, 'SEM SUPERVISOR') SUPERVISOR,

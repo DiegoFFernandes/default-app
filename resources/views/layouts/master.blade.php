@@ -81,6 +81,10 @@
     <script src="{{ asset('vendor/adminlte/dist/js/html5-qrcode.min.js') }}"></script>
 
 
+    <script src="{{ asset('vendor/adminlte/dist/js/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/jquery.ui.touch-punch.min.js') }}"></script>
+
+
     <script>
         $.extend(true, $.fn.dataTable.defaults, {
             ajax: {
@@ -115,7 +119,7 @@
             $('#phone').inputmask({
                 mask: ['(99)9999-9999', '(99)99999-9999']
             });
-            
+
             $('.date-mask').inputmask({
                 mask: ['99/99/9999']
             });

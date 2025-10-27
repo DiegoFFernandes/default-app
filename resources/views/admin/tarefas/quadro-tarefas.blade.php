@@ -2,219 +2,582 @@
 @section('title', 'Dashboard')
 
 @section('content')
-    <!-- Main content -->
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row d-flex align-items-stretch">
-                <div class="col-md-3 d-flex">
-                    <div class="card card-secondary kanban-column flex-fill">
-                        <div class="card-header d-flex align-items-center">
-                            <h3 class="card-title mb-0">Pendências</h3>
-                            <button class="btn btn-tool btn-add-card ml-auto" data-coluna="pendencias">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="card-body kanban-cards" id="pendencias">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex">
-                    <div class="card card-primary kanban-column flex-fill">
-                        <div class="card-header d-flex align-items-center">
-                            <h3 class="card-title mb-0">A Fazer</h3>
-                            <button class="btn btn-tool btn-add-card ml-auto" data-coluna="fazer">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="card-body kanban-cards" id="fazer">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex">
-                    <div class="card card-info kanban-column flex-fill">
-                        <div class="card-header d-flex align-items-center">
-                            <h3 class="card-title mb-0">Em Progresso</h3>
-                            <button class="btn btn-tool btn-add-card ml-auto" data-coluna="progresso">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="card-body kanban-cards" id="progresso">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 d-flex">
-                    <div class="card card-success kanban-column flex-fill">
-                        <div class="card-header d-flex align-items-center">
-                            <h3 class="card-title mb-0">Concluído</h3>
-                            <button class="btn btn-tool btn-add-card ml-auto" data-coluna="concluido">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="card-body kanban-cards" id="concluido">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <div class="modal fade" id="modalCard" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalCardTitle">Criar/Editar Card</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-                            <span aria-hidden="true">×</span>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quadro de Tarefas</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="initColunas()" title="Recarregar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                          <button type="button" class="btn btn-sm btn-warning" title="Colunas Arquivadas">
+                            <i class="fas fa-archive"></i>
                         </button>
                     </div>
-                    <div class="modal-body">
-                        <form id="formCard">
-                            <input type="hidden" id="colunaDestino">
-                            <input type="hidden" id="cardId">
-                            <div class="mb-3">
-                                <label for="inputTitulo">Título</label>
-                                <input type="text" class="form-control" id="inputTitulo" required  placeholder="Digite um título">
+                </div>
+                <div class="card-body"  style="background-color: #f4f6f9;>
+                    <!-- Main content -->
+                    <section class="content">
+                        <div class="container-fluid">
+                            <div class="row d-flex align-items-stretch" id="tarefasContainer">
+                                {{-- as colunas serão carregadas aqui via AJAX --}}
                             </div>
-                            <div class="mb-3">
-                                <label for="inputDescricao">Descrição</label>
-                                <textarea class="form-control" id="inputDescricao" rows="3" required  placeholder="Adicione uma descrição..."></textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer justify-content-between">
-                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Fechar</button>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-danger" id="btn-delete">Excluir</button>
-                            <button type="button" class="btn btn-sm btn-primary" id="btn-save">Salvar</button>
                         </div>
-                    </div>
+
+                        <div class="modal fade" id="modalCard" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalCardTitle">Criar/Editar Card</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="formCard">
+                                            <input type="hidden" id="colunaDestino">
+                                            <input type="hidden" id="cardId">
+                                            <input type="hidden" id="id">
+                                            <div class="mb-3">
+                                                <label for="inputTitulo">Título</label>
+                                                <input type="text" class="form-control" id="inputTitulo" required
+                                                    placeholder="Digite um título">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="inputDescricao">Descrição</label>
+                                                <textarea class="form-control" id="inputDescricao" rows="3" required placeholder="Adicione uma descrição..."></textarea>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer justify-content-between">
+                                        <button type="button" class="btn btn-sm btn-secondary"
+                                            data-dismiss="modal">Fechar</button>
+                                        <div id="btn-action">
+                                            {{-- os botões vem aqui --}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="modalColuna" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalColunaTitle">Editar Coluna</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" id="colunaId">
+                                        <div class="row">
+                                            <div class="form-group col-md-10">
+                                                <label for="inputNomeColuna">Nome da Coluna</label>
+                                                <input type="text" class="form-control" id="inputNomeColuna" required
+                                                    placeholder="Digite o nome da coluna">
+                                            </div>
+                                            <div class="form-group col-md-2">
+                                                <label for="inputCorColuna">Cor</label>
+                                                <input type="color" class="form-control" id="inputCorColuna">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer justify-content-between">
+                                        <button type="button" class="btn btn-sm btn-secondary"
+                                            data-dismiss="modal">Fechar</button>
+                                        <div>
+                                            <button type="button" class="btn btn-sm btn-primary"
+                                                id="btn-modal-coluna">Editar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+
 @stop
 
 @section('js')
-    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+
     <script>
+        initColunas();
+
         $(function() {
+            inicializarSortableCards();
+            inicializarSortableColunas();
+        });
+        //modal adicionar card
+        $(document).on('click', '.btn-add-card', function() {
+            var colunaId = $(this).data('coluna-id');
+            $('#modalCardTitle').text('Criar Tarefa');
+            $('#colunaDestino').val(colunaId);
+            $('#cardId').val('');
+            $('#inputTitulo').val('');
+            $('#inputDescricao').val('');
+            $('#modalCard').modal('show');
+
+            $('#btn-action').html(`
+                <button type="button" class="btn btn-sm btn-primary" id="btn-save-card">Adicionar</button>                
+            `);
+
+            $('#id').val($(this).data('id'));
+        });
+
+        //salva o card
+        $(document).on('click', '#btn-save-card', function() {
+            var idCard = $('#cardId').val();
+            if (!idCard) {
+                idCard = `card-${Date.now()}`;
+            }
+            var titulo = $('#inputTitulo').val();
+            var descricao = $('#inputDescricao').val();
+            var coluna = $('#colunaDestino').val();
+
+            if (titulo.trim()) {
+                var dados = {
+                    id: idCard,
+                    titulo: titulo,
+                    descricao: descricao,
+                    coluna: $('#id').val(),
+                };
+                salvarTarefas(dados, '{{ route('salvar-tarefas') }}').done(function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        renderCartoes($('#id').val());
+                        $('#modalCard').modal('hide');
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: response.message,
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Título é obrigatório.',
+                    timer: 2500
+                });
+            }
+        });
+
+        //modal editar card
+        $(document).on('click', '.btn-edit-card', function() {
+            var card = $(this).closest('.card');
+            var idCard = card.data('task-id');
+            var titulo = card.find('.card-title').text();
+            var descricao = card.find('.card-body').text();
+            var coluna = card.closest('.kanban-cards').data('coluna-id');
+
+            $('#btn-action').html(`
+                <button type="button" class="btn btn-sm btn-warning" id="btn-save-edit-card">Editar</button>                
+            `);
+            $('#modalCardTitle').text('Editar Tarefa');
+            $('#colunaDestino').val(coluna);
+            $('#cardId').val(idCard);
+            $('#inputTitulo').val(titulo);
+            $('#inputDescricao').val(descricao);
+            $('#modalCard').modal('show');
+        });
+
+        //edita o card
+        $(document).on('click', '#btn-save-edit-card', function() {
+            var cardId = $('#cardId').val();
+            var titulo = $('#inputTitulo').val();
+            var descricao = $('#inputDescricao').val();
+            const coluna = $('#colunaDestino').val();
+
+            console.log(cardId, titulo, descricao);
+
+            if (titulo.trim()) {
+                var dados = {
+                    id: cardId,
+                    titulo: titulo,
+                    descricao: descricao
+                };
+                salvarTarefas(dados, '{{ route('editar-cartoes') }}').done(function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        renderCartoes(coluna);
+                        $('#modalCard').modal('hide');
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: response.message,
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Título é obrigatório.',
+                    timer: 2500
+                });
+            }
+        });
+
+        $(document).on('click', '.btn-delete-card', function() {
+            var idCard = $(this).closest('.card').data('task-id');
+
+            Swal.fire({
+                text: "Tem certeza que deseja excluir este card?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deletarCartao(idCard).done(function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                text: response.message,
+                                showConfirmButton: false,
+                                timer: 1000
+                            });
+                            $(`[data-task-id='${idCard}']`).remove();
+                            $('#modalCard').modal('hide');
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro',
+                                text: response.message,
+                            });
+                        }
+                    });
+                }
+            });
+
+        });
+
+        //modal editar coluna
+        $(document).on('click', '.btn-edit-coluna', function() {
+            var card = $(this).closest('.card');
+            var idCard = card.data('task-id');
+            var nomeColuna = card.find('.card-title-coluna').text();
+            const color = card.find('.card-header').css('background-color');
+            const colunaId = $(this).data('id');
+
+            $('#inputNomeColuna').val(nomeColuna);
+            $('#colunaId').val(colunaId);
+            $('#modalColunaTitle').text('Editar Coluna');
+            $('#modalColuna').modal('show');
+            $('#inputCorColuna').val(rgbToHex(color));
+        });
+
+
+        $(document).on('click', '#btn-modal-coluna', function() {
+            var colunaId = $('#colunaId').val();
+            var nomeColuna = $('#inputNomeColuna').val();
+            var corColuna = $('#inputCorColuna').val().replace('#', '');
+
+            var dados = {
+                id: colunaId,
+                nome: nomeColuna,
+                color: corColuna
+            };
+
+            CriarEditarColuna(dados);
+
+        });
+
+        $(document).on('click', '.btn-arquivar-coluna', function() {
+            var colunaId = $(this).data('id');
+
+            Swal.fire({
+                text: "Tem certeza que deseja arquivar esta coluna?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, arquivar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var dados = {
+                        id: colunaId,
+                        arquivar: true
+                    };
+                    arquivarColuna(dados);
+                }
+            });
+
+        });
+
+        function rgbToHex(rgb) {
+            const result = rgb.match(/\d+/g);
+            return result ? '#' + result.map(x => {
+                const hex = parseInt(x).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('') : '#000000';
+        }
+
+        function initColunas(st_colunas = 'P') {
+            const colunasTarefas = $('#tarefasContainer');
+            colunasTarefas.html('<p>Carregando Colunas...</p>');
+
+            $.ajax({
+                url: '{{ route('listar-colunas') }}',
+                method: 'GET',
+                data: {
+                    st_colunas: st_colunas
+                },
+                success: function(colunas) {
+                    renderColunas(colunas);
+                },
+                error: function() {
+                    console.error('Erro ao carregar as tarefas.');
+                }
+            });
+        }
+
+        //remove acentos e coloca em minusculo
+        function renderColunas(colunas) {
+            let html = '';
+            colunas.forEach(function(colunas) {
+                html += `
+                        <div class="col-md-3 d-flex">
+                            <div class="card card-secondary kanban-coluna flex-fill">
+                                <div class="card-header d-flex align-items-center" style="background-color: #${colunas.color};">
+                                    <h3 class="card-title card-title-coluna mb-0">${colunas.nome}</h3>
+                                    <div class="card-tools d-flex ml-auto">
+                                        <button class="btn btn-tool btn-add-card" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Adicionar Tarefa">
+                                            <i class="fas fa-plus"></i>
+                                        </button>  
+                                         <!-- Adicionando tooltip e ícone de paleta -->
+                                        <button class="btn btn-tool btn-edit-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Editar Coluna">
+                                            <i class="fas fa-pen"></i>
+                                        </button> 
+                                        <button class="btn btn-tool btn-arquivar-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Arquivar Coluna">
+                                            <i class="fas fa-archive"></i>
+                                        </button>
+                                    </div>                                
+                                </div>
+                                <div class="card-body kanban-cards" id="coluna_${colunas.id}" data-coluna-id="${colunas.id}">
+                                    <!-- Cards serão carregados aqui -->
+                                </div>
+                            </div>
+                        </div>
+                            `;
+            });
+
+            $('#tarefasContainer').html(html);
+
+            colunas.forEach(function(coluna) {
+                renderCartoes(coluna.id);
+            });
+        }
+
+        // gera/atualiza os cards dinamicos
+        function renderCartoes(colunaId) {
+            // Limpa os cartões existentes antes de carregar os novos
+            $(`#coluna_${colunaId}`).empty();
+            $.ajax({
+                url: '{{ route('listar-cartoes') }}',
+                method: 'GET',
+                dataType: 'json',
+                data: {
+                    id_coluna: colunaId
+                },
+                success: function(cartoes) {
+                    let cardHTML = '';
+                    if (cartoes.length === 0) {
+                        cardHTML = '<p class="text-muted text-center small">Nenhum cartão.</p>';
+                    } else {
+                        cartoes.forEach(function(card) {
+                            //cria um card novo
+                            var cardHTML = `
+                                <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
+                                    <div class="card-header">
+                                        <h5 class="card-title">${card.titulo}</h5>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
+                                                <button type="button" class="btn btn-tool btn-delete-card"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </div>
+
+                                     ${card.descricao ? `<div class="card-body">${card.descricao}</div>` : ''}   
+                                    
+                                </div>
+                                `;
+                            $(`#coluna_${card.coluna_id}`).append(cardHTML);
+                        });
+                    }
+                },
+                error: function() {
+                    console.error('Erro ao carregar os cartões.');
+                }
+            });
+        }
+
+        //salvar no banco
+        function salvarTarefas(dados, route) {
+            return $.ajax({
+                url: route,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    dados: dados
+                }
+            });
+        }
+
+        function deletarCartao(idCard) {
+            return $.ajax({
+                url: '{{ route('deletar-cartao') }}',
+                method: 'GET',
+                contentType: 'application/json',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    id_card: idCard
+                }
+            });
+        }
+
+        //função para arrastar e soltar os cards
+        function inicializarSortableCards() {
             $('.kanban-cards').sortable({
                 connectWith: '.kanban-cards',
                 handle: '.card-header',
                 forcePlaceholderSize: true,
-            }).disableSelection();
+                placeholder: 'ui-state-highlight',
+                update: function(event, ui) {
+                    // coluna de destino
+                    const colunaDestino = $(this).data('coluna-id');
+                    const cards = $(this).children('.card');
+                    const atualizacoes = [];
 
-            //modal adicionar card
-            $('.btn-add-card').click(function() {
-                var coluna = $(this).data('coluna');
-                $('#modalCardTitle').text('Criar Card');
-                $('#colunaDestino').val(coluna);
-                $('#cardId').val('');
-                $('#inputTitulo').val('');
-                $('#inputDescricao').val('');
-                $('#btn-delete').hide();
-                $('#modalCard').modal('show');
-            });
-
-            //salva/atualiza o card
-            $('#btn-save').click(function() {
-                var idCard = $('#cardId').val();
-                if (!idCard) {
-                    idCard = `card-${Date.now()}`;
-                }
-                var titulo = $('#inputTitulo').val();
-                var descricao = $('#inputDescricao').val();
-                var coluna = $('#colunaDestino').val();
-
-                if (titulo.trim() && descricao.trim()) {
-                    gerarcard(idCard, titulo, descricao, coluna);
-                    $('#modalCard').modal('hide');
-                } else {
-                    alert("Por favor, preencha o título e a descrição.");
-                }
-            });
-
-            //modal editar card
-            $(document).on('click', '.btn-edit-card', function() {
-                var card = $(this).closest('.card');
-                var idCard = card.data('task-id');
-                var titulo = card.find('.card-title').text();
-                var descricao = card.find('.card-body').text();
-                var coluna = card.closest('.kanban-cards').attr('id');
-
-                $('#modalCardTitle').text('Editar Card');
-                $('#colunaDestino').val(coluna);
-                $('#cardId').val(idCard);
-                $('#inputTitulo').val(titulo);
-                $('#inputDescricao').val(descricao);
-                $('#btn-delete').show();
-                $('#modalCard').modal('show');
-            });
-
-            $('#btn-delete').click(function() {
-                var idCard = $('#cardId').val();
-                if (idCard) {
-                    $(`[data-task-id='${idCard}']`).remove();
-                    $('#modalCard').modal('hide');
-                }
-            });
-
-            // gera/atualiza os cards dinamicos
-            function gerarcard(idCard, titulo, descricao, colunaId) {
-                var card = $(`[data-task-id='${idCard}']`);
-                if (card.length > 0) {
-                    //atualiza o card
-                    card.find('.card-title').text(titulo);
-                    card.find('.card-body').text(descricao);
-                } else {
-                    //cria um card novo
-                    var cardHTML = `
-                        <div class="card card-light card-outline" data-task-id="${idCard}">
-                            <div class="card-header">
-                                <h5 class="card-title">${titulo}</h5>
-                                    <div class="card-tools">
-                                       <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
-                                    </div>
-                                </div>
-                            <div class="card-body">${descricao}</div>
-                        </div>
-                     `;
-                    $(`#${colunaId}`).append(cardHTML);
-                }
-            }
-
-            function initColunas() {
-                $.ajax({
-                    url: '{{ route("listar-tarefas") }}',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        data.forEach(function(tarefa) {
-                            var colunaId = '';
-                            switch (tarefa.status) {
-                                case 'pendencias':
-                                    colunaId = 'pendencias';
-                                    break;
-                                case 'fazer':
-                                    colunaId = 'fazer';
-                                    break;
-                                case 'progresso':
-                                    colunaId = 'progresso';
-                                    break;
-                                case 'concluido':
-                                    colunaId = 'concluido';
-                                    break;
-                                default:
-                                    colunaId = 'pendencias';
-                            }
-                            gerarcard(tarefa.id, tarefa.titulo, tarefa.descricao, colunaId);
+                    cards.each(function(index) {
+                        const id = $(this).data('task-id');
+                        atualizacoes.push({
+                            id: id,
+                            coluna: colunaDestino,
+                            posicao: index
                         });
-                    },
-                    error: function() {
-                        console.error('Erro ao carregar as tarefas.');
+                    });
+
+                    // Envia as atualizações para o servidor
+                    $.ajax({
+                        url: '{{ route('reordenar-cartao') }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            tarefas: atualizacoes
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 1000
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro ao atualizar tarefas.',
+                                    text: response.message,
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro ao atualizar tarefas.',
+                            });
+                        }
+                    });
+                }
+            }).disableSelection();
+        }
+         
+        function inicializarSortableColunas() {
+            $('#tarefasContainer').sortable({
+                handle: '.card-header',                
+            }).disableSelection();
+        }
+
+        function CriarEditarColuna(dados) {
+            $.ajax({
+                url: '{{ route('editar-coluna') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    dados: dados
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        initColunas();
+                        $('#modalColuna').modal('hide');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: response.message,
+                        });
                     }
-                });
-            }
-        });
+                }
+            });
+        }
+
+        function arquivarColuna(dados) {
+            $.ajax({
+                url: '{{ route('arquivar-coluna') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    dados: dados
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        initColunas();
+                        $('#modalColuna').modal('hide');
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: response.message,
+                        });
+                    }
+                }
+            });
+        }
     </script>
 @stop
