@@ -154,7 +154,7 @@
                 idCard = `card-${Date.now()}`;
             }
             var titulo = $('#inputTitulo').val();
-            var descricao = $('#inputDescricao').val();
+            var descricao = descricao_tarefa.root.innerHTML;
             var coluna = $('#colunaDestino').val();
 
             if (titulo.trim()) {
@@ -358,9 +358,7 @@
                 }
             });
 
-        });
-
-       
+        });       
 
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
@@ -397,7 +395,7 @@
                         <div class="col-md-2 d-flex">
                             <div class="card card-secondary kanban-coluna flex-fill">
                                 <div class="card-header d-flex align-items-center" style="background-color: #${colunas.color};">
-                                    <h3 class="card-title card-title-coluna mb-0">${colunas.nome}</h3>
+                                    <h6 class="card-title card-title-coluna mb-0" style="font-size: 14px;">${colunas.nome}</h6>
                                     <div class="card-tools d-flex ml-auto">
                                         <button class="btn btn-tool btn-add-card" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Adicionar Tarefa">
                                             <i class="fas fa-plus"></i>
@@ -422,7 +420,7 @@
             html += `<div class="col-md-2 d-flex">
                         <div class="kanban-coluna flex-fill">
                             <div class="card-header d-flex align-items-center" style="background-color: #e2e3e5;">
-                                <h3 class="card-title card-title-coluna mb-0">Adicionar Coluna</h3>
+                                <h3 class="card-title card-title-coluna mb-0" style="font-size: 14px;">Adicionar Coluna</h3>
                                 <div class="card-tools d-flex ml-auto">
                                     <button class="btn btn-tool btn-modal-add-coluna" title="Adicionar Coluna">
                                         <i class="fas fa-plus"></i>
