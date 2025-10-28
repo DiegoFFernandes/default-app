@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.7",
         "laravel/ui": "^4.6",
         "spatie/laravel-permission": "^6.16",
+        "stevebauman/purify": "^6.3",
         "yajra/laravel-datatables": "9.0"
     },
     "require-dev": {

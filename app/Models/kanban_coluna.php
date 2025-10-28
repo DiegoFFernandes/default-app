@@ -64,4 +64,21 @@ class kanban_coluna extends Model
             return response()->json(['error' => true, 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function criarColuna($input)
+    {
+        try {
+            $coluna = new kanban_coluna();
+            $coluna->projeto_id = $input['projeto_id'];
+            $coluna->nome = $input['nome'];
+            $coluna->color = $input['color'];
+            $coluna->st_coluna = 'P'; // Define o status como 'P' (Pendente)
+            $coluna->posicao = $input['posicao'];
+            $coluna->save();
+
+            return response()->json(['success' => true, 'message' => 'Coluna criada com sucesso!', 'coluna' => $coluna]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

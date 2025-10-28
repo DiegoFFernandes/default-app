@@ -9,7 +9,7 @@
                 <div class="card-header">
                     <h3 class="card-title">Quadro de Tarefas</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-sm btn-warning" title="Adicionar Coluna" id="btn-add-coluna">
+                        <button type="button" class="btn btn-sm btn-warning btn-modal-add-coluna" title="Adicionar Coluna" id="">
                             <i class="fas fa-plus"></i>
                         </button>
                         <button type="button" class="btn btn-sm btn-warning" title="Colunas Arquivadas">
@@ -17,7 +17,7 @@
                         </button>
                         <button type="button" class="btn btn-sm btn-primary" onclick="initColunas()" title="Recarregar">
                             <i class="fas fa-sync-alt"></i>
-                        </button>                        
+                        </button>
                     </div>
                 </div>
                 <div class="card-body"
@@ -51,7 +51,7 @@
                                         </div>
                                         <div class="mb-3">
                                             <label for="inputDescricao">Descrição</label>
-                                            <textarea class="form-control" id="inputDescricao" rows="3" required placeholder="Adicione uma descrição..."></textarea>
+                                            <div class="form-control" id="inputDescricao" rows="3" required placeholder="Adicione uma descrição..."></div>
                                         </div>
                                     </form>
                                 </div>
@@ -92,7 +92,7 @@
                                 <div class="modal-footer justify-content-between">
                                     <button type="button" class="btn btn-sm btn-secondary"
                                         data-dismiss="modal">Fechar</button>
-                                    <div>
+                                    <div id="btn-action-coluna">
                                         <button type="button" class="btn btn-sm btn-primary"
                                             id="btn-modal-coluna">Editar</button>
                                     </div>
@@ -109,14 +109,27 @@
 @stop
 
 @section('js')
-
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
         initColunas();
 
-        // $(function() {
-        //     inicializarSortableCards();
-        //     inicializarSortableColunas();
-        // });
+        // define só o que você quer no editor
+        const toolbarOptions = [
+            ['bold'], // negrito 
+            ['italic'], // itálico
+            ['underline'], // sublinhado  
+            [{ 'color': [] }, { 'background': [] }],     
+            ['clean'] // limpar formatação
+        ];
+
+        const descricao_tarefa = new Quill('#inputDescricao', {
+            modules: {
+                toolbar: toolbarOptions
+            },
+            theme: 'snow'
+        });
+
         //modal adicionar card
         $(document).on('click', '.btn-add-card', function() {
             var colunaId = $(this).data('coluna-id');
@@ -124,7 +137,7 @@
             $('#colunaDestino').val(colunaId);
             $('#cardId').val('');
             $('#inputTitulo').val('');
-            $('#inputDescricao').val('');
+            descricao_tarefa.root.innerHTML = '';
             $('#modalCard').modal('show');
 
             $('#btn-action').html(`
@@ -185,7 +198,7 @@
             var card = $(this).closest('.card');
             var idCard = card.data('task-id');
             var titulo = card.find('.card-title').text();
-            var descricao = card.find('.card-body').text();
+            var descricao = card.find('.card-body').html();
             var coluna = card.closest('.kanban-cards').data('coluna-id');
 
             $('#btn-action').html(`
@@ -195,7 +208,9 @@
             $('#colunaDestino').val(coluna);
             $('#cardId').val(idCard);
             $('#inputTitulo').val(titulo);
-            $('#inputDescricao').val(descricao);
+            // $('#inputDescricao').val(descricao);   
+            console.log(descricao);         
+            descricao_tarefa.root.innerHTML = descricao === undefined ? '' : descricao;
             $('#modalCard').modal('show');
         });
 
@@ -203,7 +218,7 @@
         $(document).on('click', '#btn-save-edit-card', function() {
             var cardId = $('#cardId').val();
             var titulo = $('#inputTitulo').val();
-            var descricao = $('#inputDescricao').val();
+            var descricao = descricao_tarefa.root.innerHTML;
             const coluna = $('#colunaDestino').val();
 
             console.log(cardId, titulo, descricao);
@@ -280,7 +295,7 @@
         });
 
         //modal editar coluna
-        $(document).on('click', '.btn-edit-coluna', function() {
+        $(document).on('click', '.btn-modal-edit-coluna', function() {
             var card = $(this).closest('.card');
             var idCard = card.data('task-id');
             var nomeColuna = card.find('.card-title-coluna').text();
@@ -293,7 +308,19 @@
             $('#modalColuna').modal('show');
             $('#inputCorColuna').val(rgbToHex(color));
         });
+        
+        //modal criar coluna
+        $(document).on('click', '.btn-modal-add-coluna', function() {            
 
+            $('#inputNomeColuna').val('');    
+            $('#inputCorColuna').val('');       
+            $('#modalColunaTitle').text('Adicionar Coluna');
+            $('#btn-action-coluna').html(`
+                <button type="button" class="btn btn-sm btn-primary" id="btn-add-coluna">Adicionar</button>                
+            `);
+            $('#modalColuna').modal('show');
+            
+        });
 
         $(document).on('click', '#btn-modal-coluna', function() {
             var colunaId = $('#colunaId').val();
@@ -306,7 +333,7 @@
                 color: corColuna
             };
 
-            CriarEditarColuna(dados);
+            CriarEditarColuna(dados, '{{ route('editar-coluna') }}');
 
         });
 
@@ -333,12 +360,7 @@
 
         });
 
-        $(document).on('click', '#btn-add-coluna', function() {
-            $('#inputNomeColuna').val('');
-            $('#colunaId').val('');
-            $('#modalColunaTitle').text('Adicionar Coluna');
-            $('#modalColuna').modal('show');
-        });
+       
 
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
@@ -372,7 +394,7 @@
             let html = '';
             colunas.forEach(function(colunas) {
                 html += `
-                        <div class="col-md-3 d-flex">
+                        <div class="col-md-2 d-flex">
                             <div class="card card-secondary kanban-coluna flex-fill">
                                 <div class="card-header d-flex align-items-center" style="background-color: #${colunas.color};">
                                     <h3 class="card-title card-title-coluna mb-0">${colunas.nome}</h3>
@@ -381,7 +403,7 @@
                                             <i class="fas fa-plus"></i>
                                         </button>  
                                          <!-- Adicionando tooltip e ícone de paleta -->
-                                        <button class="btn btn-tool btn-edit-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Editar Coluna">
+                                        <button class="btn btn-tool btn-modal-edit-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Editar Coluna">
                                             <i class="fas fa-pen"></i>
                                         </button> 
                                         <button class="btn btn-tool btn-arquivar-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Arquivar Coluna">
@@ -396,6 +418,19 @@
                         </div>
                             `;
             });
+
+            html += `<div class="col-md-2 d-flex">
+                        <div class="kanban-coluna flex-fill">
+                            <div class="card-header d-flex align-items-center" style="background-color: #e2e3e5;">
+                                <h3 class="card-title card-title-coluna mb-0">Adicionar Coluna</h3>
+                                <div class="card-tools d-flex ml-auto">
+                                    <button class="btn btn-tool btn-modal-add-coluna" title="Adicionar Coluna">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
 
             $('#tarefasContainer').html(html);
 
@@ -425,14 +460,14 @@
                             var cardHTML = `
                                 <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
                                     <div class="card-header">
-                                        <h6 class="card-title text-muted" style='font-size: 1rem'>${card.titulo}</h6>
+                                        <h6 class="card-title text-muted" style='font-size: 0.9rem'>${card.titulo}</h6>
                                             <div class="card-tools">
                                                 <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
                                                 <button type="button" class="btn btn-tool btn-delete-card"><i class="fas fa-trash"></i></button>
                                             </div>
                                         </div>
 
-                                     ${card.descricao ? `<div class="card-body">${card.descricao}</div>` : ''}   
+                                     ${card.descricao ? `<div class="card-body" style='font-size: 0.8rem'>${card.descricao}</div>` : ''}
                                     
                                 </div>
                                 `;
@@ -442,7 +477,11 @@
                     inicializarSortableCards();
                 },
                 error: function() {
-                    console.error('Erro ao carregar os cartões.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao carregar os cartões.',
+                        text: 'Por favor atualize a tela ou tente novamente mais tarde.',
+                    });
                 }
             });
         }
@@ -534,9 +573,9 @@
         //     }).disableSelection();
         // }
 
-        function CriarEditarColuna(dados) {
+        function CriarEditarColuna(dados, route) {
             $.ajax({
-                url: '{{ route('editar-coluna') }}',
+                url: route,
                 method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',

@@ -7,6 +7,7 @@ use App\Models\kanban_cartao;
 use App\Models\kanban_coluna;
 use App\Models\kanban_projeto;
 use Illuminate\Http\Request;
+use Stevebauman\Purify\Facades\Purify;
 
 class TarefasController extends Controller
 {
@@ -39,6 +40,12 @@ class TarefasController extends Controller
     public function salvarTarefas()
     {
         $dados = $this->request->input('dados');
+
+        $dados['descricao'] = Purify::clean($dados['descricao'], [
+            'HTML.Allowed' => 'p,br,strong,b,span[style],font[color]',
+            'CSS.AllowedProperties' => 'color'
+        ]);
+
         return $this->cartao->salvarTarefas($dados);
     }
 
@@ -81,7 +88,7 @@ class TarefasController extends Controller
             'dados.id' => 'required|integer|exists:kanban_colunas,id',
             'dados.nome' => 'required|string|max:255',
             'dados.color' => 'required|string|size:6',
-        ]);           
+        ]);
 
         return $this->coluna->editarColuna($validateData['dados']);
     }
