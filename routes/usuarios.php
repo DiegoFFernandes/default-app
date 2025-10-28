@@ -7,7 +7,7 @@ use App\Http\Controllers\admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('usuario')->group(function () {
         Route::get('index', [UserController::class, 'index'])->name('usuario.index');
         Route::get('listar-usuarios', [UserController::class, 'listUser'])->name('usuario.list');

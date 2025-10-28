@@ -23,7 +23,7 @@
                         <div class="col-md-12">
                             @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento'])
                                 <p>Comercial</p>
-                            @endcanany                            
+                            @endcanany
                             @haspermission('ver-coleta-empresa')
                                 <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Coleta Geral</a>
@@ -79,6 +79,13 @@
                                         style="width: 150px">Nota e Boleto</a>
                                 </div>
                             @endhaspermission
+                        @endhasrole
+                        @hasrole('admin')
+                            <div class="col-md-12 mt-2">
+                                <p>Tarefas</p>
+                                <a href={{ route('tarefas-quadro') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Quadro de tarefas</a>
+                            </div>
                         @endhasrole
                     </div>
                 </div>

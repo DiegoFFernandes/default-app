@@ -113,10 +113,10 @@
     <script>
         initColunas();
 
-        $(function() {
-            inicializarSortableCards();
-            inicializarSortableColunas();
-        });
+        // $(function() {
+        //     inicializarSortableCards();
+        //     inicializarSortableColunas();
+        // });
         //modal adicionar card
         $(document).on('click', '.btn-add-card', function() {
             var colunaId = $(this).data('coluna-id');
@@ -425,7 +425,7 @@
                             var cardHTML = `
                                 <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
                                     <div class="card-header">
-                                        <h5 class="card-title">${card.titulo}</h5>
+                                        <h6 class="card-title text-muted" style='font-size: 1rem'>${card.titulo}</h6>
                                             <div class="card-tools">
                                                 <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
                                                 <button type="button" class="btn btn-tool btn-delete-card"><i class="fas fa-trash"></i></button>
@@ -439,6 +439,7 @@
                             $(`#coluna_${card.coluna_id}`).append(cardHTML);
                         });
                     }
+                    inicializarSortableCards();
                 },
                 error: function() {
                     console.error('Erro ao carregar os cartões.');
@@ -527,11 +528,11 @@
             }).disableSelection();
         }
 
-        function inicializarSortableColunas() {
-            $('#tarefasContainer').sortable({
-                handle: '.card-header',
-            }).disableSelection();
-        }
+        // function inicializarSortableColunas() {
+        //     $('#tarefasContainer').sortable({
+        //         handle: '.card-header',
+        //     }).disableSelection();
+        // }
 
         function CriarEditarColuna(dados) {
             $.ajax({

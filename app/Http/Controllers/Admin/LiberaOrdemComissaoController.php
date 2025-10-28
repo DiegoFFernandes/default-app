@@ -81,11 +81,6 @@ class LiberaOrdemComissaoController extends Controller
         $subgruposLiberados = null;
 
         if ($this->user->hasRole('supervisor')) {
-            $supervisor = $this->supervisorComercial->getCdSupervisor();
-
-            if (is_null($supervisor)) {
-                return response()->json(['warning' => 'Usuário com função de supervisor mais sem vinculo com supervisor comercial, fale com o Administrador do sistema!']);
-            }
 
             $subgruposLiberados = $this->supervisorSubgrupo->subgrupoSupervisor($this->user->id)->pluck('CD_SUBGRUPO');
 
@@ -94,14 +89,24 @@ class LiberaOrdemComissaoController extends Controller
                 $supervisor = null;
                 //verifico se o supervisor tem subgrupo liberado, se tiver, passo os subgrupos para filtrar os pedidos
                 $subgruposLiberados = $subgruposLiberados->implode(',');
-            } else {
-                $subgruposLiberados = null;
+
+                $dataPedidoSubgrupo = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, $subgruposLiberados);               
+           
+            }
+
+            $subgruposLiberados = null;
+            $supervisor = $this->supervisorComercial->getCdSupervisor();
+
+            if (is_null($supervisor)) {
+                return response()->json(['warning' => 'Usuário com função de supervisor mais sem vinculo com supervisor comercial, fale com o Administrador do sistema!']);
             }
         }
         // Atualiza o status do pedido para filtrar por Gerente, supervisor ou liberação Automatica
         $this->libera->updateStatusPedidos();
 
-        $data = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, $subgruposLiberados);
+        $dataPedidoSupervisor = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, null);
+
+        $data = array_merge($dataPedidoSupervisor, $dataPedidoSubgrupo ?? []);
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
