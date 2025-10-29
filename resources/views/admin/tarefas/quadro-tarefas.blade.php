@@ -392,7 +392,7 @@
             let html = '';
             colunas.forEach(function(colunas) {
                 html += `
-                        <div class="col-md-2 d-flex">
+                        <div class="col-md-2 col-4 d-flex">
                             <div class="card card-secondary kanban-coluna flex-fill">
                                 <div class="card-header d-flex align-items-center" style="background-color: #${colunas.color};">
                                     <h6 class="card-title card-title-coluna mb-0" style="font-size: 14px;">${colunas.nome}</h6>
@@ -457,7 +457,7 @@
                             //cria um card novo
                             var cardHTML = `
                                 <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
-                                    <div class="card-header">
+                                    <div class="card-header p-3">
                                         <h6 class="card-title text-muted" style='font-size: 0.9rem'>${card.titulo}</h6>
                                             <div class="card-tools">
                                                 <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>

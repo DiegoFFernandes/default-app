@@ -300,9 +300,7 @@ function formularioDinamico(route) {
                         buttonsStyling: false,
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $("#desenho, #medida, #valor, #btn-associar")
-                                .closest(".form-group")
-                                .show();
+                            $("#desenho").closest(".form-group").show();
                             cardTabela.show();
                             initTableTabelaPrecoPrevia();
 
@@ -389,6 +387,11 @@ function initTableTabelaPrecoPrevia() {
                 data: "VALOR",
                 width: "20%",
                 render: $.fn.dataTable.render.number(".", ",", 2),
+            },
+            {
+                title: "Subgrupo",
+                data: "SUBGRUPO",
+                width: "19%",
             },
         ],
         orderBy: [[0, "asc"]],

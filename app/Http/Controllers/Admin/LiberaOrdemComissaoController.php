@@ -90,8 +90,7 @@ class LiberaOrdemComissaoController extends Controller
                 //verifico se o supervisor tem subgrupo liberado, se tiver, passo os subgrupos para filtrar os pedidos
                 $subgruposLiberados = $subgruposLiberados->implode(',');
 
-                $dataPedidoSubgrupo = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, $subgruposLiberados);               
-           
+                $dataPedidoSubgrupo = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, $subgruposLiberados);
             }
 
             $subgruposLiberados = null;
@@ -106,7 +105,13 @@ class LiberaOrdemComissaoController extends Controller
 
         $dataPedidoSupervisor = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, null, null);
 
-        $data = array_merge($dataPedidoSupervisor, $dataPedidoSubgrupo ?? []);
+        // $data = array_merge($dataPedidoSupervisor, $dataPedidoSubgrupo ?? []);
+
+        $data = collect($dataPedidoSupervisor)
+            ->merge($dataPedidoSubgrupo ?? [])
+            ->unique('PEDIDO')
+            ->values()
+            ->toArray();
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {

@@ -23,6 +23,10 @@
                                     <a class="nav-link" id="tab-associadas" data-toggle="tab" href="#painel-associadas"
                                         role="tab">Associadas</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-divergencia" data-toggle="tab" href="#painel-divergencia"
+                                        role="tab">Divergências</a>
+                                </li>
                             @endif
                         </ul>
                     </div>
@@ -193,6 +197,20 @@
                                         'idModal' => 'modal-item-tab-preco',
                                         'idTabelaItem' => 'table-item-tab-preco',
                                     ]);
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="painel-divergencia" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="card card-primary">
+                                            <div class="card-body">
+                                                <table
+                                                    class="table table-bordered compact table-responsive table-font-small"
+                                                    id="tabela-divergencia">
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -669,7 +687,8 @@
             var cd_tabela = $(this).data('cd_tabela');
             var nm_tabela = $(this).data('nm_tabela');
             const csrf = '{{ csrf_token() }}';
-            deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco_preview', 'tabela-preco-cadastradas', csrf);
+            deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco_preview', 'tabela-preco-cadastradas',
+                csrf);
         });
 
         // Deletar tabela de preço na tab associadas

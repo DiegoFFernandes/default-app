@@ -79,10 +79,12 @@ class TabPreco extends Model
                 I.CD_TABPRECO CD_TABELA,
                 I.CD_ITEM ID,
                 ITEM.DS_ITEM DESCRICAO,
-                CAST(I.VL_PRECO AS numeric(12,2)) VALOR
+                CAST(I.VL_PRECO AS numeric(12,2)) VALOR,
+                SG.DS_SUBGRUPO AS SUBGRUPO
             FROM $table I
             --INNER JOIN TABPRECO T ON (T.CD_TABPRECO = I.CD_TABPRECO)
             INNER JOIN ITEM  ON (ITEM.CD_ITEM = I.CD_ITEM)
+            INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
             WHERE I.cd_tabpreco = $cd_tabela           
         ";
 
@@ -126,7 +128,7 @@ class TabPreco extends Model
         $filtro = $select === 'desenho' ? 'SP.IDMEDIDAPNEU as ID, MP.DSMEDIDAPNEU as DESCRICAO' : 'BP.IDDESENHOPNEU as ID, DP.DSDESENHO as DESCRICAO';
 
         if ($select === 'previa') {
-            $filtro = $id_pessoa . ' as CD_TABELA, SERVICO.CD_ITEM as ID, SP.DSSERVICO as DESCRICAO, CAST(' . ($valor ? $valor : 0) . ' as numeric(12,2)) as VALOR';
+            $filtro = $id_pessoa . ' as CD_TABELA, SERVICO.CD_ITEM as ID, SP.DSSERVICO as DESCRICAO, CAST(' . ($valor ? $valor : 0) . ' as numeric(12,2)) as VALOR, SG.DS_SUBGRUPO as SUBGRUPO';
         }
 
         $query = "
@@ -138,6 +140,7 @@ class TabPreco extends Model
             INNER JOIN SERVICOPNEU SP ON (SP.IDBANDAPNEU = BP.ID)
             INNER JOIN MEDIDAPNEU MP ON (MP.ID = SP.IDMEDIDAPNEU)
             INNER JOIN ITEM SERVICO ON (SERVICO.CD_ITEM = SP.ID)
+            INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = SERVICO.CD_SUBGRUPO)
             WHERE BP.STATIVO = 'S'
                 AND SERVICO.ST_ATIVO = 'S'
                 " . ($id_desenho ? " AND BP.IDDESENHOPNEU IN ($id_desenho) " : "") . "
@@ -179,9 +182,11 @@ class TabPreco extends Model
                     WHEN I.CD_SUBGRUPO = 10026 THEN $input[vlr_vulc_carga]                    
                 -- VULCANIZACAO AGRICOLA
                     WHEN I.CD_SUBGRUPO = 122 THEN $input[vlr_vulc_agricola]                   
-                    END VALOR
+                    END VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM SERVICOPNEU SP
                 INNER JOIN ITEM I ON (I.CD_ITEM = SP.ID)
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
                     AND I.CD_SUBGRUPO IN (10026, 122)
                     AND CASE
@@ -200,9 +205,11 @@ class TabPreco extends Model
                         -- CONSERTO AGRO
                         WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]
                         ELSE 0
-                    END VALOR
+                    END VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM CONSERTOPNEU CP
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
                     AND I.CD_SUBGRUPO IN (123)
                     AND CASE                             
@@ -216,9 +223,11 @@ class TabPreco extends Model
                     $input[pessoa] AS CD_TABELA,
                     CP.ID,
                     CP.DSCONSERTO AS DESCRICAO,                    
-                    $validaValorManchaoSelect as VALOR
+                    $validaValorManchaoSelect as VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM CONSERTOPNEU CP
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
                     AND I.CD_SUBGRUPO IN (10037)
                     $validaValorManchaoWhere
@@ -230,8 +239,10 @@ class TabPreco extends Model
                     $input[pessoa] AS CD_TABELA,
                     ITEM.CD_ITEM ID,
                     ITEM.DS_ITEM AS DESCRICAO,
-                    $input[vlr_enchimento] AS VALOR
+                    $input[vlr_enchimento] AS VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
                 WHERE ITEM.CD_GRUPO = 105
                     AND ITEM.CD_SUBGRUPO = 10027
                     AND COALESCE(ITEM.CD_SECAO, 99) = 99
@@ -247,8 +258,10 @@ class TabPreco extends Model
                     $input[pessoa] AS CD_TABELA,
                     ITEM.CD_ITEM ID,
                     ITEM.DS_ITEM AS DESCRICAO,
-                    $input[vlr_enchimento_ombro_1] AS VALOR
+                    $input[vlr_enchimento_ombro_1] AS VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
                 WHERE ITEM.CD_GRUPO = 105
                     AND ITEM.CD_SUBGRUPO = 10027
                     AND COALESCE(ITEM.CD_SECAO, 99) = 55 
@@ -264,8 +277,10 @@ class TabPreco extends Model
                     $input[pessoa] AS CD_TABELA,
                     ITEM.CD_ITEM ID,
                     ITEM.DS_ITEM AS DESCRICAO,
-                    $input[vlr_enchimento_ombro_2] AS VALOR
+                    $input[vlr_enchimento_ombro_2] AS VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
                 WHERE ITEM.CD_GRUPO = 105
                     AND ITEM.CD_SUBGRUPO = 10027
                     AND COALESCE(ITEM.CD_SECAO, 99) = 56 
