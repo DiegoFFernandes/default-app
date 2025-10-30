@@ -405,7 +405,7 @@ class TabPreco extends Model
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
-            $delete = "DELETE FROM PARMTABPRECO WHERE CD_TABPRECO = $cd_tabela AND CD_PESSOA = $cd_pessoa";
+            $delete = "DELETE FROM PARMTABPRECO WHERE CD_PESSOA = $cd_pessoa";
             DB::connection('firebird')->statement($delete);
 
             $nr_sequencia = $this->retornaUltimoID();
@@ -468,7 +468,6 @@ class TabPreco extends Model
         return response()->json($result);
     }
 
-
     public function cancelarVinculo($cd_tabela, $cd_pessoa)
     {
         DB::transaction(function () use ($cd_tabela, $cd_pessoa) {
@@ -479,5 +478,32 @@ class TabPreco extends Model
         });
 
         return response()->json(['success' => true, 'message' => 'Vínculo cancelado com sucesso!']);
+    }
+
+    public function divergenciaVinculoTabelaPreco()
+    {
+        $query = "
+            SELECT
+                P.CD_PESSOA,
+                P.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+                T.CD_TABPRECO,
+                T.DS_TABPRECO,
+                T.DT_REGISTRO
+            FROM PARMTABPRECO P
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = P.CD_PESSOA)
+            INNER JOIN TABPRECO T ON (T.CD_TABPRECO = P.CD_TABPRECO)
+            WHERE P.CD_PESSOA IN (SELECT
+                                    P.CD_PESSOA
+                                FROM PARMTABPRECO P
+                                INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = P.CD_PESSOA)
+                                WHERE P.CD_PESSOA IS NOT NULL
+                                GROUP BY P.CD_PESSOA, PESSOA.NM_PESSOA
+                                HAVING COUNT(*) > 1)
+            ORDER BY P.CD_PESSOA
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
     }
 }

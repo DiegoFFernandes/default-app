@@ -301,6 +301,7 @@ class TabelaPrecoController extends Controller
         return $status;
     }
 
+    //Importa a tabela temporária para a tabela definitiva
     public function importarTabelaPreco()
     {
         $cd_tabela = $this->request->input('cd_tabela');
@@ -338,6 +339,7 @@ class TabelaPrecoController extends Controller
         }
         return  $this->tabela->vincularTabelaPreco($cd_tabela, $cd_pessoa);
     }
+
     public function deletarTabelaPreco()
     {
         $cd_tabela = decrypt($this->request->input('cd_tabela'));
@@ -365,5 +367,14 @@ class TabelaPrecoController extends Controller
         $cd_pessoa = $this->request->input('cd_pessoa');
 
         return $this->tabela->cancelarVinculo($cd_tabela, $cd_pessoa);
+    }
+
+    public function divergenciaTabelaPreco()
+    {
+        //Lista as tabelas de preço com divergência de associação
+        $data = $this->tabela->divergenciaVinculoTabelaPreco();
+
+        return DataTables::of($data)
+            ->make(true);
     }
 }

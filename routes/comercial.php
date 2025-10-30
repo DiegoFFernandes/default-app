@@ -55,6 +55,7 @@ Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
         Route::post('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
         Route::post('deletar-tabela-preco', [TabelaPrecoController::class, 'deletarTabelaPreco'])->name('deletar-tabela-preco');
         Route::post('cancelar-vinculo', [TabelaPrecoController::class, 'cancelarVinculo'])->name('cancelar-vinculo');
+        Route::get('divergencia-tabela-preco', [TabelaPrecoController::class, 'divergenciaTabelaPreco'])->name('divergencia-tabela-preco');
     });
 });
 

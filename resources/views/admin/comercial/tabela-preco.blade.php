@@ -201,7 +201,7 @@
                             </div>
                             <div class="tab-pane fade" id="painel-divergencia" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-md-12">
+                                    <div class="col-md-6">
                                         <div class="card card-primary">
                                             <div class="card-body">
                                                 <table
@@ -263,7 +263,8 @@
             importarTabelaPreco: "{{ route('importar-tabela-preco') }}",
             vincularTabelaPreco: "{{ route('vincular-tabela-preco') }}",
             deleteTabelaPreco: "{{ route('deletar-tabela-preco') }}",
-            cancelarVinculo: "{{ route('cancelar-vinculo') }}"
+            cancelarVinculo: "{{ route('cancelar-vinculo') }}",
+            divergenciaTabelaPreco: "{{ route('divergencia-tabela-preco') }}"
         };
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
@@ -697,6 +698,11 @@
             var nm_tabela = $(this).data('nm_tabela');
             const csrf = '{{ csrf_token() }}';
             deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco', 'tabela-preco', csrf);
+        });
+
+        $('#tab-divergencia').click(function() {
+            $('#tabela-divergencia').DataTable().destroy();
+            initTableDivergenciaTabelaPreco(routes);
         });
     </script>
 

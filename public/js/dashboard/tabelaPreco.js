@@ -583,3 +583,32 @@ function deleteTabelaPreco(
     });
     return;
 }
+
+function initTableDivergenciaTabelaPreco(routes) {
+    $("#tabela-divergencia").DataTable({
+        processing: true,
+        serverSide: true,
+        pagingType: "simple",
+        language: {
+            url: routes.language_datatables,
+        },
+        ajax: {
+            url: routes.divergenciaTabelaPreco,
+            type: "get",
+            data: {
+                _token: '{{ csrf_token() }}',
+            },
+        },
+        columns: [
+            {
+                data: "NM_PESSOA",
+                name: "NM_PESSOA",
+                title: "Cliente",
+            },{
+                data: "DS_TABPRECO",
+                name: "DS_TABPRECO",
+                title: "Descrição",
+            }
+        ],
+    });
+}
