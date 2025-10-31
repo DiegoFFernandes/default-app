@@ -202,7 +202,12 @@
                             <div class="tab-pane fade" id="painel-divergencia" role="tabpanel">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div class="card card-primary">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h3 class="card-title">
+                                                    Cliente associados a 2 ou mais Tabelas, vincular somente 1.
+                                                </h3>
+                                            </div>
                                             <div class="card-body">
                                                 <table
                                                     class="table table-bordered compact table-responsive table-font-small"
@@ -211,6 +216,10 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @include('admin.comercial.components.modal-item-tabela-preco', [
+                                        'idModal' => 'modal-item-tab-preco-divergencia',
+                                        'idTabelaItem' => 'table-item-tab-preco-divergencia',
+                                    ]);
                                 </div>
                             </div>
                         </div>
@@ -317,6 +326,7 @@
                         },
                         success: function(response) {
                             $('#cliente-tabela-' + cd_tabela).DataTable().ajax.reload();
+                            $('#tabela-divergencia').DataTable().ajax.reload();
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Vínculo Cancelado',
@@ -703,6 +713,13 @@
         $('#tab-divergencia').click(function() {
             $('#tabela-divergencia').DataTable().destroy();
             initTableDivergenciaTabelaPreco(routes);
+        });
+
+        $('#tabela-divergencia').on('click', '.btn-ver-itens', function() {
+            var cd_tabela = $(this).data('cd_tabela');
+            $('.title-nm-tabela').html($(this).data('nm_tabela'));
+            initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco', 'table-item-tab-preco-divergencia',
+                'modal-item-tab-preco-divergencia');
         });
     </script>
 

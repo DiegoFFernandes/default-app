@@ -142,6 +142,8 @@ function initTableItemTabelaPreco(
     idTabelaItem,
     idModal
 ) {
+
+    console.log(idTabela)
     $("#" + idModal).modal("show");
     if ($.fn.DataTable.isDataTable("#" + idTabelaItem)) {
         $("#" + idTabelaItem)
@@ -599,7 +601,12 @@ function initTableDivergenciaTabelaPreco(routes) {
                 _token: '{{ csrf_token() }}',
             },
         },
-        columns: [
+        columns: [            
+            {
+                data: "action",
+                name: "action",
+                title: "#",
+            },
             {
                 data: "NM_PESSOA",
                 name: "NM_PESSOA",
@@ -607,7 +614,7 @@ function initTableDivergenciaTabelaPreco(routes) {
             },{
                 data: "DS_TABPRECO",
                 name: "DS_TABPRECO",
-                title: "Descrição",
+                title: "Tabela de Preço",
             }
         ],
     });

@@ -375,6 +375,11 @@ class TabelaPrecoController extends Controller
         $data = $this->tabela->divergenciaVinculoTabelaPreco();
 
         return DataTables::of($data)
+            ->addColumn('action', function ($row) {
+                return '
+                <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button> 
+                <button class="btn btn-xs btn-secondary btn-cancelar-vinculo" data-cd_pessoa="' . $row->CD_PESSOA . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Cancelar Vinculo</button>';
+            })
             ->make(true);
     }
 }
