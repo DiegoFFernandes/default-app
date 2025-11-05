@@ -94,7 +94,7 @@ class Cobranca extends Model
                     AND COALESCE(CONTAS.CD_SERIE, 'NA') NOT IN ('S') 
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "                    
-                    " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                    " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                     " . ($mes != 0 && $tela == 1 ? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
                     " . ($ano != 0 && $tela == 1 ? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
 
@@ -145,7 +145,7 @@ class Cobranca extends Model
                     AND C.DT_VENCIMENTO <= CURRENT_DATE-2
                     AND C.CD_TIPOCONTA IN (2, 10)
                     " . (!empty($cd_regiao) ? "AND RC.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
-                    AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')
+                    AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN')
                 GROUP BY C.CD_PESSOA,
                     P.NM_PESSOA,
                     P.NR_CNPJCPF,
@@ -190,7 +190,7 @@ class Cobranca extends Model
                 AND C.DT_VENCIMENTO <= CURRENT_DATE-2
                 AND C.CD_TIPOCONTA IN (2, 10)
                 AND C.CD_PESSOA = $cd_pessoa
-                AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')
+                AND C.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN')
             ORDER BY C.VL_SALDO DESC     
                 ";
 
@@ -254,7 +254,7 @@ class Cobranca extends Model
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
-                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
 
 
@@ -306,7 +306,7 @@ class Cobranca extends Model
                 " . ($tela == 1 ?
             "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
             "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
-                " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                 " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
                 

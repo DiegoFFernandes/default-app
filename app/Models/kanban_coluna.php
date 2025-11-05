@@ -13,6 +13,24 @@ class kanban_coluna extends Model
     {
         return $this->where('projeto_id', $idProjeto)->where('st_coluna', 'P')->orderBy('posicao')->get();
     }
+    public function addColuna($input)
+    {
+        $posicao = $this->where('projeto_id', $input['projeto_id'])->max('posicao') + 1;
+        
+        try {
+            $coluna = new kanban_coluna();
+            $coluna->projeto_id = $input['projeto_id'];
+            $coluna->nome = $input['nome'];
+            $coluna->color = $input['color'];
+            $coluna->st_coluna = 'P'; 
+            $coluna->posicao = $posicao;
+            $coluna->save();
+
+            return response()->json(['success' => true, 'message' => 'Coluna criada com sucesso!', 'coluna' => $coluna]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
 
     public function editarColuna($input)
     {

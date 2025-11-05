@@ -9,8 +9,22 @@ class kanban_projeto extends Model
 {
     use HasFactory;
 
+    public function getEncryptedIdAttribute()
+    {
+        return encrypt($this->id);
+    }
+
     public function listProjetos($idUser)
     {
-        return $this->where('cd_usuario', $idUser)->get();
+        return $this
+            ->when(!empty($idUser), function ($query) use ($idUser) {
+                $query->whereIn('cd_usuario', $idUser);
+            })             
+            ->get();
+    }
+
+    public function getProjetoById($projeto_id)
+    {
+        return $this->where('id', $projeto_id)->first();
     }
 }

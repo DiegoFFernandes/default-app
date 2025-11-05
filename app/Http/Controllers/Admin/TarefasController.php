@@ -28,13 +28,18 @@ class TarefasController extends Controller
 
     public function tarefas()
     {
-        return view('admin.tarefas.quadro-tarefas');
+        $idProjeto = decrypt($this->request->route('id'));
+
+        $projeto = $this->projeto->getProjetoById($idProjeto);
+
+        return view('admin.tarefas.quadro-tarefas', compact('projeto'));
     }
 
     public function listarColunas()
     {
         $idUser = auth()->user()->id;
-        $tarefas = $this->coluna->listColunas(1);
+        $idProjeto = $this->request->input('id_projeto');
+        $tarefas = $this->coluna->listColunas($idProjeto);
         return response()->json($tarefas);
     }
     public function salvarTarefas()
@@ -91,6 +96,17 @@ class TarefasController extends Controller
         ]);
 
         return $this->coluna->editarColuna($validateData['dados']);
+    }
+
+    public function addColuna()
+    {        
+        $validateData = $this->request->validate([
+            'dados.nome' => 'required|string|max:255',
+            'dados.color' => 'required|string|size:6',
+            'dados.projeto_id' => 'required|integer|exists:kanban_projetos,id'            
+        ]);
+
+        return $this->coluna->addColuna($validateData['dados']);
     }
 
     public function arquivarColuna()

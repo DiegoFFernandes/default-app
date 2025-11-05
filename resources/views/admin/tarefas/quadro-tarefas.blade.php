@@ -7,15 +7,16 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Quadro de Tarefas</h3>
+                    <h3 class="card-title">{{ $projeto->nome }}</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-sm btn-warning btn-modal-add-coluna" title="Adicionar Coluna" id="">
+                        <button type="button" class="btn btn-tool btn-warning btn-modal-add-coluna" title="Adicionar Coluna"
+                            id="">
                             <i class="fas fa-plus"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-warning" title="Colunas Arquivadas">
+                        <button type="button" class="btn btn-tool btn-warning" title="Colunas Arquivadas">
                             <i class="fas fa-archive"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-primary" onclick="initColunas()" title="Recarregar">
+                        <button type="button" class="btn btn-tool btn-primary" onclick="initColunas()" title="Recarregar">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                     </div>
@@ -51,7 +52,8 @@
                                         </div>
                                         <div class="mb-3">
                                             <label for="inputDescricao">Descrição</label>
-                                            <div class="form-control" id="inputDescricao" rows="3" required placeholder="Adicione uma descrição..."></div>
+                                            <div class="form-control" id="inputDescricao" rows="3" required
+                                                placeholder="Adicione uma descrição..."></div>
                                         </div>
                                     </form>
                                 </div>
@@ -94,7 +96,7 @@
                                         data-dismiss="modal">Fechar</button>
                                     <div id="btn-action-coluna">
                                         <button type="button" class="btn btn-sm btn-primary"
-                                            id="btn-modal-coluna">Editar</button>
+                                            id="btn-edit-coluna">Editar</button>
                                     </div>
                                 </div>
                             </div>
@@ -105,7 +107,59 @@
             </div>
         </div>
     </div>
+@stop
+@section('css')
+    <style>
+        /* Oculta os botões de ação por padrão */
+        .column-actions {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
 
+        /* Mostra os botões ao passar o mouse no header */
+        .card-header-coluna:hover .column-actions {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Ajustes estéticos dos botões */
+        .column-actions .btn {
+            color: rgba(63, 62, 62, 0.8);
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+
+        .column-actions .btn:hover {
+            color: rgba(63, 62, 62, 0.8);
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+
+        /* Garante que o título e os botões fiquem bem alinhados */
+        .card-header-coluna {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+        }
+
+
+        /* Garante que o título e os botões fiquem bem alinhados */
+        .card-header-cartao {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+        }
+
+        /* Em telas pequenas, mostra sempre os botões (sem hover) */
+        @media (max-width: 768px) {
+            .column-actions {
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+        }
+    </style>
 @stop
 
 @section('js')
@@ -119,7 +173,11 @@
             ['bold'], // negrito 
             ['italic'], // itálico
             ['underline'], // sublinhado  
-            [{ 'color': [] }, { 'background': [] }],     
+            [{
+                'color': []
+            }, {
+                'background': []
+            }],
             ['clean'] // limpar formatação
         ];
 
@@ -209,7 +267,7 @@
             $('#cardId').val(idCard);
             $('#inputTitulo').val(titulo);
             // $('#inputDescricao').val(descricao);   
-            console.log(descricao);         
+            // console.log(descricao);
             descricao_tarefa.root.innerHTML = descricao === undefined ? '' : descricao;
             $('#modalCard').modal('show');
         });
@@ -294,7 +352,7 @@
 
         });
 
-        //modal editar coluna
+        //abre o modal editar coluna
         $(document).on('click', '.btn-modal-edit-coluna', function() {
             var card = $(this).closest('.card');
             var idCard = card.data('task-id');
@@ -307,22 +365,27 @@
             $('#modalColunaTitle').text('Editar Coluna');
             $('#modalColuna').modal('show');
             $('#inputCorColuna').val(rgbToHex(color));
-        });
-        
-        //modal criar coluna
-        $(document).on('click', '.btn-modal-add-coluna', function() {            
 
-            $('#inputNomeColuna').val('');    
-            $('#inputCorColuna').val('');       
+            $('#btn-action-coluna').html(`
+                <button type="button" class="btn btn-sm btn-primary" id="btn-edit-coluna">Editar</button>                
+            `);
+        });
+
+        //abre o modal criar coluna
+        $(document).on('click', '.btn-modal-add-coluna', function() {
+
+            $('#inputNomeColuna').val('');
+            $('#inputCorColuna').val('');
             $('#modalColunaTitle').text('Adicionar Coluna');
             $('#btn-action-coluna').html(`
                 <button type="button" class="btn btn-sm btn-primary" id="btn-add-coluna">Adicionar</button>                
             `);
             $('#modalColuna').modal('show');
-            
+
         });
 
-        $(document).on('click', '#btn-modal-coluna', function() {
+        //Editar Coluna
+        $(document).on('click', '#btn-edit-coluna', function() {
             var colunaId = $('#colunaId').val();
             var nomeColuna = $('#inputNomeColuna').val();
             var corColuna = $('#inputCorColuna').val().replace('#', '');
@@ -334,7 +397,23 @@
             };
 
             CriarEditarColuna(dados, '{{ route('editar-coluna') }}');
+        });
 
+        //Criar Coluna
+        $(document).on('click', '#btn-add-coluna', function() {
+            var colunaId = $('#colunaId').val();
+            var nomeColuna = $('#inputNomeColuna').val();
+            var corColuna = $('#inputCorColuna').val().replace('#', '');
+            const idProjeto = '{{ $projeto->id }}';
+
+            var dados = {
+                id: colunaId,
+                nome: nomeColuna,
+                color: corColuna,
+                projeto_id: idProjeto
+            };
+
+            CriarEditarColuna(dados, '{{ route('add-coluna-card') }}');
         });
 
         $(document).on('click', '.btn-arquivar-coluna', function() {
@@ -358,7 +437,7 @@
                 }
             });
 
-        });       
+        });
 
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
@@ -370,13 +449,15 @@
 
         function initColunas(st_colunas = 'P') {
             const colunasTarefas = $('#tarefasContainer');
-            colunasTarefas.html('<p>Carregando Colunas...</p>');
+            const idProjeto = '{{ $projeto->id }}';
+            colunasTarefas.html('<p>Carregando Colunas...</p>');            
 
             $.ajax({
                 url: '{{ route('listar-colunas') }}',
                 method: 'GET',
                 data: {
-                    st_colunas: st_colunas
+                    st_colunas: st_colunas,
+                    id_projeto: idProjeto
                 },
                 success: function(colunas) {
                     renderColunas(colunas);
@@ -392,11 +473,11 @@
             let html = '';
             colunas.forEach(function(colunas) {
                 html += `
-                        <div class="col-md-2 col-4 d-flex">
+                        <div class="col-md-2 col-12 d-flex">
                             <div class="card card-secondary kanban-coluna flex-fill">
-                                <div class="card-header d-flex align-items-center" style="background-color: #${colunas.color};">
+                                <div class="card-header card-header-coluna d-flex align-items-center" style="background-color: #${colunas.color};">
                                     <h6 class="card-title card-title-coluna mb-0" style="font-size: 14px;">${colunas.nome}</h6>
-                                    <div class="card-tools d-flex ml-auto">
+                                    <div class="card-tools d-flex ml-auto column-actions">
                                         <button class="btn btn-tool btn-add-card" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Adicionar Tarefa">
                                             <i class="fas fa-plus"></i>
                                         </button>  
@@ -417,9 +498,9 @@
                             `;
             });
 
-            html += `<div class="col-md-2 d-flex">
+            html += `<div class="col-md-2 col-12 d-flex">
                         <div class="kanban-coluna flex-fill">
-                            <div class="card-header d-flex align-items-center" style="background-color: #e2e3e5;">
+                            <div class="card-header card-header-coluna d-flex align-items-center" style="background-color: #e2e3e5;">
                                 <h3 class="card-title card-title-coluna mb-0" style="font-size: 14px;">Adicionar Coluna</h3>
                                 <div class="card-tools d-flex ml-auto">
                                     <button class="btn btn-tool btn-modal-add-coluna" title="Adicionar Coluna">
@@ -457,9 +538,9 @@
                             //cria um card novo
                             var cardHTML = `
                                 <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
-                                    <div class="card-header p-3">
+                                    <div class="card-header card-header-coluna d-flex align-items-center">
                                         <h6 class="card-title text-muted" style='font-size: 0.9rem'>${card.titulo}</h6>
-                                            <div class="card-tools">
+                                            <div class="card-tools d-flex ml-auto column-actions">
                                                 <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
                                                 <button type="button" class="btn btn-tool btn-delete-card"><i class="fas fa-trash"></i></button>
                                             </div>
