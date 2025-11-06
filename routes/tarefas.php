@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'permission:ver-quadro-tarefa'])->group(function () {
     Route::prefix('projetos')->group(function () {
-        Route::get('listar', [ProjetosTarefasController::class, 'listarProjeto'])->name('listar-projeto');
-
+        Route::get('area-trabalho-tarefas', [ProjetosTarefasController::class, 'index'])->name('area-trabalho-tarefas');
+        Route::post('listar', [ProjetosTarefasController::class, 'listarProjeto'])->name('listar-projetos');
+        Route::post('salvar-projeto', [ProjetosTarefasController::class, 'salvarProjeto'])->name('salvar-projeto-tarefa');
+        Route::post('editar-titulo-projeto', [ProjetosTarefasController::class, 'editarTituloProjeto'])->name('editar-titulo-projeto');
 
 
     });

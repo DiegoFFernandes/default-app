@@ -83,7 +83,7 @@
                         @haspermission('ver-quadro-tarefa')
                             <div class="col-md-12 mt-2">
                                 <p>Tarefas</p>
-                                <a href={{ route('listar-projeto') }} class="btn btn-sm btn-dark mb-1"
+                                <a href={{ route('area-trabalho-tarefas') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Quadro de tarefas</a>
                             </div>
                         @endhasrole

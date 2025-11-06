@@ -34,14 +34,49 @@ class ProjetosTarefasController extends Controller
         });
     }
 
+    public function index()
+    {
+        return view('admin.tarefas.projetos-tarefas', );
+    }
+
     public function listarProjeto()
     {
-        $idUser = $this->user->hasRole('admin') ? [] : [auth()->user()->id];       
+        $idUser = $this->user->hasRole('admin') ? [] : [auth()->user()->id];
 
+        $projeto = $this->projeto->listProjetos($idUser)->makeHidden(['id']);        
 
-        $projeto = $this->projeto->listProjetos($idUser)->makeHidden(['id']);
+        return response()->json($projeto);
+    }
 
+    public function salvarProjeto()
+    {
+        $data = $this->request->validate([
+            'nome' => 'required|string|max:150',
+            'descricao' => 'nullable|string',
+        ]);
 
-        return view('admin.tarefas.projetos-tarefas', compact('projeto'));
+        return $this->projeto->salvarProjeto($data);
+    }
+    public function editarTituloProjeto()
+    {
+        $data = $this->request->validate([
+            'id' => 'required|string',
+            'nome' => 'required|string|max:150',
+        ]);
+
+        $projeto = $this->projeto->getProjetoById($data['id']);
+
+        if (!$projeto) {
+            return response()->json(['error' => 'Projeto não encontrado.'], 404);
+        }
+
+        try {
+            $projeto->nome = $data['nome'];
+            $projeto->save();
+
+            return response()->json(['success' => 'Título do projeto atualizado com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erro ao atualizar o título do projeto: ' . $e->getMessage()], 500);
+        }
     }
 }

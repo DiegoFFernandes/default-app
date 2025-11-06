@@ -7,7 +7,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">{{ $projeto->nome }}</h3>
+                    <h3 class="card-title" id="projeto-nome" data-projeto-id="{{ $projeto->id }}">{{ $projeto->nome }}</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool btn-warning btn-modal-add-coluna" title="Adicionar Coluna"
                             id="">
@@ -439,6 +439,55 @@
 
         });
 
+        $(document).on('click', '#projeto-nome', function() {
+            const projetoId = $(this).data('projeto-id');
+            const nomeAtual = $(this).text().trim();
+            let $this = $(this);
+
+            if ($this.find('input').length) return; // Já está em modo de edição
+
+
+            $this.html('<input class="form-control" type="text" value="' + nomeAtual +
+                '" id="input-nome-projeto" style="width: 400px;" />');
+            let $input = $('#input-nome-projeto');
+            $input.focus();
+
+            $input.on('blur keypress', function(e) {
+                if (e.type === 'blur' || (e.which === 13 && !e.shiftKey)) {
+                    let novoNome = $input.val().trim();
+
+                    // Evita enviar se não mudou
+                    if (novoNome === nomeAtual) {
+                        $this.text(nomeAtual);
+                        return;
+                    }
+                    $.ajax({
+                        url: '{{ route('editar-titulo-projeto') }}',
+                        method: 'POST',
+                        data: {
+                            id: projetoId,
+                            nome: novoNome,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function() {
+                            $this.text(novoNome);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sucesso',
+                                text: 'Nome do projeto atualizado.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        },
+                        error: function() {
+                            $this.text(nomeAtual);
+                        }
+                    });
+                }
+            });
+
+        });
+
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
             return result ? '#' + result.map(x => {
@@ -450,7 +499,7 @@
         function initColunas(st_colunas = 'P') {
             const colunasTarefas = $('#tarefasContainer');
             const idProjeto = '{{ $projeto->id }}';
-            colunasTarefas.html('<p>Carregando Colunas...</p>');            
+            colunasTarefas.html('<p>Carregando Colunas...</p>');
 
             $.ajax({
                 url: '{{ route('listar-colunas') }}',
