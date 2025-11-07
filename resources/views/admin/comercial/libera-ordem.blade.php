@@ -330,6 +330,7 @@
                                 2);
                             rowData.PC_COMISSAO = parseFloat(data[0].PC_COMISSAO).toFixed(
                                 2);
+                            rowData.ST_CALCULO = 'A'; // Automático
                             row.data(rowData).draw();
                         });
                     }, 500); // 500ms de debounce
@@ -345,6 +346,48 @@
             }
         });
 
+        $(document).on('click', '#table-item-pedido td:nth-child(7)', function() {
+            var tr = $(this).closest('tr');
+            var row = table_item_pedido.row(tr);
+            var rowData = row.data();
+            var valorCellPcComissao = tr.find('td').eq(6);
+            var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
+            const valorPcComissao = parseFloat(rowData.PC_COMISSAO).toFixed(2);
+
+            console.log(valorCellPcComissao);
+
+            if (!valorCellPcComissao.find('input').length) {
+                valorCellPcComissao.html(
+                    `<input type="number" value="${valorPcComissao}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`
+                );
+
+                var input = valorCellPcComissao.find('input');
+                input.focus();
+                input.select();
+
+                input.on('blur', function(e) {
+
+                    const pc_comissao = parseFloat($(this).val()) || 0;
+                    const vl_comissao = (valorVenda * pc_comissao) / 100;
+
+                    rowData.PC_COMISSAO = parseFloat(pc_comissao).toFixed(2);
+                    rowData.VL_COMISSAO = parseFloat(vl_comissao).toFixed(2);
+                    rowData.ST_CALCULO = 'M'; // Manual
+
+                    row.data(rowData).draw();
+
+                });
+
+                input.on('keydown', function(e) {
+                    if (e.which === 13) { // Enter
+                        e.preventDefault(); // evita quebra de linha
+                        $(this).blur(); // força o blur, que chama a função de atualização
+                    }
+                });
+            }
+
+        });
+
         $(document).on('click', '.btn-save-confirm', function(e) {
             //obtem os dados de toda a tabela, para fazer o update no banco
             var pneus = [];
@@ -357,6 +400,7 @@
                     const desconto = parseFloat((100 - (vl_venda * 100) / vl_preco)).toFixed(2);
                     const pc_comissao = card.find('.percentual-comissao').val();
                     const vl_comissao = card.find('.vl-comissao').val();
+                    const st_calculo = card.find('.st-calculo').val();
 
                     pneus.push({
                         ID: $(this).data('id'),
@@ -364,7 +408,8 @@
                         VL_PRECO: vl_preco,
                         VL_COMISSAO: vl_comissao,
                         PC_DESCONTO: desconto,
-                        PC_COMISSAO: pc_comissao
+                        PC_COMISSAO: pc_comissao,
+                        ST_CALCULO: st_calculo
                     });
                 })
             } else {
@@ -457,6 +502,14 @@
             }, 1000); // 1000ms de debounce
 
         });
+
+        $('#card-container').on('input', '.percentual-comissao', function() {
+            const input = $(this);
+
+            console.log(input.val());
+        });
+
+
 
         $('#nm_supervisor').on('keyup change', function() {
             let value = $(this).val();
@@ -561,7 +614,6 @@
                         render: function(data, type, row) {
                             return data + '%';
                         },
-
                         title: '%Desc'
                     },
                     {
@@ -579,11 +631,32 @@
                             return data + '%';
                         },
                         title: '%Comis.'
+                    },
+                    {
+                        data: 'ST_CALCULO',
+                        name: 'ST_CALCULO',
+                        title: 'Cálculo',
+                        render: function(data, type, row) {
+                            if (data === 'A') {
+                                return 'Automático';
+                            } else if (data === 'M') {
+                                return 'Manual';
+                            } else {
+                                return data;
+                            }
+                        }
                     }
                 ],
                 columnDefs: [{
-                    targets: [2, 3],
+                    targets: [2, 3, 8],
                     className: 'dt-right'
+                }, {
+                    targets: [3, 7],
+                    createdCell: function(td, cellData, rowData, row, col) {
+                        $(td).css('background-color', '#E2E5E8');
+                        $(td).css('color', '#000');
+                        $(td).css('font-weight', 'bold');
+                    }
                 }],
 
                 "drawCallback": function(settings) {
@@ -675,8 +748,9 @@
                                         <div class="form-group mb-0">
                                             <label>% Comissao</label>
                                             <input type="number"
-                                            class="form-control form-control-sm percentual-comissao"                                            
-                                            value="${parseFloat(item.PC_COMISSAO).toFixed(2)}" readonly/>
+                                            class="form-control form-control-sm percentual-comissao"  
+                                            style="width: 100px;"
+                                            value="${parseFloat(item.PC_COMISSAO).toFixed(2)}"/>
                                         </div>
                                     </div>
                                 </div> 

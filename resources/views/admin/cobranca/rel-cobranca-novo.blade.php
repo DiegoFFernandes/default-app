@@ -9,37 +9,41 @@
                 <div class="card card-dark card-outline card-outline-tabs">
                     <div class="card-header p-0 border-bottom-0">
                         <ul class="nav nav-tabs" id="tabRelatorio" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="tab-relatorio-cobranca" data-toggle="pill"
-                                    href="#painel-relatorio-cobranca" role="tab"
-                                    aria-controls="painel-relatorio-cobranca" aria-selected="true">
-                                    Inadimplência
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-cartao-cheque" data-toggle="pill" href="#painel-cartao-cheque"
-                                    role="tab" aria-controls="painel-cartao-cheque" aria-selected="false">
-                                    Cheques e Cartão
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-limite-credito" data-toggle="pill" href="#painel-limite-credito"
-                                    role="tab" aria-controls="painel-limite-credito" aria-selected="false">
-                                    Limite Crédito
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-prazo-medio" data-toggle="pill" href="#painel-prazo-medio"
-                                    role="tab" aria-controls="painel-prazo-medio" aria-selected="false">
-                                    Prazo Médio
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-canhoto" data-toggle="pill" href="#painel-canhoto"
-                                    role="tab" aria-controls="painel-canhoto" aria-selected="false">
-                                    Canhoto
-                                </a>
-                            </li>
+                            @role('admin|gerente comercial|supervisor|vendedor|gerente unidade|cobranca')
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="tab-relatorio-cobranca" data-toggle="pill"
+                                        href="#painel-relatorio-cobranca" role="tab"
+                                        aria-controls="painel-relatorio-cobranca" aria-selected="true">
+                                        Inadimplência
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-cartao-cheque" data-toggle="pill" href="#painel-cartao-cheque"
+                                        role="tab" aria-controls="painel-cartao-cheque" aria-selected="false">
+                                        Cheques e Cartão
+                                    </a>
+                                </li>
+                            @endrole
+                            @role('admin|gerente comercial|supervisor|vendedor|gerente unidade')
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-limite-credito" data-toggle="pill" href="#painel-limite-credito"
+                                        role="tab" aria-controls="painel-limite-credito" aria-selected="false">
+                                        Limite Crédito
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-prazo-medio" data-toggle="pill" href="#painel-prazo-medio"
+                                        role="tab" aria-controls="painel-prazo-medio" aria-selected="false">
+                                        Prazo Médio
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="tab-canhoto" data-toggle="pill" href="#painel-canhoto"
+                                        role="tab" aria-controls="painel-canhoto" aria-selected="false">
+                                        Canhoto
+                                    </a>
+                                </li>
+                            @endrole
                         </ul>
                     </div>
                     <div class="card-body">
@@ -47,78 +51,82 @@
                             <small class="badge badge-danger badge-date-inadimplencia"></small>
                         </div>
                         <div class="tab-content" id="tabContentRelatorio">
-                            <div class="tab-pane fade show active" id="painel-relatorio-cobranca" role="tabpanel"
-                                aria-labelledby="tab-relatorio-cobranca">
+                            @role('admin|gerente comercial|supervisor|vendedor|gerente unidade|cobranca')
+                                <div class="tab-pane fade show active" id="painel-relatorio-cobranca" role="tabpanel"
+                                    aria-labelledby="tab-relatorio-cobranca">
 
-                                @include('admin.cobranca.components.filtros-inadimplencia', [
-                                    'pessoa' => 'pessoa',
-                                    'filtro_gerente' => 'filtro-gerente',
-                                    'filtro_supervisor' => 'filtro-supervisor',
-                                    'filtro_vendedor' => 'filtro-vendedor',
-                                    'filtro_cnpj' => 'filtro-cnpj',
-                                    'btn_search' => 'btn-search',
-                                    'btn_reset' => 'btn-reset',
-                                    'daterange' => 'daterange',
-                                    'placeholderDatarange' => 'Filtrar por Vencimento',
-                                ])
+                                    @include('admin.cobranca.components.filtros-inadimplencia', [
+                                        'pessoa' => 'pessoa',
+                                        'filtro_gerente' => 'filtro-gerente',
+                                        'filtro_supervisor' => 'filtro-supervisor',
+                                        'filtro_vendedor' => 'filtro-vendedor',
+                                        'filtro_cnpj' => 'filtro-cnpj',
+                                        'btn_search' => 'btn-search',
+                                        'btn_reset' => 'btn-reset',
+                                        'daterange' => 'daterange',
+                                        'placeholderDatarange' => 'Filtrar por Vencimento',
+                                    ])
 
-                                @if (!auth()->user()->hasRole('vendedor'))
-                                    @include('admin.cobranca.components.cards-inadimplencia')
-                                @endif
+                                    @if (!auth()->user()->hasRole('vendedor'))
+                                        @include('admin.cobranca.components.cards-inadimplencia')
+                                    @endif
 
-                                @include('admin.cobranca.components.tab-relatorios', [
-                                    'tabela_mensal' => 'tabela-inadimplencia-meses',
-                                    'grafico_mensal' => 'graficoInadimplencia',
-                                    'modal_table' => 'modal-table-cliente',
-                                    'card_inadimplencia' => 'card-inadimplencia-gerente',
-                                    'accordion_id' => 'accordion-inadimplencia-gerente',
-                                    'treeAccordion' => 'treeAccordion',
-                                    'treeAccordionGerente' => 'treeAccordionGerente',
-                                    'buscarCliente' => 'buscarCliente',
-                                ])
-                            </div>
-                            <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
-                                aria-labelledby="tab-cartao-cheque">
-                                @include('admin.cobranca.components.filtros-inadimplencia', [
-                                    'pessoa' => 'pessoa_ch_cartao',
-                                    'filtro_gerente' => 'filtro-gerente_ch_cartao',
-                                    'filtro_supervisor' => 'filtro-supervisor_ch_cartao',
-                                    'filtro_vendedor' => 'filtro-vendedor_ch_cartao',
-                                    'filtro_cnpj' => 'filtro-cnpj_ch_cartao',
-                                    'btn_search' => 'btn-search-ch-cartao',
-                                    'btn_reset' => 'btn-reset-ch-cartao',
-                                    'daterange' => 'daterange-ch-cartao',
-                                    'placeholderDatarange' => 'Filtrar por Emissão',
-                                ])
-                                @include('admin.cobranca.components.tab-relatorios', [
-                                    'tabela_mensal' => 'tabela-inadimplencia-meses-ch-cartao',
-                                    'grafico_mensal' => 'grafico-inadimplencia-ch-cartao',
-                                    'modal_table' => 'modal-table-cliente-ch-cartao',
-                                    'card_inadimplencia' => 'card-inadimplencia-gerente-ch-cartao',
-                                    'accordion_id' => 'accordion-inadimplencia-gerente-ch-cartao',
-                                    'treeAccordion' => 'treeAccordion-ch-cartao',
-                                    'treeAccordionGerente' => 'treeAccordionGerente-ch-cartao',
-                                    'buscarCliente' => 'buscarCliente-ch-cartao',
-                                ])
-                            </div>
-                            <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
-                                aria-labelledby="tab-limite-credito">
-                                @include('admin.cobranca.components.tab-painel-limite-credito')
-                            </div>
-                            <div class="tab-pane fade" id="painel-prazo-medio" role="tabpanel"
-                                aria-labelledby="tab-cartao-cheque">
-                                @include('admin.cobranca.components.tab-prazo-medio')
-                            </div>
-                            <div class="tab-pane fade" id="painel-canhoto" role="tabpanel"
-                                aria-labelledby="tab-painel-canhoto">
-                                @include('admin.cobranca.components.tab-canhotos', [
-                                    'tabela_canhoto_mensal' => 'tabela-canhoto-meses',
-                                    'modal_canhoto_table' => 'modal-table-canhoto',
-                                    'card_canhoto' => 'card-canhoto',
-                                    'accordion_canhoto_id' => 'accordion-canhoto',
-                                    'treeAccordionCanhoto' => 'treeAccordionCanhoto',
-                                ])
-                            </div>
+                                    @include('admin.cobranca.components.tab-relatorios', [
+                                        'tabela_mensal' => 'tabela-inadimplencia-meses',
+                                        'grafico_mensal' => 'graficoInadimplencia',
+                                        'modal_table' => 'modal-table-cliente',
+                                        'card_inadimplencia' => 'card-inadimplencia-gerente',
+                                        'accordion_id' => 'accordion-inadimplencia-gerente',
+                                        'treeAccordion' => 'treeAccordion',
+                                        'treeAccordionGerente' => 'treeAccordionGerente',
+                                        'buscarCliente' => 'buscarCliente',
+                                    ])
+                                </div>
+                                <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
+                                    aria-labelledby="tab-cartao-cheque">
+                                    @include('admin.cobranca.components.filtros-inadimplencia', [
+                                        'pessoa' => 'pessoa_ch_cartao',
+                                        'filtro_gerente' => 'filtro-gerente_ch_cartao',
+                                        'filtro_supervisor' => 'filtro-supervisor_ch_cartao',
+                                        'filtro_vendedor' => 'filtro-vendedor_ch_cartao',
+                                        'filtro_cnpj' => 'filtro-cnpj_ch_cartao',
+                                        'btn_search' => 'btn-search-ch-cartao',
+                                        'btn_reset' => 'btn-reset-ch-cartao',
+                                        'daterange' => 'daterange-ch-cartao',
+                                        'placeholderDatarange' => 'Filtrar por Emissão',
+                                    ])
+                                    @include('admin.cobranca.components.tab-relatorios', [
+                                        'tabela_mensal' => 'tabela-inadimplencia-meses-ch-cartao',
+                                        'grafico_mensal' => 'grafico-inadimplencia-ch-cartao',
+                                        'modal_table' => 'modal-table-cliente-ch-cartao',
+                                        'card_inadimplencia' => 'card-inadimplencia-gerente-ch-cartao',
+                                        'accordion_id' => 'accordion-inadimplencia-gerente-ch-cartao',
+                                        'treeAccordion' => 'treeAccordion-ch-cartao',
+                                        'treeAccordionGerente' => 'treeAccordionGerente-ch-cartao',
+                                        'buscarCliente' => 'buscarCliente-ch-cartao',
+                                    ])
+                                </div>
+                            @endrole
+                            @role('admin|gerente comercial|supervisor|vendedor|gerente unidade|cobranca')
+                                <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
+                                    aria-labelledby="tab-limite-credito">
+                                    @include('admin.cobranca.components.tab-painel-limite-credito')
+                                </div>
+                                <div class="tab-pane fade" id="painel-prazo-medio" role="tabpanel"
+                                    aria-labelledby="tab-cartao-cheque">
+                                    @include('admin.cobranca.components.tab-prazo-medio')
+                                </div>
+                                <div class="tab-pane fade" id="painel-canhoto" role="tabpanel"
+                                    aria-labelledby="tab-painel-canhoto">
+                                    @include('admin.cobranca.components.tab-canhotos', [
+                                        'tabela_canhoto_mensal' => 'tabela-canhoto-meses',
+                                        'modal_canhoto_table' => 'modal-table-canhoto',
+                                        'card_canhoto' => 'card-canhoto',
+                                        'accordion_canhoto_id' => 'accordion-canhoto',
+                                        'treeAccordionCanhoto' => 'treeAccordionCanhoto',
+                                    ])
+                                </div>
+                            @endrole
                         </div>
                     </div>
                 </div>

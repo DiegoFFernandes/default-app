@@ -127,10 +127,14 @@ class LiberaOrdemComissaoController extends Controller
     public function getListPneusOrdemBloqueadas($id)
     {
         $data = $this->libera->listPneusOrdensBloqueadas($id);
-        return DataTables::of($data)->make(true);
+        return DataTables::of($data)
+        ->addColumn('ST_CALCULO', function ($d) {
+            return 'A'; //A = Automatico
+        })
+        ->make(true);
     }
 
-    public function getCalculaComissao()
+    public function getCalculaComissao()    
     {
         $item_pedido = $this->libera->listPneusOrdensBloqueadas(0, $this->request->item_pedido);
 

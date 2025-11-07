@@ -88,7 +88,7 @@ class RelatorioCobrancaController extends Controller
 
         $filtro = $this->request->input('filtro');
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|cobranca')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
@@ -382,7 +382,7 @@ class RelatorioCobrancaController extends Controller
     {
         $tela = $this->request->tela;
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|cobranca')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
@@ -536,7 +536,7 @@ class RelatorioCobrancaController extends Controller
     }
     public function getRecebimentoLiquidado()
     {
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|cobranca')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
@@ -607,7 +607,7 @@ class RelatorioCobrancaController extends Controller
 
         session(['filtro' => $filtro]);
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|cobranca')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
@@ -772,7 +772,7 @@ class RelatorioCobrancaController extends Controller
         $ano = $this->request->ano;
         $tab = $this->request->input('tab');
 
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|cobranca')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
@@ -856,7 +856,7 @@ class RelatorioCobrancaController extends Controller
 
     public function relatorioFinanceiroCliente()
     {
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|cobranca')) {
             $gerentes = $this->area->GerenteAll();
         } elseif ($this->user->hasRole('gerente comercial')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel
