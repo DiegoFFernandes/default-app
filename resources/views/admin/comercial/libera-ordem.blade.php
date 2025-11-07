@@ -506,7 +506,23 @@
         $('#card-container').on('input', '.percentual-comissao', function() {
             const input = $(this);
 
-            console.log(input.val());
+            const venda = input.closest('.card-body').find('.input-venda').val() || 0;
+            const valorPcComissao = input.closest('.card-body').find('.percentual-comissao').val() || 0;
+            const vlComissao = input.closest('.card-body').find('.vl-comissao');
+
+
+            // Calcula o valor da comissão com base na venda e no percentual
+            vlComissao.val(parseFloat((venda * valorPcComissao) / 100).toFixed(2));
+
+            // Aplica destaque
+            [vlComissao].forEach(el => {
+                el.addClass('input-destaque');
+            });
+
+            // Aplica foco visual (danger) ao input editado
+            input.addClass('is-valid');
+
+
         });
 
 
