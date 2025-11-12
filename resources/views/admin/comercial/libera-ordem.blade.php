@@ -73,7 +73,7 @@
 
     {{-- Modal de Itens --}}
     <div class="modal modal-default fade" id="modal-table-pedido">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <blockquote class="quote-danger d-none" style="margin: 0">
@@ -181,6 +181,13 @@
         @media (min-width: 769px) {
             [id^="card-pedido"] {
                 display: none;
+            }
+        }
+
+        @media (min-width: 576px) {
+            .modal-dialog {
+                max-width: 700px;
+                margin: 1.75rem auto;
             }
         }
 
@@ -372,7 +379,13 @@
 
                     rowData.PC_COMISSAO = parseFloat(pc_comissao).toFixed(2);
                     rowData.VL_COMISSAO = parseFloat(vl_comissao).toFixed(2);
-                    rowData.ST_CALCULO = 'M'; // Manual
+
+                    if (valorPcComissao == pc_comissao) {
+                        rowData.ST_CALCULO =
+                        'A'; // compara com a pc original, se não mudou continua aumático
+                    } else {
+                        rowData.ST_CALCULO = 'M'; // Manual
+                    }
 
                     row.data(rowData).draw();
 
@@ -525,8 +538,6 @@
 
         });
 
-
-
         $('#nm_supervisor').on('keyup change', function() {
             let value = $(this).val();
             table.column(7).search(value).draw();
@@ -661,6 +672,11 @@
                                 return data;
                             }
                         }
+                    }, {
+                        data: 'PEDIDO',
+                        name: 'PEDIDO',
+                        visible: false,
+                        title: 'Pedido'
                     }
                 ],
                 columnDefs: [{

@@ -123,7 +123,8 @@ class LiberaOrdemComercial extends Model
                 IPB.PC_COMISSAO,
                 IPB.VL_COMISSAO,
                 TABPRECO.DS_TABPRECO,
-                COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL
+                COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL,
+                COALESCE(IPB.ST_CALCULO, 'A') ST_CALCULO
             FROM
                 PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
@@ -189,10 +190,18 @@ class LiberaOrdemComercial extends Model
                 $VL_COMISSAO = $pneu['VL_COMISSAO'];
                 $PC_COMISSAO = $pneu['PC_COMISSAO'];
 
+                if ($pneu['ST_CALCULO'] == 'A') {
+                    $ST_CALCULO = 'A';
+                } else {
+                    $ST_CALCULO = 'M';  
+                    PedidoPneu::updateDesconto($pneu['PEDIDO'], 'G');
+                }
+
                 $query = "
                     UPDATE ITEMPEDIDOPNEUBORRACHEIRO IIPB 
                         SET IIPB.VL_COMISSAO = $VL_COMISSAO, 
-                            IIPB.PC_COMISSAO = $PC_COMISSAO 
+                            IIPB.PC_COMISSAO = $PC_COMISSAO,
+                            IIPB.ST_CALCULO = '$ST_CALCULO'
                     WHERE IIPB.ID = $d->ID";
                 DB::connection('firebird')->statement($query);
             }

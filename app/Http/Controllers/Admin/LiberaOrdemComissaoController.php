@@ -16,7 +16,6 @@ use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use PHPUnit\TextUI\Help;
 use Yajra\DataTables\Facades\DataTables;
 
 class LiberaOrdemComissaoController extends Controller
@@ -127,10 +126,10 @@ class LiberaOrdemComissaoController extends Controller
     public function getListPneusOrdemBloqueadas($id)
     {
         $data = $this->libera->listPneusOrdensBloqueadas($id);
-        return DataTables::of($data)
-        ->addColumn('ST_CALCULO', function ($d) {
-            return 'A'; //A = Automatico
-        })
+        return DataTables::of($data)  
+        ->setRowClass(function ($d) {
+            return $d->ST_CALCULO == 'M' ? 'bg-purple text-white' : '';
+        })      
         ->make(true);
     }
 
@@ -156,7 +155,7 @@ class LiberaOrdemComissaoController extends Controller
             $pedidoId = $this->request->pedido;
             $observacao = $this->request->observacao ?? '';
             foreach ($this->request->pneus as $pneu) {
-                $this->libera->updateValueItempedidoPneu($pneu);
+                $this->libera->updateValueItempedidoPneu($pneu);                
             }
         } else {
             $pedidoId = $pedido->PEDIDO;
