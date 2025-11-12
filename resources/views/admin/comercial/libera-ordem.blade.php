@@ -725,7 +725,7 @@
             }
             data.forEach(item => {
                 const card = $(`                       
-                            <div class="card-body shadow-sm p-3">
+                            <div class="card-body shadow-sm p-3 ${item.ST_CALCULO == 'M' ? 'bg-purple' : ''} ">
                                 <span class="badge badge-secondary">${item.DS_TABPRECO}</span>
                                 <input type="hidden" class="input-id-item" value="${item.ID}" />
                                 <input type="hidden" class="input-empresa" value="${item.EMPRESA}" />
