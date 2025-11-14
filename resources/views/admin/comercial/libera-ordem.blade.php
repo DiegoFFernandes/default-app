@@ -144,7 +144,7 @@
                 </div>
             </div>
         </div>
-        <x-btn-topo-modal :modalId="'modal-table-pedido'" />
+        {{-- <x-btn-topo-modal :modalId="'modal-table-pedido'" /> --}}
 
 
 
@@ -361,8 +361,6 @@
             var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
             const valorPcComissao = parseFloat(rowData.PC_COMISSAO).toFixed(2);
 
-            console.log(valorCellPcComissao);
-
             if (!valorCellPcComissao.find('input').length) {
                 valorCellPcComissao.html(
                     `<input type="number" value="${valorPcComissao}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`
@@ -382,7 +380,7 @@
 
                     if (valorPcComissao == pc_comissao) {
                         rowData.ST_CALCULO =
-                        'A'; // compara com a pc original, se não mudou continua aumático
+                            'A'; // compara com a pc original, se não mudou continua aumático
                     } else {
                         rowData.ST_CALCULO = 'M'; // Manual
                     }
@@ -414,9 +412,11 @@
                     const pc_comissao = card.find('.percentual-comissao').val();
                     const vl_comissao = card.find('.vl-comissao').val();
                     const st_calculo = card.find('.st-calculo').val();
+                    const pedido = card.find('.input-id-pedido').val();
 
                     pneus.push({
                         ID: $(this).data('id'),
+                        PEDIDO: pedido,
                         VL_VENDA: vl_venda,
                         VL_PRECO: vl_preco,
                         VL_COMISSAO: vl_comissao,
@@ -581,7 +581,7 @@
             var url = "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}";
             url = url.replace(':pedido', data.PEDIDO);
 
-            $('#' + tableId).DataTable().destroy();
+            $('#' + tableId).DataTable().clear().destroy();
 
             table_item_pedido = $('#' + tableId).DataTable({
                 processing: false,
@@ -595,8 +595,13 @@
                 },
                 ajax: {
                     url: url,
+                    beforeSend: function() {
+                        $('#card-container').html(`
+                            <div class="card-body shadow-sm p-3 text-center">
+                                <i class="fas fa-sync-alt fa-spin"></i>
+                            </div>`);
+                    },
                     dataSrc: function(json) {
-
                         const dados = json.data || json;
                         // Renderiza os cards com os mesmos dados
                         renderizarCards(dados, 'card-container');
@@ -729,6 +734,7 @@
                                 <span class="badge badge-secondary">${item.DS_TABPRECO}</span>
                                 <input type="hidden" class="input-id-item" value="${item.ID}" />
                                 <input type="hidden" class="st-calculo" value="${item.ST_CALCULO}" />
+                                <input type="hidden" class="input-id-pedido" value="${item.PEDIDO}" />
                                 <input type="hidden" class="input-empresa" value="${item.EMPRESA}" />
                                 <div class="row">
                                     <div class="col-8 col-md-8">

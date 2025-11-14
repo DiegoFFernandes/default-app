@@ -20,7 +20,16 @@ use Yajra\DataTables\Facades\DataTables;
 
 class LiberaOrdemComissaoController extends Controller
 {
-    public $user, $request, $libera, $pedido, $area, $regiao, $supervisorComercial, $supervisorComercialModel, $supervisorSubgrupo;
+
+    public User $user;
+    public LiberaOrdemComercial $libera;
+    public Request $request;
+    public AreaComercial $area;
+    public RegiaoComercial $regiao;
+    public SupervisorAuthService $supervisorComercial;
+    public SupervisorComercial $supervisorComercialModel;
+    public SupervisorSubgrupo $supervisorSubgrupo;
+    public PedidoPneu $pedido;
 
     public function __construct(
         User $user,
@@ -126,14 +135,14 @@ class LiberaOrdemComissaoController extends Controller
     public function getListPneusOrdemBloqueadas($id)
     {
         $data = $this->libera->listPneusOrdensBloqueadas($id);
-        return DataTables::of($data)  
-        ->setRowClass(function ($d) {
-            return $d->ST_CALCULO == 'M' ? 'bg-purple text-white' : '';
-        })      
-        ->make(true);
+        return DataTables::of($data)
+            ->setRowClass(function ($d) {
+                return $d->ST_CALCULO == 'M' ? 'bg-purple text-white' : '';
+            })
+            ->make(true);
     }
 
-    public function getCalculaComissao()    
+    public function getCalculaComissao()
     {
         $item_pedido = $this->libera->listPneusOrdensBloqueadas(0, $this->request->item_pedido);
 
@@ -155,7 +164,7 @@ class LiberaOrdemComissaoController extends Controller
             $pedidoId = $this->request->pedido;
             $observacao = $this->request->observacao ?? '';
             foreach ($this->request->pneus as $pneu) {
-                $this->libera->updateValueItempedidoPneu($pneu);                
+                $this->libera->updateValueItempedidoPneu($pneu);
             }
         } else {
             $pedidoId = $pedido->PEDIDO;

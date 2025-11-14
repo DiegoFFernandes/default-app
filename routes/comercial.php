@@ -24,6 +24,7 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
         Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
         Route::get('get-calcula-comissao', [LiberaOrdemComissaoController::class, 'getCalculaComissao'])->name('get-calcula-comissao');
         Route::get('libera-abaixo-desconto', [LiberaOrdemComissaoController::class, 'liberaAbaixoDesconto'])->name('libera-abaixo-desconto');
+
     });
 });
 
