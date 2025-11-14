@@ -728,6 +728,7 @@
                             <div class="card-body shadow-sm p-3 ${item.ST_CALCULO == 'M' ? 'bg-purple' : ''} ">
                                 <span class="badge badge-secondary">${item.DS_TABPRECO}</span>
                                 <input type="hidden" class="input-id-item" value="${item.ID}" />
+                                <input type="hidden" class="st-calculo" value="${item.ST_CALCULO}" />
                                 <input type="hidden" class="input-empresa" value="${item.EMPRESA}" />
                                 <div class="row">
                                     <div class="col-8 col-md-8">
