@@ -62,11 +62,11 @@ class AgendaEnvio extends Model
     }
     public function contextoEmail()
     {
-        $query = "select ce.nr_contexto, ce.ds_contexto, ce.st_ativo
+        $query = "select ce.nr_contexto, ce.nr_contexto||'-'||ce.ds_contexto ds_contexto, ce.st_ativo
         from contextoemail ce
         where ce.st_ativo = 'S'
             and ce.tp_envio = 'E'
-            --and ce.nr_contexto in (1,4,5,6,7,3,2,10,11,12,13,14,33,32,37,41)
+            and ce.nr_contexto in (103,104,106,105)
         order by ce.ds_contexto";
         $results =  DB::connection('firebird')->select($query);
 

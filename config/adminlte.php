@@ -452,6 +452,20 @@ return [
             ]
         ],
         [
+            'text' => 'Follow-Up',
+            'icon' => 'nav-icon fas fas fa-envelope',
+            'url' => '#',
+            'can' => ['ver-follow-up'],
+            'submenu' => [
+                [
+                    'text' => 'Follow-Up',
+                    'route' => 'search-envio',
+
+                ]
+
+            ]
+        ],
+        [
             'text' => 'Pessoa',
             'icon' => 'nav-icon fas fa-users',
             'url' => '#',
