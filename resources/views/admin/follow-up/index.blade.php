@@ -97,13 +97,7 @@
             <section class="col-md-8">
                 <div class="card">
                     <div class="card-header" style="">
-                        <h3 class="card-title">Resultado pesquisa - Envios Automaticos</h3>
-                        <div class="card-tools float-right">
-                            <a href="https://chrome.google.com/webstore/detail/enable-local-file-links/nikfmfgobenbhmocjaaboihbeocackld"
-                                class="btn btn-box-tool btn-xs btn-warning" style="color: rgb(2, 0, 0)">Instale
-                                a Extensão
-                                para ver o Anexo</a>
-                        </div>
+                        <h3 class="card-title">Resultado pesquisa - Envios Automaticos</h3>                       
                     </div>
                     <div class="card-body">
                         <table id="table-search" class="table compact table-font-small table-bordered table-striped">
@@ -123,11 +117,11 @@
                             <span aria-hidden="true">×</span></button>
                     </div>
                     <div class="modal-body">
-                        <p class="badge badge-info">
-                            <i class="fa fa-info-circle" aria-hidden="true"></i>
-                            Essa mensagem e de um disparo automátivo, cliente deve verificar se não esta na caixa de spam,
+                        <div class="alert alert-info">
+                            <i class="fa fa-info-circle"></i>
+                            Essa mensagem é de um disparo automático, cliente deve verificar se não está na caixa de spam
                             ou no lixo eletrônico, caso ele não receber!
-                        </p>
+                        </div>
                         <div class="form-group">
                             <label for="assunto">Assunto:</label>
                             <input type="text" class="form-control form-control-sm" id="assunto" disabled>
@@ -187,6 +181,14 @@
             /* ou o tamanho que quiser */
             padding: 4px 8px;
             /* opcional, para diminuir o espaçamento */
+        }
+
+        .my-small-title {
+            font-size: 20px !important;
+        }
+
+        .my-small-text {
+            font-size: 16px !important;
         }
     </style>
 @stop
@@ -292,8 +294,9 @@
                         $('#message').val($('<div/>').html(result[0].DS_MENSAGEM).text());
 
                         let anexos = '';
-                        result.forEach(item => {
-                            anexos += `<p><a href="${item.DS_CAMINHOANEXO}" target="_blank">${item.DS_NOMEANEXO}</a></p>`;
+                        result[0].ANEXOS.forEach(item => {                            
+                            anexos +=
+                                `<button class="btn btn-secondary btn-sm mr-1">${item.TITULO}</button>`;
                         });
                         $('#lista-anexos').html(anexos);
                     }
@@ -305,13 +308,19 @@
 
                 Swal.fire({
                     title: 'Atenção!',
-                    text: "Deseja realmente reenviar esse email?",
-                    icon: 'warning',
+                    text: "Deseja realmente reenviar esse email?",                    
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'Sim, reenviar!',
-                    cancelButtonText: 'Cancelar'
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        title: 'my-small-title',
+                        htmlContainer: 'my-small-text',
+                        confirmButton: 'btn btn-primary btn-sm',
+                        cancelButton: 'btn btn-secondary btn-sm',
+                    },
+                    buttonsStyling: false
                 }).then((result) => {
                     if (result.isConfirmed) {
                         update_email = 1;
@@ -320,7 +329,22 @@
                 });
             });
 
+            $(document).on('click', '.btn-motivo-falha', function(e) {
+                let motivo = $(this).data('motivo');
 
+                Swal.fire({
+                    title: 'Motivo da Falha',
+                    text: motivo,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Fechar',
+                    customClass: {
+                        title: 'my-small-title',
+                        htmlContainer: 'my-small-text',
+                        confirmButton: 'btn btn-secondary btn-sm',
+                    },
+                    buttonsStyling: false
+                });
+            });
 
 
             function ReenviaFollow(nr_envio, update_email) {

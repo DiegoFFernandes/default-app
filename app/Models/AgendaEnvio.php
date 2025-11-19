@@ -37,7 +37,8 @@ class AgendaEnvio extends Model
                     ae.cd_pessoa||'-'||p.nm_pessoa nm_pessoa,
                     ae.bi_anexorelat, 
                     ae.dt_envio,
-                    ae.st_envio
+                    ae.st_envio,
+                    ae.ds_motivo
         from agendaenvio ae
         inner join pessoa p on (p.cd_pessoa = ae.cd_pessoa)
         inner join contextoemail ce on (ce.nr_contexto = ae.nr_contexto)                
@@ -47,7 +48,8 @@ class AgendaEnvio extends Model
                 " . (($request->cpf_cnpj != 0) ? "and p.nr_cnpjcpf = '$request->cpf_cnpj'" : "") . "
                 " . (($request->inicio_data != 0) ? "and ae.dt_envio between '$request->inicio_data' and '$request->fim_data'" : "") . "
                 " . (($request->ds_email != 0) ? "and ae.ds_emaildest like '%$request->ds_email%'" : "") . "    
-                " . (($request->nr_contexto != 0) ? "and ae.nr_contexto in ($request->nr_contexto)" : "");
+                " . (($request->nr_contexto != 0) ? "and ae.nr_contexto in ($request->nr_contexto)" : "")
+                . " order by ae.dt_registro desc";
 
         $results = DB::connection('firebird')->select($query);
 
@@ -82,7 +84,8 @@ class AgendaEnvio extends Model
                 AE.DT_ENVIO,
                 AE.NR_ENVIO,
                 AE.NR_CONTEXTO,
-                AE.NR_AGENDA
+                AE.NR_AGENDA,
+                AE.DS_MOTIVO
             FROM AGENDAENVIO AE
             INNER JOIN PESSOA P ON (P.CD_PESSOA = AE.CD_PESSOA)
             INNER JOIN CONTEXTOEMAIL CE ON (CE.NR_CONTEXTO = AE.NR_CONTEXTO)
@@ -102,9 +105,9 @@ class AgendaEnvio extends Model
         $results[0]->ANEXOS = [];
 
         foreach ($anexos as $anexo) {
-            $exploder        = explode('\\', $anexo->DS_CAMINHOANEXO);
+            $exploder        = explode('_', $anexo->DS_ANEXOMODELO);
             $results[0]->ANEXOS[] = [
-                'TITULO' => $anexo->DS_ANEXOMODELO,
+                'TITULO' => $exploder[2],
                 'CAMINHO' => $anexo->DS_CAMINHOANEXO,
                 'NR_ANEXO' => $anexo->NR_ANEXO
             ];

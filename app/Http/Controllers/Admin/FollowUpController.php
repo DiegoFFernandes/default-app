@@ -54,51 +54,33 @@ class FollowUpController extends Controller
             ->of($search)
             ->addColumn('action', function ($row) {
                 $btn = '';
-                $btn .= '<button class="btn btn-secondary btn-xs ver-email mr-1" 
+                $btn .= '<button class="btn btn-primary btn-xs ver-email mr-1" 
                     data-nr_contexto="' . $row->NR_CONTEXTO . '" 
                     data-id="' . $row->NR_ENVIO . '" 
                     data-nr_agenda="' . $row->NR_AGENDA . '"
                     aria-hidden="true"><i class="fa fa-envelope" aria-hidden="true"></i></button>';
-                $btn .= '<button class="btn btn-secondary btn-xs reenviar-email" data-id="' . $row->NR_ENVIO . '" aria-hidden="true"><i class="fa fa-redo" aria-hidden="true"></i></button>';
+                $btn .= '<button class="btn btn-secondary btn-xs reenviar-email mr-1" 
+                    data-id="' . $row->NR_ENVIO . '" 
+                    aria-hidden="true"><i class="fa fa-redo" aria-hidden="true"></i></button>';
 
+                if ($row->ST_ENVIO == 'F') {
+                    $btn .= '<button class="btn btn-xs btn-danger mr-1 btn-motivo-falha"
+                        data-motivo="' . $row->DS_MOTIVO . '"
+                        title="Falha no envio!">
+                        <i class="fa fa-exclamation-triangle"
+                        aria-hidden="true"></i></button>';
+                } else {
+                    $btn .= '<button class="btn btn-xs btn-success mr-1" title="Enviado com sucesso!">
+                        <i class="fa fa-check"
+                        aria-hidden="true"></i></button>';
+                }
                 return $btn;
             })
             ->setRowClass(function ($row) {
-                return $row->ST_ENVIO == 'F' ? 'bg-info' : '';
+                return $row->ST_ENVIO == 'F' ? 'bg-warning' : '';
             })
             ->rawColumns(['action'])
             ->make(true);
-
-
-        //             <thead>
-        //                 <tr>                    
-        //                     <th>Descrição</th>                            
-        //                     <th>Nr Agenda</th>                            
-        //                     <th style="width: 15%">Nome</th>
-        //                     <th>Dt Envio</th>
-        //                     <th>Ações</th>                            
-        //                 </tr>
-        //             </thead>
-        //             <tbody>';
-        // foreach ($search as $s) {
-        //     $exploder        = explode('\\', $s->BI_ANEXORELAT);
-        //     $anexo = is_null($s->BI_ANEXORELAT) ? '<button class="btn btn-danger btn-xs">Não Existe</button>' : '<a href="file:///\\172.29.0.9/' . $exploder[2] . '/' . $exploder[3] . '/' . $exploder[4] . '/' . $exploder[5] . '/' . $exploder[6] . '" class="btn btn-xs btn-primary">Anexo</a>';
-        //     $email = '<button class="btn btn-default btn-xs ver-email" data-id="' . $s->NR_ENVIO . '" aria-hidden="true"> Ver E-mail </button>';
-        //     $reenviar = '<button class="btn btn-warning btn-xs reenviar-email" data-id="' . $s->NR_ENVIO . '" aria-hidden="true"> Reenviar </button>';
-        //     //var_dump($exploder);
-        //     $html .= '
-        //             <tr>                    
-        //                 <td>' . $s->DS_CONTEXTO . '</td>                        
-        //                 <td>' . $s->NR_AGENDA . '</td>                        
-        //                 <td>' . $s->CD_PESSOA . '-' . $s->NM_PESSOA . '</td>
-        //                 <td>' . $s->DT_ENVIO . '</td>
-        //                 <td>' . $anexo . ' ' . $email . ' ' . $reenviar . '</td>
-
-        //             </tr>';
-        // }
-        // $html .= '</tbody>
-        //         ';
-        // return $html;
     }
 
     public function getEmailEnvio()
@@ -108,7 +90,7 @@ class FollowUpController extends Controller
         $nr_contexto = $this->request->nr_contexto;
 
         $email = $this->envio->verEmail($nr_envio, $nr_agenda, $nr_contexto);
-        
+
         return $email;
     }
 
