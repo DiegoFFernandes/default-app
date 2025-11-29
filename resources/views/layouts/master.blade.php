@@ -86,9 +86,64 @@
 
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 
     <script>
-       
+        document.addEventListener("DOMContentLoaded", async () => {
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyC2MUvepLCHUVg6ondQ8plEbiutJ2sEYz0",
+                authDomain: "meuapppwa-f72da.firebaseapp.com",
+                projectId: "meuapppwa-f72da",
+                storageBucket: "meuapppwa-f72da.firebasestorage.app",
+                messagingSenderId: "629286230886",
+                appId: "1:629286230886:web:f5d45aaea590a725bd06a7",
+                measurementId: "G-1K1VHKY9XJ"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const messaging = firebase.messaging();
+
+            try {
+                // Pede permissão ao usuário
+                const permission = await Notification.requestPermission();
+
+                if (permission !== "granted") {
+                    console.log("Permissão negada");
+                    return;
+                }
+
+                // Gera o token usando a sua VAPID PUBLIC KEY
+                const token = await messaging.getToken({
+                    vapidKey: "BKyzNZVpjPCLXop4YWUNxN6ipedqYUw3invK9L35JrH8_rsaQPGUZLTR3DWa_YHOmok6GJIAi7DSBKMXGcujNJg"
+                });
+
+                console.log("TOKEN DO DISPOSITIVO:", token);
+
+                // Envie o token ao Laravel
+                await fetch("/fcm/device-token", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        token                        
+                    })
+                });
+
+            } catch (error) {
+                console.error("Erro ao obter token:", error);
+            }
+
+        });
+    </script>
+
+
+    <script>
         $.extend(true, $.fn.dataTable.defaults, {
             ajax: {
                 error: function(xhr, status, error) {

@@ -146,7 +146,11 @@
                             <tfoot>
                                 <tr>
                                     <th colspan="5" style="text-align: right;"></th>
-                                    <th colspan="3"></th>
+                                    @hasrole('admin|supervisor|gerente unidade|gerente comercial')
+                                        <th colspan="4"></th>
+                                    @else
+                                        <th colspan="3"></th>
+                                    @endhasrole
                                 </tr>
                             </tfoot>
                         </table>
@@ -171,7 +175,7 @@
 
             .col-actions {
                 width: 2% !important;
-            }            
+            }
         }
     </style>
 @stop
@@ -260,6 +264,25 @@
                     },
                     fixedHeader: true,
                     "scrollX": true,
+                    layout: {
+                        topStart: {
+                            buttons: [{
+                                    extend: "excelHtml5",
+                                    title: 'Pneus Produzidos Sem Faturar',
+                                },
+                                {
+                                    extend: "print",
+                                    title: 'Pneus Produzidos Sem Faturar',
+                                    customize: function(win) {
+                                        $(win.document.body)
+                                            .find("h1")
+                                            .css("font-size", "12pt")
+                                            .css("color", "#333");
+                                    },
+                                },
+                            ],
+                        },
+                    },
                     ajax: {
                         url: "{{ route('get-pneus-produzidos-sem-faturar') }}",
                         method: "GET",
@@ -345,49 +368,50 @@
             }
 
             function initTable(tableId, data) {
-                var tableItemOrdem = $('#' + tableId + '-' + data.EXPEDICIONADO + '-' + data.NR_EMBARQUE).DataTable({
-                    "language": {
-                        url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                    },
-                    sDom: 't',
-                    paging: false,
-                    searching: true,
-                    ajax: {
-                        "url": "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
-                        "method": "GET",
-                        "data": {
-                            'pedido': data.NR_COLETA,
-                            'nr_embarque': data.NR_EMBARQUE,
-                            'expedicionado': data.EXPEDICIONADO
-                        }
-                    },
-                    columns: [{
-                            data: "EXPEDICIONADO",
-                            title: "Expedicionado"
+                var tableItemOrdem = $('#' + tableId + '-' + data.EXPEDICIONADO + '-' + data.NR_EMBARQUE)
+                    .DataTable({
+                        "language": {
+                            url: "{{ asset('vendor/datatables/pt-br.json') }}",
                         },
-                        {
-                            data: "NRORDEMPRODUCAO",
-                            title: "Nr Ordem"
-                        },
-                        {
-                            data: "DS_ITEM",
-                            title: "Descrição"
-                        },
-                        @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                            {
-                                "data": "VALOR",
-                                title: "Valor"
-                            },
-                        @endhasrole {
-                            data: "DTFIM",
-                            title: "Data",
-                            render: function(data) {
-                                return moment(data).format('DD/MM/YYYY HH:mm');
+                        sDom: 't',
+                        paging: false,
+                        searching: true,
+                        ajax: {
+                            "url": "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
+                            "method": "GET",
+                            "data": {
+                                'pedido': data.NR_COLETA,
+                                'nr_embarque': data.NR_EMBARQUE,
+                                'expedicionado': data.EXPEDICIONADO
                             }
-                        }
+                        },
+                        columns: [{
+                                data: "EXPEDICIONADO",
+                                title: "Expedicionado"
+                            },
+                            {
+                                data: "NRORDEMPRODUCAO",
+                                title: "Nr Ordem"
+                            },
+                            {
+                                data: "DS_ITEM",
+                                title: "Descrição"
+                            },
+                            @hasrole('admin|supervisor|gerente unidade|gerente comercial')
+                                {
+                                    "data": "VALOR",
+                                    title: "Valor"
+                                },
+                            @endhasrole {
+                                data: "DTFIM",
+                                title: "Data",
+                                render: function(data) {
+                                    return moment(data).format('DD/MM/YYYY HH:mm');
+                                }
+                            }
 
-                    ]
-                });
+                        ]
+                    });
             }
 
         });

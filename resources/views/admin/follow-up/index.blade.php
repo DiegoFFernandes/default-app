@@ -317,7 +317,7 @@
                     customClass: {
                         title: 'my-small-title',
                         htmlContainer: 'my-small-text',
-                        confirmButton: 'btn btn-primary btn-sm',
+                        confirmButton: 'btn btn-primary btn-sm mr-1',
                         cancelButton: 'btn btn-secondary btn-sm',
                     },
                     buttonsStyling: false
