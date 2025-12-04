@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Fcm;
 
 use App\Http\Controllers\Controller;
 use App\Models\FMCToken;
+use App\Models\User;
 use App\Services\FCMService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,31 +16,48 @@ class FCMController extends Controller
     public $fcmToken;
     public $user;
 
-    public function __construct(Request $request, FMCToken $fcmToken)
-    {
+    public function __construct(
+        Request $request,
+        FMCToken $fcmToken,
+        User $user
+    ) {
         $this->request = $request;
         $this->fcmToken = $fcmToken;
+        $this->user = $user;
     }
 
 
     public function saveToken()
-    {
-        $this->request->validate(['token' => 'required|string']);
+    {        
         $user = Auth::user();
 
-        $this->fcmToken->updateOrCreateToken(
-            $user->id,
-            $this->request->token,
-            'web' // opcional
-        );
+        $notification = $this->request->input('notification', 'N');
 
-        // Aqui você pode salvar o token no banco de dados ou fazer qualquer outra lógica necessária
-        // Por exemplo, associar o token ao usuário autenticado
+        if ($notification === 'S') {
+            $this->request->validate(['token' => 'required|string']);
+            // Salva o token apenas se o usuário quiser receber notificações
+            $this->fcmToken->updateOrCreateToken(
+                $user->id,
+                $this->request->token,
+                'web' // opcional
+            );
 
-        return response()->json(['message' => 'Token salvo com sucesso.']);
+            //Muda o status do usuário para permitir notificações
+            $this->user->updateNotification(['id' => $user->id, 'notifications' => $notification]);
+
+            return response()->json(['message' => 'Notificações ativadas ativadas.']);
+        } else {
+            //Muda o status do usuário para não permitir notificações
+            $this->user->updateNotification(['id' => $user->id, 'notifications' => $notification]);
+
+            return response()->json(['message' => 'Notificações desativadas.']);
+        }
+
+
+
     }
 
-    public function sendToUser($userId, $title ='Teste', $body = 'Mensagem enviada do Laravel via Firebase!')
+    public function sendToUser($userId, $title = 'Teste', $body = 'Mensagem enviada do Laravel via Firebase!')
     {
         $tokens = DB::table('fcm_tokens')
             ->where('user_id', $userId)
@@ -54,7 +72,7 @@ class FCMController extends Controller
         $results = [];
 
         foreach ($tokens as $token) {
-           return $results[] = $fcm->sendToToken($token, $title, $body);
+            return $results[] = $fcm->sendToToken($token, $title, $body);
         }
 
         return $results;

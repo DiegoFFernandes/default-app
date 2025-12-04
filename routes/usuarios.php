@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ConfigurationUsersController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\admin\PessoaController;
 use App\Http\Controllers\Admin\RoleController;
@@ -18,6 +19,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('listar-usuarios', [UserController::class, 'listUser'])->name('usuario.list');        
         Route::post('cadastrar', [UserController::class, 'create'])->name('usuario.create.do');
         Route::delete('delete', [UserController::class, 'destroy'])->name('usuario.delete');
+        Route::post('desative', [UserController::class, 'desative'])->name('usuario.desative');
         Route::post('atualizar', [UserController::class, 'update'])->name('usuario.update');
 
         /*Rotas funções*/
@@ -36,6 +38,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('permissao/novo', [PermissionController::class, 'create'])->name('usuario.permission.create');
         Route::post('permissao/novo', [PermissionController::class, 'save'])->name('usuario.permission.create.do');
         Route::get('permissao/delete/{id}', [PermissionController::class, 'delete'])->name('usuario.permission.delete');
+
+        // Configurações de Usuários
+        Route::get('configuration-users', [ConfigurationUsersController::class, 'index'])->name('usuario.configuration-users');
     });
 });
 

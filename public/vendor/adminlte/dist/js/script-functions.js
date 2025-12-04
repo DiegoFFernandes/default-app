@@ -173,7 +173,7 @@ function configurarDetalhesLinha(selector, options) {
             .DataTable()
             .row(tr);
 
-        const data = row.data();        
+        const data = row.data();
 
         const tableChildId =
             options.idPrefixo +
@@ -222,4 +222,39 @@ function formatarValorBR(valor) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
+}
+
+/* ---------------------------
+            SWEET ALERT WRAPPER
+        ---------------------------- */
+function showAlert(title, text, icon) {
+    Swal.fire({
+        title,
+        text,
+        icon,
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+    });
+}
+
+/* ---------------------------
+            ENVIAR TOKEN PARA O LARAVEL
+        ---------------------------- */
+async function sendTokenToServer(token, notification) {
+    const response = await fetch("/fcm/device-token", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                .content,
+        },
+        body: JSON.stringify({
+            token,
+            notification,
+        }),
+    });
+
+    return await response.json();
 }

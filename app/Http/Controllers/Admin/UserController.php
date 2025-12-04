@@ -73,10 +73,20 @@ class UserController extends Controller
                 }
             })
             ->addColumn('actions', function ($data) {
-                return '
-                <button type="button" class="btn-editar btn btn-warning btn-xs" data-id="' . $data->id . '">Editar</button> 
-                <button type="button" class="btn-delete btn btn-danger btn-xs" data-id="' . $data->id . '">Excluir</button>                     
-                ';
+                $btn = '';
+
+                $btn = '<button type="button" class="btn-editar btn btn-warning btn-xs" data-id="' . $data->id . '"><i class="fas fa-edit"></i></button> ';
+                if ($data->st_ativo == 'S') {
+                    $btn .= '<button type="button" class="btn-desative btn btn-secondary btn-xs" data-id="' . $data->id . '"><i class="fas fa-user-slash"></i></button> ';
+                } else {
+                    $btn .= '<button type="button" class="btn-ativar btn btn-success btn-xs" data-id="' . $data->id . '"><i class="fas fa-user-check"></i></button> ';
+                }
+                $btn .= '<button type="button" class="btn-delete btn btn-danger btn-xs" data-id="' . $data->id . '"><i class="fas fa-trash"></i></button>';
+
+                return $btn;
+            })
+            ->setRowClass(function ($data) {
+                return $data->st_ativo == 'N' ? 'bg-secondary disabled' : '';
             })
             ->rawColumns(['actions', 'status'])
             ->make(true);
@@ -121,14 +131,14 @@ class UserController extends Controller
     {
         // verifica se o usuario existe no banco de dados
         // $exist = $this->user->userExists($this->request->id);
-        $exist = User::find($this->request->id);        
-        if($exist){
-            if($this->request['password'] == null){
+        $exist = User::find($this->request->id);
+        if ($exist) {
+            if ($this->request['password'] == null) {
                 $this->request['password'] = $exist->password;
-            }else{
+            } else {
                 $this->request['password'] = Hash::make($this->request['password']);
             }
-            
+
             $this->request['email'] = strtolower($this->request->email);
             $this->request['name'] = mb_convert_case($this->request->name, MB_CASE_TITLE, 'UTF-8');
             $this->request['phone'] = Helper::RemoveSpecialChar($this->request->phone);
@@ -145,6 +155,24 @@ class UserController extends Controller
             'success' => 'Usuário atualizado com sucesso!'
         ]);
     }
+    public function desative()
+    {
+        $user = User::find($this->request->id);
+        if ($user->st_ativo == 'S') {
+            $user->st_ativo = 'N';
+            $msg = 'Usuário desativado com sucesso!';
+        } else {
+            $user->st_ativo = 'S';
+            $msg = 'Usuário ativado com sucesso!';
+        }
+        $user->save();
+
+        return response()->json([
+            'success' => $msg
+        ]);
+    }
+
+
     public function returnFails($fails)
     {
         $error = '<ul>';
@@ -157,8 +185,12 @@ class UserController extends Controller
 
     public function destroy()
     {
-        $user = $this->user->find($this->request->id)->delete();
-        return response()->json(['success' => 'Usuario excluido com sucesso!']);
+        try {
+            $user = $this->user->find($this->request->id)->delete();
+            return response()->json(['success' => 'Usuario excluido com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Usuario não pode ser excluido, pois está vinculado a outros registros! Voce só pode desativa-lo!']);
+        }
     }
 
     public function __validate()

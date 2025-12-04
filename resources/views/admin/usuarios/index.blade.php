@@ -7,8 +7,10 @@
         <div class="content-fluid">
             <div class="card">
                 <div class="card-header">
-                    <a href="{{ route('usuario.role') }}" class="btn btn-danger float-right btn-sm" style="margin-right: 5px;">Permissão</a>
-                    <a href="{{ route('usuario.role') }}"  class="btn btn-danger float-right btn-sm" style="margin-right: 5px;">Função</a>
+                    <a href="{{ route('usuario.role') }}" class="btn btn-danger float-right btn-sm"
+                        style="margin-right: 5px;">Permissão</a>
+                    <a href="{{ route('usuario.role') }}" class="btn btn-danger float-right btn-sm"
+                        style="margin-right: 5px;">Função</a>
                     <button class="btn btn-success btn-sm" style="margin-right: 5px;" id="add-user">Adicionar</button>
                 </div>
                 <!-- /.card-header -->
@@ -25,7 +27,7 @@
                                         <th>Status</th>
                                         <th>#</th>
                                     </tr>
-                                </thead>                               
+                                </thead>
                             </table>
                         </div>
                     </div>
@@ -51,7 +53,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label for="pessoa">Pesquisar Pessoa:</label>
-                                <select name='pessoa' class="form-control" id="pessoa" data-modal="#modal-user" style="width: 100%">
+                                <select name='pessoa' class="form-control" id="pessoa" data-modal="#modal-user"
+                                    style="width: 100%">
                                     <option value=""></option>
                                 </select>
                             </div>
@@ -132,8 +135,7 @@
 @stop
 
 @section('js')
-    <script>     
-
+    <script>
         const routes = {
             searchPessoa: "{{ route('usuario.search-pessoa') }}",
         }
@@ -152,7 +154,7 @@
             order: [
                 [0, "desc"]
             ],
-            "pageLength": 10,
+            "pageLength": 50,
             ajax: {
                 url: "{{ route('usuario.list') }}",
             },
@@ -189,7 +191,7 @@
             $('#btn-save').removeClass('d-none');
             $('#btn-update').addClass('d-none');
         });
-        
+
         $('#table-user').on('click', '.btn-editar', function(e) {
             $('.modal-title').text('Editar usuário');
             var rowData = $('#table-user').DataTable().row($(this).parents('tr')).data();
@@ -281,23 +283,87 @@
         $('#table-user').on('click', '.btn-delete', function(e) {
             e.preventDefault();
             deleteId = $(this).data('id');
-            if (!confirm('Deseja realmente excluir o usuario ' + deleteId + ' ?')) return;
+            Swal.fire({
+                title: 'Deletar Usuário',
+                text: "Tem certeza que deseja deletar este usuário?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, deletar',
+                cancelButtonText: 'Não, cancelar',
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteUser(deleteId, '{{ route('usuario.delete') }}');
+                }
+            });
+        });
+
+        $('#table-user').on('click', '.btn-desative', function(e) {
+            e.preventDefault();
+            deleteId = $(this).data('id');
+            desativeUser(deleteId, '{{ route('usuario.desative') }}', 'Deseja realmente desativar este usuário?');
+        });
+
+        function deleteUser(id, url) {
             $.ajax({
-                url: "{{ route('usuario.delete') }}",
+                url: url,
                 method: 'DELETE',
                 data: {
-                    "id": deleteId,
+                    "id": id,
                     "_token": $("[name=csrf-token]").attr("content"),
                 },
                 beforeSend: function() {
                     // $("#loading").removeClass('hidden');
                 },
                 success: function(response) {
-                    $('#table-user').DataTable().ajax.reload();
-                    msgToastr(response.success, 'success');
+                    if (response.success) {
+                        $('#table-user').DataTable().ajax.reload();
+                        showAlert('Deletar', response.success, 'success');
+                    } else if (response.error) {
+                        desativeUser(id, '{{ route('usuario.desative') }}', response.error);
+                    }
                 }
             });
+        }
 
-        });
-    </script>    
+        function desativeUser(id, url, text) {
+            Swal.fire({
+                title: 'Desativar',
+                text: text,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, desativar',
+                cancelButtonText: 'Não, manter',
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-secondary'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: deleteId,
+                        },
+                        success: function(response) {
+                            $('#table-user').DataTable().ajax.reload();
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Usuário',
+                                text: response.success,
+                                customClass: {
+                                    confirmButton: 'btn btn-success'
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
 @stop

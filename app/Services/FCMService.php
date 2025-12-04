@@ -36,7 +36,7 @@ class FCMService
         $payload = [
             "message" => [
                 "token" => $token,
-                "notification" => [
+                "data" => [
                     "title" => $title,
                     "body" => $body,
                 ],

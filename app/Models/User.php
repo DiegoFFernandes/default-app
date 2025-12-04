@@ -24,7 +24,8 @@ class User extends Authenticatable
         'password',
         'empresa',
         'phone',
-        'cd_tipopessoa'
+        'cd_tipopessoa',
+        'notifications'
     ];
 
     /**
@@ -90,5 +91,13 @@ class User extends Authenticatable
             ->where('users.id', '<>', '1')
             ->groupBy('users.id', 'users.name', 'users.email', 'users.empresa', 'users.created_at')
             ->orderBy('id')->get();
+    }
+
+    public function updateNotification($input)
+    {
+        return User::find($input['id'])
+            ->update([
+                'notifications' => $input['notifications']
+            ]);
     }
 }
