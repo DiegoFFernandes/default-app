@@ -304,7 +304,13 @@
         $('#table-user').on('click', '.btn-desative', function(e) {
             e.preventDefault();
             deleteId = $(this).data('id');
-            desativeUser(deleteId, '{{ route('usuario.desative') }}', 'Deseja realmente desativar este usuário?');
+            desativeUser(deleteId, '{{ route('usuario.desative') }}', 'Deseja realmente desativar este usuário?', 'Desativar Usuário', 'error', 'Sim, desativar', 'N');
+        });
+
+         $('#table-user').on('click', '.btn-active', function(e) {
+            e.preventDefault();
+            deleteId = $(this).data('id');
+            desativeUser(deleteId, '{{ route('usuario.desative') }}', 'Deseja realmente ativar este usuário?', 'Ativar Usuário', 'success', 'Sim, ativar', 'S');
         });
 
         function deleteUser(id, url) {
@@ -323,19 +329,19 @@
                         $('#table-user').DataTable().ajax.reload();
                         showAlert('Deletar', response.success, 'success');
                     } else if (response.error) {
-                        desativeUser(id, '{{ route('usuario.desative') }}', response.error);
+                        desativeUser(id, '{{ route('usuario.desative') }}', response.error, 'Desativar Usuário', 'error', 'Sim, desativar', 'N');
                     }
                 }
             });
         }
 
-        function desativeUser(id, url, text) {
+        function desativeUser(id, url, text, title, icon, confirmButtonText, status) {
             Swal.fire({
-                title: 'Desativar',
+                title: title,
                 text: text,
-                icon: 'error',
+                icon: icon,
                 showCancelButton: true,
-                confirmButtonText: 'Sim, desativar',
+                confirmButtonText: confirmButtonText,
                 cancelButtonText: 'Não, manter',
                 customClass: {
                     confirmButton: 'btn btn-success',
@@ -349,6 +355,7 @@
                         data: {
                             _token: '{{ csrf_token() }}',
                             id: deleteId,
+                            status: status
                         },
                         success: function(response) {
                             $('#table-user').DataTable().ajax.reload();

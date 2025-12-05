@@ -38,12 +38,13 @@ class AgendaEnvio extends Model
                     ae.bi_anexorelat, 
                     ae.dt_envio,
                     ae.st_envio,
-                    ae.ds_motivo
+                    ae.ds_motivo,
+                    ae.dt_registro
         from agendaenvio ae
         inner join pessoa p on (p.cd_pessoa = ae.cd_pessoa)
         inner join contextoemail ce on (ce.nr_contexto = ae.nr_contexto)                
-                where ae.ds_mensagem like '%$request->cd_number%' 
-                and ce.nr_contexto in (103,104,106,105)
+                where ce.nr_contexto in (103,104,106,105)
+                " . (($request->cd_number != 0) ? "ae.ds_mensagem like '%$request->cd_number%' ": "") . "
                 " . (($request->cd_pessoa != 0) ? "and ae.cd_pessoa = $request->cd_pessoa" : "") . "
                 " . (($request->nm_pessoa != 0) ? "and p.nm_pessoa like '%$request->nm_pessoa%'" : "") . "
                 " . (($request->cpf_cnpj != 0) ? "and p.nr_cnpjcpf = '$request->cpf_cnpj'" : "") . "
@@ -67,7 +68,7 @@ class AgendaEnvio extends Model
         from contextoemail ce
         where ce.st_ativo = 'S'
             and ce.tp_envio = 'E'
-            and ce.nr_contexto in (103,104,106,105)
+            and ce.nr_contexto in (1,130,103,104,106,105)
         order by ce.ds_contexto";
         $results =  DB::connection('firebird')->select($query);
 

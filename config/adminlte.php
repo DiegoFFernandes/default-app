@@ -324,9 +324,20 @@ return [
         [
             'text' => 'Usuarios',
             'can' => 'ver-usuarios',
-            'route' => 'usuario.index',
-            'active' => ['usuario.index'],
+            'url' => '#',
             'icon' => 'nav-icon far fa-user',
+            'submenu' => [
+                [
+                    'text' => 'Cadastros',
+                    'route' => 'usuario.index',
+                    'can' => 'ver-usuarios',
+                ],
+                [
+                    'text' => 'Notificações',
+                    'route' => 'usuario.configuration-users',
+                    'can' => 'ver-usuarios',
+                ]
+            ],
             // 'label' => 4,
             // 'label_color' => 'success',
         ],

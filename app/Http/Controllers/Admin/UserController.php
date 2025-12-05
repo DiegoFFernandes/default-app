@@ -79,7 +79,7 @@ class UserController extends Controller
                 if ($data->st_ativo == 'S') {
                     $btn .= '<button type="button" class="btn-desative btn btn-secondary btn-xs" data-id="' . $data->id . '"><i class="fas fa-user-slash"></i></button> ';
                 } else {
-                    $btn .= '<button type="button" class="btn-ativar btn btn-success btn-xs" data-id="' . $data->id . '"><i class="fas fa-user-check"></i></button> ';
+                    $btn .= '<button type="button" class="btn-active btn btn-success btn-xs" data-id="' . $data->id . '"><i class="fas fa-user-check"></i></button> ';
                 }
                 $btn .= '<button type="button" class="btn-delete btn btn-danger btn-xs" data-id="' . $data->id . '"><i class="fas fa-trash"></i></button>';
 
@@ -158,7 +158,7 @@ class UserController extends Controller
     public function desative()
     {
         $user = User::find($this->request->id);
-        if ($user->st_ativo == 'S') {
+        if ($this->request->status == 'N') {
             $user->st_ativo = 'N';
             $msg = 'Usuário desativado com sucesso!';
         } else {

@@ -97,7 +97,7 @@
             <section class="col-md-8">
                 <div class="card">
                     <div class="card-header" style="">
-                        <h3 class="card-title">Resultado pesquisa - Envios Automaticos</h3>                       
+                        <h3 class="card-title">Resultado pesquisa - Envios Automaticos</h3>
                     </div>
                     <div class="card-body">
                         <table id="table-search" class="table compact table-font-small table-bordered table-striped">
@@ -204,10 +204,10 @@
 
             $('#submit-seach').click(function() {
                 let cd_number = $("#search-number").val();
-                if (cd_number == "") {
-                    $('#search-number').attr('title', 'Código para buscar é obrigatório!').tooltip('show');
-                    return false;
-                }
+                // if (cd_number == "") {
+                //     $('#search-number').attr('title', 'Código para buscar é obrigatório!').tooltip('show');
+                //     return false;
+                // }
                 let cd_pessoa = $("#cd_pessoa").val();
                 let nm_pessoa = $("#nm_pessoa").val();
                 let cpf_cnpj = $("#cpf_cnpj").val();
@@ -239,7 +239,7 @@
                     columns: [{
                             title: 'Descrição',
                             data: 'DS_CONTEXTO',
-                            width: '22%',
+                            width: '20%',
                         },
                         {
                             title: 'Agenda',
@@ -250,19 +250,33 @@
                         {
                             title: 'Cliente',
                             data: 'NM_PESSOA',
-                            width: '30%',
+                            width: '20%',
                         },
                         {
                             title: 'Data Envio',
                             data: 'DT_ENVIO',
-                            width: '15%',
+                            width: '10%',
+                        },
+                        {
+                            title: 'Data Registro',
+                            data: 'DT_REGISTRO',
+                            width: '10%',
+                        },
+                        {
+                            title: 'Status',
+                            data: 'ST_ENVIO',
+                            width: '8%',
+                            sClass: 'text-center',
                         },
                         {
                             title: '#',
                             data: 'action',
-                            width: '10%',
+                            width: '15%',
                         }
-                    ]
+                    ],
+                    order: [
+                        [4, 'desc']
+                    ],
                 });
             });
 
@@ -294,7 +308,7 @@
                         $('#message').val($('<div/>').html(result[0].DS_MENSAGEM).text());
 
                         let anexos = '';
-                        result[0].ANEXOS.forEach(item => {                            
+                        result[0].ANEXOS.forEach(item => {
                             anexos +=
                                 `<button class="btn btn-secondary btn-sm mr-1">${item.TITULO}</button>`;
                         });
@@ -308,7 +322,7 @@
 
                 Swal.fire({
                     title: 'Atenção!',
-                    text: "Deseja realmente reenviar esse email?",                    
+                    text: "Deseja realmente reenviar esse email?",
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
