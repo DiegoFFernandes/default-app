@@ -43,8 +43,8 @@ class AgendaEnvio extends Model
         from agendaenvio ae
         inner join pessoa p on (p.cd_pessoa = ae.cd_pessoa)
         inner join contextoemail ce on (ce.nr_contexto = ae.nr_contexto)                
-                where ce.nr_contexto in (103,104,106,105)
-                " . (($request->cd_number != 0) ? "ae.ds_mensagem like '%$request->cd_number%' ": "") . "
+                where ce.nr_contexto in (1,130,103,104,106,105)
+                " . (($request->cd_number != 0) ? "and ae.ds_mensagem like '%$request->cd_number%' ": "") . "
                 " . (($request->cd_pessoa != 0) ? "and ae.cd_pessoa = $request->cd_pessoa" : "") . "
                 " . (($request->nm_pessoa != 0) ? "and p.nm_pessoa like '%$request->nm_pessoa%'" : "") . "
                 " . (($request->cpf_cnpj != 0) ? "and p.nr_cnpjcpf = '$request->cpf_cnpj'" : "") . "

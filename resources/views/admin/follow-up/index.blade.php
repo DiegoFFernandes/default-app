@@ -12,6 +12,9 @@
                         </h3>
                     </div>
                     <div class="card-body pt-0">
+                        <div class="mt-1">
+                            <small class="badge badge-danger badge-date-follow"></small>
+                        </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group" style="padding-top: 15px">
@@ -82,7 +85,7 @@
                                                 <i class="fa fa-clock-o"></i>
                                             </div>
                                             <input type="text" class="form-control form-control-sm float-right"
-                                                id="daterange" value="" autocomplete="off">
+                                                id="daterange" value="" autocomplete="off" placeholder="Periodo">
                                         </div>
                                         <!-- /.input group -->
                                     </div>
@@ -196,23 +199,28 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
-            const datasSelecionadas = initDateRangePicker();
+            var dtInicio = moment().subtract(30, 'days').format('DD.MM.YYYY');
+            var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+            var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
+
+            $('.badge-date-follow').text('Período: ' + dtInicio + ' a ' + dtFim);
 
             $('#nr_contexto').select2({
                 theme: 'bootstrap4'
             });
 
             $('#submit-seach').click(function() {
+                
                 let cd_number = $("#search-number").val();
-                // if (cd_number == "") {
-                //     $('#search-number').attr('title', 'Código para buscar é obrigatório!').tooltip('show');
-                //     return false;
-                // }
                 let cd_pessoa = $("#cd_pessoa").val();
                 let nm_pessoa = $("#nm_pessoa").val();
                 let cpf_cnpj = $("#cpf_cnpj").val();
                 let nr_contexto = $("#nr_contexto").val();
                 let ds_email_pessoa = $("#ds_email_pessoa").val();
+                let inicio_data = datasSelecionadas.getInicio();
+                let fim_data = datasSelecionadas.getFim();
+
+                $('.badge-date-follow').text('Período: ' + inicio_data + ' a ' + fim_data);
 
                 $("#table-search").DataTable().destroy();
 
@@ -232,8 +240,8 @@
                             cpf_cnpj: cpf_cnpj,
                             ds_email: ds_email_pessoa,
                             nr_contexto: nr_contexto,
-                            inicio_data: datasSelecionadas.inicioData,
-                            fim_data: datasSelecionadas.fimData,
+                            inicio_data: inicio_data,
+                            fim_data: fim_data,
                         },
                     },
                     columns: [{

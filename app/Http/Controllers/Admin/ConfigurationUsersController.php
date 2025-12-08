@@ -26,12 +26,13 @@ class ConfigurationUsersController extends Controller
     {
         $title_page = 'Configurações de Usuários';
         $user_auth = auth()->user();
-        $users = User::where('id', '!=', 1)->get();
+        $user =  $this->user->getData();
+
 
         return view('admin.usuarios.configuration-users', compact(
             'title_page',
             'user_auth',
-            'users'
+            'user'
         ));
     }
 }
