@@ -21,6 +21,15 @@ messaging.onBackgroundMessage((payload) => {
     console.log("Mensagem recebida no SW:", payload);
     self.registration.showNotification(payload.data.title, {
         body: payload.data.body,
-        icon: "/icon.png",
+        icon: payload.data.icon,
+        data: {
+            url: payload.data.url,
+        },
     });
+});
+
+self.addEventListener("notificationclick", (event) => {
+    event.notification.close();
+
+    event.waitUntil(clients.openWindow(event.notification.data.url));
 });

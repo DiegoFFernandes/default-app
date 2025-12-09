@@ -15,7 +15,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        foreach (['08:00', '12:00', '16:00'] as $hora) {
+            $schedule->command('send:msg_fcm')->dailyAt($hora);
+        }
     }
 
     /**
@@ -25,7 +27,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

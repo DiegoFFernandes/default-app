@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Fcm;
 
 use App\Http\Controllers\Controller;
 use App\Models\FMCToken;
+use App\Models\NotificationUsers;
 use App\Models\User;
 use App\Services\FCMService;
+use App\Services\ServiceEstoqueNegativo;
+use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,20 +18,26 @@ class FCMController extends Controller
     public $request;
     public $fcmToken;
     public $user;
+    public $tipo_notificacao;
+    public $serviceEstoqueNegativo;
 
     public function __construct(
         Request $request,
         FMCToken $fcmToken,
-        User $user
+        User $user,
+        NotificationUsers $notificationUsers,
+        ServiceEstoqueNegativo $serviceEstoqueNegativo
     ) {
         $this->request = $request;
         $this->fcmToken = $fcmToken;
         $this->user = $user;
+        $this->tipo_notificacao = $notificationUsers;
+        $this->serviceEstoqueNegativo = $serviceEstoqueNegativo;
     }
 
 
     public function saveToken()
-    {        
+    {
         $user = Auth::user();
 
         $notification = $this->request->input('notification', 'N');
@@ -52,15 +61,29 @@ class FCMController extends Controller
 
             return response()->json(['message' => 'Notificações desativadas.']);
         }
-
-
-
     }
 
-    public function sendToUser($userId, $title = 'Teste', $body = 'Mensagem enviada do Laravel via Firebase!')
+    public function sendToUser($tipoNotificacao = 'Estoque')
     {
+
+        // if ($tipoNotificacao === 'Estoque') {
+        //     $validaTipoNotificacao = $this->validaTipoNotificacao();
+        //     if (isset($validaTipoNotificacao['error'])) {
+        //         return $validaTipoNotificacao;
+        //     }
+        // }
+
+        //valida se o usuario permite notificações e depois pega quais os tipos de notificações ele vai receber
+        $users = $this->tipo_notificacao->allListTypeNotificationUsers($tipoNotificacao);
+
+        if (empty($users)) {
+            return ['error' => 'Nenhum usuário permite notificações deste tipo'];
+        }
+
+        $users_id = $users->pluck('id')->toArray();
+
         $tokens = DB::table('fcm_tokens')
-            ->where('user_id', $userId)
+            ->whereIn('user_id', $users_id)
             ->pluck('token')
             ->toArray();
 
@@ -68,13 +91,26 @@ class FCMController extends Controller
             return ['error' => 'Nenhum token para este usuário'];
         }
 
-        $fcm = new FCMService();
+
         $results = [];
 
+        $fcm = new FCMService();
+        
         foreach ($tokens as $token) {
-            return $results[] = $fcm->sendToToken($token, $title, $body);
+            $results[] = $fcm->sendToToken($token, $users[0]->tipo_notificacao, $users[0]->ds_notificacao);
         }
 
         return $results;
+    }
+
+    public function validaTipoNotificacao()
+    {
+        //valida se o estaque esta negativo antes de enviar a notificação
+        $estoqueNegativo = $this->serviceEstoqueNegativo->EstoqueNegativo();
+
+        if (Helper::is_empty_object($estoqueNegativo)) {
+            return ['error' => 'Estoque sem produtos negativos.'];
+        }
+
     }
 }

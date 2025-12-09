@@ -39,11 +39,8 @@ class FCMService
                 "data" => [
                     "title" => $title,
                     "body" => $body,
-                ],
-                "webpush" => [
-                    "fcm_options" => [
-                        "link" => "https://atz.dbytech.com.br"
-                    ]
+                    "url" => "https://atz.dbytech.com.br/usuario/configuration-users",
+                    "icon" => "https://atz.dbytech.com.br/apple-touch-icon.png"
                 ]
             ]
         ];

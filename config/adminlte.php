@@ -477,7 +477,7 @@ return [
             ]
         ],
         [
-            'text' => 'Pessoa',
+            'text' => 'Painel Cliente',
             'icon' => 'nav-icon fas fa-users',
             'url' => '#',
             'can' => ['ver-nota-cliente', 'ver-cadastros', 'ver-pedidos-coletados-acompanhamento-cliente'],
@@ -519,6 +519,21 @@ return [
                 ]
 
             ]
+        ],
+        [
+            'text' => 'Estoque',
+            'can' => 'ver-estoque',
+            'url' => '#',
+            'icon' => 'nav-icon far fa-clipboard',
+            'submenu' => [
+                [
+                    'text' => 'Itens Negativos',
+                    'route' => 'estoque-negativo',
+                    'can' => 'ver-estoque',
+                ]
+            ],
+            // 'label' => 4,
+            // 'label_color' => 'success',
         ],
     ],
 

@@ -48,7 +48,8 @@ class RouteServiceProvider extends ServiceProvider
                     require base_path('routes/cliente.php');  
                     require base_path('routes/tarefas.php'); 
                     require base_path('routes/follow-up.php');   
-                    require base_path('routes/fcm.php');                  
+                    require base_path('routes/fcm.php'); 
+                    require base_path('routes/estoque.php');                 
                 });
              
         });
