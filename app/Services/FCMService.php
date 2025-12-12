@@ -39,7 +39,7 @@ class FCMService
                 "data" => [
                     "title" => $title,
                     "body" => $body,
-                    "url" => "https://atz.dbytech.com.br/usuario/configuration-users",
+                    "url" => "https://atz.dbytech.com.br/estoque/estoque-negativo",
                     "icon" => "https://atz.dbytech.com.br/apple-touch-icon.png"
                 ]
             ]

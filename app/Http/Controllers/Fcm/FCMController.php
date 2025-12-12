@@ -66,12 +66,12 @@ class FCMController extends Controller
     public function sendToUser($tipoNotificacao = 'Estoque')
     {
 
-        // if ($tipoNotificacao === 'Estoque') {
-        //     $validaTipoNotificacao = $this->validaTipoNotificacao();
-        //     if (isset($validaTipoNotificacao['error'])) {
-        //         return $validaTipoNotificacao;
-        //     }
-        // }
+        if ($tipoNotificacao === 'Estoque') {
+            $validaTipoNotificacao = $this->validaTipoNotificacao();
+            if (isset($validaTipoNotificacao['error'])) {
+                return $validaTipoNotificacao;
+            }
+        }
 
         //valida se o usuario permite notificações e depois pega quais os tipos de notificações ele vai receber
         $users = $this->tipo_notificacao->allListTypeNotificationUsers($tipoNotificacao);
@@ -95,7 +95,7 @@ class FCMController extends Controller
         $results = [];
 
         $fcm = new FCMService();
-        
+
         foreach ($tokens as $token) {
             $results[] = $fcm->sendToToken($token, $users[0]->tipo_notificacao, $users[0]->ds_notificacao);
         }

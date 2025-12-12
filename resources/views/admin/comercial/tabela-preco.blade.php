@@ -18,7 +18,7 @@
                                 <a class="nav-link" id="tab-cadastradas" data-toggle="tab" href="#painel-cadastradas"
                                     role="tab">Cadastradas</a>
                             </li>
-                            @if (auth()->user()->hasRole('admin|gerente comercial'))
+                            @if (auth()->user()->hasRole('admin|gerente comercial|usuario comercial'))
                                 <li class="nav-item">
                                     <a class="nav-link" id="tab-associadas" data-toggle="tab" href="#painel-associadas"
                                         role="tab">Associadas</a>

@@ -194,8 +194,7 @@
 
         $('#table-user').on('click', '.btn-editar', function(e) {
             $('.modal-title').text('Editar usuário');
-            var rowData = $('#table-user').DataTable().row($(this).parents('tr')).data();
-            console.log(rowData);
+            var rowData = $('#table-user').DataTable().row($(this).parents('tr')).data();            
             $('#btn-save').addClass('d-none');
             $('#btn-update').removeClass('d-none');
             $('#id_user').val(rowData['id']);

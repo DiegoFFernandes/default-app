@@ -530,6 +530,11 @@ return [
                     'text' => 'Itens Negativos',
                     'route' => 'estoque-negativo',
                     'can' => 'ver-estoque',
+                ],
+                [
+                    'text' => 'Carcacas Casa',
+                    'route' => 'carcaca-casa',
+                    'can' => 'ver-estoque',
                 ]
             ],
             // 'label' => 4,

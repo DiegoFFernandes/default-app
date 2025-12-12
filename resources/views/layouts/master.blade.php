@@ -116,9 +116,10 @@
 
         document.addEventListener("DOMContentLoaded", function() {
 
+            
 
             $('.input-venda').inputmask({
-                mask: 'decimal',
+                mask: ['999,99', '9.999,99'],
                 radixPoint: ',',
             });
 

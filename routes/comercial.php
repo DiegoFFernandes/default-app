@@ -28,7 +28,7 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
     });
 });
 
-Route::middleware(['auth', 'role:admin|gerente comercial|supervisor'])->group(function () {
+Route::middleware(['auth', 'role:admin|gerente comercial|supervisor|usuario comercial'])->group(function () {
     Route::prefix('tabela')->group(function () {
         Route::get('tabela-preco', [TabelaPrecoController::class, 'index'])->name('tabela-preco.index');
         Route::get('get-tabela-preco', [TabelaPrecoController::class, 'getTabPreco'])->name('get-tabela-preco');
