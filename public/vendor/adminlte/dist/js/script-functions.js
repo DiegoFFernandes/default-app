@@ -258,3 +258,33 @@ async function sendTokenToServer(token, notification) {
 
     return await response.json();
 }
+
+function inicializaSelect2Lista(config) {
+    $.ajax({
+        url: config.route,
+        type: "GET",        
+        dataType: "json",
+        success: function (data) {
+            let select = $(config.selectId);
+
+            select.empty().append("<option></option>");
+
+            $.each(data, function (i, item) {
+                select.append(
+                    $("<option>", {
+                        value: item[config.valueField],
+                        text: item[config.textField],
+                    })
+                );
+            });
+
+            select.select2({
+                placeholder: config.placeholder,
+                theme: "bootstrap4",
+                width: "100%",
+                allowClear: true,
+                dropdownParent: $(config.modalParent),
+            });
+        },
+    });
+}

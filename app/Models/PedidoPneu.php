@@ -78,4 +78,61 @@ class PedidoPneu extends Model
 
         return Helper::ConvertFormatText($dados);
     }
+
+    public function createPedidoPneu($inputs)
+    {
+        return DB::transaction(function () use ($inputs) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                INSERT INTO 
+                PEDIDOPNEU (
+                    ID,
+                    DTEMISSAO,
+                    DTENTREGA,
+                    IDVENDEDOR,
+                    STPEDIDO,
+                    IDCONDPAGTO,
+                    CDFORMAPAGTO,
+                    DSOBSERVACAO,
+                    DTREGISTRO,
+                    IDPESSOA,
+                    IDEMPRESA,
+                    IDTIPOPEDIDO,
+                    STGERAPEDIDO,
+                    IDENDERECO,
+                    DSOBSFATURAMENTO,
+                    STFATURAAUTO,
+                    IDEMPRESAFATURAMENTO,
+                    HREMISSAO,
+                    TP_BLOQUEIO)
+                VALUES (
+                        171637,
+                        CURRENT_DATE,
+                        CURRENT_DATE+1,
+                        27541,
+                        'A',
+                        9,
+                        'BL',
+                        NULL,
+                        CURRENT_TIMESTAMP,
+                        12646,
+                        1,
+                        1,
+                        'S',
+                        1,
+                        NULL,
+                        'S',
+                        1,
+                        '13:47:56',
+                        'A') RETURNING ID
+            ";
+
+            $result = DB::connection('firebird')->select($query);
+
+            return $result[0]->ID;
+        });
+
+    }
 }

@@ -69,8 +69,7 @@ class EstoqueController extends Controller
         $user_auth   = $this->user;
         $uri         = $this->request->route()->uri();
 
-        return view(
-            "admin.estoque.carcaca-casa",
+        return view('admin.estoque.carcaca-casa',
             compact(
                 'uri',
                 'title_page',
@@ -302,7 +301,7 @@ class EstoqueController extends Controller
 
         if ($this->request->has('q')) {
             $search = $this->request->q;
-            $data = $this->medidapneu->searchMedidasPneus($search);
+            $data = $this->medidapneu->searchMedidasPneusCasa($search);
         }
         return response()->json($data);
     }

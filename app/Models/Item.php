@@ -22,4 +22,18 @@ class Item extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+    public function servicoPneuMedida($idMedidaPneu)
+    {
+        $query = "
+                SELECT
+                    SP.ID,
+                    SP.DSSERVICO
+                FROM SERVICOPNEU SP
+                WHERE
+                    SP.IDMEDIDAPNEU = $idMedidaPneu";
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
+    }
 }

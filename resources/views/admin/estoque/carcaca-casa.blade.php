@@ -31,35 +31,39 @@
                                 aria-labelledby="tab-carcaca-entrada">
                                 <div class="card-body p-2">
                                     <div class="row">
-                                        @if (!auth()->user()->hasRole('vendedor|supervisor|gerente'))
-                                            <div class="col-md-8" id="div-tabela-carcacas">
-                                                <div class="card-header">
-                                                    <h6 class="card-title">Estoque</h6>
-                                                    <div class="card-tools m-0">
-                                                        <button class="btn btn-xs btn-danger" id="btn-add-carcaca"
-                                                            title="Adicionar Carcaça"><i class="fas fa-plus"></i></button>
-                                                        <button class="btn btn-xs btn-danger" id="download-itens"
-                                                            title="Fazer Download"><i class="fas fa-download"></i></button>
-                                                    </div>
-                                                </div>
-                                                <div class="card-body pb-0">
-                                                    <table
-                                                        class="table table-bordered compact table-font-small table-responsive"
-                                                        id="estoque-carcacas">
-                                                    </table>
-                                                </div>
-                                                <div class="card-footer pt-0">
-                                                    <button type="button" class="btn btn-secondary btn-xs"
-                                                        style="width: 100px;" id="btn-baixar-todos">
-                                                        Baixar Todos
-                                                    </button>
-                                                    <button type="button" class="btn btn-secondary btn-xs"
-                                                        style="width: 100px;" id="btn-transferir-todos">
-                                                        Transferir Local
-                                                    </button>
+                                        <div class="col-md-8" id="div-tabela-carcacas"
+                                            @if (auth()->user()->hasRole('vendedor|supervisor|gerente comercial')) style="display:none;" @endif>
+                                            <div class="card-header">
+                                                <h6 class="card-title">Estoque</h6>
+                                                <div class="card-tools m-0">
+                                                    <button class="btn btn-xs btn-danger" id="btn-add-carcaca"
+                                                        title="Adicionar Carcaça"><i class="fas fa-plus"></i></button>
+                                                    <button class="btn btn-xs btn-danger" id="download-itens"
+                                                        title="Fazer Download"><i class="fas fa-download"></i></button>
                                                 </div>
                                             </div>
-                                        @endif
+                                            <div class="card-body pb-0">
+                                                <table
+                                                    class="table table-bordered compact table-font-small table-responsive"
+                                                    id="estoque-carcacas">
+                                                </table>
+                                            </div>
+                                            <div class="card-footer pt-0">
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    style="width: 100px;" id="btn-baixar-todos">
+                                                    Baixar Todos
+                                                </button>
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    style="width: 100px;" id="btn-transferir-todos">
+                                                    Transferir Local
+                                                </button>
+                                                {{-- <button type="button" class="btn btn-secondary btn-xs"
+                                                    style="width: 100px;" id="btn-criar-pedido">
+                                                    Criar Pedido
+                                                </button> --}}
+                                            </div>
+                                        </div>
+
                                         <div class="col-md-4">
                                             <div class="row">
                                                 <div class="col-12 col-sm-12 col-md-12">
@@ -151,14 +155,14 @@
                             </select>
                         </div>
                         <div class="row">
-                            <div class="col-12 col-md-6 d-none">
+                            <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="nr_fogo">Número Fogo</label>
                                     <input type="number" class="form-control form-control-sm" name="nr_fogo"
                                         id="nr_fogo" />
                                 </div>
                             </div>
-                            <div class="col-12 col-md-6 d-none">
+                            <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label for="nr_serie">Número Série</label>
                                     <input type="text" class="form-control form-control-sm" name="nr_serie"
@@ -244,6 +248,73 @@
                 </div>
             </div>
         </div>
+        <div class=modal fade id="modal-criar-pedido" tabindex="-1" role="dialog"
+            aria-labelledby="modal-criar-pedido-label" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">Criar Pedido</h6>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                             <div class="col-12 col-md-4">
+                                <div class="form-group">
+                                    <label for="nm_pessoa">Empresa</label>
+                                    <select name='cd_empresa' class="form-control" id="cd_empresa" style="width: 100%">
+                                        <option value="1" selected="selected">Cambé</option>
+                                        <option value="3">Osvaldo Cruz</option>
+                                        <option value="5">Ponta Grossa</option>
+                                        <option value="6">Cantanduva</option>                                      
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <div class="form-group">
+                                    <label for="nm_pessoa">Cliente</label>
+                                    <select name='pessoa' class="form-control" id="pessoa"
+                                        style="width: 100%">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="cd_cond_pagto">Cond. Pagto</label>
+                                    <select name='cond_pagto' class="form-control" id="cd_cond_pagto"
+                                        style="width: 100%">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="cd_form_pagto">Forma Pagto</label>
+                                    <select name='form_pagto' class="form-control" id="cd_form_pagto"
+                                        style="width: 100%">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <strong class="p-1">Itens do Pedido</strong>
+
+                            <div class="col-12 col-md-12" id="itens-pedido">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-primary btn-xs" id="btn-confirmar-pedido">Confirmar
+                            Pedido</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 @stop
 @section('css')
@@ -252,8 +323,8 @@
             margin-bottom: 3px;
         }
 
-        @media (max-width: 768px) {            
-            
+        @media (max-width: 768px) {
+
             #divAccordion {
                 margin-bottom: 0px;
                 font-size: 13px;
@@ -269,9 +340,96 @@
 @stop
 @section('js')
     <script type="text/javascript">
+        const routes = {
+            searchPessoa: "{{ route('usuario.search-pessoa') }}",
+            condicaoPagamento: "{{ route('get-cond-pagamento') }}",
+            formaPagamento: "{{ route('get-form-pagamento') }}",
+            servicoPneuMedida: "{{ route('get-servico-pneu-medida') }}"
+        }
+
+        initSelect2Pessoa('#pessoa', routes.searchPessoa, '#modal-criar-pedido');
+
+        $(document).on('click', '#btn-criar-pedido', function() {
+
+            $('#itens-pedido').html('');
+
+            inicializaSelect2Lista({
+                route: routes.condicaoPagamento,
+                selectId: '#cd_cond_pagto',
+                placeholder: 'Selecione a Condição de Pagamento',
+                modalParent: '#modal-criar-pedido',
+                textField: 'DS_CONDPAGTO',
+                valueField: 'CD_CONDPAGTO'
+            });
+
+            inicializaSelect2Lista({
+                route: routes.formaPagamento,
+                selectId: '#cd_form_pagto',
+                placeholder: 'Selecione a Forma de Pagamento',
+                modalParent: '#modal-criar-pedido',
+                textField: 'DS_FORMAPAGTO',
+                valueField: 'CD_FORMAPAGTO'
+            });
+
+            let selectedRows = table_carcaca_itens.rows({
+                selected: true
+            }).data();
+            if (selectedRows.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nenhuma carcaça selecionada.',
+                    text: 'Por favor, selecione ao menos uma carcaça para transferencia.'
+                });
+                return;
+            }
+
+            selectedRows.each(function(rowData) {
+                let itemHtml = `
+                                <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
+                                    <div class="col-4">
+                                        <label class="form-label">Medida</label>
+                                        <input type="text"
+                                            class="form-control"
+                                            value="${rowData.DSMEDIDAPNEU}"
+                                            readonly />
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Serviço</label>
+                                        <select class="form-control servico-item-${rowData.ID}" style="width: 100%">                                           
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <label class="form-label">Valor</label>
+                                        <input type="text"
+                                            class="form-control input-venda"                                           
+                                            />
+                                    </div>
+                                </div>
+                            `;
+
+                $('#itens-pedido').append(itemHtml);
+
+                $('.input-venda').inputmask({
+                    mask: ['999', '9.999'],
+                    radixPoint: ',',
+                });
+
+                inicializaSelect2Lista({
+                    route: routes.servicoPneuMedida + '?idMedidaPneu=' + rowData.IDMEDIDAPNEU,
+                    selectId: `.servico-item-${rowData.ID}`,
+                    placeholder: 'Selecione o Serviço',
+                    modalParent: '#modal-criar-pedido',
+                    textField: 'DSSERVICO',
+                    valueField: 'ID'
+                })
+            });
+
+            $('#modal-criar-pedido').modal('show');
+        });
+
         $('#btn-add-carcaca').on('click', function() {
             $('#modal-add-carcaca').modal('show');
-            $('.modal-title').text('Adicionar Carcaça');
+            $('#modal-add-carcaca .modal-title').text('Adicionar Carcaça');
             $('#cd_medida').val(null).trigger('change');
             $('#cd_modelo').val(null).trigger('change');
             $('#nr_fogo').val('');
@@ -390,20 +548,19 @@
                     data: 'NR_FOGO',
                     name: 'NR_FOGO',
                     title: 'Fogo',
-                    visible: false,
+                    className: 'text-center',
                 },
                 {
                     data: 'NR_SERIE',
                     name: 'NR_SERIE',
                     title: 'Serie',
-                    visible: false,
+                    className: 'text-center',
                 },
                 {
                     data: 'NR_DOT',
                     name: 'NR_DOT',
                     title: 'Dot',
                     className: 'text-center',
-                    width: '10%',
                 },
                 {
                     data: 'VL_CARCACA',
@@ -411,18 +568,16 @@
                     title: 'Valor',
                     className: 'text-center',
                     render: $.fn.dataTable.render.number('.', ',', 2),
-                    width: '10%',
                 },
                 {
                     data: 'DS_TIPO',
                     name: 'DS_TIPO',
                     title: 'Tipo',
-                    width: '10%',
                 },
                 {
                     data: 'LOCAL_ESTOQUE',
                     name: 'LOCAL_ESTOQUE',
-                    title: 'Local Estoque'
+                    title: 'Local'
                 },
                 {
                     data: 'action',
@@ -553,7 +708,70 @@
             return html;
         }
 
-        $('#btn-save-carcaca').on('click', function() {
+        function deleteOrDown(status, id) {
+            Swal.fire({
+                title: 'Tem certeza?',
+                text: "Você não poderá reverter isso!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: status === 'B' ? 'Sim, baixar!' : 'Sim, deletar!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ route('delete-carcaca') }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            id: id,
+                            status: status
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#modal-add-carcaca').modal('hide');
+                                $('#estoque-carcacas').DataTable().ajax.reload();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Carcaça' + (status === 'B' ? ' baixada' :
+                                            ' deletada') +
+                                        ' com sucesso!',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                });
+                            } else {
+                                // Erro
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro ao ' + (status === 'B' ? 'baixar' :
+                                            'deletar') +
+                                        ' carcaça.',
+                                    html: response.errors,
+                                    customClass: {
+                                        htmlContainer: 'text-left'
+                                    }
+                                });
+                                return;
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro ao ' + (status === 'B' ? 'baixar' :
+                                        'deletar') +
+                                    ' carcaça.',
+                                text: xhr.responseText
+                            });
+                        }
+                    });
+                } else {
+                    return;
+                }
+            });
+        }
+
+        $(document).on('click', '#btn-save-carcaca', function() {
             let medida = $('#cd_medida').val();
             let modelo = $('#cd_modelo').val();
             let fogo = $('#nr_fogo').val();
@@ -789,67 +1007,68 @@
             });
         });
 
-        function deleteOrDown(status, id) {
-            Swal.fire({
-                title: 'Tem certeza?',
-                text: "Você não poderá reverter isso!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: status === 'B' ? 'Sim, baixar!' : 'Sim, deletar!',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ route('delete-carcaca') }}',
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            id: id,
-                            status: status
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                $('#modal-add-carcaca').modal('hide');
-                                $('#estoque-carcacas').DataTable().ajax.reload();
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Carcaça' + (status === 'B' ? ' baixada' :
-                                            ' deletada') +
-                                        ' com sucesso!',
-                                    showConfirmButton: false,
-                                    timer: 1500
-                                });
-                            } else {
-                                // Erro
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Erro ao ' + (status === 'B' ? 'baixar' :
-                                            'deletar') +
-                                        ' carcaça.',
-                                    html: response.errors,
-                                    customClass: {
-                                        htmlContainer: 'text-left'
-                                    }
-                                });
-                                return;
+        $(document).on('click', '#btn-confirmar-pedido', function() {
+            let cd_empresa = $('#cd_empresa').val();
+            let pessoa = $('#pessoa').val();
+            let cond_pagto = $('#cd_cond_pagto').val();
+            let form_pagto = $('#cd_form_pagto').val();
+
+            let itens = [];
+
+            $('.item-pedido').each(function() {
+                let itemId = $(this).data('item-id');
+                let servico = $(this).find('select').val();
+                let valor = $(this).find('input.input-venda').val().replace(',', '.');
+
+                itens.push({
+                    itemId: itemId,
+                    servico: servico,
+                    valor: valor
+                });
+            });
+
+            $.ajax({
+                url: '{{ route('store-pedido-pneu') }}',
+                type: 'GET',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    cd_empresa: cd_empresa,
+                    pessoa: pessoa,
+                    cond_pagto: cond_pagto,
+                    form_pagto: form_pagto,
+                    itens: itens
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#modal-criar-pedido').modal('hide');
+                        $('#estoque-carcacas').DataTable().ajax.reload();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pedido criado com sucesso!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    } else {
+                        // Erro
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao criar pedido.',
+                            html: response.errors,
+                            customClass: {
+                                htmlContainer: 'text-left'
                             }
-                        },
-                        error: function(xhr) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Erro ao ' + (status === 'B' ? 'baixar' :
-                                        'deletar') +
-                                    ' carcaça.',
-                                text: xhr.responseText
-                            });
-                        }
+                        });
+                        return;
+                    }
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao criar pedido.',
+                        text: xhr.responseText
                     });
-                } else {
-                    return;
                 }
             });
-        }
+        });
     </script>
 @endsection

@@ -114,9 +114,7 @@
             }
         });
 
-        document.addEventListener("DOMContentLoaded", function() {
-
-            
+        document.addEventListener("DOMContentLoaded", function() {            
 
             $('.input-venda').inputmask({
                 mask: ['999,99', '9.999,99'],
@@ -157,7 +155,7 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=15') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=17') }}"></script>
     <script>
         document.getElementById("ativarNotificacoesCheckbox").addEventListener("click", handleNotificationToggle);
 

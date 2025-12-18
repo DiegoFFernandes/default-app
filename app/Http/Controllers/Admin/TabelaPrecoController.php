@@ -114,7 +114,7 @@ class TabelaPrecoController extends Controller
                 $btn = '
                     <button class="btn mb-1 btn-xs btn-secondary btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Ver Itens</button> 
                   ';
-                if ($this->user->hasRole('admin|gerente comercial')) {
+                if ($this->user->hasRole('admin|gerente comercial|usuario comercial')) {
                     if ($row->ST_IMPORTA === 'N') {
                         $btn .= '<button class="btn mb-1 btn-xs btn-secondary btn-importar" data-cd_tabela="' . $row->CD_TABPRECO . '">Importar</button>';
                         $btn .= '<button class="btn mb-1 ml-1 btn-xs btn-danger btn-delete-tabela" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>';
