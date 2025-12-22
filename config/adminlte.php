@@ -434,7 +434,7 @@ return [
             'text' => 'Faturamento',
             'icon' => 'nav-icon fas fa-file-invoice-dollar',
             'url' => '#',
-            'can' => ['ver-produzidos-sem-faturar', 'ver-analise-faturamento'],
+            'can' => ['ver-produzidos-sem-faturar', 'ver-analise-faturamento', 'ver-nota-devolucao'],
             'submenu' => [
                 [
                     'text' => 'Produzidos S/ Faturar',
@@ -445,6 +445,11 @@ return [
                     'text' => 'Análise Faturista',
                     'route' => 'analise-faturamento.index',
                     'can' => ['ver-analise-faturamento'],
+                ],
+                 [
+                    'text' => 'Notas de Devolução',
+                    'route' => 'nota-devolucao.index',
+                    'can' => ['ver-nota-devolucao'],
                 ]
             ]
         ],

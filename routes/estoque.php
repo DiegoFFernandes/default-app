@@ -18,6 +18,10 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
         Route::post('transfer-carcaca', [EstoqueController::class, 'transferCarcaca'])->name('transfer-carcaca');
 
 
+        //Carcacas baixadas
+        Route::get('get-carcacas-baixadas', [EstoqueController::class, 'getCarcacaCasaBaixas'])->name('get-carcaca-casa-baixas');
+
+
         //Medidas de pneus
         Route::get('search-medidas-pneu', [EstoqueController::class, 'searchMedidasPneu'])->name('search-medidas-pneus');
         Route::get('search-modelo-pneu', [EstoqueController::class, 'searchModeloPneu'])->name('search-modelo-pneus');

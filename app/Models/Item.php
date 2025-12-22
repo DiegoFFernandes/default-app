@@ -23,15 +23,24 @@ class Item extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function servicoPneuMedida($idMedidaPneu)
+    public function servicoPneu($idMedidaPneu = null, $idItem = null)
     {
         $query = "
                 SELECT
                     SP.ID,
-                    SP.DSSERVICO
+                    SP.DSSERVICO,
+                    SP.IDBANDAPNEU,
+                    SP.IDITEMCARCACA,
+                    BP.ID IDBANDAPNEU,                    
+                    DP.ID IDDESENHOPNEU                                    
                 FROM SERVICOPNEU SP
+                LEFT JOIN BANDAPNEU BP ON (BP.ID = SP.IDBANDAPNEU)
+                LEFT JOIN DESENHOPNEU DP ON (DP.ID = BP.IDDESENHOPNEU)
                 WHERE
-                    SP.IDMEDIDAPNEU = $idMedidaPneu";
+                    " . (!$idItem == null ? "SP.ID = $idItem" : "1=1") . " 
+                    " . (!$idMedidaPneu == null ? "AND SP.IDMEDIDAPNEU = $idMedidaPneu" : "") . "
+                                     
+                    ";
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);

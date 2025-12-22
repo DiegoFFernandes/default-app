@@ -74,7 +74,7 @@ class Estoque extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getCarcacasDaCasa()
+    public function getCarcacasDaCasa($idPneuCarcaca = null, $stCarcaca = 'A')
     {
         $query = "
                 SELECT
@@ -90,28 +90,43 @@ class Estoque extends Model
                     PC.CD_TIPO,
                     PC.VL_CARCACA,
                     CASE PC.CD_TIPO
-                        WHEN 1 THEN 'PRIMEIRA'
-                        WHEN 2 THEN 'SEGUNDA'
-                        WHEN 3 THEN 'TERCEIRA'
+                    WHEN 1 THEN 'PRIMEIRA'
+                    WHEN 2 THEN 'SEGUNDA'
+                    WHEN 3 THEN 'TERCEIRA'
                     END DS_TIPO,
                     PC.CD_LOCAL,
                     CASE PC.CD_LOCAL
+                    WHEN 1 THEN 'CAMBE'
+                    WHEN 3 THEN 'OSVALDO'
+                    WHEN 5 THEN 'PONTA GROSSA'
+                    WHEN 6 THEN 'CATANDUVA'
+                    END LOCAL_ESTOQUE,
+                    PC.DT_REGISTRO,
+                    PC.ST_CARCACA,
+                    PP.ID PEDIDO,
+                    CASE PC.ST_BAIXA
+                        WHEN 'A' THEN 'AUTOMATICA'
+                        WHEN 'M' THEN 'MANUAL'
+                    END ST_BAIXA,                    
+                    CASE PP.IDEMPRESA
                         WHEN 1 THEN 'CAMBE'
                         WHEN 3 THEN 'OSVALDO'
                         WHEN 5 THEN 'PONTA GROSSA'
                         WHEN 6 THEN 'CATANDUVA'
-                    END LOCAL_ESTOQUE,
-                    PC.DT_REGISTRO,
-                    PC.ST_CARCACA
+                    END EMPRESA_BAIXA,
+                    PC.DT_ATUALIZACAO DT_BAIXA
                 FROM PNEUCARCACA PC
                 INNER JOIN MEDIDAPNEU MP ON (MP.ID = PC.IDMEDIDAPNEU)
                 INNER JOIN MODELOPNEU MODELO ON (MODELO.ID = PC.IDMODELOPNEU)
                 INNER JOIN MARCAPNEU MARCA ON (MARCA.ID = MODELO.IDMARCAPNEU)
+                LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = PC.IDITEMPEDIDOPNEU)
+                LEFT JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 WHERE
-                    PC.ST_CARCACA = 'A'                       
+                      PC.ST_CARCACA = :stCarcaca 
+                    " . (!empty($idPneuCarcaca) ? " AND PC.ID = $idPneuCarcaca " : "AND 1=1") . "                    
         ";
 
-        $data = DB::connection('firebird')->select($query);
+        $data = DB::connection('firebird')->select($query, ['stCarcaca' => $stCarcaca]);
 
         return Helper::ConvertFormatText($data);
     }
@@ -210,12 +225,13 @@ class Estoque extends Model
 
             $query = "
             UPDATE PNEUCARCACA
-            SET ST_CARCACA = :status
+                SET ST_CARCACA = :status, DT_ATUALIZACAO = CURRENT_TIMESTAMP, ST_BAIXA = 'M'
             WHERE ID IN ($placeholders)
             ";
 
             // Monta o array de parâmetros
             $params = ['status' => $status];
+
             foreach ($ids as $i => $value) {
                 $params["id$i"] = $value;
             }

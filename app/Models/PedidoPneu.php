@@ -46,7 +46,7 @@ class PedidoPneu extends Model
         return DB::transaction(function () use ($pedido, $tp_cargo) {
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
-           
+
             $query = "
                 UPDATE PEDIDOPNEU PP
                     SET PP.ST_COMERCIAL = '$tp_cargo'
@@ -79,16 +79,17 @@ class PedidoPneu extends Model
         return Helper::ConvertFormatText($dados);
     }
 
-    public function createPedidoPneu($inputs)
+    public function createPedidoPneu($pessoa, $input)
     {
-        return DB::transaction(function () use ($inputs) {
+        // return $input['cd_empresa'];
+        return DB::transaction(function () use ($pessoa, $input) {
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
             $query = "
                 INSERT INTO 
                 PEDIDOPNEU (
-                    ID,
+                    ID,                    
                     DTEMISSAO,
                     DTENTREGA,
                     IDVENDEDOR,
@@ -107,32 +108,171 @@ class PedidoPneu extends Model
                     IDEMPRESAFATURAMENTO,
                     HREMISSAO,
                     TP_BLOQUEIO)
-                VALUES (
-                        171637,
-                        CURRENT_DATE,
-                        CURRENT_DATE+1,
-                        27541,
-                        'A',
-                        9,
-                        'BL',
-                        NULL,
-                        CURRENT_TIMESTAMP,
-                        12646,
-                        1,
-                        1,
-                        'S',
-                        1,
-                        NULL,
-                        'S',
-                        1,
-                        '13:47:56',
-                        'A') RETURNING ID
+                VALUES ( 
+                        NEXT VALUE FOR SEQ_IDPEDIDOPNEU,                     
+                        CURRENT_DATE,                       
+                        CURRENT_DATE+1,                        
+                        :idvendedor,              
+                        'N',                                   
+                        :cond_pagto,                 
+                        :form_pagto,                 
+                        NULL,                               
+                        CURRENT_TIMESTAMP,                  
+                        :idpessoa,                 
+                        :cd_empresa,                 
+                        1,                                  
+                        'S',                                
+                        1,                                  
+                        NULL,                               
+                        'S',                                
+                        :cd_empresa_fat,                 
+                        CAST(CURRENT_TIME AS TIME),             
+                        'C') RETURNING ID
             ";
 
-            $result = DB::connection('firebird')->select($query);
+
+            $result = DB::connection('firebird')->select($query, [
+                'idvendedor'    => (int) $pessoa->CD_VENDEDOR,
+                'idpessoa'      => (int) $pessoa->CD_PESSOA,
+                'cond_pagto'    => (int) $input['cond_pagto'],
+                'form_pagto'    => (string) $input['form_pagto'],
+                'cd_empresa'    => (int) $input['cd_empresa'],
+                'cd_empresa_fat' => (int) $input['cd_empresa'],
+            ]);
+
+            if (empty($result)) {
+                throw new \Exception('Falha ao gerar o Código do pedido.');
+            }
+            return $result[0]->ID;
+        });
+    }
+
+    public function createItemPedidoPneu($idPedido, $idPneu, $pessoa, $servicoPneu, $valor, $seqItemPedidoPneu)
+    {
+
+        // return [
+        //         'idpedidopneu'     => (int) $idPedido,
+        //         'idpneu'           => (int) $idPneu,
+        //         'idservicopneu'    => (int) $servicoPneu->ID,
+        //         'iddesenhopneu'    => (int) $servicoPneu->IDDESENHOPNEU,
+        //         'vlunitario'       => (float) $valor,
+        //         'cdtabpreco'       => (int) $pessoa->CD_TABPRECO,
+        //         'nrsequencia'      => (int) $seqItemPedidoPneu,
+        //         'nrseqcriacao'     => (int) $seqItemPedidoPneu,
+        //         'idcarcacapedido'  => (int) $servicoPneu->IDITEMCARCACA,
+        //     ];
+        return DB::transaction(function () use ($idPedido, $idPneu, $pessoa, $servicoPneu, $valor, $seqItemPedidoPneu) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                INSERT INTO ITEMPEDIDOPNEU (
+                    ID,
+                    IDPEDIDOPNEU,
+                    IDPNEU,
+                    IDSERVICOPNEU,
+                    IDDESENHOPNEU,
+                    DTREGISTRO,
+                    VLUNITARIO,
+                    NRSEQUENCIA,
+                    STGARANTIA,
+                    STURGENTE,
+                    STPEDIDOENT,
+                    STCOLETATESTE,
+                    IDTABPRECO,
+                    STCANCELADO,
+                    NRSEQCRIACAO,
+                    STITEMPEDIDOPNEU,
+                    STPNEUDACASA,
+                    IDCARCACAPEDIDO,
+                    STJAFATURADOAUTO,
+                    STFATURAAUTOSAIDA,
+                    STUTILIZAESTUFA,
+                    STPNEUPARREPROVADO)
+                VALUES ( 
+                        NEXT VALUE FOR SEQ_IDITEMPEDIDOPNEU,
+                        :idpedidopneu,
+                        :idpneu,
+                        :idservicopneu,
+                        :iddesenhopneu,
+                        CURRENT_TIMESTAMP,
+                        :vlunitario,
+                        :nrsequencia,
+                        'N',
+                        'N',
+                        'S',
+                        'N',
+                        :idtabpreco,
+                        'N',
+                        :nrseqcriacao,
+                        'N',
+                        'N',
+                        :idcarcacapedido,
+                        'N',
+                        'N',
+                        'N',
+                        'N') RETURNING ID
+                 ";
+
+            $result = DB::connection('firebird')->select($query, [
+                'idpedidopneu'     => (int) $idPedido,
+                'idpneu'           => (int) $idPneu,
+                'idservicopneu'    => (int) $servicoPneu->ID,
+                'iddesenhopneu'    => (int) $servicoPneu->IDDESENHOPNEU,
+                'vlunitario'       => (float) $valor,
+                'nrsequencia'      => (int) $seqItemPedidoPneu,
+                'idtabpreco'       => (int) $pessoa->CD_TABPRECO,
+                'nrseqcriacao'     => (int) $seqItemPedidoPneu,
+                'idcarcacapedido'  => (int) $servicoPneu->IDITEMCARCACA,
+
+            ]);
+
+            if (empty($result)) {
+                throw new \Exception('Falha ao gerar o Código do item do pedido.');
+            }
 
             return $result[0]->ID;
         });
+    }
 
+    public function createItemPedidoPneuBorracheiro($iditemPedidoPneu, $pessoa, $calculaComissao){
+        
+        
+        return DB::transaction(function() use($iditemPedidoPneu, $pessoa, $calculaComissao){
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                INSERT INTO ITEMPEDIDOPNEUBORRACHEIRO (
+                    ID,
+                    IDITEMPEDIDOPNEU,
+                    IDBORRACHEIRO,
+                    PC_COMISSAO,
+                    VL_COMISSAO,
+                    DT_REGISTRO,
+                    CD_TIPO)
+                VALUES (
+                    NEXT VALUE FOR SEQ_IDITEMPEDIDOPNEUBORRACHEIRO,
+                    :iditempedidopneu,
+                    :idborracheiro,
+                    :pc_comissao,
+                    :vl_comissao,
+                    CURRENT_TIMESTAMP,
+                    1
+                );
+            ";
+
+            $result = DB::connection('firebird')->insert($query, [
+                'iditempedidopneu'  => (int) $iditemPedidoPneu,
+                'idborracheiro'        => (int) $pessoa->CD_VENDEDOR,
+                'pc_comissao' => (float) $calculaComissao->PC_COMISSAO,
+                'vl_comissao'    => (float) $calculaComissao->VL_COMISSAO,
+            ]);
+
+            if (empty($result)) {
+                throw new \Exception('Falha ao gerar o Código do item do pedido do borracheiro.');
+            }
+
+            return $result;
+        });
     }
 }

@@ -106,6 +106,25 @@ class EstoqueController extends Controller
         ]);
     }
 
+    public function getCarcacaCasaBaixas()
+    {
+        $data = $this->estoque->getCarcacasDaCasa(null, 'B');
+
+        $datatable = Datatables()
+            ->of($data)
+            ->addColumn('action', function ($row) {
+                $btn = '';
+                $btn .= '<button class="btn btn-xs btn-cancelar-baixa btn-secondary mr-1" data-id="' . $row->ID . '" title="Cancelar Baixar"><i class="fas fa-undo"></i></button>';
+                return $btn;
+            })
+            ->make(true)
+            ->getData();
+
+        return response()->json([
+            'datatable' => $datatable // <-- agora é apenas o array            
+        ]);
+    }
+
     public function agruparCarcacaLocalQtd($data)
     {
         $result = [];
@@ -249,7 +268,7 @@ class EstoqueController extends Controller
     {
         $input = Validator::make($this->request->all(), [
             'id' => 'array|required',
-            'status' => 'string|required|in:B,D',
+            'status' => 'string|required|in:B,D,A',
         ], [
             'id.integer' => 'ID inválido.',
             'id.required' => 'ID é obrigatório.',

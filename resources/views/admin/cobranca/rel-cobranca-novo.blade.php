@@ -306,11 +306,11 @@
 
         });
 
-        $('#tab-limite-credito').one('click', function() {
+        $('#tab-limite-credito').on('click', function() {
             initTableLimiteCredito(routeLimiteCredito);
         });
 
-        $('#tab-prazo-medio').one('click', function() {
+        $('#tab-prazo-medio').on('click', function() {
             carregarDadosPrazoMedio(routePrazoMedio);
         });
 

@@ -20,11 +20,11 @@ class ItemController extends Controller
         $this->request = $request;
     }
 
-    public function servicoPneuMedida()
+    public function servicoPneu()
     {
         $idMedidaPneu = $this->request->get('idMedidaPneu');
         
-        $servicos = $this->item->servicoPneuMedida($idMedidaPneu);
+        $servicos = $this->item->servicoPneu($idMedidaPneu);
 
         return response()->json($servicos);
     }

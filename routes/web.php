@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('produto')->group(function () {
-        Route::get('get-servico-pneu-medida', [ItemController::class, 'servicoPneuMedida'])->name('get-servico-pneu-medida');       
+        Route::get('get-servico-pneu-medida', [ItemController::class, 'servicoPneu'])->name('get-servico-pneu-medida');       
     });
 
 

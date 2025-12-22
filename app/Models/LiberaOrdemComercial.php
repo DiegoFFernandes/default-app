@@ -213,12 +213,12 @@ class LiberaOrdemComercial extends Model
         $cd_pessoa = $input[0]->IDPESSOA;
         $cd_item = $input[0]->CD_ITEM;
         $cd_vendedor = $input[0]->CD_VENDEDOR;
-        $cd_movimentacao = 20;
+        $cd_movimentacao = $input[0]->CD_MOVIMENTACAO ?? 20;
         $dt_emissao = $input[0]->DTEMISSAO;
         $cd_cond_pagto = $input[0]->IDCONDPAGTO;
         $cd_tabpreco = $input[0]->CD_TABPRECO;
         $cd_preco_venda = $venda;
-        $cd_preco_tabela = $input[0]->VL_PRECO;
+        $cd_preco_tabela = $input[0]->VL_PRECO ?? 0;
 
         // $query = "
         // SELECT
@@ -228,8 +228,8 @@ class LiberaOrdemComercial extends Model
 
         $query = "
             SELECT
-                CAST(C.V_PC_COMISSAO AS NUMERIC(15,2)) PC_COMISSAO,
-                CAST(C.V_VL_COMISSAO AS NUMERIC(15,2)) VL_COMISSAO
+                CAST(COALESCE(C.V_PC_COMISSAO, 0) AS NUMERIC(15,2)) PC_COMISSAO,
+                CAST(COALESCE(C.V_VL_COMISSAO, 0) AS NUMERIC(15,2)) VL_COMISSAO
             FROM CALCULA_COMISSAO_V2($cd_empresa, $cd_vendedor, 1, $cd_pessoa, $cd_item, $cd_movimentacao, 
                 $cd_cond_pagto, $cd_tabpreco, '$dt_emissao', $cd_preco_venda, NULL, $cd_preco_venda, 1) C";
 

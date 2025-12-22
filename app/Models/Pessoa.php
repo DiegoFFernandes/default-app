@@ -25,7 +25,7 @@ class Pessoa extends Model
     {
         $query = "select first 10 p.cd_pessoa id, 
                     p.cd_pessoa||'-'||p.nm_pessoa nm_pessoa, p.nr_cnpjcpf, 
-                    p.ds_email, tp.cd_tipopessoa, tp.ds_tipopessoa, ep.nr_celular
+                    p.ds_email, tp.cd_tipopessoa, tp.ds_tipopessoa, ep.nr_celular, ep.cd_vendedor
                     from pessoa p
                     inner join tipopessoa tp on (tp.cd_tipopessoa = p.cd_tipopessoa)
                     inner join enderecopessoa ep on (ep.cd_pessoa = p.cd_pessoa)
@@ -35,6 +35,33 @@ class Pessoa extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    public function FindPessoaJunsoftId($cd_pessoa)
+    {
+        $query = "
+            SELECT
+                P.CD_PESSOA CD_PESSOA,
+                P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                P.NR_CNPJCPF,
+                P.DS_EMAIL,
+                TP.CD_TIPOPESSOA,
+                TP.DS_TIPOPESSOA,
+                EP.NR_CELULAR,
+                EP.CD_VENDEDOR,
+                COALESCE(PT.CD_TABPRECO, 1) CD_TABPRECO
+            FROM PESSOA P
+            INNER JOIN TIPOPESSOA TP ON (TP.CD_TIPOPESSOA = P.CD_TIPOPESSOA)
+            INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA)
+            LEFT JOIN PARMTABPRECO PT ON (PT.CD_PESSOA = P.CD_PESSOA)
+            WHERE
+                P.ST_ATIVA = 'S'
+                AND P.CD_PESSOA = $cd_pessoa";
+        $data = DB::connection('firebird')->select($query);
+
+        $data  = Helper::ConvertFormatText($data);
+
+        return $data[0] ?? null;
     }
 
     public function storeData($input)

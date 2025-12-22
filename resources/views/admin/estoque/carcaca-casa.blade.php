@@ -57,10 +57,10 @@
                                                     style="width: 100px;" id="btn-transferir-todos">
                                                     Transferir Local
                                                 </button>
-                                                {{-- <button type="button" class="btn btn-secondary btn-xs"
+                                                <button type="button" class="btn btn-secondary btn-xs"
                                                     style="width: 100px;" id="btn-criar-pedido">
                                                     Criar Pedido
-                                                </button> --}}
+                                                </button>
                                             </div>
                                         </div>
 
@@ -123,7 +123,17 @@
                             <div class="tab-pane fade" id="painel-carcaca-saida" role="tabpanel"
                                 aria-labelledby="tab-carcaca-saida">
                                 <div class="card-body p-2">
-                                    Conteúdo Saídas
+                                    <div class="col-md-8" id="div-tabela-carcacas"
+                                        @if (auth()->user()->hasRole('vendedor|supervisor|gerente comercial')) style="display:none;" @endif>
+                                        <div class="card-header">
+                                            <h6 class="card-title">Baixas</h6>
+                                        </div>
+                                        <div class="card-body pb-0">
+                                            <table class="table table-bordered compact table-font-small table-responsive"
+                                                id="estoque-carcacas-baixas">
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -260,22 +270,21 @@
                     </div>
                     <div class="modal-body">
                         <div class="row">
-                             <div class="col-12 col-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="form-group">
                                     <label for="nm_pessoa">Empresa</label>
                                     <select name='cd_empresa' class="form-control" id="cd_empresa" style="width: 100%">
                                         <option value="1" selected="selected">Cambé</option>
                                         <option value="3">Osvaldo Cruz</option>
                                         <option value="5">Ponta Grossa</option>
-                                        <option value="6">Cantanduva</option>                                      
+                                        <option value="6">Cantanduva</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-12 col-md-8">
                                 <div class="form-group">
                                     <label for="nm_pessoa">Cliente</label>
-                                    <select name='pessoa' class="form-control" id="pessoa"
-                                        style="width: 100%">
+                                    <select name='pessoa' class="form-control" id="pessoa" style="width: 100%">
                                     </select>
                                 </div>
                             </div>
@@ -344,88 +353,10 @@
             searchPessoa: "{{ route('usuario.search-pessoa') }}",
             condicaoPagamento: "{{ route('get-cond-pagamento') }}",
             formaPagamento: "{{ route('get-form-pagamento') }}",
-            servicoPneuMedida: "{{ route('get-servico-pneu-medida') }}"
+            servicoPneu: "{{ route('get-servico-pneu-medida') }}"
         }
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa, '#modal-criar-pedido');
-
-        $(document).on('click', '#btn-criar-pedido', function() {
-
-            $('#itens-pedido').html('');
-
-            inicializaSelect2Lista({
-                route: routes.condicaoPagamento,
-                selectId: '#cd_cond_pagto',
-                placeholder: 'Selecione a Condição de Pagamento',
-                modalParent: '#modal-criar-pedido',
-                textField: 'DS_CONDPAGTO',
-                valueField: 'CD_CONDPAGTO'
-            });
-
-            inicializaSelect2Lista({
-                route: routes.formaPagamento,
-                selectId: '#cd_form_pagto',
-                placeholder: 'Selecione a Forma de Pagamento',
-                modalParent: '#modal-criar-pedido',
-                textField: 'DS_FORMAPAGTO',
-                valueField: 'CD_FORMAPAGTO'
-            });
-
-            let selectedRows = table_carcaca_itens.rows({
-                selected: true
-            }).data();
-            if (selectedRows.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Nenhuma carcaça selecionada.',
-                    text: 'Por favor, selecione ao menos uma carcaça para transferencia.'
-                });
-                return;
-            }
-
-            selectedRows.each(function(rowData) {
-                let itemHtml = `
-                                <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
-                                    <div class="col-4">
-                                        <label class="form-label">Medida</label>
-                                        <input type="text"
-                                            class="form-control"
-                                            value="${rowData.DSMEDIDAPNEU}"
-                                            readonly />
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label">Serviço</label>
-                                        <select class="form-control servico-item-${rowData.ID}" style="width: 100%">                                           
-                                        </select>
-                                    </div>
-                                    <div class="col-2">
-                                        <label class="form-label">Valor</label>
-                                        <input type="text"
-                                            class="form-control input-venda"                                           
-                                            />
-                                    </div>
-                                </div>
-                            `;
-
-                $('#itens-pedido').append(itemHtml);
-
-                $('.input-venda').inputmask({
-                    mask: ['999', '9.999'],
-                    radixPoint: ',',
-                });
-
-                inicializaSelect2Lista({
-                    route: routes.servicoPneuMedida + '?idMedidaPneu=' + rowData.IDMEDIDAPNEU,
-                    selectId: `.servico-item-${rowData.ID}`,
-                    placeholder: 'Selecione o Serviço',
-                    modalParent: '#modal-criar-pedido',
-                    textField: 'DSSERVICO',
-                    valueField: 'ID'
-                })
-            });
-
-            $('#modal-criar-pedido').modal('show');
-        });
 
         $('#btn-add-carcaca').on('click', function() {
             $('#modal-add-carcaca').modal('show');
@@ -502,7 +433,6 @@
             },
             pagingType: "simple",
             ajax: {
-
                 url: '{{ route('get-carcaca-casa') }}',
                 dataSrc: function(response) {
 
@@ -599,6 +529,8 @@
             ],
 
         });
+
+
 
         let tabelaCarcacaLocal = agrupaTabelaResumo('estoque-carcacas-local', 'Local');
 
@@ -709,14 +641,16 @@
         }
 
         function deleteOrDown(status, id) {
+            const config = verificaStatus(status);
+
             Swal.fire({
-                title: 'Tem certeza?',
-                text: "Você não poderá reverter isso!",
+                // title: 'Tem certeza?',
+                text: config.confirmText,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: status === 'B' ? 'Sim, baixar!' : 'Sim, deletar!',
+                confirmButtonText: config.confirmButtonTitle,
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -734,9 +668,7 @@
                                 $('#estoque-carcacas').DataTable().ajax.reload();
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Carcaça' + (status === 'B' ? ' baixada' :
-                                            ' deletada') +
-                                        ' com sucesso!',
+                                    title: config.swalSuccessText,
                                     showConfirmButton: false,
                                     timer: 1500
                                 });
@@ -744,9 +676,7 @@
                                 // Erro
                                 Swal.fire({
                                     icon: 'error',
-                                    title: 'Erro ao ' + (status === 'B' ? 'baixar' :
-                                            'deletar') +
-                                        ' carcaça.',
+                                    title: config.swalErrorTitle,
                                     html: response.errors,
                                     customClass: {
                                         htmlContainer: 'text-left'
@@ -758,9 +688,7 @@
                         error: function(xhr) {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Erro ao ' + (status === 'B' ? 'baixar' :
-                                        'deletar') +
-                                    ' carcaça.',
+                                title: config.swalErrorTitle,
                                 text: xhr.responseText
                             });
                         }
@@ -769,6 +697,30 @@
                     return;
                 }
             });
+        }
+
+        function verificaStatus(status) {
+            let messages = {
+                B: {
+                    confirmButtonTitle: 'Sim, baixar!',
+                    confirmText: "Tem certeza que deseja baixar esta carcaça?",
+                    swalSuccessText: "Carcaça baixada com sucesso!",
+                    swalErrorTitle: "Erro ao baixar carcaça."
+                },
+                D: {
+                    confirmButtonTitle: 'Sim, deletar!',
+                    confirmText: "Você não poderá reverter isso!",
+                    swalSuccessText: "Carcaça deletada com sucesso!",
+                    swalErrorTitle: "Erro ao deletar carcaça."
+                },
+                A: {
+                    confirmButtonTitle: 'Sim, cancelar!',
+                    confirmText: "Tem certeza que deseja cancelar a baixa?",
+                    swalSuccessText: "Baixa cancelada com sucesso!",
+                    swalErrorTitle: "Erro ao cancelar baixa."
+                }
+            }
+            return messages[status] || messages['default'];
         }
 
         $(document).on('click', '#btn-save-carcaca', function() {
@@ -1007,6 +959,95 @@
             });
         });
 
+        $(document).on('click', '#btn-criar-pedido', function() {
+
+            $('#itens-pedido').html('');
+
+            inicializaSelect2Lista({
+                route: routes.condicaoPagamento,
+                selectId: '#cd_cond_pagto',
+                placeholder: 'Selecione a Condição de Pagamento',
+                modalParent: '#modal-criar-pedido',
+                textField: 'DS_CONDPAGTO',
+                valueField: 'CD_CONDPAGTO'
+            });
+
+            inicializaSelect2Lista({
+                route: routes.formaPagamento,
+                selectId: '#cd_form_pagto',
+                placeholder: 'Selecione a Forma de Pagamento',
+                modalParent: '#modal-criar-pedido',
+                textField: 'DS_FORMAPAGTO',
+                valueField: 'CD_FORMAPAGTO'
+            });
+
+            let selectedRows = table_carcaca_itens.rows({
+                selected: true
+            }).data();
+            if (selectedRows.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nenhuma carcaça selecionada.',
+                    text: 'Por favor, selecione ao menos uma carcaça para transferencia.'
+                });
+                return;
+            }
+
+            selectedRows.each(function(rowData) {
+                let itemHtml = `
+                                <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Medida</label>
+                                        <input type="text"
+                                            class="form-control"
+                                            value="${rowData.DSMEDIDAPNEU}"
+                                            readonly />
+                                    </div>
+
+                                     <!-- Botão -->
+                                    <div class="col-1 col-md-auto d-flex align-items-end">
+                                        <button type="button"
+                                            class="btn btn-success btn-sm btn-atualizar-servicos mb-1"
+                                            data-item-id="${rowData.ID}"
+                                            data-medida-pneu="${rowData.IDMEDIDAPNEU}"
+                                            >
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                    <div class="col-11 col-md-5">
+                                        <label class="form-label">Serviço</label>
+                                        <select class="form-control servico-item-${rowData.ID}" style="width: 100%">                                           
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-2">
+                                        <label class="form-label">Valor</label>
+                                        <input type="text"
+                                            class="form-control input-venda"                                           
+                                            />
+                                    </div>
+                                </div>
+                            `;
+
+                $('#itens-pedido').append(itemHtml);
+
+                $('.input-venda').inputmask({
+                    mask: ['999', '9.999'],
+                    radixPoint: ',',
+                });
+
+                inicializaSelect2Lista({
+                    route: routes.servicoPneu + '?idMedidaPneu=' + rowData.IDMEDIDAPNEU,
+                    selectId: `.servico-item-${rowData.ID}`,
+                    placeholder: 'Selecione o Serviço',
+                    modalParent: '#modal-criar-pedido',
+                    textField: 'DSSERVICO',
+                    valueField: 'ID'
+                })
+            });
+
+            $('#modal-criar-pedido').modal('show');
+        });
+
         $(document).on('click', '#btn-confirmar-pedido', function() {
             let cd_empresa = $('#cd_empresa').val();
             let pessoa = $('#pessoa').val();
@@ -1018,7 +1059,7 @@
             $('.item-pedido').each(function() {
                 let itemId = $(this).data('item-id');
                 let servico = $(this).find('select').val();
-                let valor = $(this).find('input.input-venda').val().replace(',', '.');
+                let valor = $(this).find('input.input-venda').val().replace('.', '');
 
                 itens.push({
                     itemId: itemId,
@@ -1038,18 +1079,24 @@
                     form_pagto: form_pagto,
                     itens: itens
                 },
+                beforeSend: function() {
+                    $("#loading").removeClass("invisible");
+                },
                 success: function(response) {
                     if (response.success) {
+                        $("#loading").addClass("invisible");
                         $('#modal-criar-pedido').modal('hide');
                         $('#estoque-carcacas').DataTable().ajax.reload();
                         Swal.fire({
                             icon: 'success',
-                            title: 'Pedido criado com sucesso!',
-                            showConfirmButton: false,
-                            timer: 1500
+                            title: 'Pedido <strong>' + response.id +
+                                '</strong> criado com sucesso!',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Ok'
                         });
                     } else {
                         // Erro
+                        $("#loading").addClass("invisible");
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro ao criar pedido.',
@@ -1062,6 +1109,7 @@
                     }
                 },
                 error: function(xhr) {
+                    $("#loading").addClass("invisible");
                     Swal.fire({
                         icon: 'error',
                         title: 'Erro ao criar pedido.',
@@ -1069,6 +1117,147 @@
                     });
                 }
             });
+        });
+
+        $(document).on('click', '.btn-atualizar-servicos', function() {
+            let itemId = $(this).data('item-id');
+            let medidaPneu = $(this).data('medida-pneu');
+            let selectServico = $(`.servico-item-${itemId}`);
+
+            if (!medidaPneu) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro ao atualizar serviços.',
+                    text: 'Medida do pneu não encontrada.'
+                });
+                return;
+            }
+
+            // reinicializa o select2 com os novos serviços
+            inicializaSelect2Lista({
+                route: routes.servicoPneu + '?idMedidaPneu=' + medidaPneu,
+                selectId: `.servico-item-${itemId}`,
+                placeholder: 'Selecione o Serviço',
+                modalParent: '#modal-criar-pedido',
+                textField: 'DSSERVICO',
+                valueField: 'ID'
+            });
+        });
+
+        $(document).on('click', '#tab-carcaca-saida', function() {
+            $('#estoque-carcacas-baixas').DataTable().destroy();
+
+            var table_carcaca_itens_baixas = $('#estoque-carcacas-baixas').DataTable({
+                processing: false,
+                serverSide: false,
+                language: {
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                },
+                pagingType: "simple",
+                ajax: {
+                    url: '{{ route('get-carcaca-casa-baixas') }}',
+                    dataSrc: function(response) {
+                        return response.datatable.data;
+                    }
+                },
+                columns: [{
+                        data: 'ID',
+                        name: 'ID',
+                        title: 'id',
+                        visible: false,
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'DSMEDIDAPNEU',
+                        name: 'DSMEDIDAPNEU',
+                        title: 'Medida',
+                        width: '20%',
+                    },
+                    {
+                        data: 'DSMODELO',
+                        name: 'DSMODELO',
+                        title: 'Modelo'
+                    },
+                    {
+                        data: 'NR_FOGO',
+                        name: 'NR_FOGO',
+                        title: 'Fogo',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'NR_SERIE',
+                        name: 'NR_SERIE',
+                        title: 'Serie',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'NR_DOT',
+                        name: 'NR_DOT',
+                        title: 'Dot',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'DS_TIPO',
+                        name: 'DS_TIPO',
+                        title: 'Tipo',
+                    }, {
+                        data: 'PEDIDO',
+                        name: 'PEDIDO',
+                        title: 'Pedido',
+                        className: 'text-center',
+                    },
+
+                    {
+                        data: 'EMPRESA_BAIXA',
+                        name: 'EMPRESA_BAIXA',
+                        title: 'Empresa Baixa',
+                    },
+                    {
+                        data: 'ST_BAIXA',
+                        name: 'ST_BAIXA',
+                        title: 'Status Baixa',
+                    }, {
+                        data: 'DT_BAIXA',
+                        name: 'DT_BAIXA',
+                        title: 'Data Baixa',
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type === 'display' || type === 'filter') {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        title: 'Ações',
+                        orderable: false,
+                        searchable: false,
+                        // width: '10%',
+                        className: 'text-center',
+                    },
+                ],
+                columnDefs: [{
+                    targets: 0,
+                    orderable: false,
+                    className: 'select-checkbox',
+                }],
+                order: [
+                    [0, "desc"]
+                ],
+
+            });
+        });
+
+        $(document).on('click', '#tab-carcaca-entrada', function() {
+            $('#estoque-carcacas').DataTable().ajax.reload();
+        });
+
+        $(document).on('click', '.btn-cancelar-baixa', function() {
+            let id = [$(this).data('id')];
+            deleteOrDown('A', id);
+            $('#estoque-carcacas-baixas').DataTable().ajax.reload();
         });
     </script>
 @endsection
