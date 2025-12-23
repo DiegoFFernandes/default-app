@@ -44,7 +44,7 @@
                 <div class="card">
                     <div class="card-header border-0">
                         <div class="d-flex justify-content-between">
-                            <h3 class="card-title">Pneus Sem Faturar Mes/Gerente</h3>
+                            <h3 class="card-title">Pneus Gerente</h3>
                         </div>
                     </div>
                     <div class="card-body">
@@ -58,7 +58,7 @@
                         </div>
                         <div class="position-relative mb-4">
                             <canvas id="chartPneusGerente" style="width: 100%; height: 200px;"></canvas>
-                        </div>
+                        </div>                        
                     </div>
                 </div>
             </div>
@@ -492,7 +492,9 @@
 
             function carregaDados(data, chartId) {
                 const acumuladorMeses = {};
+                const acumuladorGerentes = {};
                 const qtdMes = {};
+                const qtdGerente = {};
 
                 data.forEach(({
                     MES_ANO,
@@ -503,14 +505,21 @@
 
                     acumuladorMeses[MES_ANO] ??= {};
                     acumuladorMeses[MES_ANO][NM_GERENTE] ??= 0;
+                    acumuladorGerentes[NM_GERENTE] ??= 0;
+
                     qtdMes[MES_ANO] ??= 0;
+                    qtdGerente[NM_GERENTE] ??= 0;
 
                     acumuladorMeses[MES_ANO][NM_GERENTE] += qtde;
                     qtdMes[MES_ANO] += qtde;
+                    qtdGerente[NM_GERENTE] += qtde;
                 });
 
                 const meses = Object.keys(acumuladorMeses);
+                const NomeGerentes = Object.keys(acumuladorGerentes);
+
                 const qtdPneusMes = Object.values(qtdMes);
+                const qtdPneusGerente = Object.values(qtdGerente);
 
                 //VERIFICO SE TEVE AUMENTO NO ULTIMO MES
                 const [penultimoMes, ultimoMes] = qtdPneusMes.slice(-2);
@@ -540,43 +549,26 @@
                     'Meses');
 
 
-                const gerentes = [...new Set(
-                    data.map(item => item.NM_GERENTE)
-                )];
+                const coresGerentes = [
+                    'rgba(60, 145, 230, 0.5)',
+                    'rgba(9, 188, 138, 0.5)',
+                    'rgba(43, 65, 98, 0.5)'
+                ];
 
-                const coresGerentes = {
-                    'CESAR': {
-                        backgroundColor: 'rgba(60, 145, 230, 1)',
-                        borderColor: 'rgba(60, 145, 230, 1)'
-                    },
-                    'GUILHERME': {
-                        backgroundColor: 'rgba(9, 188, 138, 1)',
-                        borderColor: 'rgba(9, 188, 138, 1)'
-                    },
-                    'DOUGLAS': {
-                        backgroundColor: 'rgba(43, 65, 98, 1)',
-                        borderColor: 'rgba(43, 65, 98, 1)'
-                    }
-                };
-
-                const datasetsGerentes = gerentes.map(gerente => ({
-                    label: gerente,
-                    data: meses.map(mes => acumuladorMeses[mes][gerente] || 0),
-                    backgroundColor: coresGerentes[gerente]?.backgroundColor ||
-                        'rgba(153, 102, 255, 0.5)',
-                    borderColor: coresGerentes[gerente]?.borderColor || 'rgba(153, 102, 255, 1)',
+                const datasetsGerente = [{
+                    data: qtdPneusGerente,
+                    backgroundColor: coresGerentes,
+                    borderColor: coresGerentes.map(cor => cor.replace('0.5', '1')),
                     borderWidth: 1
-                }));
+                }];
 
                 // Renderiza o gráfico de gerentes
                 renderChartJs(
-                    meses,
-                    datasetsGerentes,
+                    NomeGerentes,
+                    datasetsGerente,
                     'chartPneusGerente',
                     'bar',
-                    'Meses');
-
-
+                    'Meses');                                       
             }
 
             const charts = {};
@@ -603,7 +595,7 @@
                             },
                             datalabels: {
                                 anchor: 'end',
-                                align: 'top',
+                                align: 'center', // 'top', 'bottom', 'center'
                                 color: '#000',
                                 font: {
                                     weight: 'bold',
