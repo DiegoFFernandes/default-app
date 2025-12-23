@@ -530,8 +530,6 @@
 
         });
 
-
-
         let tabelaCarcacaLocal = agrupaTabelaResumo('estoque-carcacas-local', 'Local');
 
         let tabelaCarcacaMarca = agrupaTabelaResumo('estoque-carcacas-marca', 'Marca');
@@ -666,6 +664,7 @@
                             if (response.success) {
                                 $('#modal-add-carcaca').modal('hide');
                                 $('#estoque-carcacas').DataTable().ajax.reload();
+                                $('#estoque-carcacas-baixas').DataTable().ajax.reload();
                                 Swal.fire({
                                     icon: 'success',
                                     title: config.swalSuccessText,
@@ -988,7 +987,7 @@
                 Swal.fire({
                     icon: 'warning',
                     title: 'Nenhuma carcaça selecionada.',
-                    text: 'Por favor, selecione ao menos uma carcaça para transferencia.'
+                    text: 'Por favor, selecione ao menos uma carcaça para criar o pedido.'
                 });
                 return;
             }
@@ -1256,8 +1255,7 @@
 
         $(document).on('click', '.btn-cancelar-baixa', function() {
             let id = [$(this).data('id')];
-            deleteOrDown('A', id);
-            $('#estoque-carcacas-baixas').DataTable().ajax.reload();
+            deleteOrDown('A', id);            
         });
     </script>
 @endsection

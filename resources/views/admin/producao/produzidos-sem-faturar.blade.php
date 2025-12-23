@@ -12,7 +12,7 @@
                     <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="far fa-dot-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Total Pneus</span>
-                        <span class="info-box-number" id="pneusTotal"></span>
+                        <span class="info-box-number pneusTotal"></span>
                     </div>
                 </div>
             </div>
@@ -35,6 +35,52 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Expedicionado</span>
                         <span class="info-box-number" id="expedicionado"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header border-0">
+                        <div class="d-flex justify-content-between">
+                            <h3 class="card-title">Pneus Sem Faturar Mes/Gerente</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <p class="d-flex flex-column">
+                                <span class="text-bold text-lg pneusTotal"></span>
+                                <span>Pneus Sem Faturar</span>
+                            </p>
+                            <p class="ml-auto d-flex flex-column text-right calc-percentual">
+                            </p>
+                        </div>
+                        <div class="position-relative mb-4">
+                            <canvas id="chartPneusGerente" style="width: 100%; height: 200px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header border-0">
+                        <div class="d-flex justify-content-between">
+                            <h3 class="card-title">Pneus Mês</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <p class="d-flex flex-column">
+                                <span class="text-bold text-lg pneusTotal"></span>
+                                <span>Pneus Sem Faturar</span>
+                            </p>
+                            <p class="ml-auto d-flex flex-column text-right calc-percentual">
+                            </p>
+                        </div>
+                        <div class="position-relative mb-4">
+                            <canvas id="chartPneusMesAno" style="width: 100%; height: 200px;"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,13 +158,15 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Vendedor</label>
-                                    <input type="text" class="form-control" id="nm_vendedor" placeholder="Nome Vendedor">
+                                    <input type="text" class="form-control" id="nm_vendedor"
+                                        placeholder="Nome Vendedor">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Cliente</label>
-                                    <input type="text" class="form-control" id="nm_cliente" placeholder="Nome Cliente">
+                                    <input type="text" class="form-control" id="nm_cliente"
+                                        placeholder="Nome Cliente">
                                 </div>
                             </div>
                         </div>
@@ -136,13 +184,11 @@
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-primary">
                     <div class="card-body">
                         <table id="produzidosTable" class="table table-bordered table-font-small compact">
-
                             <tfoot>
                                 <tr>
                                     <th colspan="5" style="text-align: right;"></th>
@@ -233,8 +279,7 @@
                 initTablePneus(dados);
             });
 
-
-            $('#produzidosTable').on('click', 'tbody tr', function() {
+            $(document).on('click', '.btn-detalhes', function() {
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
                 // console.log(tableId);
@@ -254,6 +299,23 @@
                     // tr.next().find('td').addClass('no-padding');
                 }
 
+            });
+
+            $(document).on('click', '.btn-observacao-embarque', function() {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+
+                var observacao = row.data().DS_OBSFATURAMENTO;
+
+                if (observacao == null || observacao.trim() == '') {
+                    observacao = 'Nenhuma observação de faturamento para este embarque.';
+                }
+
+                Swal.fire({
+                    title: 'Observação de Faturamento',
+                    text: observacao,
+                    confirmButtonText: 'Fechar'
+                });
             });
 
             function initTablePneus(dados) {
@@ -285,14 +347,27 @@
                     },
                     ajax: {
                         url: "{{ route('get-pneus-produzidos-sem-faturar') }}",
-                        method: "GET",
                         data: {
                             data: dados
+                        },
+                        dataSrc: function(json) {
+                            carregaDados(json.datatables.data);
+
+                            return json.datatables.data;
                         }
                     },
                     "columns": [{
+                            "data": "actions",
+                            title: "#",
+                            orderable: false,
+                            searchable: false,
+                            className: "text-center",
+
+                        },
+                        {
                             "data": "CD_EMPRESA",
                             title: "Emp",
+                            width: "1%",
                         },
                         {
                             "data": "NR_EMBARQUE",
@@ -306,12 +381,7 @@
                             "data": "NM_PESSOA",
                             title: "Cliente"
                         },
-                        @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                            {
-                                "data": "VALOR",
-                                title: "Valor"
-                            },
-                        @endhasrole {
+                        {
                             "data": "PNEUS",
                             title: "Pneus"
                         },
@@ -330,12 +400,19 @@
                             },
                             title: "Data",
                             "visible": true
-                        }
+                        },
+                        @hasrole('admin|supervisor|gerente unidade|gerente comercial')
+                            {
+                                "data": "VALOR",
+                                title: "Valor"
+                            },
+                        @endhasrole
                     ],
                     "columnDefs": [{
                         "targets": 0,
                         "className": "text-center",
                     }],
+
                     footerCallback: function(row, data, start, end, display) {
                         let QtdPneus = 0;
                         let valorTotal = 0;
@@ -356,7 +433,7 @@
 
                         $(this.api().column(5).footer()).html('Total: ' + QtdPneus);
 
-                        $('#pneusTotal').html(QtdPneus);
+                        $('.pneusTotal').html(QtdPneus);
                         $('#valorTotal').html('R$ ' + valorTotal.toFixed(2).replace('.', ',').replace(
                             /\B(?=(\d{3})+(?!\d))/g, '.'));
                         $('#expedicionado').html('Sim: ' + expedicionadoSim + ' | Não: ' +
@@ -409,11 +486,150 @@
                                     return moment(data).format('DD/MM/YYYY HH:mm');
                                 }
                             }
-
                         ]
                     });
             }
 
+            function carregaDados(data, chartId) {
+                const acumuladorMeses = {};
+                const qtdMes = {};
+
+                data.forEach(({
+                    MES_ANO,
+                    NM_GERENTE,
+                    PNEUS
+                }) => {
+                    const qtde = Number(PNEUS);
+
+                    acumuladorMeses[MES_ANO] ??= {};
+                    acumuladorMeses[MES_ANO][NM_GERENTE] ??= 0;
+                    qtdMes[MES_ANO] ??= 0;
+
+                    acumuladorMeses[MES_ANO][NM_GERENTE] += qtde;
+                    qtdMes[MES_ANO] += qtde;
+                });
+
+                const meses = Object.keys(acumuladorMeses);
+                const qtdPneusMes = Object.values(qtdMes);
+
+                //VERIFICO SE TEVE AUMENTO NO ULTIMO MES
+                const [penultimoMes, ultimoMes] = qtdPneusMes.slice(-2);
+                const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
+
+                const calcPercentual = $('.calc-percentual').html(`
+                    <span class="${percentual >= 0 ? 'text-success' : 'text-danger'}">
+                        <i class="fas fa-arrow-${percentual >= 0 ? 'up' : 'down'}"></i> ${percentual.toFixed(2)}%
+                    </span>
+                    <span class="text-muted">${percentual >= 0 ? 'Aumento do ultimo Mês' : 'Queda do ultimo Mês'}</span>
+                `);
+
+
+                const datasetsMeses = [{
+                    data: qtdPneusMes,
+                    backgroundColor: 'rgba(206,212,218)',
+                    borderColor: 'rgba(206,212,218, 1)',
+                    borderWidth: 1
+                }];
+
+                // Renderiza o gráfico de meses
+                renderChartJs(
+                    meses,
+                    datasetsMeses,
+                    'chartPneusMesAno',
+                    'bar',
+                    'Meses');
+
+
+                const gerentes = [...new Set(
+                    data.map(item => item.NM_GERENTE)
+                )];
+
+                const coresGerentes = {
+                    'CESAR': {
+                        backgroundColor: 'rgba(60, 145, 230, 1)',
+                        borderColor: 'rgba(60, 145, 230, 1)'
+                    },
+                    'GUILHERME': {
+                        backgroundColor: 'rgba(9, 188, 138, 1)',
+                        borderColor: 'rgba(9, 188, 138, 1)'
+                    },
+                    'DOUGLAS': {
+                        backgroundColor: 'rgba(43, 65, 98, 1)',
+                        borderColor: 'rgba(43, 65, 98, 1)'
+                    }
+                };
+
+                const datasetsGerentes = gerentes.map(gerente => ({
+                    label: gerente,
+                    data: meses.map(mes => acumuladorMeses[mes][gerente] || 0),
+                    backgroundColor: coresGerentes[gerente]?.backgroundColor ||
+                        'rgba(153, 102, 255, 0.5)',
+                    borderColor: coresGerentes[gerente]?.borderColor || 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }));
+
+                // Renderiza o gráfico de gerentes
+                renderChartJs(
+                    meses,
+                    datasetsGerentes,
+                    'chartPneusGerente',
+                    'bar',
+                    'Meses');
+
+
+            }
+
+            const charts = {};
+
+            function renderChartJs(nomeMes, datasets, chartId, typeChart, labelChart) {
+
+                const ctx = document.getElementById(chartId).getContext('2d');
+
+                if (charts[chartId]) {
+                    charts[chartId].destroy();
+                }
+
+                charts[chartId] = new Chart(ctx, {
+                    type: typeChart,
+                    data: {
+                        labels: nomeMes,
+                        datasets: datasets
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                },
+                                formatter: function(value, context) {
+                                    return value;
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            }
         });
     </script>
 @stop

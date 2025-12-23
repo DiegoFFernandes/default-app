@@ -49,9 +49,12 @@ class Producao extends Model
                 ELSE 'SIM'
                 END AS EXPEDICIONADO,
                 MAX(EF.DTFIM) AS DTFIM,
+                MES.O_DS_ABREVIACAOMES || '/' || EXTRACT(YEAR FROM EF.DTFIM) MES_ANO,
                 PP.DTENTREGA,
                 EP.CD_REGIAOCOMERCIAL,
-                V.NM_PESSOA NM_VENDEDOR
+                V.NM_PESSOA NM_VENDEDOR,
+                VENDEDOR.CD_VENDEDORGERAL,
+                EMBARQUE.DS_OBSFATURAMENTO
             FROM PEDIDOPNEU PP
             INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
@@ -74,10 +77,13 @@ class Producao extends Model
                 AND LEXP.STLOTE <> 'C')
             LEFT JOIN ORDEMCARREGRECAP OCP ON (OCP.IDITEMPEDIDOPNEU = IPP.ID
                 AND OCP.ST_ORDEMCARREGRECAP <> 'C')
+            LEFT JOIN EMBARQUE ON (EMBARQUE.CD_EMPRESA = OCP.CD_EMPRESA
+                AND EMBARQUE.NR_EMBARQUE = OCP.NR_EMBARQUE)
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PESSOA.CD_PESSOA
                 AND EP.CD_ENDERECO = 1)
-            INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)    
+            INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)  
+            LEFT JOIN MES_EXTENSO(EF.DTFIM) MES ON (1 = 1)  
             WHERE OPR.STORDEM <> 'C'             
                     " . (($cd_regiao != "") ? "AND EP.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
                     " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
@@ -94,7 +100,7 @@ class Producao extends Model
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND PD.ST_PEDIDO <> 'A'
-                --AND PP.ID IN (75610, 181145, 186604, 169038)
+                AND PP.ID IN (216776, 220077, 212108, 219583, 221729, 75610, 213068)
             GROUP BY NR_EMBARQUE,
                 PP.ID,
                 PP.IDEMPRESA,
@@ -103,7 +109,12 @@ class Producao extends Model
                 OPRX.IDEXPEDICAOLOTEPNEU,
                 PP.DTENTREGA,
                 EP.CD_REGIAOCOMERCIAL,
-                V.NM_PESSOA";
+                V.NM_PESSOA,
+                VENDEDOR.CD_VENDEDORGERAL,
+                EMBARQUE.DS_OBSFATURAMENTO,
+                MES_ANO
+            ORDER BY DTFIM asc    
+                ";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AreaComercial;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\Pessoa;
@@ -16,7 +17,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $pessoa;
+    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $pessoa, $area;
 
     public function __construct(
         Request $request,
@@ -26,10 +27,12 @@ class ProducaoController extends Controller
         Producao $producao,
         SupervisorAuthService $supervisorComercial,
         GerenteUnidade $gerenteUnidade,
-        Pessoa $pessoa
+        Pessoa $pessoa,
+        AreaComercial $area
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
+        $this->area = $area;
         $this->user = $user;
         $this->empresa = $empresa;
         $this->producao = $producao;
@@ -110,10 +113,40 @@ class ProducaoController extends Controller
 
         $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
 
-        return DataTables::of($data)
+        // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
+        $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
+        $hierarquia = [];
+
+        foreach ($data as $r) {
+            foreach ($regioes_mysql as $regiao) {
+                if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
+
+                    //Adiciona o nome do geerente no objeto data
+                    $r->NM_GERENTE = $regiao->name ?? 'Sem gerente';
+
+                    // --- GERENTE ---
+                    $nomeGerente = $regiao->name ?? 'Sem gerente';
+                    if (!isset($hierarquia[$nomeGerente])) {
+                        $hierarquia[$nomeGerente] = [
+                            'nome' => $nomeGerente,
+                            'cargo' => 'Gerente',
+                            'supervisores' => [],
+                            'qtd' => 0
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['qtd'] += $r->PNEUS;
+                }
+            }
+        }
+
+
+        $datatables = DataTables::of($data)
             ->addIndexColumn()
-            ->addColumn('CD_EMPRESA', function ($row) {
-                return '<span class="right btn-detalhes details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $row->CD_EMPRESA;
+            ->addColumn('actions', function ($row) {
+                $btn = '';
+                $btn .= '<span class="right m-0 p-0 btn-detalhes"><i class="fas fa-plus-circle"></i></span> ';
+                $btn .= '<span class="btn-observacao-embarque p-0 m-0"><i class="fas fa-comment-dots"></i></span>';
+                return $btn;
             })
             ->addColumn('NM_PESSOA', function ($row) {
                 return $row->NM_PESSOA;
@@ -130,8 +163,15 @@ class ProducaoController extends Controller
             ->addColumn('DTENTREGA', function ($row) {
                 return date('d/m/Y', strtotime($row->DTENTREGA));
             })
-            ->rawColumns(['CD_EMPRESA', 'NM_PESSOA', 'VALOR', 'PNEUS', 'EXPEDICIONADO', 'DTENTREGA'])
-            ->make(true);
+            ->rawColumns(['actions', 'NM_PESSOA', 'VALOR', 'PNEUS', 'EXPEDICIONADO', 'DTENTREGA'])
+            ->make(true)
+            ->getData();
+
+
+        return response()->json([
+            'datatables' => $datatables,
+            'hierarquia' => $hierarquia
+        ]);
     }
     public function getListPneusProduzidosFaturarDetails()
     {
