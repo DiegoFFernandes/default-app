@@ -58,7 +58,7 @@
                         </div>
                         <div class="position-relative mb-4">
                             <canvas id="chartPneusGerente" style="width: 100%; height: 200px;"></canvas>
-                        </div>                        
+                        </div>
                     </div>
                 </div>
             </div>
@@ -350,7 +350,11 @@
                         data: {
                             data: dados
                         },
+                        beforeSend: function() {
+                            $("#loading").removeClass('invisible');
+                        },
                         dataSrc: function(json) {
+                            $("#loading").addClass('invisible');
                             carregaDados(json.datatables.data);
 
                             return json.datatables.data;
@@ -400,6 +404,10 @@
                             },
                             title: "Data",
                             "visible": true
+                        },
+                        {
+                            "data": "NM_GERENTE",
+                            title: "Gerente",
                         },
                         @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                             {
@@ -568,7 +576,7 @@
                     datasetsGerente,
                     'chartPneusGerente',
                     'bar',
-                    'Meses');                                       
+                    'Meses');
             }
 
             const charts = {};
@@ -589,6 +597,27 @@
                     },
                     options: {
                         maintainAspectRatio: false,
+
+                        onClick: function(evt) {
+
+                            const points = this.getElementsAtEventForMode(
+                                evt,
+                                'nearest', {
+                                    intersect: true
+                                },
+                                true
+                            );
+
+                            if (!points.length) return;
+
+                            const point = points[0];
+
+                            const label = this.data.labels[point.index];
+                            const value = this.data.datasets[point.datasetIndex].data[point.index];
+
+                            onChartClick(label, value, chartId);
+                        },
+
                         plugins: {
                             legend: {
                                 display: false
@@ -622,6 +651,12 @@
                     plugins: [ChartDataLabels]
                 });
             }
+
+            function onChartClick(label, value, chartId) {
+                table.search(label).draw();
+            }
+
+
         });
     </script>
 @stop
