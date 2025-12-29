@@ -47,7 +47,7 @@
                             <h3 class="card-title">Pneus Gerente</h3>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body pt-0">
                         <div class="d-flex">
                             <p class="d-flex flex-column">
                                 <span class="text-bold text-lg pneusTotal"></span>
@@ -57,7 +57,7 @@
                             </p>
                         </div>
                         <div class="position-relative mb-4">
-                            <canvas id="chartPneusGerente" style="width: 100%; height: 200px;"></canvas>
+                            <canvas id="chartPneusGerente" style="width: 100%; height: 150px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
                             <h3 class="card-title">Pneus Mês</h3>
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body pt-0">
                         <div class="d-flex">
                             <p class="d-flex flex-column">
                                 <span class="text-bold text-lg pneusTotal"></span>
@@ -79,7 +79,7 @@
                             </p>
                         </div>
                         <div class="position-relative mb-4">
-                            <canvas id="chartPneusMesAno" style="width: 100%; height: 200px;"></canvas>
+                            <canvas id="chartPneusMesAno" style="width: 100%; height: 150px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -372,6 +372,7 @@
                             "data": "CD_EMPRESA",
                             title: "Emp",
                             width: "1%",
+                            className: "text-center",
                         },
                         {
                             "data": "NR_EMBARQUE",
@@ -387,7 +388,8 @@
                         },
                         {
                             "data": "PNEUS",
-                            title: "Pneus"
+                            title: "Pneus",
+                            className: "text-center",
                         },
                         {
                             "data": "NM_VENDEDOR",
@@ -408,6 +410,12 @@
                         {
                             "data": "NM_GERENTE",
                             title: "Gerente",
+                            "visible": false
+                        },
+                        {
+                            "data": "MES_ANO",
+                            title: "Mês/Ano",
+                            "visible": false
                         },
                         @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                             {
@@ -530,7 +538,9 @@
                 const qtdPneusGerente = Object.values(qtdGerente);
 
                 //VERIFICO SE TEVE AUMENTO NO ULTIMO MES
-                const [penultimoMes, ultimoMes] = qtdPneusMes.slice(-2);
+                const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
+
+                console.log(penultimoMes, ultimoMes, MesAtual);
                 const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
 
                 const calcPercentual = $('.calc-percentual').html(`

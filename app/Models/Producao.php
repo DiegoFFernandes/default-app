@@ -100,7 +100,7 @@ class Producao extends Model
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND PD.ST_PEDIDO <> 'A'
-                --AND PP.ID IN (216776, 220077, 212108, 219583, 221729, 75610, 213068)
+                AND PP.ID IN (216776, 220077, 212108, 219583, 221729, 75610, 213068)
             GROUP BY NR_EMBARQUE,
                 PP.ID,
                 PP.IDEMPRESA,
