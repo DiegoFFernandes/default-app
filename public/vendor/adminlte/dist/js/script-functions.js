@@ -267,6 +267,10 @@ function inicializaSelect2Lista(config) {
         success: function (data) {
             let select = $(config.selectId);
 
+            if(select.hasClass("select2-hidden-accessible")) {
+                select.select2("destroy");
+            }
+
             select.empty().append("<option></option>");
 
             $.each(data, function (i, item) {
@@ -283,7 +287,7 @@ function inicializaSelect2Lista(config) {
                 theme: "bootstrap4",
                 width: "100%",
                 allowClear: true,
-                dropdownParent: $(config.modalParent),
+                dropdownParent: select.closest(config.modalParent || document.body),
             });
         },
     });

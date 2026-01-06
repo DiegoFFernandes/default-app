@@ -33,8 +33,20 @@
                                     <div class="row">
                                         <div class="col-md-8" id="div-tabela-carcacas"
                                             @if (auth()->user()->hasRole('vendedor|supervisor|gerente comercial')) style="display:none;" @endif>
-                                            <div class="card-header">
-                                                <h6 class="card-title">Estoque</h6>
+                                            <div class="card-header">                                                
+
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    style="width: 100px;" id="btn-baixar-todos">
+                                                    Baixar Todos
+                                                </button>
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    style="width: 100px;" id="btn-transferir-todos">
+                                                    Transferir Local
+                                                </button>
+                                                <button type="button" class="btn btn-secondary btn-xs"
+                                                    style="width: 100px;" id="btn-criar-pedido">
+                                                    Criar Pedido
+                                                </button>
                                                 <div class="card-tools m-0">
                                                     <button class="btn btn-xs btn-danger" id="btn-add-carcaca"
                                                         title="Adicionar Carcaça"><i class="fas fa-plus"></i></button>
@@ -228,7 +240,7 @@
                 </div>
             </div>
         </div>
-        <div class=modal fade id="modal-transferir-carcaca" tabindex="-1" role="dialog"
+        <div class="modal fade" id="modal-transferir-carcaca" tabindex="-1" role="dialog"
             aria-labelledby="modal-transferir-carcaca-label" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -258,8 +270,8 @@
                 </div>
             </div>
         </div>
-        <div class=modal fade id="modal-criar-pedido" tabindex="-1" role="dialog"
-            aria-labelledby="modal-criar-pedido-label" aria-hidden="true">
+        <div class="modal fade" id="modal-criar-pedido" tabindex="-1" role="dialog"
+            aria-labelledby="modal-criar-pedido-label" aria-hidden="true" data-backdrop="static" data-keyboard="false">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -272,8 +284,9 @@
                         <div class="row">
                             <div class="col-12 col-md-4">
                                 <div class="form-group">
-                                    <label for="nm_pessoa">Empresa</label>
-                                    <select name='cd_empresa' class="form-control" id="cd_empresa" style="width: 100%">
+                                    <label for="nm_pessoa" class="form-label small">Empresa</label>
+                                    <select name='cd_empresa' class="form-control form-control-sm" id="cd_empresa"
+                                        style="width: 100%">
                                         <option value="1" selected="selected">Cambé</option>
                                         <option value="3">Osvaldo Cruz</option>
                                         <option value="5">Ponta Grossa</option>
@@ -283,8 +296,9 @@
                             </div>
                             <div class="col-12 col-md-8">
                                 <div class="form-group">
-                                    <label for="nm_pessoa">Cliente</label>
-                                    <select name='pessoa' class="form-control" id="pessoa" style="width: 100%">
+                                    <label for="nm_pessoa" class="form-label small">Cliente</label>
+                                    <select name='pessoa' class="form-control form-control-sm" id="pessoa"
+                                        style="width: 100%">
                                     </select>
                                 </div>
                             </div>
@@ -292,16 +306,16 @@
                         <div class="row">
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label for="cd_cond_pagto">Cond. Pagto</label>
-                                    <select name='cond_pagto' class="form-control" id="cd_cond_pagto"
+                                    <label for="cd_cond_pagto" class="form-label small">Cond. Pagto</label>
+                                    <select name='cond_pagto' class="form-control form-control-sm" id="cd_cond_pagto"
                                         style="width: 100%">
                                     </select>
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label for="cd_form_pagto">Forma Pagto</label>
-                                    <select name='form_pagto' class="form-control" id="cd_form_pagto"
+                                    <label for="cd_form_pagto" class="form-label small">Forma Pagto</label>
+                                    <select name='form_pagto' class="form-control form-control-sm" id="cd_form_pagto"
                                         style="width: 100%">
                                     </select>
                                 </div>
@@ -309,7 +323,7 @@
                         </div>
                         <hr>
                         <div class="row">
-                            <strong class="p-1">Itens do Pedido</strong>
+                            <strong class="p-1 small">Itens do Pedido</strong>
 
                             <div class="col-12 col-md-12" id="itens-pedido">
 
@@ -328,6 +342,16 @@
 @stop
 @section('css')
     <style>
+        /* Select2 small */
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: calc(1.8125rem + 2px);
+            font-size: .875rem;
+        }
+
+        .select2-container--bootstrap4 .select2-results__option {
+            padding: 0 .76rem;
+        }
+
         #divAccordion {
             margin-bottom: 3px;
         }
@@ -983,6 +1007,7 @@
             let selectedRows = table_carcaca_itens.rows({
                 selected: true
             }).data();
+
             if (selectedRows.length === 0) {
                 Swal.fire({
                     icon: 'warning',
@@ -996,9 +1021,9 @@
                 let itemHtml = `
                                 <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
                                     <div class="col-12 col-md-4">
-                                        <label class="form-label">Medida</label>
+                                        <label class="form-label small">Medida</label>
                                         <input type="text"
-                                            class="form-control"
+                                            class="form-control form-control-sm"
                                             value="${rowData.DSMEDIDAPNEU}"
                                             readonly />
                                     </div>
@@ -1014,14 +1039,14 @@
                                         </button>
                                     </div>
                                     <div class="col-11 col-md-5">
-                                        <label class="form-label">Serviço</label>
-                                        <select class="form-control servico-item-${rowData.ID}" style="width: 100%">                                           
+                                        <label class="form-label small">Serviço</label>
+                                        <select class="form-control form-control-sm servico-item-${rowData.ID}" style="width: 100%">                                           
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-2">
-                                        <label class="form-label">Valor</label>
+                                        <label class="form-label small">Valor</label>
                                         <input type="text"
-                                            class="form-control input-venda"                                           
+                                            class="form-control form-control-sm input-venda"                                           
                                             />
                                     </div>
                                 </div>
@@ -1038,7 +1063,7 @@
                     route: routes.servicoPneu + '?idMedidaPneu=' + rowData.IDMEDIDAPNEU,
                     selectId: `.servico-item-${rowData.ID}`,
                     placeholder: 'Selecione o Serviço',
-                    modalParent: '#modal-criar-pedido',
+                    modalParent: '.item-pedido',
                     textField: 'DSSERVICO',
                     valueField: 'ID'
                 })
@@ -1255,7 +1280,7 @@
 
         $(document).on('click', '.btn-cancelar-baixa', function() {
             let id = [$(this).data('id')];
-            deleteOrDown('A', id);            
+            deleteOrDown('A', id);
         });
     </script>
 @endsection
