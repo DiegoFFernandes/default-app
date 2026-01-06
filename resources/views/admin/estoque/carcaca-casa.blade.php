@@ -352,13 +352,13 @@
             padding: 0 .76rem;
         }
 
-        #divAccordion {
+        .divAccordion {
             margin-bottom: 3px;
         }
 
         @media (max-width: 768px) {
 
-            #divAccordion {
+            .divAccordion {
                 margin-bottom: 0px;
                 font-size: 13px;
             }
@@ -593,8 +593,8 @@
                 let marcaCollapseId = 'collapse' + index;
                 // console.log(key);
                 html += `
-                <div class="card" style="margin-bottom: 3px;" id="divAccordion">
-                    <div class="card-header" id="headingMarca${index}">                        
+                <div class="card divAccordion">
+                    <div class="card-header p-1" id="headingMarca${index}">                        
                         <button class="btn btn-link" 
                                 data-toggle="collapse" 
                                 data-target="#${marcaCollapseId}" 
@@ -613,7 +613,7 @@
                     let medidaCollapseId = `collapseMedidas${index}-${mIndex}`;
                     html += `
                         <div class="card mb-2">
-                            <div class="card-header" id="headingMedida${index}-${mIndex}">
+                            <div class="card-header p-1" id="headingMedida${index}-${mIndex}">
                                 <button class="btn btn-link" 
                                         data-toggle="collapse" 
                                         data-target="#${medidaCollapseId}" 
