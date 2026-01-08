@@ -37,6 +37,6 @@ Route::middleware('auth')->group(function () {
 
 
     Route::prefix('pedido')->group(function () {
-        Route::get('store-pedido-pneu', [PedidoPneuController::class, 'storePedidoPneu'])->name('store-pedido-pneu');       
+        Route::post('store-pedido-pneu', [PedidoPneuController::class, 'storePedidoPneu'])->name('store-pedido-pneu');       
     });
 });

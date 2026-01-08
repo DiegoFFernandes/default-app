@@ -46,7 +46,7 @@ class PedidoPneuController extends Controller
     {
         $validate = $this->__validate();
 
-       if ($validate->fails()) {
+        if ($validate->fails()) {
             return Helper::formatErrorsAsHtml($validate);
         }
 
@@ -57,7 +57,7 @@ class PedidoPneuController extends Controller
         if (empty($pessoa)) {
             return response()->json(['success' => false, 'message' => 'Pessoa não encontrada no sistema.'], 400);
         }
-        
+
         try {
             $idPedido = $this->pedidoPneu->createPedidoPneu($pessoa, $validate->validated());
 
@@ -81,7 +81,7 @@ class PedidoPneuController extends Controller
                 // faz a inserção do item do pedido pneu
                 $iditemPedidoPneu = $this->pedidoPneu->createItemPedidoPneu(
                     $idPedido,
-                    $idPneu,                   
+                    $idPneu,
                     $pessoa,
                     $servicoPneu[0],
                     $item['valor'],
@@ -107,7 +107,14 @@ class PedidoPneuController extends Controller
                 $this->pedidoPneu->createItemPedidoPneuBorracheiro(
                     $iditemPedidoPneu,
                     $pessoa,
-                    $calculaComissao[0]);                  
+                    $calculaComissao[0]
+                );
+
+                //Atualiza o status do pneu carcaca para vinculado ao pedido
+                $this->estoque->updateStatusPneuCarcaca(
+                    $pneuCarcaca[0]->ID,
+                    $iditemPedidoPneu
+                );
             }
 
             DB::commit();

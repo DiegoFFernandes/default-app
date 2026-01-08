@@ -287,4 +287,17 @@ class Estoque extends Model
             return ['error' => true, 'message' => 'Erro ao transferir carcaça(s): ' . $e->getMessage()];
         }
     }
+
+    public function updateStatusPneuCarcaca($idPneuCarcaca, $iditemPedidoPneu)
+    {
+        $query = "
+           UPDATE PNEUCARCACA SET ST_CARCACA = 'B', IDITEMPEDIDOPNEU = :idItemPedidoPneu, ST_BAIXA = 'A'
+            WHERE ID = :idPneuCarcaca
+        ";
+
+        DB::connection('firebird')->update($query, [            
+            'idPneuCarcaca' => $idPneuCarcaca,
+            'idItemPedidoPneu' => $iditemPedidoPneu
+        ]);
+    }
 }

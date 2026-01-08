@@ -484,8 +484,8 @@
                 {
                     data: 'ID',
                     name: 'ID',
-                    title: 'id',
-                    visible: false,
+                    title: 'Cód.',
+                    visible: true,
                     className: 'text-center',
                 },
                 {
@@ -1094,7 +1094,7 @@
 
             $.ajax({
                 url: '{{ route('store-pedido-pneu') }}',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
                     cd_empresa: cd_empresa,
