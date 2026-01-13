@@ -235,10 +235,11 @@ class PedidoPneu extends Model
         });
     }
 
-    public function createItemPedidoPneuBorracheiro($iditemPedidoPneu, $pessoa, $calculaComissao){
-        
-        
-        return DB::transaction(function() use($iditemPedidoPneu, $pessoa, $calculaComissao){
+    public function createItemPedidoPneuBorracheiro($iditemPedidoPneu, $pessoa, $calculaComissao)
+    {
+
+
+        return DB::transaction(function () use ($iditemPedidoPneu, $pessoa, $calculaComissao) {
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
             $query = "
@@ -274,5 +275,60 @@ class PedidoPneu extends Model
 
             return $result;
         });
+    }
+
+    public function getRequisicaoBorrachariaDataTable()
+    {
+        $query = "
+            SELECT
+                IPP.ID,
+                PP.STPEDIDO,
+                --PP.TP_BLOQUEIO,
+                PP.ID PEDIDO,
+                PP.IDEMPRESA EMP,
+                PP.IDPESSOA IDPESSOA,
+                PP.DTEMISSAO,
+                PP.IDCONDPAGTO,
+                CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) PESSOA,
+                I.CD_SUBGRUPO,
+                PP.IDVENDEDOR CD_VENDEDOR,
+                CAST(PV.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) VENDEDOR,
+                IPP.NRSEQCRIACAO SEQ,
+                PP.IDPEDIDOMOVEL,
+                I.CD_ITEM,
+                I.DS_ITEM,
+                IPP.VLUNITARIO VL_VENDA,
+                CAST(ITP.VL_PRECO AS NUMERIC(15,2)) VL_PRECO,
+                IIF(I.CD_SUBGRUPO NOT IN (10211), CAST(100 * (1 - (IPP.VLUNITARIO /
+                CASE
+                WHEN ITP.VL_PRECO = 0 THEN 1
+                ELSE ITP.VL_PRECO
+                END)) AS NUMERIC(15,2)), 0) PC_DESCONTO,
+
+                ITP.CD_TABPRECO,
+
+                IPB.PC_COMISSAO,
+                IPB.VL_COMISSAO
+                --TABPRECO.DS_TABPRECO,
+                --COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL,
+                --COALESCE(IPB.ST_CALCULO, 'A') ST_CALCULO
+            FROM PEDIDOPNEU PP
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+            INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID)
+            INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
+            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = COALESCE(IPP.IDTABPRECO, 1) AND
+                ITP.CD_ITEM = IPP.IDSERVICOPNEU)
+            LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = ITP.CD_TABPRECO)
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
+            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
+            WHERE IPB.CD_TIPO = 2
+                AND PP.DTEMISSAO BETWEEN 
+                    DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO DATEADD(-1 MONTH TO CURRENT_DATE)) 
+                    AND DATEADD(-1 DAY TO DATEADD(-EXTRACT(DAY FROM CURRENT_DATE) + 1 DAY TO CURRENT_DATE)) 
+            ";
+
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
     }
 }

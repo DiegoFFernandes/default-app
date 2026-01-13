@@ -33,7 +33,7 @@
                                     <div class="row">
                                         <div class="col-md-8" id="div-tabela-carcacas"
                                             @if (auth()->user()->hasRole('vendedor|supervisor|gerente comercial')) style="display:none;" @endif>
-                                            <div class="card-header">                                                
+                                            <div class="card-header">
 
                                                 <button type="button" class="btn btn-secondary btn-xs"
                                                     style="width: 100px;" id="btn-baixar-todos">
@@ -56,7 +56,7 @@
                                             </div>
                                             <div class="card-body pb-0">
                                                 <table
-                                                    class="table table-bordered compact table-font-small table-responsive"
+                                                    class="table table-bordered compact table-font-small"
                                                     id="estoque-carcacas">
                                                 </table>
                                             </div>
@@ -101,10 +101,8 @@
                                                                         class="fas fa-download"></i></button>
                                                             </div>
                                                         </div>
-                                                        <div class="card-body pt-0">
-                                                            <table class="table compact table-font-small"
-                                                                id="estoque-carcacas-local">
-                                                            </table>
+                                                        <div class="card-body">
+                                                            <div id="accordionResumoLocal" class="d-none"></div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -119,9 +117,6 @@
                                                             </div>
                                                         </div>
                                                         <div class="card-body">
-                                                            {{-- <table class="table compact table-font-small"
-                                                                id="estoque-carcacas-marca">
-                                                            </table> --}}
                                                             <div id="accordionResumo" class="d-none"></div>
                                                         </div>
                                                     </div>
@@ -448,6 +443,8 @@
         var table_carcaca_itens = $('#estoque-carcacas').DataTable({
             processing: false,
             serverSide: false,
+            responsive: false,  
+            scrollX: true,         
             select: {
                 style: "multi",
                 selector: "td.select-checkbox"
@@ -464,7 +461,12 @@
 
                     // console.log(response.extra.accordion_data);
 
-                    $('#accordionResumo').html(renderizaAccordion(response.extra.accordion_data)).removeClass(
+                    $('#accordionResumoLocal').html(renderizaAccordion(response.extra.accordion_data_local,
+                        'accordionResumoLocal')).removeClass(
+                        'd-none');
+
+                    $('#accordionResumo').html(renderizaAccordion(response.extra.accordion_data,
+                        'accordionResumo')).removeClass(
                         'd-none');
 
                     preencheTabelaResumo(tabelaCarcacaLocal, response.extra.local_agrupado);
@@ -474,12 +476,22 @@
                     return response.datatable.data;
                 }
             },
-            columns: [{
+            columns: [
+                {
                     data: null,
-                    width: "1%",
+                    // width: "1%",
                     defaultContent: "",
                     className: "select-checkbox",
                     orderable: false
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    title: 'Ações',
+                    orderable: false,
+                    searchable: false,
+                    // width: '10%',
+                    className: 'text-center text-nowrap',
                 },
                 {
                     data: 'ID',
@@ -501,6 +513,7 @@
                 {
                     data: 'NR_FOGO',
                     name: 'NR_FOGO',
+                    visible: false,
                     title: 'Fogo',
                     className: 'text-center',
                 },
@@ -532,16 +545,7 @@
                     data: 'LOCAL_ESTOQUE',
                     name: 'LOCAL_ESTOQUE',
                     title: 'Local'
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    title: 'Ações',
-                    orderable: false,
-                    searchable: false,
-                    // width: '10%',
-                    className: 'text-center',
-                },
+                }
             ],
             columnDefs: [{
                 targets: 0,
@@ -585,7 +589,7 @@
             tabela.draw();
         }
 
-        function renderizaAccordion(dados) {
+        function renderizaAccordion(dados, idDivAccordion = 'accordionResumo') {
             let html = '';
 
             Object.keys(dados).forEach(function(marcaKey, index) {
@@ -603,7 +607,7 @@
                             <i class="fas fa-chevron-down"></i> ${marcaKey} (${marcaItem.qtd} unidades)
                         </button>                       
                     </div>
-                    <div id="${marcaCollapseId}" class="collapse" aria-labelledby="headingMarca${index}" data-parent="#accordionResumo">
+                    <div id="${marcaCollapseId}" class="collapse" aria-labelledby="headingMarca${index}" data-parent="#${idDivAccordion}">
                         <div class="card-body p-2">`;
 
                 // MEDIDAS
@@ -656,8 +660,6 @@
                     </div>
                 `;
             });
-
-
 
             return html;
         }

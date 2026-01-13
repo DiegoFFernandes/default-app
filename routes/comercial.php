@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ColetaController;
 use App\Http\Controllers\Admin\ComissaoController;
 use App\Http\Controllers\Admin\GerenteUnidadeController;
 use App\Http\Controllers\admin\TabelaPrecoController;
+use App\Http\Controllers\Admin\VendedorBorrachariaController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -170,5 +171,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('exame-inicial', [ColetaController::class, 'exameInicial'])->name('exame-inicial');
         Route::get('retrabalho', [ColetaController::class, 'retrabalho'])->name('retrabalho');
         Route::get('inventario', [ColetaController::class, 'inventario'])->name('inventario');
+    });
+});
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('borracharia')->group(function () {
+        Route::get('requisicao-borracharia', [VendedorBorrachariaController::class, 'index'])->name('requisicao-borracharia.index');
+        Route::get('get-requisicao-borracharia', [VendedorBorrachariaController::class, 'getRequisicaoBorracharia'])->name('get-requisicao-borracharia');
+
+      
     });
 });

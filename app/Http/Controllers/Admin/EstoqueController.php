@@ -101,7 +101,8 @@ class EstoqueController extends Controller
                 'total_carcacas'   => count($data),
                 'local_agrupado'   => $this->agruparCarcacaLocalQtd($data),
                 'marca_agrupado'   => $this->agruparCarcacaMarcaQtd($data),
-                'accordion_data'   => $this->agruparArrayCarcaca($data),
+                'accordion_data'   => $this->agruparArrayCarcaca($data, $nivel1 = 'DSMARCA', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
+                'accordion_data_local'   => $this->agruparArrayCarcaca($data, $nivel1 = 'LOCAL_ESTOQUE', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
             ]
         ]);
     }
@@ -154,40 +155,41 @@ class EstoqueController extends Controller
         return $result;
     }
 
-    public function agruparArrayCarcaca($data)
+    public function agruparArrayCarcaca($data, $nivel1 = 'DSMARCA', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO')
     {
         $result = [];
 
         foreach ($data as $item) {
-            $marca = $item->DSMARCA;
+            $nivel1Key = $item->{$nivel1};
 
             // Marca
-            if (!isset($result[$marca])) {
-                $result[$marca] = [                                     
+            if (!isset($result[$nivel1Key])) {
+                $result[$nivel1Key] = [                                     
                     'qtd'    => 0,
+                    'medida' => [],
                 ];
             }
 
-            $result[$marca]['qtd']++;
+            $result[$nivel1Key]['qtd']++;
 
             // Medida Pneu
-            $medida = $item->DSMEDIDAPNEU;
-            if (!isset($result[$marca]['medida'][$medida])) {
-                $result[$marca]['medida'][$medida] = [
+            $nivel2Key = $item->{$nivel2};
+            if (!isset($result[$nivel1Key]['medida'][$nivel2Key])) {
+                $result[$nivel1Key]['medida'][$nivel2Key] = [
                     'modelo' => [],
                     'qtd'    => 0,
                 ];
             }
-            $result[$marca]['medida'][$medida]['qtd']++;
+            $result[$nivel1Key]['medida'][$nivel2Key]['qtd']++;
 
             // Modelo Pneu
-            $modelo = $item->DSMODELO;
-            if (!isset($result[$marca]['medida'][$medida]['modelo'][$modelo . ' - ' .$item->DS_TIPO])) {
-                $result[$marca]['medida'][$medida]['modelo'][$modelo . ' - ' .$item->DS_TIPO] = [
+            $modelo = $item->{$nivel3};
+            if (!isset($result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' .$item->DS_TIPO])) {
+                $result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' .$item->DS_TIPO] = [
                     'qtd'    => 0,
                 ];
             }
-            $result[$marca]['medida'][$medida]['modelo'][$modelo . ' - ' .$item->DS_TIPO]['qtd']++;
+            $result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' .$item->DS_TIPO]['qtd']++;
         }
 
         return $result;      
