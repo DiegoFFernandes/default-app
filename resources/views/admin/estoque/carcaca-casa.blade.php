@@ -601,13 +601,13 @@
                     <div class="card-header p-1" id="headingMarca${index}">                        
                         <button class="btn btn-link" 
                                 data-toggle="collapse" 
-                                data-target="#${marcaCollapseId}" 
+                                data-target="#${marcaCollapseId + idDivAccordion}" 
                                 aria-expanded="true" 
-                                aria-controls="${marcaCollapseId}">
+                                aria-controls="${marcaCollapseId + idDivAccordion}">
                             <i class="fas fa-chevron-down"></i> ${marcaKey} (${marcaItem.qtd} unidades)
                         </button>                       
                     </div>
-                    <div id="${marcaCollapseId}" class="collapse" aria-labelledby="headingMarca${index}" data-parent="#${idDivAccordion}">
+                    <div id="${marcaCollapseId + idDivAccordion}" class="collapse" aria-labelledby="headingMarca${index}" data-parent="#${idDivAccordion}">
                         <div class="card-body p-2">`;
 
                 // MEDIDAS
@@ -620,17 +620,17 @@
                             <div class="card-header p-1" id="headingMedida${index}-${mIndex}">
                                 <button class="btn btn-link" 
                                         data-toggle="collapse" 
-                                        data-target="#${medidaCollapseId}" 
+                                        data-target="#${medidaCollapseId + idDivAccordion}" 
                                         aria-expanded="false" 
-                                        aria-controls="${medidaCollapseId}">
+                                        aria-controls="${medidaCollapseId + idDivAccordion}">
                                     <i class="fas fa-chevron-down"></i> ${medidaKey} (${medidaItem.qtd} unidades)
                                 </button>
                             </div>
                          
-                            <div id="${medidaCollapseId}" 
+                            <div id="${medidaCollapseId + idDivAccordion}" 
                             class="collapse" 
                             aria-labelledby="headingMedida${index}-${mIndex}" 
-                            data-parent="#${marcaCollapseId}">
+                            data-parent="#${marcaCollapseId + idDivAccordion}">
 
                             <div class="card mb-2">
                             <div class="card-body p-2">                                                              

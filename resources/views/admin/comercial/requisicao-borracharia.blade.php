@@ -51,29 +51,133 @@
                 </div>
             </div>
         </div>
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Requisição Borracharia</h3>                
+        <div class="row">
+            <div class="col-12 col-md-12 mb-3">
+                <div class="card card-dark card-outline card-outline-tabs">
+                    <div class="card-header p-0 border-bottom-0">
+                        <ul class="nav nav-tabs" id="tabRequisicaoBorracharia" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="tab-requisicao-borracharia-pagar" data-toggle="pill"
+                                    href="#painel-requisicao-borracharia-pagar" role="tab"
+                                    aria-controls="painel-requisicao-borracharia-pagar" aria-selected="true">
+                                    Requisições
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-clientes-desabilitados" data-toggle="pill"
+                                    href="#clientes-desabilitados" role="tab" aria-controls="clientes-desabilitados"
+                                    aria-selected="false">
+                                    Clientes Desabilitados
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="tab-content" id="tabContentRequisicaoBorracharia">
+                            <div class="tab-pane fade show active" id="painel-requisicao-borracharia-pagar" role="tabpanel"
+                                aria-labelledby="tab-requisicao-borracharia-pagar">
+                                <div class="card-body p-2">
+                                    <div class="row">
+                                        <div class="col-md-8" id="div-tabela-requisicao-borracharia">
+                                            <small class="badge badge-danger badge-date"></small>
+                                            <div class="card-body pb-0 pt-0">
+                                                <table class="table table-responsive compact table-font-small"
+                                                    id="table-requisicao-borracharia">
+                                                    <tfoot>
+                                                        <tr>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
 
-            </div>
-            <div class="card-body">              
+                                        </div>
 
-                <table class="table table-responsive compact table-font-small" id="table-requisicao-borracharia"
-                    style="width:100%; font-size:12px">
-                </table>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="col-6 col-sm-6 col-md-6">
+                                                    <div class="info-box">
+                                                        <div class="info-box-content">
+                                                            <span class="info-box-text">Total</span>
+                                                            <span class="info-box-number">
+                                                                <span id="total-itens"></span>
+                                                                <small>Pneus</small>
+                                                            </span>
+                                                        </div>
+                                                        <!-- /.info-box-content -->
+                                                    </div>
+                                                    <!-- /.info-box -->
+                                                </div>
+                                                <div class="col-6 col-sm-6 col-md-6">
+                                                    <div class="info-box">
+                                                        <div class="info-box-content">
+                                                            <span class="info-box-text">Valor</span>
+                                                            <span class="info-box-number">
+                                                                <small>R$</small>
+                                                                <span id="total-valor"></span>
+                                                            </span>
+                                                        </div>
+                                                        <!-- /.info-box-content -->
+                                                    </div>
+                                                    <!-- /.info-box -->
+                                                </div>
+                                                <div class="col-12 col-md-12">
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <h6 class="card-title">Resumo Gerente</h6>
+                                                            <div class="card-tools m-0">
+                                                                <button class="btn btn-xs btn-danger"
+                                                                    id="download-resumo-local"><i
+                                                                        class="fas fa-download"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div id="accordionResumoGerente"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>                                               
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="clientes-desabilitados" role="tabpanel"
+                                aria-labelledby="tab-clientes-desabilitados">
+                                <div class="card-body p-2">
+                                    <div class="col-md-8">
+                                        <div class="card-header">
+                                            <h6 class="card-title">Clientes Desabilitados</h6>
+                                        </div>
+                                        <div class="card-body pb-0">
+                                            <table class="table table-bordered compact table-font-small table-responsive"
+                                                id="clientes-desabilitados">
+
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     {{-- Modal de Itens --}}
-    <div class="modal modal-default fade" id="modal-table-pedido">
+    <div class="modal modal-default fade" id="modal-table-detalhes-requisicao-borracharia" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <blockquote class="quote-danger d-none" style="margin: 0">
-                        <small class="form-text text-muted">Apenas o Coordenador. Edição
-                            permitida.</small>
-                    </blockquote>
+                    <h5 class="modal-title">Detalhes da Requisição</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -81,67 +185,55 @@
                 <div class="modal-body">
                     <div class="col-md-12">
                         <div class="row">
-                            <div class="col-4 col-md-4">
+                            <div class="col-6 col-md-6">
                                 <div class="form-group">
-                                    <label for="nr_pedido">Pedido</label>
-                                    <input class="form-control form-control-sm nr_pedido" type="text" readonly>
-                                </div>
-                            </div>
-                            <div class="col-8 col-md-8">
-                                <div class="form-group">
-                                    <label for="pessoa">Pessoa</label>
+                                    <label for="pessoa" class="form-label small">Pessoa</label>
                                     <input id="" class="form-control form-control-sm pessoa" type="text"
                                         readonly>
                                 </div>
                             </div>
                             <div class="col-6 col-md-6">
                                 <div class="form-group">
-                                    <label for="vendedor">Vendedor</label>
-                                    <input id="" class="form-control form-control-sm vendedor" type="text"
+                                    <label for="borracheiro" class="form-label small">Borracheiro</label>
+                                    <input id="" class="form-control form-control-sm borracheiro" type="text"
                                         readonly>
 
                                 </div>
                             </div>
-                            <div class="col-6 col-md-6">
+                            <div class="col-3 col-md-3">
                                 <div class="form-group">
-                                    <label for="condicao">Condição</label>
-                                    <input id="" class="form-control form-control-sm condicao" type="text"
+                                    <label for="qtd-notas" class="form-label small">Qtde Notas</label>
+                                    <input id="" class="form-control form-control-sm qtd-notas" type="text"
                                         readonly>
+
+                                </div>
+                            </div>
+                            <div class="col-3 col-md-3">
+                                <div class="form-group">
+                                    <label for="vlr-comissao-total" class="form-label small">Valor Total</label>
+                                    <input id="" class="form-control form-control-sm vlr-comissao-total"
+                                        type="text" readonly>
+
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card mb-2" class="d-none" id="card-pedido">
+                    <div class="card mb-2 d-none" id="card-detalhes-requisicao-borracharia">
                         <div class="card-header">
                             <h3 class="card-title">Itens</h3>
-                            <div class="card-tools">
-                                <button id="btn-observacao" class="btn btn-secondary btn-xs" data-toggle="tooltip"
-                                    title="">Observação</button>
-                            </div>
                         </div>
-                        <div id="card-container"></div>
                     </div>
-                    <table class="table compact row-border" id="table-item-pedido" style="font-size:12px">
+                    <table class="table compact row-border" id="table-item-detalhes-requisicao-borracharia"
+                        style="font-size:12px">
                     </table>
-                    <div class="modal-footer justify-content-center">
-                        <div class="col-md-12">
-                            <div class="form-group" style="text-align: left">
-                                <label for="liberacao">Motivo Liberação:</label>
-                                <textarea id="" class="form-control liberacao" rows="3" cols="50"></textarea>
-                            </div>
-                        </div>
+                    <div class="modal-footer">
                         <div class="d-flex">
-                            <button type="button" class="btn btn-alert" data-dismiss="modal">Cancelar</button>
-                            <button type="button" class="btn btn-success btn-save-confirm">Liberar</button>
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fechar</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        {{-- <x-btn-topo-modal :modalId="'modal-table-pedido'" /> --}}
-
-
-
     </div>
 
 
@@ -149,14 +241,6 @@
 
 @section('css')
     <style>
-        table.dataTable {
-            table-layout: fixed;
-        }
-
-        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-            display: none;
-        }
-
         @media (max-width: 768px) {
             #table-item-pedido_wrapper {
                 display: none !important;
@@ -200,380 +284,221 @@
     <script>
         var tableId = 0;
         var table_item_pedido;
+
+        var dtInicio = moment().subtract(1, 'month').startOf('month').format('DD.MM.YYYY');
+        var dtFim = moment().subtract(1, 'month').endOf('month').format('DD.MM.YYYY');
+        //datas selecionadas no date range picker
+        var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
+
+        $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
+
         var table = $('#table-requisicao-borracharia').DataTable({
             processing: false,
             serverSide: false,
             pagingType: "simple",
             pageLength: 50,
-            // scrollY: "400px",
-            // scrollX: true,
             language: {
                 url: "{{ asset('vendor/datatables/pt-br.json') }}",
             },
-            ajax: "{{ route('get-requisicao-borracharia') }}",
+            ajax: {
+                url: "{{ route('get-requisicao-borracharia') }}",
+                method: 'GET',
+                data: {
+                    dt_inicio: dtInicio,
+                    dt_fim: dtFim
+                },
+                dataSrc: function(json) {
+
+                    console.log(json.accordionResumoGerente);
+                    initAccordion(json.accordionResumoGerente, 'accordionResumoGerente');
+
+
+                    return json.datatables.data;
+                }
+            },
             columns: [{
                     data: "actions",
                     name: "actions",
                     "width": "3%",
-                    title: "Emp",
+                    className: 'text-center text-nowrap'
                 },
                 {
-                    data: 'EMP',
-                    name: 'EMP',
+                    data: 'CD_EMPRESA',
+                    name: 'CD_EMPRESA',
                     "width": "1%",
-                    visible: false,
-                    title: 'Emp'
-                }, {
-                    data: 'PEDIDO',
-                    "width": "6%",
-                    name: 'PEDIDO',
-                    title: 'Pedido',
                     className: 'text-center',
+                    title: 'Emp.'
                 },
                 {
-                    data: 'PESSOA',
-                    name: 'PESSOA',
-                    title: 'Cliente'
+                    data: 'NM_PESSOA',
+                    name: 'NM_PESSOA',
+                    title: 'Cliente',
+                    
                 },
                 {
-                    data: 'QTDPNEUS',
-                    name: 'QTDPNEUS',
-                    title: 'Pneus'
+                    data: 'QTD_ITEM',
+                    name: 'QTD_ITEM',
+                    title: 'Qtde',
+                    render: $.fn.dataTable.render.number('.', ',', 0)
                 },
                 {
                     data: 'VL_COMISSAO',
                     name: 'VL_COMISSAO',
-                    title: 'Tabela'
-                },                
+                    title: 'Valor'
+                },
                 {
-                    data: 'VENDEDOR',
-                    name: 'VENDEDOR',
-                    title: 'Vendedor'
+                    data: 'NM_BORRACHEIRO',
+                    name: 'NM_BORRACHEIRO',
+                    title: 'Borracheiro',
+                    
+                },
+                {
+                    data: 'NM_VENDEDOR',
+                    name: 'NM_VENDEDOR',
+                    title: 'Vendedor',
+                    
                 },
                 {
                     data: 'NM_SUPERVISOR',
                     name: 'NM_SUPERVISOR',
-                    title: 'Supervisor'
+                    title: 'Supervisor',
+                    
+                },{
+                    data: 'gerente_comercial',
+                    name: 'gerente_comercial',
+                    title: 'Gerente',
                 }
             ],
-            order: [2, 'asc']
+            order: [2, 'asc'],
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
+                var totalItens = api.column(3).data().sum();
+                var totalValor = api.column(4).data().sum();
+
+                $('#total-valor').html(totalValor.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+                $('#total-itens').html(totalItens.toLocaleString('pt-BR'));
+
+                $(api.column(3).footer()).html(totalItens.toLocaleString('pt-BR'));
+                $(api.column(4).footer()).html(totalValor.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+            }
         });
 
-        // $('#table-requisicao-borracharia tbody').on('click', '.details-control', function() {
-        //     var tr = $(this).closest('tr');
-        //     var row = table.row(tr);
-        //     tableId = 'pedido-' + row.data().PEDIDO;
-
-        //     // console.log(row.data());
-
-        //     $('.nr_pedido').val(row.data().PEDIDO);
-        //     $('.pessoa').val(row.data().PESSOA);
-        //     $('.vendedor').val(row.data().VENDEDOR);
-        //     $('.condicao').val(row.data().DS_CONDPAGTO);
-
-        //     $('#btn-observacao')
-        //         .attr('data-original-title', '') // limpa qualquer title antigo
-        //         .tooltip('dispose') // destrói tooltip existente
-        //         .attr('title', row.data().DSOBSFATURAMENTO) // define novo texto
-        //         .tooltip(); // recria tooltip
-
-        //     $('#modal-table-pedido').modal('show');
+        $(document).on('click', '.btn-view-requisicao-borracharia', function() {
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
 
 
-        //     initTable('table-item-pedido', row.data());
-        // });
+            $('.pessoa').val(row.data().NM_PESSOA);
+            $('.borracheiro').val(row.data().NM_BORRACHEIRO);
+            $('.qtd-notas').val(row.data().QTD_NOTA);
+            $('.vlr-comissao-total').val(row.data().VL_COMISSAO);
 
-        // $(document).on('click', '#table-item-pedido td:nth-child(3)', function() {
-        //     var tr = $(this).closest('tr');
-        //     var row = table_item_pedido.row(tr);
-        //     var rowData = row.data();
-        //     var valorCellVenda = tr.find('td').eq(2);
-        //     var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
-
-        //     if (!valorCellVenda.find('input').length) {
-        //         valorCellVenda.html(
-        //             `<input type="number" value="${valorVenda}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`
-        //         );
-
-        //         var input = valorCellVenda.find('input');
-        //         input.focus();
-        //         input.select();
-
-        //         input.on('blur', function(e) {
-        //             clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
-
-        //             // Vai esperar 500ms antes de fazer a requisição
-        //             debounceTimer = setTimeout(() => {
-        //                 const venda = parseFloat($(this).val()) || 0;
-        //                 const preco = rowData.VL_PRECO || 0;
-
-        //                 $.get('{{ route('get-calcula-comissao') }}', {
-        //                     item_pedido: rowData.ID,
-        //                     venda: venda
-        //                 }, function(data) {
-        //                     if (data === 0) {
-        //                         msgToastr(
-        //                             'Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!',
-        //                             'warning');
-        //                         return;
-        //                     }
-
-        //                     let desconto = 0;
-        //                     let commissao = 0;
-
-        //                     if (preco > 0) {
-        //                         desconto = 100 - (venda * 100) / preco;
-        //                     }
-
-        //                     rowData.VL_VENDA = parseFloat(venda).toFixed(2);
-        //                     rowData.PC_DESCONTO = parseFloat(desconto).toFixed(2);
-        //                     rowData.VL_COMISSAO = parseFloat(data[0].VL_COMISSAO).toFixed(
-        //                         2);
-        //                     rowData.PC_COMISSAO = parseFloat(data[0].PC_COMISSAO).toFixed(
-        //                         2);
-        //                     rowData.ST_CALCULO = 'A'; // Automático
-        //                     row.data(rowData).draw();
-        //                 });
-        //             }, 500); // 500ms de debounce
-
-        //         });
-
-        //         input.on('keydown', function(e) {
-        //             if (e.which === 13) { // Enter
-        //                 e.preventDefault(); // evita quebra de linha
-        //                 $(this).blur(); // força o blur, que chama a função de atualização
-        //             }
-        //         });
-        //     }
-        // });
-
-        // $(document).on('click', '#table-item-pedido td:nth-child(7)', function() {
-        //     var tr = $(this).closest('tr');
-        //     var row = table_item_pedido.row(tr);
-        //     var rowData = row.data();
-        //     var valorCellPcComissao = tr.find('td').eq(6);
-        //     var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
-        //     const valorPcComissao = parseFloat(rowData.PC_COMISSAO).toFixed(2);
-
-        //     if (!valorCellPcComissao.find('input').length) {
-        //         valorCellPcComissao.html(
-        //             `<input type="number" value="${valorPcComissao}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`
-        //         );
-
-        //         var input = valorCellPcComissao.find('input');
-        //         input.focus();
-        //         input.select();
-
-        //         input.on('blur', function(e) {
-
-        //             const pc_comissao = parseFloat($(this).val()) || 0;
-        //             const vl_comissao = (valorVenda * pc_comissao) / 100;
-
-        //             rowData.PC_COMISSAO = parseFloat(pc_comissao).toFixed(2);
-        //             rowData.VL_COMISSAO = parseFloat(vl_comissao).toFixed(2);
-
-        //             if (valorPcComissao == pc_comissao) {
-        //                 rowData.ST_CALCULO =
-        //                     'A'; // compara com a pc original, se não mudou continua aumático
-        //             } else {
-        //                 rowData.ST_CALCULO = 'M'; // Manual
-        //             }
-
-        //             row.data(rowData).draw();
-
-        //         });
-
-        //         input.on('keydown', function(e) {
-        //             if (e.which === 13) { // Enter
-        //                 e.preventDefault(); // evita quebra de linha
-        //                 $(this).blur(); // força o blur, que chama a função de atualização
-        //             }
-        //         });
-        //     }
-
-        // });
-
-        // $(document).on('click', '.btn-save-confirm', function(e) {
-        //     //obtem os dados de toda a tabela, para fazer o update no banco
-        //     var pneus = [];
-
-        //     if (isMobile()) {
-        //         $('.input-venda').each(function() {
-        //             const card = $(this).closest('.card');
-        //             const vl_venda = parseFloat($(this).val());
-        //             const vl_preco = card.find('.input-preco').val();
-        //             const desconto = parseFloat((100 - (vl_venda * 100) / vl_preco)).toFixed(2);
-        //             const pc_comissao = card.find('.percentual-comissao').val();
-        //             const vl_comissao = card.find('.vl-comissao').val();
-        //             const st_calculo = card.find('.st-calculo').val();
-        //             const pedido = card.find('.input-id-pedido').val();
-
-        //             pneus.push({
-        //                 ID: $(this).data('id'),
-        //                 PEDIDO: pedido,
-        //                 VL_VENDA: vl_venda,
-        //                 VL_PRECO: vl_preco,
-        //                 VL_COMISSAO: vl_comissao,
-        //                 PC_DESCONTO: desconto,
-        //                 PC_COMISSAO: pc_comissao,
-        //                 ST_CALCULO: st_calculo
-        //             });
-        //         })
-        //     } else {
-        //         //obtem os dados de toda a tabela, para fazer o update no banco            
-        //         pneus = table_item_pedido.rows().data().toArray();
-        //     }
-        //     $.ajax({
-        //         url: "{{ route('save-libera-pedido') }}",
-        //         method: 'post',
-        //         data: {
-        //             _token: $("[name=csrf-token]").attr("content"),
-        //             pedido: $('.nr_pedido').val(),
-        //             liberacao: $('.liberacao').val(),
-        //             pneus: pneus
-        //         },
-        //         beforeSend: function() {
-        //             $("#loading").removeClass('invisible');
-        //         },
-        //         success: function(response) {
-        //             $("#loading").addClass('invisible');
-
-        //             if (response.success) {
-        //                 msgToastr(response.success, 'success');
-        //                 $('#table-ordem-block').DataTable().ajax.reload();
-        //                 // $('#modal-pedido').modal('hide');
-        //                 $('#modal-table-pedido').modal('hide');
-        //                 $('#modal-pedido').modal('hide');
-        //             } else if (response.warning) {
-        //                 msgToastr(response.warning, 'warning');
-        //                 $('#table-ordem-block').DataTable().ajax.reload();
-        //                 // $('#modal-pedido').modal('hide');
-        //                 $('#modal-table-pedido').modal('hide');
-        //                 $('#modal-pedido').modal('hide');
-        //             } else {
-        //                 msgToastr(response.error, 'danger');
-        //             }
-        //         }
-        //     });
-        // });
-
-        // let debounceTimer; // armazena o timer de debounce
-        // $('#card-container').on('input', '.input-venda', function() {
-        //     const input = $(this);
-
-        //     clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
-
-        //     debounceTimer = setTimeout(() => {
-        //         const venda = parseFloat(input.val()) || 0;
-        //         const item_pedido = input.closest('.card-body').find('.input-id-item').val() || 0;
-        //         const preco = input.closest('.card-body').find('.input-preco').val() || 0;
-
-        //         $.get('{{ route('get-calcula-comissao') }}', {
-        //             item_pedido: item_pedido,
-        //             venda: venda
-        //         }, function(data) {
-
-        //             if (data === 0) {
-        //                 msgToastr(
-        //                     'Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!',
-        //                     'warning');
-        //                 return;
-        //             }
-
-        //             let desconto = 0;
-        //             let commissao = 0;
-
-        //             if (preco > 0) {
-        //                 desconto = 100 - (venda * 100) / preco;
-        //             }
-
-        //             const percentual = input.closest('.card-body').find('.percentual');
-        //             const vlComissao = input.closest('.card-body').find('.vl-comissao');
-        //             const percentualComissao = input.closest('.card-body').find(
-        //                 '.percentual-comissao');
-
-        //             percentual.val(desconto.toFixed(2));
-        //             vlComissao.val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
-        //             percentualComissao.val(parseFloat(data[0].PC_COMISSAO).toFixed(2));
-
-        //             // Aplica destaque
-        //             [percentual, vlComissao, percentualComissao].forEach(el => {
-        //                 el.addClass('input-destaque');
-        //             });
-
-        //             // 👉 Aplica foco visual (danger) ao input editado
-        //             input.addClass('is-valid');
+            $('#modal-table-detalhes-requisicao-borracharia').modal('show');
 
 
-        //         });
-        //     }, 1000); // 1000ms de debounce
+            initTable('table-item-detalhes-requisicao-borracharia', row.data());
+        });
 
-        // });
+        $(document).on('click', '.btn-desabilita-cliente', function() {
 
-        // $('#card-container').on('input', '.percentual-comissao', function() {
-        //     const input = $(this);
+            var cd_pessoa = $(this).data('cd-pessoa');
 
-        //     const venda = input.closest('.card-body').find('.input-venda').val() || 0;
-        //     const valorPcComissao = input.closest('.card-body').find('.percentual-comissao').val() || 0;
-        //     const vlComissao = input.closest('.card-body').find('.vl-comissao');
+            var parms = {
+                cd_pessoa: cd_pessoa,
+                st_borracheiro: 'N',
+                title: 'Desabilitar Cliente?',
+                text: "Tem certeza que deseja desabilitar este cliente para pagar borracharia?",
+                icon: 'warning',
+                confirmButtonText: 'Sim, desabilitar!',
+                confirmButtonColor: '#3085d6',
+                cancelButtonText: 'Cancelar',
+                cancelButtonColor: '#d33'
+            }
 
-
-        //     // Calcula o valor da comissão com base na venda e no percentual
-        //     vlComissao.val(parseFloat((venda * valorPcComissao) / 100).toFixed(2));
-
-        //     // Aplica destaque
-        //     [vlComissao].forEach(el => {
-        //         el.addClass('input-destaque');
-        //     });
-
-        //     // Aplica foco visual (danger) ao input editado
-        //     input.addClass('is-valid');
+            DesabilitaHabilitaClienteBorracharia(parms);
 
 
-        // });
+        });
 
-        // $('#nm_supervisor').on('keyup change', function() {
-        //     let value = $(this).val();
-        //     table.column(7).search(value).draw();
-        // });
+        $(document).on('click', '.btn-habilita-cliente', function() {
 
-        // $('#nm_vendedor').on('keyup change', function() {
-        //     let value = $(this).val();
-        //     table.column(5).search(value).draw();
-        // });
+            var cd_pessoa = $(this).data('cd-pessoa');
 
-        // $('#nm_cliente').on('keyup change', function() {
-        //     let value = $(this).val();
-        //     table.column(3).search(value).draw();
-        // });
+            var parms = {
+                cd_pessoa: cd_pessoa,
+                st_borracheiro: 'S',
+                title: 'Habilitar Cliente?',
+                text: "Tem certeza que deseja habilitar este cliente para pagar borracharia?",
+                icon: 'warning',
+                confirmButtonText: 'Sim, habilitar!',
+                confirmButtonColor: '#3085d6',
+                cancelButtonText: 'Cancelar',
+                cancelButtonColor: '#d33'
+            }
 
-        // $('#btn-limpar').on('click', function() {
-        //     $('#nm_supervisor').val('');
-        //     $('#nm_vendedor').val('');
-        //     $('#nm_cliente').val('');
-        //     table.search('').columns().search('').draw();
-        // });
+            DesabilitaHabilitaClienteBorracharia(parms);
 
-        // $('#btn-liberar').on('click', function() {
-        //     $.ajax({
-        //         type: "GET",
-        //         url: "{{ route('libera-abaixo-desconto') }}",
-        //         data: {
-        //             _token: "{{ csrf_token() }}"
-        //         },
-        //         success: function(response) {
-        //             if (response.success) {
-        //                 msgToastr(response.success, 'success');
-        //                 $('#table-ordem-block').DataTable().ajax.reload();
-        //             }
-        //         }
-        //     });
-        // });
+
+        });
+
+        function DesabilitaHabilitaClienteBorracharia(parms) {
+            Swal.fire({
+                title: parms.title,
+                text: parms.text,
+                icon: parms.icon,
+                showCancelButton: true,
+                confirmButtonColor: parms.confirmButtonColor,
+                cancelButtonColor: parms.cancelButtonColor,
+                confirmButtonText: parms.confirmButtonText,
+                cancelButtonText: parms.cancelButtonText
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ route('desabilita-cliente-borracharia') }}',
+                        method: 'POST',
+                        data: {
+                            cd_pessoa: parms.cd_pessoa,
+                            st_borracheiro: parms.st_borracheiro,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: response.title,
+                                    text: response.message,
+                                    timer: 1500
+                                })
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: response.title,
+                                    text: response.message,
+                                    timer: 1500
+                                });
+                            }
+
+                            table.ajax.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: response.title,
+                                text: response.message
+                            });
+                        }
+                    });
+                }
+            });
+        };
 
         function initTable(tableId, data) {
-
-            var url = "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}";
-            url = url.replace(':pedido', data.PEDIDO);
 
             $('#' + tableId).DataTable().clear().destroy();
 
@@ -588,214 +513,122 @@
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
                 },
                 ajax: {
-                    url: url,
-                    beforeSend: function() {
-                        $('#card-container').html(`
-                            <div class="card-body shadow-sm p-3 text-center">
-                                <i class="fas fa-sync-alt fa-spin"></i>
-                            </div>`);
-                    },
-                    dataSrc: function(json) {
-                        const dados = json.data || json;
-                        // Renderiza os cards com os mesmos dados
-                        renderizarCards(dados, 'card-container');
-                        return dados;
+                    url: '{{ route('get-detalhes-requisicao-borracharia') }}',
+                    data: {
+                        cd_pessoa: data.CD_PESSOA,
+                        cd_borracheiro: data.CD_BORRACHEIRO
                     }
                 },
                 columns: [{
-                        data: 'SEQ',
-                        name: 'SEQ',
+                        data: 'NR_NOTAFISCAL',
+                        name: 'NR_NOTAFISCAL',
                         width: '1%',
-                        title: 'Seq',
-                        visible: false
+                        title: 'Nota'
+
                     },
                     {
                         data: 'DS_ITEM',
                         name: 'DS_ITEM',
-                        width: '20%',
-                        title: 'Item'
+                        title: 'Item',
+                        className: 'text-nowrap'
                     },
                     {
-                        data: 'CD_TABPRECO',
-                        name: 'CD_TABPRECO',
-                        title: 'Tabela'
-                    },
-                    {
-                        data: 'VL_VENDA',
-                        name: 'VL_VENDA',
-                        // width: '2%',
-                        render: $.fn.dataTable.render.number('.', ',', 2),
-                        title: 'Venda'
-                    },
-                    {
-                        data: 'VL_PRECO',
-                        name: 'VL_PRECO',
-
-                        render: $.fn.dataTable.render.number('.', ',', 2),
-                        title: 'Tabela'
-                    },
-                    {
-                        data: 'PC_DESCONTO',
-                        name: 'PC_DESCONTO',
-                        render: function(data, type, row) {
-                            return data + '%';
-                        },
-                        title: '%Desc'
+                        data: 'QTD_ITEM',
+                        name: 'QTD_ITEM',
+                        title: 'Qtde'
                     },
                     {
                         data: 'VL_COMISSAO',
                         name: 'VL_COMISSAO',
-                        visible: true,
                         render: $.fn.dataTable.render.number('.', ',', 2),
                         title: 'Comissão'
-                    },
-                    {
-                        data: 'PC_COMISSAO',
-                        name: 'PC_COMISSAO',
-                        visible: true,
-                        render: function(data, type, row) {
-                            return data + '%';
-                        },
-                        title: '%Comis.'
-                    },
-                    {
-                        data: 'ST_CALCULO',
-                        name: 'ST_CALCULO',
-                        title: 'Cálculo',
-                        render: function(data, type, row) {
-                            if (data === 'A') {
-                                return 'Automático';
-                            } else if (data === 'M') {
-                                return 'Manual';
-                            } else {
-                                return data;
-                            }
-                        }
-                    }, {
-                        data: 'PEDIDO',
-                        name: 'PEDIDO',
-                        visible: false,
-                        title: 'Pedido'
                     }
-                ],
-                columnDefs: [{
-                    targets: [2, 3, 8],
-                    className: 'dt-right'
-                }, {
-                    targets: [3, 7],
-                    createdCell: function(td, cellData, rowData, row, col) {
-                        $(td).css('background-color', '#E2E5E8');
-                        $(td).css('color', '#000');
-                        $(td).css('font-weight', 'bold');
-                    }
-                }],
-
-                "drawCallback": function(settings) {
-                    // Só executa em telas menores
-                    if ($(window).width() <= 768) {
-                        const api = this.api();
-                        const headers = api.columns().header().toArray(); // Pega os cabeçalhos
-
-                        api.rows({
-                            page: 'current'
-                        }).every(function(index) {
-                            const rowNode = this.node();
-                            const cells = $('td', rowNode);
-
-                            cells.each(function(i) {
-                                const label = $(headers[i])
-                                    .text(); // Pega o texto do cabeçalho correspondente
-                                $(this).attr('data-label', label);
-                            });
-                        });
-                    }
-                }
+                ]
             });
         }
 
-        // function renderizarCards(data, containerId) {
-        //     const container = $('#' + containerId);
-        //     container.empty(); // Limpa antes
+        function initAccordion(data, idAccordion) {
+            let valorTotalGerente = 0;
+            let html = "";
+            data.forEach((gerente, gIndex) => {
+                valorTotalGerente += gerente.vl_comissao;
+                html += `
+                            <div class="card gerente-card">
+                            <div class="card-header p-1">
+                                <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
+                                    👔 ${gerente.nome} (R$ ${formatarValorBR(
+                    gerente.vl_comissao
+                )}) 
+                                    
+                                </button>
+                            </div>
+                            <div id="sup-${gIndex}" class="collapse">
+                                <div class="card-body p-2">     `;
 
-        //     if (data[0].ST_COMERCIAL == 'G') {
-        //         $('.quote-danger').removeClass('d-none');
-        //     } else {
-        //         $('.quote-danger').addClass('d-none');
-        //     }
-        //     data.forEach(item => {
-        //         const card = $(`                       
-        //                     <div class="card-body shadow-sm p-3 ${item.ST_CALCULO == 'M' ? 'bg-purple' : ''} ">
-        //                         <span class="badge badge-secondary">${item.DS_TABPRECO}</span>
-        //                         <input type="hidden" class="input-id-item" value="${item.ID}" />
-        //                         <input type="hidden" class="st-calculo" value="${item.ST_CALCULO}" />
-        //                         <input type="hidden" class="input-id-pedido" value="${item.PEDIDO}" />
-        //                         <input type="hidden" class="input-empresa" value="${item.EMPRESA}" />
-        //                         <div class="row">
-        //                             <div class="col-8 col-md-8">
-        //                                 <div class="form-group mb-0">                                  
-        //                                     <label>Item:</label> 
-        //                                     <input type="text" 
-        //                                         class="form-control form-control-sm"
-        //                                         value="${item.DS_ITEM}" readonly />                                    
-        //                                 </div>
-        //                             </div>
-        //                             <div class="col-4 col-md-4">
-        //                                 <div class="form-group mb-0">                                  
-        //                                     <label>% Desc</label> 
-        //                                     <input type="text" 
-        //                                         class="form-control form-control-sm percentual"
-        //                                         value="${parseFloat(item.PC_DESCONTO).toFixed(2)}" readonly />                                    
-        //                                 </div>
-        //                             </div>  
+                gerente.supervisores.forEach((sup, sIndex) => {
+                    html += `<div class="supervisor-container">`;
+                    html += `
+                            <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
+                                🛡️ ${sup.nome} (R$ ${formatarValorBR(
+                        sup.vl_comissao
+                    )}) 
+                            </button>
+                            <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
+                            `;
+
+                    sup.vendedores.forEach((vend, vIndex) => {
+                        html += `<div class="vendedor-container">`;
+                        html += `
+                                <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                👤 ${vend.nome} 
+                                <span class="vl_comissao">(R$ ${formatarValorBR(
+                                    vend.vl_comissao
+                                )})</span>
+                                </button>
+                                <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">
+                                <ul class="list-group">
+                            `;
+
+                        vend.clientes.forEach((detalhe) => {
+                            html += `
+                                <li class="list-group-item p-1 cliente-item">
+                                    🏢 <span class="badge badge-secondary">${
+                                        detalhe.PESSOA
+                                    }</span>
+                                    <br>
+                                     <table class="table table-sm mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <th class="text-muted">Qtd</th>
+                                                <td class="td-small-text">${
+                                                    detalhe.QTD_ITEM
+                                                }</td>
+                                                <th class="text-muted">Total</th>
+                                                <td><span class="font-weight-bold">${formatarValorBR(
+                                                    detalhe.VL_COMISSAO
+                                                )}</span></td>
+                                            </tr>                                            
+                                        </tbody>
+                                    </table>
                                 
-        //                             <div class="col-8 col-md-8">
-        //                                 <div class="form-group mb-0">    
-        //                                     <label>Venda</label>                                
-        //                                     <input type="number"
-        //                                         class="form-control form-control-sm input-venda"
-        //                                         style="width: 100px;"
-        //                                         value="${parseFloat(item.VL_VENDA).toFixed(2)}"                                               
-        //                                         data-id="${item.ID}" 
-        //                                         data-pccomissao="${item.PC_COMISSAO}"
-        //                                         />
-        //                                 </div>
-        //                             </div>
-        //                             <div class="col-4 col-md-4">
-        //                                 <div class="form-group mb-0">
-        //                                     <label>Tabela</label>
-        //                                     <input type="number"
-        //                                         class="form-control form-control-sm input-preco"                                                
-        //                                         value="${parseFloat(item.VL_PRECO).toFixed(2)}" readonly/>
-        //                                 </div>  
-        //                             </div>  
-        //                             <div class="col-8 col-md-8">
-        //                             <div class="form-group mb-0">
-        //                                 <label>Comissão</label>
-        //                                 <input type="number"
-        //                                     class="form-control form-control-sm vl-comissao"
-        //                                     style="width: 100px;"
-        //                                     value="${parseFloat(item.VL_COMISSAO).toFixed(2)}" readonly/>
-        //                             </div>
-        //                             </div>
-        //                             <div class="col-4 col-md-4">
-        //                                 <div class="form-group mb-0">
-        //                                     <label>% Comissao</label>
-        //                                     <input type="number"
-        //                                     class="form-control form-control-sm percentual-comissao"  
-        //                                     style="width: 100px;"
-        //                                     value="${parseFloat(item.PC_COMISSAO).toFixed(2)}"/>
-        //                                 </div>
-        //                             </div>
-        //                         </div> 
-        //                      </div>                      
-        //                 `);
-        //         container.append(card);
-        //     });
-        // }
+                                </li>
+                                `;
+                        });
 
-        // function isMobile() {
-        //     return $(window).width() <= 768;
-        // }
+                        html += `</ul></div>`;
+                        html += `   </div>`;
+                    });
+
+                    html += `</div>`; // fecha Supervisor
+                    html += `</div>`;
+                });
+
+                html += `</div></div></div>`; // fecha Gerente
+
+
+                $("#" + idAccordion).html(html);
+            });
+        }
     </script>
 
 @stop

@@ -179,7 +179,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('borracharia')->group(function () {
         Route::get('requisicao-borracharia', [VendedorBorrachariaController::class, 'index'])->name('requisicao-borracharia.index');
         Route::get('get-requisicao-borracharia', [VendedorBorrachariaController::class, 'getRequisicaoBorracharia'])->name('get-requisicao-borracharia');
-
+        Route::get('get-detalhe-requisicao-borracharia', [VendedorBorrachariaController::class, 'getDetailsRequisicaoBorracharia'])->name('get-detalhes-requisicao-borracharia');
+        Route::post('desabilita-cliente-borracharia', [VendedorBorrachariaController::class, 'desabilitaClienteBorracharia'])->name('desabilita-cliente-borracharia');
       
     });
 });

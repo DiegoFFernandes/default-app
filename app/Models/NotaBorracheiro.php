@@ -1,0 +1,223 @@
+<?php
+
+namespace App\Models;
+
+use Helper;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+
+class NotaBorracheiro extends Model
+{
+    use HasFactory;
+
+    public function getRequisicaoBorracharia($dtInicio, $dtFim)
+    {
+        $query = "
+            SELECT
+                NOTA.CD_EMPRESA,
+                --NOTA.NR_LANCAMENTO,
+                --NOTA.CD_SERIE,
+                --NOTA.TP_NOTA,
+                NOTA.CD_PESSOA,
+                NOTA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+                --ITEM.DS_ITEM,
+                --ITEM.cd_grupo,
+                --ITEM.CD_SUBGRUPO,
+                 COUNT(NOTA.NR_LANCAMENTO) QTD_NOTA,
+                SUM(I.QT_ITEMNOTA) QTD_ITEM,
+                
+                --I.VL_UNITARIO,
+                --I.VL_TOTAL,
+
+                INV.CD_VENDEDOR CD_BORRACHEIRO,
+                INV.CD_VENDEDOR || '-' || PBORRACHEIRO.NM_PESSOA NM_BORRACHEIRO,
+                --INV.CD_TIPO,
+                --INV.PC_COMISSAO,
+                --NOTA.DT_EMISSAO,
+                
+                
+                SUM(
+                CASE
+                    WHEN PB.CD_PESSOA IS NULL THEN INV.VL_COMISSAO 
+                    WHEN PB.ST_BORRACHEIRO = 'S' THEN INV.VL_COMISSAO
+                    ELSE 0
+                END) VL_COMISSAO,
+                PVENDEDOR.CD_PESSOA CD_VENDEDOR,
+                PVENDEDOR.NM_PESSOA NM_VENDEDOR,
+
+                PSUPERVISOR.CD_PESSOA CD_SUPERVISOR,
+                PSUPERVISOR.NM_PESSOA NM_SUPERVISOR,
+
+                CASE
+                    WHEN PB.CD_PESSOA IS NULL THEN 'S'
+                    ELSE PB.ST_BORRACHEIRO
+                END ST_BORRACHARIA
+            FROM NOTA
+
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = NOTA.CD_PESSOA)
+
+            LEFT JOIN PESSOABORRACHEIRO PB ON (PB.CD_PESSOA = NOTA.CD_PESSOA)
+
+            INNER JOIN ITEMNOTA I ON (I.CD_EMPRESA = NOTA.CD_EMPRESA
+                AND I.NR_LANCAMENTO = NOTA.NR_LANCAMENTO
+                AND I.TP_NOTA = NOTA.TP_NOTA
+                AND I.CD_SERIE = NOTA.CD_SERIE)
+
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = I.CD_ITEM)
+
+            INNER JOIN ITEMNOTAVENDEDOR INV ON (INV.CD_EMPRESA = I.CD_EMPRESA
+                AND INV.NR_LANCAMENTO = I.NR_LANCAMENTO
+                AND INV.TP_NOTA = I.TP_NOTA
+                AND INV.CD_SERIE = I.CD_SERIE
+                AND INV.CD_ITEM = I.CD_ITEM)
+
+            INNER JOIN VENDEDOR VBORRACHEIRO ON (VBORRACHEIRO.CD_VENDEDOR = INV.CD_VENDEDOR)
+            INNER JOIN PESSOA PBORRACHEIRO ON (PBORRACHEIRO.CD_PESSOA = VBORRACHEIRO.CD_VENDEDOR)
+
+            INNER JOIN PESSOA PVENDEDOR ON (PVENDEDOR.CD_PESSOA = NOTA.CD_VENDEDOR)
+
+            INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = INV.CD_VENDEDOR)
+
+            INNER JOIN PESSOA PSUPERVISOR ON (PSUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
+
+            WHERE NOTA.DT_EMISSAO BETWEEN '$dtInicio' AND '$dtFim'
+                AND ITEM.CD_GRUPO NOT IN (104)
+                AND INV.CD_TIPO = 2
+                AND NOTA.ST_NOTA IN ('V')
+
+                --AND VBORRACHEIRO.CD_VENDEDOR IN (90,70127)
+
+            GROUP BY NOTA.CD_EMPRESA, NOTA.CD_PESSOA, PESSOA.NM_PESSOA, INV.CD_VENDEDOR, PBORRACHEIRO.NM_PESSOA, PVENDEDOR.CD_PESSOA, PVENDEDOR.NM_PESSOA, PSUPERVISOR.CD_PESSOA,
+                PSUPERVISOR.NM_PESSOA, PB.CD_PESSOA, PB.ST_BORRACHEIRO   
+            ";
+
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
+    }
+
+    public function getDetailsRequisicaoBorracharia($cd_pessoa, $cd_borracheiro, $dtInicio, $dtFim)
+    {
+        $query = "
+            SELECT
+                NOTA.CD_EMPRESA,
+                NOTA.NR_LANCAMENTO,
+                NOTA.nr_notafiscal,
+                --NOTA.CD_SERIE,
+                --NOTA.TP_NOTA,
+                NOTA.CD_PESSOA,
+                NOTA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_CLIENTE,
+                ITEM.DS_ITEM,
+                ITEM.cd_grupo,
+                ITEM.CD_SUBGRUPO,               
+                I.QT_ITEMNOTA QTD_ITEM,
+                --I.VL_UNITARIO,
+                --I.VL_TOTAL,
+
+                INV.CD_VENDEDOR CD_BORRACHEIRO,
+                INV.CD_VENDEDOR || '-' || PBORRACHEIRO.NM_PESSOA NM_BORRACHEIRO,
+                --INV.CD_TIPO,
+                --INV.PC_COMISSAO,
+                --NOTA.DT_EMISSAO,
+                INV.VL_COMISSAO,
+
+                PVENDEDOR.CD_PESSOA CD_VENDEDOR,
+                PVENDEDOR.NM_PESSOA NM_VENDEDOR,
+
+                PSUPERVISOR.CD_PESSOA CD_SUPERVISOR,
+                PSUPERVISOR.NM_PESSOA NM_SUPERVISOR
+            FROM NOTA
+
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = NOTA.CD_PESSOA)
+
+            INNER JOIN ITEMNOTA I ON (I.CD_EMPRESA = NOTA.CD_EMPRESA
+                AND I.NR_LANCAMENTO = NOTA.NR_LANCAMENTO
+                AND I.TP_NOTA = NOTA.TP_NOTA
+                AND I.CD_SERIE = NOTA.CD_SERIE)
+
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = I.CD_ITEM)
+
+            INNER JOIN ITEMNOTAVENDEDOR INV ON (INV.CD_EMPRESA = I.CD_EMPRESA
+                AND INV.NR_LANCAMENTO = I.NR_LANCAMENTO
+                AND INV.TP_NOTA = I.TP_NOTA
+                AND INV.CD_SERIE = I.CD_SERIE
+                AND INV.CD_ITEM = I.CD_ITEM)
+
+            INNER JOIN VENDEDOR VBORRACHEIRO ON (VBORRACHEIRO.CD_VENDEDOR = INV.CD_VENDEDOR)
+            INNER JOIN PESSOA PBORRACHEIRO ON (PBORRACHEIRO.CD_PESSOA = VBORRACHEIRO.CD_VENDEDOR)
+
+            INNER JOIN PESSOA PVENDEDOR ON (PVENDEDOR.CD_PESSOA = NOTA.CD_VENDEDOR)
+
+            INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = INV.CD_VENDEDOR)
+
+            INNER JOIN PESSOA PSUPERVISOR ON (PSUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
+
+            WHERE NOTA.DT_EMISSAO BETWEEN '$dtInicio' AND '$dtFim'
+                AND ITEM.CD_GRUPO NOT IN (104)
+                AND INV.CD_TIPO = 2
+                AND NOTA.ST_NOTA IN ('V')
+
+                AND VBORRACHEIRO.CD_VENDEDOR = $cd_borracheiro
+                AND NOTA.CD_PESSOA = $cd_pessoa
+ 
+            ";
+
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
+    }
+
+    public function desabilitaClienteBorracharia($cd_pessoa, $st_borracheiro)
+    {
+        $user = auth()->user();
+
+        try {
+            if ($st_borracheiro === 'S') {
+
+                $queryInsert = "
+                    UPDATE OR INSERT INTO PESSOABORRACHEIRO (CD_PESSOA, DT_REGISTRO, ST_BORRACHEIRO, NM_USUARIO)
+                    VALUES ($cd_pessoa, CURRENT_DATE, 'S', '{$user->name}')
+                    MATCHING (CD_PESSOA);
+                ";
+
+                DB::connection('firebird')->insert($queryInsert);
+
+                return response()->json(
+                    [
+                        'success' => true,
+                        'title' => 'Cliente habilitado',
+                        'message' => 'Cliente habilitado para pagar borracharia!'
+                    ]
+                );
+            } else {
+
+                $queryUpdate = "
+                    UPDATE OR INSERT INTO PESSOABORRACHEIRO (CD_PESSOA, DT_REGISTRO, ST_BORRACHEIRO, NM_USUARIO)
+                    VALUES ($cd_pessoa, CURRENT_DATE, 'N', '{$user->name}')
+                    MATCHING (CD_PESSOA);
+                ";
+
+                DB::connection('firebird')->update($queryUpdate);
+
+                return response()->json(
+                    [
+                        'success' => true,
+                        'title' => 'Cliente desabilitado',
+                        'message' => 'Cliente desabilitado para pagar borracharia!'
+                    ]
+                );
+            }
+        } catch (\Exception $e) {
+
+            return response()->json(
+                [
+                    'success' => false,
+                    'title' => 'Erro ao atualizar cliente',
+                    'type' => 'error',
+                    'message' => $e->getMessage()
+                ]
+            );
+        }
+    }
+}
