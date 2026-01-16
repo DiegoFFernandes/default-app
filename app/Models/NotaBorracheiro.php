@@ -24,7 +24,7 @@ class NotaBorracheiro extends Model
                 --ITEM.DS_ITEM,
                 --ITEM.cd_grupo,
                 --ITEM.CD_SUBGRUPO,
-                 COUNT(NOTA.NR_LANCAMENTO) QTD_NOTA,
+                 COUNT(DISTINCT NOTA.NR_LANCAMENTO) QTD_NOTA,
                 SUM(I.QT_ITEMNOTA) QTD_ITEM,
                 
                 --I.VL_UNITARIO,
@@ -131,6 +131,8 @@ class NotaBorracheiro extends Model
 
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = NOTA.CD_PESSOA)
 
+            LEFT JOIN PESSOABORRACHEIRO PB ON (PB.CD_PESSOA = NOTA.CD_PESSOA)
+
             INNER JOIN ITEMNOTA I ON (I.CD_EMPRESA = NOTA.CD_EMPRESA
                 AND I.NR_LANCAMENTO = NOTA.NR_LANCAMENTO
                 AND I.TP_NOTA = NOTA.TP_NOTA
@@ -149,7 +151,7 @@ class NotaBorracheiro extends Model
 
             INNER JOIN PESSOA PVENDEDOR ON (PVENDEDOR.CD_PESSOA = NOTA.CD_VENDEDOR)
 
-            INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = INV.CD_VENDEDOR)
+            INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = NOTA.CD_VENDEDOR)
 
             INNER JOIN PESSOA PSUPERVISOR ON (PSUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
 

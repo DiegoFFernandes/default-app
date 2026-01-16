@@ -177,7 +177,7 @@ class VendedorBorrachariaController extends Controller
                     $btn .= '<button type="button" class="btn btn-success btn-xs btn-habilita-cliente mr-1" style="width: 30px;" data-cd-pessoa="' . $data->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-check"></i></button>';
                 }
 
-                $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia" style="width: 30px;" data-cd-vendedor="' . $data->CD_VENDEDOR . '"  title="Ver Detalhes"><i class="fas fa-eye"></i></button>';
+                $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia" style="width: 30px;" data-cd-borracheiro="' . $data->CD_BORRACHEIRO . '"  title="Ver Detalhes"><i class="fas fa-eye"></i></button>';
 
                 return $btn;
             })

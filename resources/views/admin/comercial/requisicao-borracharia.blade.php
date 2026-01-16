@@ -205,7 +205,13 @@
                                     <label for="qtd-notas" class="form-label small">Qtde Notas</label>
                                     <input id="" class="form-control form-control-sm qtd-notas" type="text"
                                         readonly>
-
+                                </div>
+                            </div>
+                            <div class="col-3 col-md-3">
+                                <div class="form-group">
+                                    <label for="qtd-notas" class="form-label small">Qtde Itens</label>
+                                    <input id="" class="form-control form-control-sm qtd-itens" type="text"
+                                        readonly>
                                 </div>
                             </div>
                             <div class="col-3 col-md-3">
@@ -284,6 +290,8 @@
     <script>
         var tableId = 0;
         var table_item_pedido;
+        let accordionResumoGerenteOriginal = [];
+        let accordionResumoGerenteFiltrado = [];
 
         var dtInicio = moment().subtract(1, 'month').startOf('month').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'month').endOf('month').format('DD.MM.YYYY');
@@ -309,9 +317,9 @@
                 },
                 dataSrc: function(json) {
 
-                    console.log(json.accordionResumoGerente);
-                    initAccordion(json.accordionResumoGerente, 'accordionResumoGerente');
+                    accordionResumoGerenteOriginal = json.accordionResumoGerente;
 
+                    initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
 
                     return json.datatables.data;
                 }
@@ -421,6 +429,7 @@
             $('.pessoa').val(row.data().NM_PESSOA);
             $('.borracheiro').val(row.data().NM_BORRACHEIRO);
             $('.qtd-notas').val(row.data().QTD_NOTA);
+            $('.qtd-itens').val(row.data().QTD_ITEM);
             $('.vlr-comissao-total').val(row.data().VL_COMISSAO);
 
             $('#modal-table-detalhes-requisicao-borracharia').modal('show');
@@ -470,6 +479,21 @@
 
 
         });
+
+        table.on('search.dt', function() {
+            const termo = table.search().toLowerCase().trim();
+
+            if (!Array.isArray(accordionResumoGerenteOriginal)) return;
+
+            // Se busca vazia → volta tudo
+            if (!termo) {
+                initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
+                return;
+            }
+            
+            // initAccordion(accordionResumoGerenteFiltrado, 'accordionResumoGerente');
+        });
+
 
         function DesabilitaHabilitaClienteBorracharia(parms) {
             Swal.fire({
