@@ -142,7 +142,7 @@
                                                             <div id="accordionResumoGerente"></div>
                                                         </div>
                                                     </div>
-                                                </div>                                               
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -296,7 +296,7 @@
             processing: false,
             serverSide: false,
             pagingType: "simple",
-            pageLength: 50,
+            pageLength: 10,
             language: {
                 url: "{{ asset('vendor/datatables/pt-br.json') }}",
             },
@@ -333,7 +333,7 @@
                     data: 'NM_PESSOA',
                     name: 'NM_PESSOA',
                     title: 'Cliente',
-                    
+
                 },
                 {
                     data: 'QTD_ITEM',
@@ -350,20 +350,20 @@
                     data: 'NM_BORRACHEIRO',
                     name: 'NM_BORRACHEIRO',
                     title: 'Borracheiro',
-                    
+
                 },
                 {
                     data: 'NM_VENDEDOR',
                     name: 'NM_VENDEDOR',
                     title: 'Vendedor',
-                    
+
                 },
                 {
                     data: 'NM_SUPERVISOR',
                     name: 'NM_SUPERVISOR',
                     title: 'Supervisor',
-                    
-                },{
+
+                }, {
                     data: 'gerente_comercial',
                     name: 'gerente_comercial',
                     title: 'Gerente',
@@ -372,21 +372,45 @@
             order: [2, 'asc'],
             footerCallback: function(row, data, start, end, display) {
                 var api = this.api();
-                var totalItens = api.column(3).data().sum();
-                var totalValor = api.column(4).data().sum();
 
-                $('#total-valor').html(totalValor.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
-                $('#total-itens').html(totalItens.toLocaleString('pt-BR'));
+                // Soma apenas os registros filtrados (search aplicado)
+                var totalItens = api
+                    .column(3, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .sum();
 
-                $(api.column(3).footer()).html(totalItens.toLocaleString('pt-BR'));
-                $(api.column(4).footer()).html(totalValor.toLocaleString('pt-BR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                }));
+                var totalValor = api
+                    .column(4, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .sum();
+
+                $('#total-itens').html(
+                    totalItens.toLocaleString('pt-BR')
+                );
+
+                $('#total-valor').html(
+                    totalValor.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                );
+
+                $(api.column(3).footer()).html(
+                    totalItens.toLocaleString('pt-BR')
+                );
+
+                $(api.column(4).footer()).html(
+                    totalValor.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                );
             }
+
         });
 
         $(document).on('click', '.btn-view-requisicao-borracharia', function() {
@@ -549,17 +573,22 @@
 
         function initAccordion(data, idAccordion) {
             let valorTotalGerente = 0;
+            let qtdeTotalGerente = 0;
             let html = "";
             data.forEach((gerente, gIndex) => {
                 valorTotalGerente += gerente.vl_comissao;
+                qtdeTotalGerente += gerente.qtd_item;
                 html += `
                             <div class="card gerente-card">
                             <div class="card-header p-1">
                                 <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
-                                    👔 ${gerente.nome} (R$ ${formatarValorBR(
-                    gerente.vl_comissao
-                )}) 
-                                    
+                                    👔 <strong>${gerente.nome}</strong> 
+                                    <div class="small text-muted">
+                                        Pneus: <span class="fw-semibold"> ${gerente.qtd_item}</span>
+                                    </div>
+                                    <span class="badge badge-primary fs-6 ms-3">
+                                         R$ ${formatarValorBR(gerente.vl_comissao)}
+                                    </span>
                                 </button>
                             </div>
                             <div id="sup-${gIndex}" class="collapse">
@@ -569,27 +598,26 @@
                     html += `<div class="supervisor-container">`;
                     html += `
                             <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
-                                🛡️ ${sup.nome} (R$ ${formatarValorBR(
-                        sup.vl_comissao
-                    )}) 
+                                🛡️ ${sup.nome} 
+                                <span class="badge badge-primary fs-6 ms-3">Pneus: <span class="fw-semibold">${sup.qtd_item}</span></span>
+                                <span class="badge badge-primary fs-6 ms-3">R$ ${formatarValorBR(sup.vl_comissao)}</span>                                
                             </button>
                             <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
                             `;
 
-                    sup.vendedores.forEach((vend, vIndex) => {
-                        html += `<div class="vendedor-container">`;
+                    sup.borracheiros.forEach((borra, vIndex) => {
+                        html += `<div class="borracheiro-container">`;
                         html += `
                                 <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
-                                👤 ${vend.nome} 
-                                <span class="vl_comissao">(R$ ${formatarValorBR(
-                                    vend.vl_comissao
-                                )})</span>
+                                👤 ${borra.nome} 
+                                    <span class="badge badge-warning fs-6 ms-3">Pneus: <span class="fw-semibold">${borra.qtd_item}</span></span>
+                                    <span class="badge badge-warning fs-6 ms-3">R$ ${formatarValorBR(borra.vl_comissao)}</span>
                                 </button>
                                 <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">
                                 <ul class="list-group">
                             `;
 
-                        vend.clientes.forEach((detalhe) => {
+                        borra.clientes.forEach((detalhe) => {
                             html += `
                                 <li class="list-group-item p-1 cliente-item">
                                     🏢 <span class="badge badge-secondary">${

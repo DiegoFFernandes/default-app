@@ -107,10 +107,12 @@ class VendedorBorrachariaController extends Controller
                             'nome' => $nomeGerente,
                             'cargo' => 'Gerente',
                             'vl_comissao' => 0,
+                            'qtd_item' => 0,
                             'supervisores' => [],
                         ];
                     }
                     $hierarquia[$nomeGerente]['vl_comissao'] += $item->VL_COMISSAO;
+                    $hierarquia[$nomeGerente]['qtd_item'] += $item->QTD_ITEM;
                     
                     // --- SUPERVISOR ---
                     $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
@@ -119,26 +121,30 @@ class VendedorBorrachariaController extends Controller
                             'nome' => $nomeSupervisor,
                             'cargo' => 'Supervisor',
                             'vl_comissao' => 0,
-                            'vendedores' => []
+                            'qtd_item' => 0,
+                            'borracheiros' => []
                         ];
                     }
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vl_comissao'] += $item->VL_COMISSAO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd_item'] += $item->QTD_ITEM;
 
                     // --- VENDEDOR ---
-                    $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem vendedor';
-                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
-                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
-                            'nome' => $nomeVendedor,
-                            'cargo' => 'Vendedor',
-                            'vl_comissao' => 0
+                    $nomeBorracheiro = $item->NM_BORRACHEIRO ?? 'Sem Borracheiro';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro] = [
+                            'nome' => $nomeBorracheiro,
+                            'cargo' => 'Borracheiro',
+                            'vl_comissao' => 0,
+                            'qtd_item' => 0
                         ];
                     }
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['vl_comissao'] += $item->VL_COMISSAO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['vl_comissao'] += $item->VL_COMISSAO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['qtd_item'] += $item->QTD_ITEM;
 
 
                     // --- CLIENTE ---
                     $nomeCliente = $item->NM_PESSOA ?? 'Sem cliente';
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['clientes'][] = [
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['clientes'][] = [
                         'PESSOA' => $nomeCliente,
                         'QTD_ITEM'  => $item->QTD_ITEM,
                         'VL_COMISSAO'  => $item->VL_COMISSAO,
@@ -153,8 +159,8 @@ class VendedorBorrachariaController extends Controller
             // supervisores
             $gerente['supervisores'] = array_values($gerente['supervisores']);
             foreach ($gerente['supervisores'] as &$supervisor) {
-                // vendedores
-                $supervisor['vendedores'] = array_values($supervisor['vendedores']);
+                // borracheiros
+                $supervisor['borracheiros'] = array_values($supervisor['borracheiros']);
             }
         }
         unset($gerente);
