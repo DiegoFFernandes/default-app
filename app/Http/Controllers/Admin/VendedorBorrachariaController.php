@@ -113,7 +113,7 @@ class VendedorBorrachariaController extends Controller
                     }
                     $hierarquia[$nomeGerente]['vl_comissao'] += $item->VL_COMISSAO;
                     $hierarquia[$nomeGerente]['qtd_item'] += $item->QTD_ITEM;
-                    
+
                     // --- SUPERVISOR ---
                     $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
                     if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor])) {
@@ -144,11 +144,19 @@ class VendedorBorrachariaController extends Controller
 
                     // --- CLIENTE ---
                     $nomeCliente = $item->NM_PESSOA ?? 'Sem cliente';
+                    $btn = '';
+
+                    if ($item->ST_BORRACHARIA === 'S') {
+                        $btn .= '<button type="button" class="btn btn-success btn-xs btn-desabilita-cliente" style="width: 20px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-check"></i></button>';
+                    } else {
+                        $btn .= '<button type="button" class="btn btn-warning btn-xs btn-habilita-cliente" style="width: 20px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-times"></i></button>';
+                    }                    
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['clientes'][] = [
                         'PESSOA' => $nomeCliente,
                         'QTD_ITEM'  => $item->QTD_ITEM,
-                        'VL_COMISSAO'  => $item->VL_COMISSAO,
-                        'ST_BORRACHARIA'  => $item->ST_BORRACHARIA
+                        'VL_COMISSAO'  => intval($item->VL_COMISSAO),
+                        'ST_BORRACHARIA'  => $item->ST_BORRACHARIA,
+                        'actions'  => $btn,
                     ];
                 }
             }
@@ -168,19 +176,19 @@ class VendedorBorrachariaController extends Controller
 
 
         $datatables = DataTables::of($dados)
-            ->addColumn('actions', function ($data) {
-                $btn = '';
+            // ->addColumn('actions', function ($data) {
+            //     $btn = '';
 
-                if ($data->ST_BORRACHARIA === 'S') {
-                    $btn .= '<button type="button" class="btn btn-warning btn-xs btn-desabilita-cliente mr-1" style="width: 30px;" data-cd-pessoa="' . $data->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-times" ></i></button>';
-                } else {
-                    $btn .= '<button type="button" class="btn btn-success btn-xs btn-habilita-cliente mr-1" style="width: 30px;" data-cd-pessoa="' . $data->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-check"></i></button>';
-                }
+            //     if ($data->ST_BORRACHARIA === 'S') {
+            //         $btn .= '<button type="button" class="btn btn-warning btn-xs btn-desabilita-cliente mr-1" style="width: 30px;" data-cd-pessoa="' . $data->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-times" ></i></button>';
+            //     } else {
+            //         $btn .= '<button type="button" class="btn btn-success btn-xs btn-habilita-cliente mr-1" style="width: 30px;" data-cd-pessoa="' . $data->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-check"></i></button>';
+            //     }
 
-                $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia" style="width: 30px;" data-cd-borracheiro="' . $data->CD_BORRACHEIRO . '"  title="Ver Detalhes"><i class="fas fa-eye"></i></button>';
+            //     $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia" style="width: 30px;" data-cd-borracheiro="' . $data->CD_BORRACHEIRO . '"  title="Ver Detalhes"><i class="fas fa-eye"></i></button>';
 
-                return $btn;
-            })
+            //     return $btn;
+            // })
             ->addColumn('gerente_comercial', function ($data) use ($regioes_mysql) {
                 foreach ($regioes_mysql as $regiao) {
                     if ($data->CD_SUPERVISOR == $regiao->cd_areacomercial) {
@@ -189,10 +197,10 @@ class VendedorBorrachariaController extends Controller
                 }
                 return 'SEM GERENTE';
             })
-            ->setRowClass(function ($d) {
-                return $d->ST_BORRACHARIA === 'N' ? 'bg-secondary disabled' : '';
-            })
-            ->rawColumns(['actions'])
+            // ->setRowClass(function ($d) {
+            //     return $d->ST_BORRACHARIA === 'N' ? 'bg-secondary disabled' : '';
+            // })
+            // ->rawColumns(['actions'])
             ->make(true)
             ->getData();
 

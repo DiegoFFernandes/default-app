@@ -7,52 +7,65 @@
 
 @section('content')
     <div class="content-fluid">
-        <div class="card collapsed-card mb-4">
-            <div class="card-header">
-                <h3 class="card-title mt-2">Filtros:</h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
-                    </button>
-                </div>
-            </div>
-            <!-- /.card-header -->
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label>Supervisor</label>
-                            <input type="text" class="form-control" id="nm_supervisor" placeholder="Nome Supervisor">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label>Vendedor</label>
-                            <input type="text" class="form-control" id="nm_vendedor" placeholder="Nome Vendedor">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label>Cliente</label>
-                            <input type="text" class="form-control" id="nm_cliente" placeholder="Nome Cliente">
-                        </div>
+        <div class="col-md-8">
+            <div class="card collapsed-card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">Filtros:</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
+                        </button>
                     </div>
                 </div>
-                <!-- /.row -->
-            </div>
-            <!-- /.card-body -->
-            <div class="card-footer">
-                <div class="row">
-                    <div class="col-md-12">
-                        <button type="button" class="btn btn-secondary btn-sm float-right mr-2"
-                            id="btn-limpar">Limpar</button>
+                <!-- /.card-header -->
+                <div class="card-body pt-1 pb-1">
+                    <div class="row">
+
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="small">Gerente</label>
+                                <input type="text" class="form-control form-control-sm" id="nm_gerente"
+                                    placeholder="Nome Gerente">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="small">Supervisor</label>
+                                <input type="text" class="form-control form-control-sm" id="nm_supervisor"
+                                    placeholder="Nome Supervisor">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="small">Borracheiro</label>
+                                <input type="text" class="form-control form-control-sm" id="nm_borracheiro"
+                                    placeholder="Nome Borracheiro">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="small">Cliente</label>
+                                <input type="text" class="form-control form-control-sm" id="nm_cliente"
+                                    placeholder="Nome Cliente">
+                            </div>
+                        </div>
                     </div>
                     <!-- /.row -->
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-secondary btn-sm float-right mr-2"
+                                id="btn-limpar">Limpar</button>
+                        </div>
+                        <!-- /.row -->
+                    </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-12 col-md-12 mb-3">
+            <div class="col-8 col-md-8 mb-3">
                 <div class="card card-dark card-outline card-outline-tabs">
                     <div class="card-header p-0 border-bottom-0">
                         <ul class="nav nav-tabs" id="tabRequisicaoBorracharia" role="tablist">
@@ -78,13 +91,26 @@
                                 aria-labelledby="tab-requisicao-borracharia-pagar">
                                 <div class="card-body p-2">
                                     <div class="row">
-                                        <div class="col-md-8" id="div-tabela-requisicao-borracharia">
+                                        <div class="col-md-8 d-none" id="div-tabela-requisicao-borracharia">
                                             <small class="badge badge-danger badge-date"></small>
                                             <div class="card-body pb-0 pt-0">
-                                                <table class="table table-responsive compact table-font-small"
+                                                <table
+                                                    class="table table-responsive compact table-bordered table-font-small"
                                                     id="table-requisicao-borracharia">
+                                                    <tr>
+                                                        {{-- <th></th> --}}
+                                                        <th>Emp.</th>
+                                                        <th>Cliente</th>
+                                                        <th>Qtde</th>
+                                                        <th>Valor</th>
+                                                        <th>Borracheiro</th>
+                                                        <th>Vendedor</th>
+                                                        <th>Supervisor</th>
+                                                        <th>Gerente</th>
+                                                    </tr>
                                                     <tfoot>
                                                         <tr>
+                                                            {{-- <th></th> --}}
                                                             <th></th>
                                                             <th></th>
                                                             <th></th>
@@ -100,7 +126,7 @@
 
                                         </div>
 
-                                        <div class="col-md-4">
+                                        <div class="col-md-12">
                                             <div class="row">
                                                 <div class="col-6 col-sm-6 col-md-6">
                                                     <div class="info-box">
@@ -129,16 +155,19 @@
                                                     <!-- /.info-box -->
                                                 </div>
                                                 <div class="col-12 col-md-12">
-                                                    <div class="card">
+                                                    <div class="card pt-0 mb-3">
                                                         <div class="card-header">
                                                             <h6 class="card-title">Resumo Gerente</h6>
                                                             <div class="card-tools m-0">
+                                                                <button class="btn btn-xs btn-success"
+                                                                    id="download-resumo-excel"><i
+                                                                        class="fas fa-file-excel"></i></button>
                                                                 <button class="btn btn-xs btn-danger"
-                                                                    id="download-resumo-local"><i
-                                                                        class="fas fa-download"></i></button>
+                                                                    id="download-resumo-pdf"><i
+                                                                        class="fas fa-file-pdf"></i></button>
                                                             </div>
                                                         </div>
-                                                        <div class="card-body">
+                                                        <div class="card-body pt-1">
                                                             <div id="accordionResumoGerente"></div>
                                                         </div>
                                                     </div>
@@ -174,7 +203,7 @@
 
     {{-- Modal de Itens --}}
     <div class="modal modal-default fade" id="modal-table-detalhes-requisicao-borracharia" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detalhes da Requisição</h5>
@@ -247,41 +276,54 @@
 
 @section('css')
     <style>
-        @media (max-width: 768px) {
-            #table-item-pedido_wrapper {
-                display: none !important;
-            }
-
-            [id^="card-pedido"] {
-                display: block !important;
-            }
-
-            .form-control {
-                font-size: 13px;
-            }
-
+        table.dataTable {
+            table-layout: fixed;
         }
 
-        @media (min-width: 769px) {
-            [id^="card-pedido"] {
-                display: none;
-            }
+        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+            display: none;
         }
 
-        @media (min-width: 576px) {
-            .modal-dialog {
-                max-width: 700px;
-                margin: 1.75rem auto;
-            }
+        .gerente-card {
+            border-left: 4px solid #dc3545 !important;
         }
 
-        .input-destaque {
-            background-color: #218838 !important;
-            /* vermelho claro */
-            border: 1px solid #1e7e34 !important;
-            /* borda vermelha */
-            transition: background-color 0.5s ease;
-            color: #fff !important;
+        .supervisor-container {
+            margin-left: 12px;
+            border-left: 3px solid #6c757d;
+            padding-left: 6px;
+        }
+
+        .borracheiro-container {
+            margin-left: 24px;
+            border-left: 2px solid #adb5bd;
+            padding-left: 6px;
+        }
+
+        .detalhe-pessoa-container {
+            margin-left: 36px;
+            border-left: 1px solid #dee2e6;
+            padding-left: 6px;
+        }
+
+        .btn-list {
+            background: transparent;
+            text-align: left;
+            border-radius: 0;
+        }
+
+        .btn-list:hover {
+            background-color: rgba(0, 0, 0, .03);
+        }
+
+        .btn i.fa-chevron-down {
+            transition: transform 0.2s ease;
+            color: #6c757d;
+        }
+
+        .btn[aria-expanded="true"] i.fa-chevron-down {
+            transform: rotate(180deg);
+            color: #343a40;
         }
     </style>
 @stop
@@ -292,6 +334,7 @@
         var table_item_pedido;
         let accordionResumoGerenteOriginal = [];
         let accordionResumoGerenteFiltrado = [];
+        let datatables = [];
 
         var dtInicio = moment().subtract(1, 'month').startOf('month').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'month').endOf('month').format('DD.MM.YYYY');
@@ -300,7 +343,9 @@
 
         $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
 
+
         var table = $('#table-requisicao-borracharia').DataTable({
+            orderCellsTop: true,
             processing: false,
             serverSide: false,
             pagingType: "simple",
@@ -318,18 +363,19 @@
                 dataSrc: function(json) {
 
                     accordionResumoGerenteOriginal = json.accordionResumoGerente;
+                    datatables = json.datatables.data;
 
                     initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
 
                     return json.datatables.data;
                 }
             },
-            columns: [{
-                    data: "actions",
-                    name: "actions",
-                    "width": "3%",
-                    className: 'text-center text-nowrap'
-                },
+            columns: [
+                // {
+                //     data: "actions",
+                //     name: "actions",                    
+                //     className: 'text-center text-nowrap pl-1'
+                // },
                 {
                     data: 'CD_EMPRESA',
                     name: 'CD_EMPRESA',
@@ -347,11 +393,13 @@
                     data: 'QTD_ITEM',
                     name: 'QTD_ITEM',
                     title: 'Qtde',
+                    className: 'text-center',
                     render: $.fn.dataTable.render.number('.', ',', 0)
                 },
                 {
                     data: 'VL_COMISSAO',
                     name: 'VL_COMISSAO',
+                    className: 'text-center',
                     title: 'Valor'
                 },
                 {
@@ -383,14 +431,14 @@
 
                 // Soma apenas os registros filtrados (search aplicado)
                 var totalItens = api
-                    .column(3, {
+                    .column(2, {
                         search: 'applied'
                     })
                     .data()
                     .sum();
 
                 var totalValor = api
-                    .column(4, {
+                    .column(3, {
                         search: 'applied'
                     })
                     .data()
@@ -407,18 +455,17 @@
                     })
                 );
 
-                $(api.column(3).footer()).html(
+                $(api.column(2).footer()).html(
                     totalItens.toLocaleString('pt-BR')
                 );
 
-                $(api.column(4).footer()).html(
+                $(api.column(3).footer()).html(
                     totalValor.toLocaleString('pt-BR', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     })
                 );
             }
-
         });
 
         $(document).on('click', '.btn-view-requisicao-borracharia', function() {
@@ -476,8 +523,11 @@
             }
 
             DesabilitaHabilitaClienteBorracharia(parms);
+        });
 
+        $(document).on('click', '#download-resumo-excel', function() {
 
+            exportarParaExcel(datatables, "pagamento-borracharia.xlsx", "Pagamento Borracharia");
         });
 
         table.on('search.dt', function() {
@@ -489,11 +539,43 @@
             if (!termo) {
                 initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
                 return;
+            } else {
+                accordionResumoGerenteFiltrado = accordionResumoGerenteOriginal
+                    .map(gerente => {
+
+                        const supervisoresFiltrados = gerente.supervisores
+                            .map(supervisor => {
+
+                                const borracheirosFiltrados = supervisor.borracheiros.filter(borracheiro =>
+                                    (borracheiro.nome || '').toLowerCase().includes(termo)
+                                );
+
+                                // Se não sobrar borracheiro → remove supervisor
+                                if (borracheirosFiltrados.length === 0) return null;
+
+                                return {
+                                    ...supervisor,
+                                    borracheiros: borracheirosFiltrados
+                                };
+                            })
+                            .filter(Boolean);
+
+                        // Se não sobrar supervisor → remove gerente
+                        if (supervisoresFiltrados.length === 0) return null;
+
+                        return {
+                            ...gerente,
+                            supervisores: supervisoresFiltrados
+                        };
+                    })
+                    .filter(Boolean);
             }
-            
-            // initAccordion(accordionResumoGerenteFiltrado, 'accordionResumoGerente');
+
+            initAccordion(accordionResumoGerenteFiltrado, 'accordionResumoGerente');
         });
 
+
+        let openedAccordions = [];
 
         function DesabilitaHabilitaClienteBorracharia(parms) {
             Swal.fire({
@@ -532,7 +614,12 @@
                                 });
                             }
 
-                            table.ajax.reload();
+                            openedAccordions = getOpenedAccordions('accordionResumoGerente');
+
+
+                            table.ajax.reload(function() {
+                                restoreAccordions(openedAccordions);
+                            });
                         },
                         error: function(xhr) {
                             Swal.fire({
@@ -598,76 +685,142 @@
         function initAccordion(data, idAccordion) {
             let valorTotalGerente = 0;
             let qtdeTotalGerente = 0;
-            let html = "";
+            let html = `<div class="mb-1">
+                            <div class="card-header pb-1 mb-3 bg-light">
+                                <table class="table table-borderless mb-2 w-100">
+                                    <tr class="">
+                                        <th class="text-left p-0">
+                                            <small class="text-muted"><strong>Nome</strong></small>
+                                        </th>
+                                        <th class="text-right p-0">
+                                            <small class="text-muted"><strong>Qtd. Itens</strong></small>
+                                        </th>
+                                        <th class="text-right p-0 w-25">
+                                            <small class="text-muted"><strong>Valor</strong></small>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>`;
             data.forEach((gerente, gIndex) => {
                 valorTotalGerente += gerente.vl_comissao;
                 qtdeTotalGerente += gerente.qtd_item;
-                html += `
-                            <div class="card gerente-card">
+                html += `                        
+                        <div class="card gerente-card">
                             <div class="card-header p-1">
-                                <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
-                                    👔 <strong>${gerente.nome}</strong> 
-                                    <div class="small text-muted">
-                                        Pneus: <span class="fw-semibold"> ${gerente.qtd_item}</span>
-                                    </div>
-                                    <span class="badge badge-primary fs-6 ms-3">
-                                         R$ ${formatarValorBR(gerente.vl_comissao)}
-                                    </span>
+                                <button
+                                    class="btn btn-block"
+                                    data-toggle="collapse"
+                                    data-target="#sup-${gIndex}"
+                                    aria-expanded="false">
+                                    <table class="table table-borderless mb-0 w-100">
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                    <strong>${gerente.nome}</strong>
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-10">
+                                                <small class="text-muted">
+                                                    ${gerente.qtd_item}
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-25">
+                                                <small class="text-muted">
+                                                    R$ ${formatarValorBR(gerente.vl_comissao)}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </button>
                             </div>
+
                             <div id="sup-${gIndex}" class="collapse">
-                                <div class="card-body p-2">     `;
+                                <div class="card-body p-1">     `;
 
                 gerente.supervisores.forEach((sup, sIndex) => {
                     html += `<div class="supervisor-container">`;
                     html += `
-                            <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
-                                🛡️ ${sup.nome} 
-                                <span class="badge badge-primary fs-6 ms-3">Pneus: <span class="fw-semibold">${sup.qtd_item}</span></span>
-                                <span class="badge badge-primary fs-6 ms-3">R$ ${formatarValorBR(sup.vl_comissao)}</span>                                
+                            <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
+                                <table class="table table-borderless mb-0 w-100">
+                                    <tr>
+                                        <td class="text-left p-0">
+                                            <small class="text-muted">
+                                                <i class="fas fa-chevron-down"></i>
+                                                <strong class="ps-3"> ${sup.nome}</strong>
+                                            </small>
+                                        </td>
+                                        <td class="text-right p-0 w-10">
+                                            <small class="text-muted">
+                                                ${sup.qtd_item}
+                                            </small>
+                                        </td>
+                                        <td class="text-right p-0 w-25">
+                                            <small class="text-muted">
+                                                R$ ${formatarValorBR(sup.vl_comissao)}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                </table>                              
                             </button>
-                            <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
+                            <div id="vend-${gIndex}-${sIndex}" class="collapse">
                             `;
 
                     sup.borracheiros.forEach((borra, vIndex) => {
                         html += `<div class="borracheiro-container">`;
                         html += `
-                                <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
-                                👤 ${borra.nome} 
-                                    <span class="badge badge-warning fs-6 ms-3">Pneus: <span class="fw-semibold">${borra.qtd_item}</span></span>
-                                    <span class="badge badge-warning fs-6 ms-3">R$ ${formatarValorBR(borra.vl_comissao)}</span>
+                                <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                    <table class="table table-borderless mb-0 w-100">
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                    <strong class="ps-3"> ${borra.nome}</strong>
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-10">
+                                                <small class="text-muted">
+                                                    ${borra.qtd_item}
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-25">
+                                                <small class="text-muted">
+                                                    R$ ${formatarValorBR(borra.vl_comissao)}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </button>
-                                <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">
-                                <ul class="list-group">
+                                <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse detalhe-pessoa-container mr-3">
+                                    <table class="table table-borderless mb-2 w-100">
                             `;
 
                         borra.clientes.forEach((detalhe) => {
                             html += `
-                                <li class="list-group-item p-1 cliente-item">
-                                    🏢 <span class="badge badge-secondary">${
-                                        detalhe.PESSOA
-                                    }</span>
-                                    <br>
-                                     <table class="table table-sm mb-0">
-                                        <tbody>
-                                            <tr>
-                                                <th class="text-muted">Qtd</th>
-                                                <td class="td-small-text">${
-                                                    detalhe.QTD_ITEM
-                                                }</td>
-                                                <th class="text-muted">Total</th>
-                                                <td><span class="font-weight-bold">${formatarValorBR(
-                                                    detalhe.VL_COMISSAO
-                                                )}</span></td>
-                                            </tr>                                            
-                                        </tbody>
-                                    </table>
-                                
-                                </li>
-                                `;
+                                        <tr ${detalhe.ST_BORRACHARIA === 'N' ? 'class="table-secondary"' : ''}>
+                                            <td class="text-left p-0">
+                                                ${detalhe.actions}  
+                                                <small class="text-muted">
+                                                    <strong class="ps-3"> ${detalhe.PESSOA}</strong>
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-10">
+                                                <small class="text-muted">
+                                                    ${(detalhe.QTD_ITEM).toLocaleString('pt-BR')}
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-25">
+                                                <small class="text-muted">
+                                                    R$ ${formatarValorBR(detalhe.VL_COMISSAO)}
+                                                </small>
+                                            </td>
+                                        </tr>                                    
+                                    `;
                         });
 
-                        html += `</ul></div>`;
+                        html += `</table>
+                                </div>`;
                         html += `   </div>`;
                     });
 
@@ -679,6 +832,22 @@
 
 
                 $("#" + idAccordion).html(html);
+            });
+        }
+
+        function getOpenedAccordions(containerId) {
+            let opened = [];
+
+            $('#' + containerId + ' .collapse.show').each(function() {
+                opened.push(this.id);
+            });
+
+            return opened;
+        }
+
+        function restoreAccordions(openedIds) {
+            openedIds.forEach(id => {
+                $('#' + id).collapse('show');
             });
         }
     </script>
