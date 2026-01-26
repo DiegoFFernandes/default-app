@@ -21,47 +21,32 @@
                 <div class="card-body pt-1 pb-1">
                     <div class="row">
 
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label class="small">Gerente</label>
                                 <input type="text" class="form-control form-control-sm" id="nm_gerente"
                                     placeholder="Nome Gerente">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label class="small">Supervisor</label>
                                 <input type="text" class="form-control form-control-sm" id="nm_supervisor"
                                     placeholder="Nome Supervisor">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="small">Vendedor</label>
-                                <input type="text" class="form-control form-control-sm" id="nm_vendedor"
-                                    placeholder="Nome Vendedor">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label class="small">Borracheiro</label>
                                 <input type="text" class="form-control form-control-sm" id="nm_borracheiro"
                                     placeholder="Nome Borracheiro">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label class="small">Cliente</label>
-                                <select name='pessoa' class="form-control" id="pessoa" style="width: 100%">
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 mb-2">
-                            <div class="form-group">
-                                <label class="small">Período</label>
-                                <input id="daterange" type="text" class="form-control form-control-sm"
-                                    placeholder="Selecione o período">
+                                <input type="text" class="form-control form-control-sm" id="nm_cliente"
+                                    placeholder="Nome Cliente">
                             </div>
                         </div>
                     </div>
@@ -71,10 +56,8 @@
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-md-12">
-                            <button type="button" class="btn btn-secondary btn-xs float-right mr-2"
+                            <button type="button" class="btn btn-secondary btn-sm float-right mr-2"
                                 id="btn-limpar">Limpar</button>
-                            <button type="button" class="btn btn-primary btn-xs float-right mr-2"
-                                id="btn-filtrar">Filtrar</button>
                         </div>
                         <!-- /.row -->
                     </div>
@@ -82,7 +65,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-12 col-md-8 col-sm-12 mb-3">
+            <div class="col-8 col-md-8 mb-3">
                 <div class="card card-dark card-outline card-outline-tabs">
                     <div class="card-header p-0 border-bottom-0">
                         <ul class="nav nav-tabs" id="tabRequisicaoBorracharia" role="tablist">
@@ -103,18 +86,10 @@
                         </ul>
                     </div>
                     <div class="card-body p-0">
-                        <div class="loading-card">
-                            <div class="overlay loading-image-card"><i class="fas fa-3x fa-sync-alt fa-spin"></i>
-                                <div class="text-bold pt-2"></div>
-                            </div>
-                        </div>
                         <div class="tab-content" id="tabContentRequisicaoBorracharia">
                             <div class="tab-pane fade show active" id="painel-requisicao-borracharia-pagar" role="tabpanel"
                                 aria-labelledby="tab-requisicao-borracharia-pagar">
                                 <div class="card-body p-2">
-                                    <div class="mb-2">
-                                        <small class="badge badge-danger badge-date"></small>
-                                    </div>
                                     <div class="row">
                                         <div class="col-md-8 d-none" id="div-tabela-requisicao-borracharia">
                                             <small class="badge badge-danger badge-date"></small>
@@ -254,7 +229,7 @@
 
                                 </div>
                             </div>
-                            {{-- <div class="col-3 col-md-3">
+                            <div class="col-3 col-md-3">
                                 <div class="form-group">
                                     <label for="qtd-notas" class="form-label small">Qtde Notas</label>
                                     <input id="" class="form-control form-control-sm qtd-notas" type="text"
@@ -275,7 +250,7 @@
                                         type="text" readonly>
 
                                 </div>
-                            </div> --}}
+                            </div>
                         </div>
                     </div>
                     <div class="card mb-2 d-none" id="card-detalhes-requisicao-borracharia">
@@ -310,46 +285,25 @@
         }
 
         .gerente-card {
-            /* border-left: 4px solid #dc3545 !important; */
-        }
-
-        .indent-1 {
-            padding-left: 10px !important;
-        }
-
-        .indent-2 {
-            padding-left: 20px !important;
-        }
-
-        .indent-3 {
-            padding-left: 30px !important;
-        }
-
-        .indent-4 {
-            padding-left: 40px !important;
+            border-left: 4px solid #dc3545 !important;
         }
 
         .supervisor-container {
+            margin-left: 12px;
             border-left: 3px solid #6c757d;
-        }
-
-        .supervisor-container::before {
-            border-left: 3px solid #6c757d;
-        }
-
-        .vendedor-container {
-            border-left: 2px solid #adb5bd;
-            --padding-left: 6px;
+            padding-left: 6px;
         }
 
         .borracheiro-container {
-            border-left: 2px solid #dee2e6;
-            --padding-left: 6px;
+            margin-left: 24px;
+            border-left: 2px solid #adb5bd;
+            padding-left: 6px;
         }
 
         .detalhe-pessoa-container {
-            border-left: 1px solid #e9ecef;
-            padding: 0 10px 0 10px;
+            margin-left: 36px;
+            border-left: 1px solid #dee2e6;
+            padding-left: 6px;
         }
 
         .btn-list {
@@ -376,57 +330,159 @@
 
 @section('js')
     <script>
-        var table;
         var tableId = 0;
         var table_item_pedido;
         let accordionResumoGerenteOriginal = [];
         let accordionResumoGerenteFiltrado = [];
         let datatables = [];
 
-        var routes = {
-            'searchPessoa': '{{ route('usuario.search-pessoa') }}'
-        }
-
         var dtInicio = moment().subtract(1, 'month').startOf('month').format('DD.MM.YYYY');
         var dtFim = moment().subtract(1, 'month').endOf('month').format('DD.MM.YYYY');
         //datas selecionadas no date range picker
         var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
 
-        let data = {
-            nm_pessoa: $("#pessoa option:selected").text(),
-            nm_vendedor: $('#nm_vendedor').val(),
-            nm_gerente: $('#nm-gerente').val(),
-            nm_supervisor: $('#nm_supervisor').val(),
-            nm_borracheiro: $('#nm_borracheiro').val(),
-            session: true,
-            dtFim: dtFim,
-            dtInicio: dtInicio
-        };
-
-        //Carrega o select2 de pessoa
-        initSelect2Pessoa('#pessoa', routes.searchPessoa);
-
         $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
 
-        initTableRequisicaoBorracharia(data);
 
+        var table = $('#table-requisicao-borracharia').DataTable({
+            orderCellsTop: true,
+            processing: false,
+            serverSide: false,
+            pagingType: "simple",
+            pageLength: 10,
+            language: {
+                url: "{{ asset('vendor/datatables/pt-br.json') }}",
+            },
+            ajax: {
+                url: "{{ route('get-requisicao-borracharia') }}",
+                method: 'GET',
+                data: {
+                    dt_inicio: dtInicio,
+                    dt_fim: dtFim
+                },
+                dataSrc: function(json) {
+
+                    accordionResumoGerenteOriginal = json.accordionResumoGerente;
+                    datatables = json.datatables.data;
+
+                    initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
+
+                    return json.datatables.data;
+                }
+            },
+            columns: [
+                // {
+                //     data: "actions",
+                //     name: "actions",                    
+                //     className: 'text-center text-nowrap pl-1'
+                // },
+                {
+                    data: 'CD_EMPRESA',
+                    name: 'CD_EMPRESA',
+                    "width": "1%",
+                    className: 'text-center',
+                    title: 'Emp.'
+                },
+                {
+                    data: 'NM_PESSOA',
+                    name: 'NM_PESSOA',
+                    title: 'Cliente',
+
+                },
+                {
+                    data: 'QTD_ITEM',
+                    name: 'QTD_ITEM',
+                    title: 'Qtde',
+                    className: 'text-center',
+                    render: $.fn.dataTable.render.number('.', ',', 0)
+                },
+                {
+                    data: 'VL_COMISSAO',
+                    name: 'VL_COMISSAO',
+                    className: 'text-center',
+                    title: 'Valor'
+                },
+                {
+                    data: 'NM_BORRACHEIRO',
+                    name: 'NM_BORRACHEIRO',
+                    title: 'Borracheiro',
+
+                },
+                {
+                    data: 'NM_VENDEDOR',
+                    name: 'NM_VENDEDOR',
+                    title: 'Vendedor',
+
+                },
+                {
+                    data: 'NM_SUPERVISOR',
+                    name: 'NM_SUPERVISOR',
+                    title: 'Supervisor',
+
+                }, {
+                    data: 'gerente_comercial',
+                    name: 'gerente_comercial',
+                    title: 'Gerente',
+                }
+            ],
+            order: [2, 'asc'],
+            footerCallback: function(row, data, start, end, display) {
+                var api = this.api();
+
+                // Soma apenas os registros filtrados (search aplicado)
+                var totalItens = api
+                    .column(2, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .sum();
+
+                var totalValor = api
+                    .column(3, {
+                        search: 'applied'
+                    })
+                    .data()
+                    .sum();
+
+                $('#total-itens').html(
+                    totalItens.toLocaleString('pt-BR')
+                );
+
+                $('#total-valor').html(
+                    totalValor.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                );
+
+                $(api.column(2).footer()).html(
+                    totalItens.toLocaleString('pt-BR')
+                );
+
+                $(api.column(3).footer()).html(
+                    totalValor.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                );
+            }
+        });
 
         $(document).on('click', '.btn-view-requisicao-borracharia', function() {
-            let cd_pessoa = $(this).data('cd-pessoa');
-            let cd_borracheiro = $(this).data('cd-borracheiro');
-            let nm_pessoa = $(this).data('nm-pessoa');
-            let nm_borracheiro = $(this).data('nm-borracheiro');
+            var tr = $(this).closest('tr');
+            var row = table.row(tr);
 
-            $('.pessoa').val(nm_pessoa);
-            $('.borracheiro').val(nm_borracheiro);
-            // $('.qtd-notas').val();
-            // $('.qtd-itens').val();
-            // $('.vlr-comissao-total').val();
+
+            $('.pessoa').val(row.data().NM_PESSOA);
+            $('.borracheiro').val(row.data().NM_BORRACHEIRO);
+            $('.qtd-notas').val(row.data().QTD_NOTA);
+            $('.qtd-itens').val(row.data().QTD_ITEM);
+            $('.vlr-comissao-total').val(row.data().VL_COMISSAO);
 
             $('#modal-table-detalhes-requisicao-borracharia').modal('show');
 
 
-            initTable('table-item-detalhes-requisicao-borracharia', cd_pessoa, cd_borracheiro);
+            initTable('table-item-detalhes-requisicao-borracharia', row.data());
         });
 
         $(document).on('click', '.btn-desabilita-cliente', function() {
@@ -472,24 +528,6 @@
         $(document).on('click', '#download-resumo-excel', function() {
 
             exportarParaExcel(datatables, "pagamento-borracharia.xlsx", "Pagamento Borracharia");
-        });
-
-        $(document).on('click', '#btn-filtrar', function() {
-
-            dtFim = datasSelecionadas.getFim();
-            dtInicio = datasSelecionadas.getInicio();
-
-            const data = {
-                nm_pessoa: $("#pessoa option:selected").text(),
-                nm_vendedor: $('#nm_vendedor').val(),
-                nm_gerente: $('#nm-gerente').val(),
-                nm_supervisor: $('#nm_supervisor').val(),
-                nm_borracheiro: $('#nm_borracheiro').val(),
-                session: true,
-                dtFim: dtFim,
-                dtInicio: dtInicio
-            };
-            initTableRequisicaoBorracharia(data);
         });
 
         table.on('search.dt', function() {
@@ -595,142 +633,7 @@
             });
         };
 
-        function initTableRequisicaoBorracharia(data) {
-            if (table) {
-                table.clear().destroy();
-            }
-
-            table = $('#table-requisicao-borracharia').DataTable({
-                orderCellsTop: true,
-                processing: false,
-                serverSide: false,
-                pagingType: "simple",
-                pageLength: 10,
-                language: {
-                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                },
-                ajax: {
-                    url: "{{ route('get-requisicao-borracharia') }}",
-                    method: 'GET',
-                    data: {
-                        filtro: data
-                    },
-                    beforeSend: function() {
-                        $('.loading-card').removeClass('invisible');
-                    },
-                    dataSrc: function(json) {
-
-                        accordionResumoGerenteOriginal = json.accordionResumoGerente;
-                        datatables = json.datatables.data;
-
-                        initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
-
-                        return json.datatables.data;
-                    }
-                },
-                columns: [
-                    // {
-                    //     data: "actions",
-                    //     name: "actions",                    
-                    //     className: 'text-center text-nowrap pl-1'
-                    // },
-                    {
-                        data: 'CD_EMPRESA',
-                        name: 'CD_EMPRESA',
-                        "width": "1%",
-                        className: 'text-center',
-                        title: 'Emp.'
-                    },
-                    {
-                        data: 'NM_PESSOA',
-                        name: 'NM_PESSOA',
-                        title: 'Cliente',
-
-                    },
-                    {
-                        data: 'QTD_ITEM',
-                        name: 'QTD_ITEM',
-                        title: 'Qtde',
-                        className: 'text-center',
-                        render: $.fn.dataTable.render.number('.', ',', 0)
-                    },
-                    {
-                        data: 'VL_COMISSAO',
-                        name: 'VL_COMISSAO',
-                        className: 'text-center',
-                        title: 'Valor'
-                    },
-                    {
-                        data: 'NM_BORRACHEIRO',
-                        name: 'NM_BORRACHEIRO',
-                        title: 'Borracheiro',
-
-                    },
-                    {
-                        data: 'NM_VENDEDOR',
-                        name: 'NM_VENDEDOR',
-                        title: 'Vendedor',
-
-                    },
-                    {
-                        data: 'NM_SUPERVISOR',
-                        name: 'NM_SUPERVISOR',
-                        title: 'Supervisor',
-
-                    }, {
-                        data: 'gerente_comercial',
-                        name: 'gerente_comercial',
-                        title: 'Gerente',
-                    }
-                ],
-                order: [2, 'asc'],
-                footerCallback: function(row, data, start, end, display) {
-                    var api = this.api();
-
-                    // Soma apenas os registros filtrados (search aplicado)
-                    var totalItens = api
-                        .column(2, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .sum();
-
-                    var totalValor = api
-                        .column(3, {
-                            search: 'applied'
-                        })
-                        .data()
-                        .sum();
-
-                    $('#total-itens').html(
-                        totalItens.toLocaleString('pt-BR')
-                    );
-
-                    $('#total-valor').html(
-                        totalValor.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })
-                    );
-
-                    $(api.column(2).footer()).html(
-                        totalItens.toLocaleString('pt-BR')
-                    );
-
-                    $(api.column(3).footer()).html(
-                        totalValor.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })
-                    );
-
-                    $('.loading-card').addClass('invisible');
-                }
-            });
-            return table;
-        }
-
-        function initTable(tableId, cd_pessoa, cd_borracheiro) {
+        function initTable(tableId, data) {
 
             $('#' + tableId).DataTable().clear().destroy();
 
@@ -747,14 +650,14 @@
                 ajax: {
                     url: '{{ route('get-detalhes-requisicao-borracharia') }}',
                     data: {
-                        cd_pessoa: cd_pessoa,
-                        cd_borracheiro: cd_borracheiro
+                        cd_pessoa: data.CD_PESSOA,
+                        cd_borracheiro: data.CD_BORRACHEIRO
                     }
                 },
                 columns: [{
                         data: 'NR_NOTAFISCAL',
                         name: 'NR_NOTAFISCAL',
-                        width: '10%',
+                        width: '1%',
                         title: 'Nota'
 
                     },
@@ -780,190 +683,157 @@
         }
 
         function initAccordion(data, idAccordion) {
-            let html = `
-                <div class="mb-1">
-                    <div class="card-header pb-1 mb-3 bg-light">
-                        <table class="table table-borderless mb-2 w-100">
-                            <tr class="">
-                                <th class="text-left p-0">
-                                    <small class="text-muted"><strong>Nome</strong></small>
-                                </th>
-                                <th class="text-right p-0">
-                                    <small class="text-muted"><strong>Qtd. Itens</strong></small>
-                                </th>
-                                <th class="text-right p-0 w-25">
-                                    <small class="text-muted"><strong>Valor</strong></small>
-                                </th>
-                            </tr>
-                        </table>
-                    </div>
-                </div>`;
-
+            let valorTotalGerente = 0;
+            let qtdeTotalGerente = 0;
+            let html = `<div class="mb-1">
+                            <div class="card-header pb-1 mb-3 bg-light">
+                                <table class="table table-borderless mb-2 w-100">
+                                    <tr class="">
+                                        <th class="text-left p-0">
+                                            <small class="text-muted"><strong>Nome</strong></small>
+                                        </th>
+                                        <th class="text-right p-0">
+                                            <small class="text-muted"><strong>Qtd. Itens</strong></small>
+                                        </th>
+                                        <th class="text-right p-0 w-25">
+                                            <small class="text-muted"><strong>Valor</strong></small>
+                                        </th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>`;
             data.forEach((gerente, gIndex) => {
-                html += `
-                    <div class="card gerente-card">
-                        ${renderGerente(gerente, gIndex)}
-                    </div>
-                `;
+                valorTotalGerente += gerente.vl_comissao;
+                qtdeTotalGerente += gerente.qtd_item;
+                html += `                        
+                        <div class="card gerente-card">
+                            <div class="card-header p-1">
+                                <button
+                                    class="btn btn-block"
+                                    data-toggle="collapse"
+                                    data-target="#sup-${gIndex}"
+                                    aria-expanded="false">
+                                    <table class="table table-borderless mb-0 w-100">
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                    <strong>${gerente.nome}</strong>
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-10">
+                                                <small class="text-muted">
+                                                    ${gerente.qtd_item}
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-25">
+                                                <small class="text-muted">
+                                                    R$ ${formatarValorBR(gerente.vl_comissao)}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </button>
+                            </div>
+
+                            <div id="sup-${gIndex}" class="collapse">
+                                <div class="card-body p-1">     `;
+
+                gerente.supervisores.forEach((sup, sIndex) => {
+                    html += `<div class="supervisor-container">`;
+                    html += `
+                            <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
+                                <table class="table table-borderless mb-0 w-100">
+                                    <tr>
+                                        <td class="text-left p-0">
+                                            <small class="text-muted">
+                                                <i class="fas fa-chevron-down"></i>
+                                                <strong class="ps-3"> ${sup.nome}</strong>
+                                            </small>
+                                        </td>
+                                        <td class="text-right p-0 w-10">
+                                            <small class="text-muted">
+                                                ${sup.qtd_item}
+                                            </small>
+                                        </td>
+                                        <td class="text-right p-0 w-25">
+                                            <small class="text-muted">
+                                                R$ ${formatarValorBR(sup.vl_comissao)}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                </table>                              
+                            </button>
+                            <div id="vend-${gIndex}-${sIndex}" class="collapse">
+                            `;
+
+                    sup.borracheiros.forEach((borra, vIndex) => {
+                        html += `<div class="borracheiro-container">`;
+                        html += `
+                                <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                    <table class="table table-borderless mb-0 w-100">
+                                        <tr>
+                                            <td class="text-left p-0">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                    <strong class="ps-3"> ${borra.nome}</strong>
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-10">
+                                                <small class="text-muted">
+                                                    ${borra.qtd_item}
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-25">
+                                                <small class="text-muted">
+                                                    R$ ${formatarValorBR(borra.vl_comissao)}
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </button>
+                                <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse detalhe-pessoa-container mr-3">
+                                    <table class="table table-borderless mb-2 w-100">
+                            `;
+
+                        borra.clientes.forEach((detalhe) => {
+                            html += `
+                                        <tr ${detalhe.ST_BORRACHARIA === 'N' ? 'class="table-secondary"' : ''}>
+                                            <td class="text-left p-0">
+                                                ${detalhe.actions}  
+                                                <small class="text-muted">
+                                                    <strong class="ps-3"> ${detalhe.PESSOA}</strong>
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-10">
+                                                <small class="text-muted">
+                                                    ${(detalhe.QTD_ITEM).toLocaleString('pt-BR')}
+                                                </small>
+                                            </td>
+                                            <td class="text-right p-0 w-25">
+                                                <small class="text-muted">
+                                                    R$ ${formatarValorBR(detalhe.VL_COMISSAO)}
+                                                </small>
+                                            </td>
+                                        </tr>                                    
+                                    `;
+                        });
+
+                        html += `</table>
+                                </div>`;
+                        html += `   </div>`;
+                    });
+
+                    html += `</div>`; // fecha Supervisor
+                    html += `</div>`;
+                });
+
+                html += `</div></div></div>`; // fecha Gerente
+
+
+                $("#" + idAccordion).html(html);
             });
-
-            $("#" + idAccordion).html(html);
         }
-
-        function renderGerente(gerente, gIndex) {
-            let html = `
-                <div class="card-header p-1">
-                    <button class="btn btn-block"
-                        data-toggle="collapse"
-                        data-target="#sup-${gIndex}">
-                        <table class="table table-borderless mb-0 w-100">
-                            <tr>
-                                <td class="text-left p-0">
-                                    <small class="text-muted">
-                                        <i class="fas fa-chevron-down"></i>
-                                        <strong>${gerente.nome}</strong>
-                                    </small>
-                                </td>
-                                <td class="text-right p-0 w-10">
-                                    ${gerente.qtd_item}
-                                </td>
-                                <td class="text-right p-0 w-25">
-                                    R$ ${formatarValorBR(gerente.vl_comissao)}
-                                </td>
-                            </tr>
-                        </table>
-                    </button>
-                </div>
-
-                <div id="sup-${gIndex}" class="collapse">
-                    <div class="card-body p-1">
-            `;
-
-            gerente.supervisores.forEach((sup, sIndex) => {
-                html += renderSupervisorContainer(sup, gIndex, sIndex);
-            });
-
-            html += `
-                    </div>
-                </div>
-            `;
-
-            return html;
-        }
-
-        function renderSupervisorContainer(sup, gIndex, sIndex) {
-            let html = `
-                <div class="supervisor-container">
-                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
-                            data-target="#vend-${gIndex}-${sIndex}">
-                        <table class="table table-borderless mb-0 w-100">
-                            <tr>
-                                <td class="text-left p-0 indent-1"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
-                                        <strong class="ps-3"> ${sup.nome}</strong> </small> </td>
-                                <td class="text-right p-0 w-10"> <small class="text-muted"> ${sup.qtd_item} </small> </td>
-                                <td class="text-right p-0 w-25"> <small class="text-muted"> R$
-                                        ${formatarValorBR(sup.vl_comissao)} </small> </td>
-                            </tr>
-                        </table>
-                    </button>
-                    <div id="vend-${gIndex}-${sIndex}" class="collapse">
-            `;
-
-            sup.vendedores.forEach((vend, vIndex) => {
-                html += renderVendedorContainer(vend, gIndex, sIndex, vIndex);
-            });
-
-            html += `
-                    </div>
-                </div>
-            `;
-
-            return html;
-        }
-
-        function renderVendedorContainer(vend, gIndex, sIndex, vIndex) {
-            let html = `
-            <div class="vendedor-container">
-                <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
-                        data-target="#borr-${gIndex}-${sIndex}-${vIndex}">
-                    <table class="table table-borderless mb-0 w-100">
-                        <tr>
-                            <td class="text-left p-0 indent-2"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
-                                    <strong class="ps-3"> ${vend.nome}</strong> </small> </td>
-                            <td class="text-right p-0 w-10"> <small class="text-muted"> ${vend.qtd_item} </small> </td>
-                            <td class="text-right p-0 w-25"> <small class="text-muted"> R$
-                                    ${formatarValorBR(vend.vl_comissao)} </small> </td>
-                        </tr>
-                    </table>
-                </button>
-                <div id="borr-${gIndex}-${sIndex}-${vIndex}" class="collapse">
-        `;
-
-            vend.borracheiros.forEach((borr, bIndex) => {
-                html += renderBorracheiroContainer(borr, gIndex, sIndex, vIndex, bIndex);
-            });
-
-            html += `
-                </div>
-            </div>  
-
-            `;
-            return html;
-        };
-
-        function renderBorracheiroContainer(borr, gIndex, sIndex, vIndex, bIndex) {
-            let html = `
-                <div class="borracheiro-container">
-                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
-                            data-target="#det-${gIndex}-${sIndex}-${vIndex}-${bIndex}">
-                        <table class="table table-borderless mb-0 w-100">
-                            <tr>
-                                <td class="text-left p-0 indent-3"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
-                                        <strong class="ps-3"> ${borr.nome}</strong> </small> </td>
-                                <td class="text-right p-0 w-10"> <small class="text-muted"> ${borr.qtd_item} </small> </td>
-                                <td class="text-right p-0 w-25"> <small class="text-muted"> R$
-                                        ${formatarValorBR(borr.vl_comissao)} </small> </td>
-                            </tr>
-                        </table>
-                    </button>
-                    <div class="detalhe-pessoa-container collapse" id="det-${gIndex}-${sIndex}-${vIndex}-${bIndex}">
-                        <table class="table table-borderless mb-0 w-100">
-                 `;
-            borr.clientes.forEach((cli, dIndex) => {
-                html += renderDetalhePessoaContainer(cli);
-            });
-            html += `
-                        </table>
-                    </div>
-                </div>  
-                `;
-            return html;
-        }
-
-        function renderDetalhePessoaContainer(cli) {
-            let html = `
-                <tr ${cli.ST_BORRACHARIA === 'N' ? 'class="table-secondary"' : ''}>
-                    <td class="text-left p-0 indent-4">
-                        ${cli.actions}  
-                        <small class="text-muted">
-                            <strong class="ps-3"> ${cli.PESSOA}</strong>
-                        </small>
-                    </td>
-                    <td class="text-right p-0 w-10">
-                        <small class="text-muted">
-                            ${(cli.QTD_ITEM).toLocaleString('pt-BR')}
-                        </small>
-                    </td>
-                    <td class="text-right p-0 w-25">
-                        <small class="text-muted">
-                            R$ ${formatarValorBR(cli.VL_COMISSAO)}
-                        </small>
-                    </td>
-                </tr>  
-            `;
-            return html;
-        }
-
 
         function getOpenedAccordions(containerId) {
             let opened = [];

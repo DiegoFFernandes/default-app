@@ -406,6 +406,11 @@ return [
                             'route' => 'tabela-preco.index',
                             'can' => ['ver-tabela-preco']
                         ],
+                        [
+                            'text' => 'Requisição Borracharia',
+                            'route' => 'requisicao-borracharia.index',                            
+                            'can' => ['ver-requisicao-borracharia']
+                        ],
 
                     ],
                 ],

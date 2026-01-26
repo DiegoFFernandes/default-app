@@ -336,16 +336,7 @@
     </section>
 @stop
 @section('css')
-    <style>
-        /* Select2 small */
-        .select2-container--bootstrap4 .select2-selection--single {
-            height: calc(1.8125rem + 2px);
-            font-size: .875rem;
-        }
-
-        .select2-container--bootstrap4 .select2-results__option {
-            padding: 0 .76rem;
-        }
+    <style>       
 
         .divAccordion {
             margin-bottom: 3px;

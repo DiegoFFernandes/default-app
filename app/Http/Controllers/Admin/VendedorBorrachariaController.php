@@ -15,6 +15,7 @@ use App\Services\SupervisorAuthService;
 use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Yajra\DataTables\DataTables;
 
@@ -79,16 +80,20 @@ class VendedorBorrachariaController extends Controller
 
 
     public function getRequisicaoBorracharia()
-    {
+    {    
 
         $datas = $this->request->validate([
-            'dt_inicio' => 'required|date_format:d.m.Y',
-            'dt_fim' => 'required|date_format:d.m.Y',
+            'filtro.nm_vendedor' => 'nullable|string',
+            'filtro.nm_borracheiro' => 'nullable|string',
+            'filtro.nm_pessoa' => 'nullable|string',
+            'filtro.nm_supervisor' => 'nullable|string',
+            'filtro.dtInicio' => 'required|date_format:d.m.Y',
+            'filtro.dtFim' => 'required|date_format:d.m.Y',
         ]);
 
         session(['datas' => $datas]);
 
-        $dados = $this->notaBorracheiro->getRequisicaoBorracharia($datas['dt_inicio'], $datas['dt_fim']);
+        $dados = $this->notaBorracheiro->getRequisicaoBorracharia($datas['filtro']);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
@@ -122,24 +127,41 @@ class VendedorBorrachariaController extends Controller
                             'cargo' => 'Supervisor',
                             'vl_comissao' => 0,
                             'qtd_item' => 0,
-                            'borracheiros' => []
+                            'vendedores' => []
                         ];
                     }
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vl_comissao'] += $item->VL_COMISSAO;
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd_item'] += $item->QTD_ITEM;
 
-                    // --- VENDEDOR ---
+
+                    // --Vendedor
+                    $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem Vendedor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
+                            'nome' => $nomeVendedor,
+                            'cargo' => 'Vendedor',
+                            'vl_comissao' => 0,
+                            'qtd_item' => 0,
+                            'borracheiros' => []
+                        ];
+                    }
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['vl_comissao'] += $item->VL_COMISSAO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['qtd_item'] += $item->QTD_ITEM;
+
+
+
+                    // --- Borracheiro ---
                     $nomeBorracheiro = $item->NM_BORRACHEIRO ?? 'Sem Borracheiro';
-                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro])) {
-                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro] = [
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro] = [
                             'nome' => $nomeBorracheiro,
                             'cargo' => 'Borracheiro',
                             'vl_comissao' => 0,
                             'qtd_item' => 0
                         ];
                     }
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['vl_comissao'] += $item->VL_COMISSAO;
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['qtd_item'] += $item->QTD_ITEM;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['vl_comissao'] += $item->VL_COMISSAO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['qtd_item'] += $item->QTD_ITEM;
 
 
                     // --- CLIENTE ---
@@ -150,8 +172,17 @@ class VendedorBorrachariaController extends Controller
                         $btn .= '<button type="button" class="btn btn-success btn-xs btn-desabilita-cliente" style="width: 20px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-check"></i></button>';
                     } else {
                         $btn .= '<button type="button" class="btn btn-warning btn-xs btn-habilita-cliente" style="width: 20px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-times"></i></button>';
-                    }                    
-                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['borracheiros'][$nomeBorracheiro]['clientes'][] = [
+                    }
+                    $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia ml-1" style="width: 20px;" 
+                                data-cd-borracheiro="' . $item->CD_BORRACHEIRO . '" 
+                                data-nm-borracheiro="' . $item->NM_BORRACHEIRO . '" 
+                                data-nm-pessoa="' . $item->NM_PESSOA . '"
+                                data-cd-pessoa="' . $item->CD_PESSOA . '"                                
+                                data-cd-borracheiro="' . $item->CD_BORRACHEIRO . '"
+                                title="Ver Detalhes"><i class="fas fa-eye"></i>
+                            </button>';
+
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['clientes'][] = [
                         'PESSOA' => $nomeCliente,
                         'QTD_ITEM'  => $item->QTD_ITEM,
                         'VL_COMISSAO'  => intval($item->VL_COMISSAO),
@@ -167,12 +198,18 @@ class VendedorBorrachariaController extends Controller
             // supervisores
             $gerente['supervisores'] = array_values($gerente['supervisores']);
             foreach ($gerente['supervisores'] as &$supervisor) {
-                // borracheiros
-                $supervisor['borracheiros'] = array_values($supervisor['borracheiros']);
+                // vendedores
+                $supervisor['vendedores'] = array_values($supervisor['vendedores']);
+                foreach ($supervisor['vendedores'] as &$vendedor) {
+                    // borracheiros
+                    $vendedor['borracheiros'] = array_values($vendedor['borracheiros']);
+                }
+                unset($vendedor);
             }
         }
         unset($gerente);
         unset($supervisor);
+        unset($vendedor);
 
 
         $datatables = DataTables::of($dados)
@@ -228,8 +265,8 @@ class VendedorBorrachariaController extends Controller
         $dados = $this->notaBorracheiro->getDetailsRequisicaoBorracharia(
             $validate['cd_pessoa'],
             $validate['cd_borracheiro'],
-            $datas['dt_inicio'],
-            $datas['dt_fim']
+            $datas['filtro']['dtInicio'],
+            $datas['filtro']['dtFim']
         );
 
         return DataTables::of($dados)

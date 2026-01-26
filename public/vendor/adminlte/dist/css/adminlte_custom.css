@@ -323,6 +323,16 @@ button.select2-selection__choice__remove {
     display: flex;    
 }
 
+/* Select2 small */
+.select2-container--bootstrap4 .select2-selection--single {
+    height: calc(1.8125rem + 2px) !important;
+    font-size: .875rem;
+}
+
+.select2-container--bootstrap4 .select2-results__option {
+    padding: 0 .76rem;
+}
+
 
 @media (max-width: 768px) {
     .btn-detalhes {

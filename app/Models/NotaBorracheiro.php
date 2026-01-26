@@ -11,7 +11,7 @@ class NotaBorracheiro extends Model
 {
     use HasFactory;
 
-    public function getRequisicaoBorracharia($dtInicio, $dtFim)
+    public function getRequisicaoBorracharia($dados = [])
     {
         $query = "
             SELECT
@@ -25,7 +25,7 @@ class NotaBorracheiro extends Model
                 --ITEM.cd_grupo,
                 --ITEM.CD_SUBGRUPO,
                  COUNT(DISTINCT NOTA.NR_LANCAMENTO) QTD_NOTA,
-                SUM(I.QT_ITEMNOTA) QTD_ITEM,
+                CAST(REPLACE(SUM(I.QT_ITEMNOTA), '.00', '') AS INTEGER) QTD_ITEM,
                 
                 --I.VL_UNITARIO,
                 --I.VL_TOTAL,
@@ -34,8 +34,7 @@ class NotaBorracheiro extends Model
                 INV.CD_VENDEDOR || '-' || PBORRACHEIRO.NM_PESSOA NM_BORRACHEIRO,
                 --INV.CD_TIPO,
                 --INV.PC_COMISSAO,
-                --NOTA.DT_EMISSAO,
-                
+                --NOTA.DT_EMISSAO,                
                 
                 SUM(
                 CASE
@@ -81,10 +80,14 @@ class NotaBorracheiro extends Model
 
             INNER JOIN PESSOA PSUPERVISOR ON (PSUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
 
-            WHERE NOTA.DT_EMISSAO BETWEEN '$dtInicio' AND '$dtFim'
+            WHERE NOTA.DT_EMISSAO BETWEEN '{$dados['dtInicio']}' AND '{$dados['dtFim']}'
                 AND ITEM.CD_GRUPO NOT IN (104)
                 AND INV.CD_TIPO = 2
                 AND NOTA.ST_NOTA IN ('V')
+                " . (isset($dados['nm_vendedor']) && $dados['nm_vendedor'] != '' ? " AND PVENDEDOR.NM_PESSOA LIKE '%{$dados['nm_vendedor']}%' " : "") . "
+                " . (isset($dados['nm_borracheiro']) && $dados['nm_borracheiro'] != '' ? " AND PBORRACHEIRO.NM_PESSOA LIKE '%{$dados['nm_borracheiro']}%' " : "") . "
+                " . (isset($dados['nm_supervisor']) && $dados['nm_supervisor'] != '' ? " AND PSUPERVISOR.NM_PESSOA LIKE '%{$dados['nm_supervisor']}%' " : "") . "
+                " . (isset($dados['nm_pessoa']) && $dados['nm_pessoa'] != '' ? " AND PESSOA.CD_PESSOA||'-'||PESSOA.NM_PESSOA LIKE '%{$dados['nm_pessoa']}%' " : "") . "    
 
                 --AND VBORRACHEIRO.CD_VENDEDOR IN (90,70127)
 
