@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
+use App\Models\GerenteUnidade;
 use App\Models\LiberaOrdemComercial;
 use App\Models\NotaBorracheiro;
 use App\Models\PedidoPneu;
@@ -11,12 +12,16 @@ use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use App\Models\SupervisorSubgrupo;
 use App\Models\User;
+use App\Models\Vendedor;
 use App\Services\SupervisorAuthService;
+use App\Services\UserRoleFilterService;
+use Barryvdh\Snappy\Facades\SnappyPdf;
 use Dflydev\DotAccessData\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Js;
 use Yajra\DataTables\DataTables;
 
 class VendedorBorrachariaController extends Controller
@@ -31,6 +36,8 @@ class VendedorBorrachariaController extends Controller
     public SupervisorSubgrupo $supervisorSubgrupo;
     public PedidoPneu $pedido;
     public NotaBorracheiro $notaBorracheiro;
+    public GerenteUnidade $gerenteUnidade;
+    public Vendedor $vendedorComercial;
 
     public function __construct(
         Request $request,
@@ -39,6 +46,8 @@ class VendedorBorrachariaController extends Controller
         SupervisorAuthService $supervisorComercial,
         SupervisorComercial $supervisorComercialModel,
         SupervisorSubgrupo $supervisorSubgrupo,
+        GerenteUnidade $gerenteUnidade,
+        Vendedor $vendedor,
         PedidoPneu $pedido,
         NotaBorracheiro $notaBorracheiro
     ) {
@@ -51,6 +60,9 @@ class VendedorBorrachariaController extends Controller
         $this->supervisorSubgrupo = $supervisorSubgrupo;
         $this->regiao = $regiao;
         $this->notaBorracheiro = $notaBorracheiro;
+        $this->gerenteUnidade = $gerenteUnidade;
+        $this->vendedorComercial = $vendedor;
+
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -71,16 +83,43 @@ class VendedorBorrachariaController extends Controller
             }
         }
 
+        if ($this->user->hasRole('admin|cobranca')) {
+            $gerentes = $this->area->GerenteAll();
+        } elseif ($this->user->hasRole('gerente comercial')) {
+            //Criar condição caso o usuario for gerente mais não estiver associado no painel
+            $gerentes = $this->area->GerenteAll($this->user->id);
+        } elseif ($this->user->hasRole('supervisor')) {
+            $gerentes = $this->area->GerenteAll();
+        } elseif ($this->user->hasRole('gerente unidade')) {
+            $gerentes = $this->area->GerenteAll();
+        } elseif ($this->user->hasRole('vendedor')) {
+            $gerentes = $this->area->GerenteAll();
+        }
+
+
         return view('admin.comercial.requisicao-borracharia', compact(
             'title_page',
             'user_auth',
             'uri',
+            'gerentes'
         ));
     }
 
 
     public function getRequisicaoBorracharia()
-    {    
+    {
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            $this->vendedorComercial,
+            null
+        );
+
+        $filtrosExtras = $service->getFiltros();
+
+        // return $filtrosExtras;
 
         $datas = $this->request->validate([
             'filtro.nm_vendedor' => 'nullable|string',
@@ -89,11 +128,16 @@ class VendedorBorrachariaController extends Controller
             'filtro.nm_supervisor' => 'nullable|string',
             'filtro.dtInicio' => 'required|date_format:d.m.Y',
             'filtro.dtFim' => 'required|date_format:d.m.Y',
+            'filtro.cd_gerente' => 'nullable|integer',
         ]);
 
-        session(['datas' => $datas]);
+        // Caso o usuario tenha filtrado por gerente comercial ele busca os supervisores vinculados a esse gerente
+        if ($this->request['filtro.cd_gerente'] ?? 0 <> 0) {
+            $filtrosExtras['cd_regiao'] = $this->area->findGerenteSupervisor($this->request['filtro.cd_gerente'])->pluck('CD_AREACOMERCIAL')
+                ->implode(',');
+        }
 
-        $dados = $this->notaBorracheiro->getRequisicaoBorracharia($datas['filtro']);
+        $dados = $this->notaBorracheiro->getRequisicaoBorracharia($datas['filtro'], $filtrosExtras);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
@@ -169,11 +213,11 @@ class VendedorBorrachariaController extends Controller
                     $btn = '';
 
                     if ($item->ST_BORRACHARIA === 'S') {
-                        $btn .= '<button type="button" class="btn btn-success btn-xs btn-desabilita-cliente" style="width: 20px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-check"></i></button>';
+                        $btn .= '<button type="button" class="btn btn-success btn-xs btn-desabilita-cliente" style="width: 25px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-check"></i></button>';
                     } else {
-                        $btn .= '<button type="button" class="btn btn-warning btn-xs btn-habilita-cliente" style="width: 20px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-times"></i></button>';
+                        $btn .= '<button type="button" class="btn btn-danger btn-xs btn-habilita-cliente" style="width: 25px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-times"></i></button>';
                     }
-                    $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia ml-1" style="width: 20px;" 
+                    $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia ml-1" style="width: 25px;" 
                                 data-cd-borracheiro="' . $item->CD_BORRACHEIRO . '" 
                                 data-nm-borracheiro="' . $item->NM_BORRACHEIRO . '" 
                                 data-nm-pessoa="' . $item->NM_PESSOA . '"
@@ -241,6 +285,13 @@ class VendedorBorrachariaController extends Controller
             ->make(true)
             ->getData();
 
+        session(
+            [
+                'datas' => $datas,
+                'hierarquia' => array_values($hierarquia)
+            ]
+        );
+
 
         return response()->json([
             'datatables' => $datatables,
@@ -252,7 +303,6 @@ class VendedorBorrachariaController extends Controller
 
     public function getDetailsRequisicaoBorracharia()
     {
-
         $validate = $this->request->validate([
             'cd_pessoa' => 'required|integer',
             'cd_borracheiro' => 'required|integer',
@@ -287,5 +337,52 @@ class VendedorBorrachariaController extends Controller
         );
 
         return $data;
+    }
+
+    public function printPdfRequisicaoBorracharia()
+    {
+        if (session()->has('hierarquia')) {
+             $hierarquia = session('hierarquia');
+             $datas = session('datas');
+        }           
+
+        $view = view('admin.comercial.layout-requisicao-borracharia', compact('hierarquia', 'datas'));
+
+        $html = $view->render();
+
+        // Configurando o Snappy
+        $options = [
+            'page-size' => 'A4',
+            'no-stop-slow-scripts' => true,
+            'enable-javascript' => true,
+            'lowquality' => true,
+            'encoding' => 'UTF-8',
+            
+        ];
+
+        $pdf = SnappyPdf::loadHTML($html)->setOptions($options);
+
+        // return $pdf->inline('requisicao.pdf'); //Exibe o pdf sem fazer o download.
+
+        // return $pdf->download('requisicao.pdf'); //Faz o download do arquivo.
+
+        $fileName = storage_path('app/temp/requisicao_' . time() . '.pdf');
+
+        $pdf->save($fileName);
+
+        return response()->json([
+            'url' => route('download-pdf-temp', ['file' => basename($fileName)])
+        ]);
+    }
+
+    public function downloadPdfTemp($file)
+    {
+        $filePath = storage_path('app/temp/' . $file);
+
+        if (file_exists($filePath)) {
+            return response()->download($filePath)->deleteFileAfterSend(true);
+        } else {
+            return redirect()->back()->with('error', 'Arquivo não encontrado.');
+        }
     }
 }

@@ -47,6 +47,10 @@
                                 <a href={{ route('analise-faturamento.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Análise Faturista</a>
                             @endhaspermission
+                            @haspermission('ver-requisicao-borracharia')
+                                <a href={{ route('requisicao-borracharia.index') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Req. Borracharia</a>
+                            @endhaspermission
                         </div>
                         @haspermission('ver-rel-cobranca')
                             <div class="col-md-12 mt-2">

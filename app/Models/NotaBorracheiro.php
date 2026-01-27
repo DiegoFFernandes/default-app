@@ -11,7 +11,7 @@ class NotaBorracheiro extends Model
 {
     use HasFactory;
 
-    public function getRequisicaoBorracharia($dados = [])
+    public function getRequisicaoBorracharia($dados = [], $filtrosExtras = [])
     {
         $query = "
             SELECT
@@ -25,7 +25,12 @@ class NotaBorracheiro extends Model
                 --ITEM.cd_grupo,
                 --ITEM.CD_SUBGRUPO,
                  COUNT(DISTINCT NOTA.NR_LANCAMENTO) QTD_NOTA,
-                CAST(REPLACE(SUM(I.QT_ITEMNOTA), '.00', '') AS INTEGER) QTD_ITEM,
+                CAST(REPLACE(SUM(
+                    CASE
+                    WHEN PB.CD_PESSOA IS NULL THEN I.QT_ITEMNOTA
+                    WHEN PB.ST_BORRACHEIRO = 'S' THEN I.QT_ITEMNOTA
+                    ELSE 0
+                    END), '.00', '') AS INTEGER) QTD_ITEM,
                 
                 --I.VL_UNITARIO,
                 --I.VL_TOTAL,
@@ -87,7 +92,10 @@ class NotaBorracheiro extends Model
                 " . (isset($dados['nm_vendedor']) && $dados['nm_vendedor'] != '' ? " AND PVENDEDOR.NM_PESSOA LIKE '%{$dados['nm_vendedor']}%' " : "") . "
                 " . (isset($dados['nm_borracheiro']) && $dados['nm_borracheiro'] != '' ? " AND PBORRACHEIRO.NM_PESSOA LIKE '%{$dados['nm_borracheiro']}%' " : "") . "
                 " . (isset($dados['nm_supervisor']) && $dados['nm_supervisor'] != '' ? " AND PSUPERVISOR.NM_PESSOA LIKE '%{$dados['nm_supervisor']}%' " : "") . "
-                " . (isset($dados['nm_pessoa']) && $dados['nm_pessoa'] != '' ? " AND PESSOA.CD_PESSOA||'-'||PESSOA.NM_PESSOA LIKE '%{$dados['nm_pessoa']}%' " : "") . "    
+                " . (isset($dados['nm_pessoa']) && $dados['nm_pessoa'] != '' ? " AND PESSOA.CD_PESSOA||'-'||PESSOA.NM_PESSOA LIKE '%{$dados['nm_pessoa']}%' " : "") . " 
+                
+                --Busca por região comercial (gerente comercial)
+                " . (!empty($filtrosExtras['cd_regiao']) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ({$filtrosExtras['cd_regiao']})" : "") . "
 
                 --AND VBORRACHEIRO.CD_VENDEDOR IN (90,70127)
 

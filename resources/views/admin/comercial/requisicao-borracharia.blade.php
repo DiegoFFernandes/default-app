@@ -1,8 +1,7 @@
 @extends('layouts.master')
-@section('title', 'Dashboard')
+@section('title', 'Requisição Borracharia')
 
 @section('content_header')
-
 @stop
 
 @section('content')
@@ -24,8 +23,13 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="small">Gerente</label>
-                                <input type="text" class="form-control form-control-sm" id="nm_gerente"
-                                    placeholder="Nome Gerente">
+                                <select name="gerente" id="filtro-gerente" class="form-control form-control-sm"
+                                    style="width: 100%">
+                                    <option value="0">Todos Gerentes</option>
+                                    @foreach ($gerentes as $g)
+                                        <option value="{{ $g->cd_usuario }}">{{ $g->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -395,9 +399,9 @@
         let data = {
             nm_pessoa: $("#pessoa option:selected").text(),
             nm_vendedor: $('#nm_vendedor').val(),
-            nm_gerente: $('#nm-gerente').val(),
             nm_supervisor: $('#nm_supervisor').val(),
             nm_borracheiro: $('#nm_borracheiro').val(),
+            cd_gerente: $('#filtro-gerente').val(),
             session: true,
             dtFim: dtFim,
             dtInicio: dtInicio
@@ -474,17 +478,38 @@
             exportarParaExcel(datatables, "pagamento-borracharia.xlsx", "Pagamento Borracharia");
         });
 
+        $(document).on('click', '#download-resumo-pdf', function() {
+
+            $.ajax({
+                type: "GET",
+                url: "{{ route('print-pdf-requisicao-borracharia') }}",
+                data: {
+                    _token: '{{ csrf_token() }}',
+                },
+                dataType: "json",
+                beforeSend: function() {
+                    $('.loading-card').removeClass('invisible');
+                },
+                success: function(response) {
+                    $('.loading-card').addClass('invisible');
+                    window.location.href = response.url;
+                }
+            });
+        });
+
         $(document).on('click', '#btn-filtrar', function() {
 
             dtFim = datasSelecionadas.getFim();
             dtInicio = datasSelecionadas.getInicio();
 
+            $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
+
             const data = {
                 nm_pessoa: $("#pessoa option:selected").text(),
                 nm_vendedor: $('#nm_vendedor').val(),
-                nm_gerente: $('#nm-gerente').val(),
                 nm_supervisor: $('#nm_supervisor').val(),
                 nm_borracheiro: $('#nm_borracheiro').val(),
+                cd_gerente: $('#filtro-gerente').val(),
                 session: true,
                 dtFim: dtFim,
                 dtInicio: dtInicio
@@ -535,7 +560,6 @@
 
             initAccordion(accordionResumoGerenteFiltrado, 'accordionResumoGerente');
         });
-
 
         let openedAccordions = [];
 
@@ -611,8 +635,9 @@
                 },
                 ajax: {
                     url: "{{ route('get-requisicao-borracharia') }}",
-                    method: 'GET',
+                    method: 'POST',
                     data: {
+                        _token: '{{ csrf_token() }}',
                         filtro: data
                     },
                     beforeSend: function() {
@@ -856,7 +881,7 @@
                 <div class="supervisor-container">
                     <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
                             data-target="#vend-${gIndex}-${sIndex}">
-                        <table class="table table-borderless mb-0 w-100">
+                        <table class="table table-bordered table-borderless mb-0 w-100">
                             <tr>
                                 <td class="text-left p-0 indent-1"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
                                         <strong class="ps-3"> ${sup.nome}</strong> </small> </td>
@@ -886,7 +911,7 @@
             <div class="vendedor-container">
                 <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
                         data-target="#borr-${gIndex}-${sIndex}-${vIndex}">
-                    <table class="table table-borderless mb-0 w-100">
+                    <table class="table table-bordered table-borderless mb-0 w-100">
                         <tr>
                             <td class="text-left p-0 indent-2"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
                                     <strong class="ps-3"> ${vend.nome}</strong> </small> </td>
@@ -916,7 +941,7 @@
                 <div class="borracheiro-container">
                     <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
                             data-target="#det-${gIndex}-${sIndex}-${vIndex}-${bIndex}">
-                        <table class="table table-borderless mb-0 w-100">
+                        <table class="table table-bordered table-borderless mb-0 w-100">
                             <tr>
                                 <td class="text-left p-0 indent-3"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
                                         <strong class="ps-3"> ${borr.nome}</strong> </small> </td>
@@ -927,7 +952,7 @@
                         </table>
                     </button>
                     <div class="detalhe-pessoa-container collapse" id="det-${gIndex}-${sIndex}-${vIndex}-${bIndex}">
-                        <table class="table table-borderless mb-0 w-100">
+                        <table class="table table-bordered table-borderless mb-0 w-100">
                  `;
             borr.clientes.forEach((cli, dIndex) => {
                 html += renderDetalhePessoaContainer(cli);
