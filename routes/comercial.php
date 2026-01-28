@@ -25,7 +25,6 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
         Route::post('save-libera-pedido', [LiberaOrdemComissaoController::class, 'saveLiberaPedido'])->name('save-libera-pedido');
         Route::get('get-calcula-comissao', [LiberaOrdemComissaoController::class, 'getCalculaComissao'])->name('get-calcula-comissao');
         Route::get('libera-abaixo-desconto', [LiberaOrdemComissaoController::class, 'liberaAbaixoDesconto'])->name('libera-abaixo-desconto');
-
     });
 });
 
@@ -52,7 +51,7 @@ Route::middleware(['auth', 'role:admin|gerente comercial|supervisor|usuario come
 });
 
 Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
-    Route::prefix('tabela')->group(function () {        
+    Route::prefix('tabela')->group(function () {
         Route::post('get-importar-tabela-preco', [TabelaPrecoController::class, 'importarTabelaPreco'])->name('importar-tabela-preco');
         Route::post('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');
         Route::post('deletar-tabela-preco', [TabelaPrecoController::class, 'deletarTabelaPreco'])->name('deletar-tabela-preco');
@@ -181,9 +180,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('get-requisicao-borracharia', [VendedorBorrachariaController::class, 'getRequisicaoBorracharia'])->name('get-requisicao-borracharia');
         Route::get('get-detalhe-requisicao-borracharia', [VendedorBorrachariaController::class, 'getDetailsRequisicaoBorracharia'])->name('get-detalhes-requisicao-borracharia');
         Route::post('desabilita-cliente-borracharia', [VendedorBorrachariaController::class, 'desabilitaClienteBorracharia'])->name('desabilita-cliente-borracharia');
-      
+
 
         Route::get('print-pdf-requisicao-borracharia', [VendedorBorrachariaController::class, 'printPdfRequisicaoBorracharia'])->name('print-pdf-requisicao-borracharia');
         Route::get('download-pdf-temp/{file}', [VendedorBorrachariaController::class, 'downloadPdfTemp'])->name('download-pdf-temp');
-        });
+
+        Route::get('get-cliente-desabilitado-borracharia', [VendedorBorrachariaController::class, 'getClienteDesabilitadoBorracharia'])->name('get-cliente-desabilitado-borracharia');
+    });
 });

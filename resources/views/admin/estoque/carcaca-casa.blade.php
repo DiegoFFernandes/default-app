@@ -31,22 +31,9 @@
                                 aria-labelledby="tab-carcaca-entrada">
                                 <div class="card-body p-2">
                                     <div class="row">
-                                        <div class="col-md-8" id="div-tabela-carcacas"
-                                            @if (auth()->user()->hasRole('vendedor|supervisor|gerente comercial')) style="display:none;" @endif>
+                                        <div class="col-md-8" id="div-tabela-carcacas">
                                             <div class="card-header">
-
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    style="width: 100px;" id="btn-baixar-todos">
-                                                    Baixar Todos
-                                                </button>
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    style="width: 100px;" id="btn-transferir-todos">
-                                                    Transferir Local
-                                                </button>
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    style="width: 100px;" id="btn-criar-pedido">
-                                                    Criar Pedido
-                                                </button>
+                                                @include('admin.estoque.components.buttons-estoque-carcaca')
                                                 <div class="card-tools m-0">
                                                     <button class="btn btn-xs btn-danger" id="btn-add-carcaca"
                                                         title="Adicionar Carcaça"><i class="fas fa-plus"></i></button>
@@ -55,24 +42,12 @@
                                                 </div>
                                             </div>
                                             <div class="card-body pb-0">
-                                                <table
-                                                    class="table table-bordered compact table-font-small"
+                                                <table class="table table-bordered compact table-font-small"
                                                     id="estoque-carcacas">
                                                 </table>
                                             </div>
                                             <div class="card-footer pt-0">
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    style="width: 100px;" id="btn-baixar-todos">
-                                                    Baixar Todos
-                                                </button>
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    style="width: 100px;" id="btn-transferir-todos">
-                                                    Transferir Local
-                                                </button>
-                                                <button type="button" class="btn btn-secondary btn-xs"
-                                                    style="width: 100px;" id="btn-criar-pedido">
-                                                    Criar Pedido
-                                                </button>
+                                                @include('admin.estoque.components.buttons-estoque-carcaca')
                                             </div>
                                         </div>
 
@@ -336,8 +311,7 @@
     </section>
 @stop
 @section('css')
-    <style>       
-
+    <style>
         .divAccordion {
             margin-bottom: 3px;
         }
@@ -431,127 +405,134 @@
             },
         });
 
-        var table_carcaca_itens = $('#estoque-carcacas').DataTable({
-            processing: false,
-            serverSide: false,
-            responsive: false,  
-            scrollX: true,         
-            select: {
-                style: "multi",
-                selector: "td.select-checkbox"
-            },
-            language: {
-                url: "{{ asset('vendor/datatables/pt-br.json') }}",
-            },
-            pagingType: "simple",
-            ajax: {
-                url: '{{ route('get-carcaca-casa') }}',
-                dataSrc: function(response) {
+        var table_carcaca_itens;
 
-                    $('#total-carcacas').text(response.extra.total_carcacas);
-
-                    // console.log(response.extra.accordion_data);
-
-                    $('#accordionResumoLocal').html(renderizaAccordion(response.extra.accordion_data_local,
-                        'accordionResumoLocal')).removeClass(
-                        'd-none');
-
-                    $('#accordionResumo').html(renderizaAccordion(response.extra.accordion_data,
-                        'accordionResumo')).removeClass(
-                        'd-none');
-
-                    preencheTabelaResumo(tabelaCarcacaLocal, response.extra.local_agrupado);
-                    preencheTabelaResumo(tabelaCarcacaMarca, response.extra.marca_agrupado);
-
-
-                    return response.datatable.data;
-                }
-            },
-            columns: [
-                {
-                    data: null,
-                    // width: "1%",
-                    defaultContent: "",
-                    className: "select-checkbox",
-                    orderable: false
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    title: 'Ações',
-                    orderable: false,
-                    searchable: false,
-                    // width: '10%',
-                    className: 'text-center text-nowrap',
-                },
-                {
-                    data: 'ID',
-                    name: 'ID',
-                    title: 'Cód.',
-                    visible: true,
-                    className: 'text-center',
-                },
-                {
-                    data: 'DSMEDIDAPNEU',
-                    name: 'DSMEDIDAPNEU',
-                    title: 'Medida'
-                },
-                {
-                    data: 'DSMODELO',
-                    name: 'DSMODELO',
-                    title: 'Modelo'
-                },
-                {
-                    data: 'NR_FOGO',
-                    name: 'NR_FOGO',
-                    visible: false,
-                    title: 'Fogo',
-                    className: 'text-center',
-                },
-                {
-                    data: 'NR_SERIE',
-                    name: 'NR_SERIE',
-                    title: 'Serie',
-                    className: 'text-center',
-                },
-                {
-                    data: 'NR_DOT',
-                    name: 'NR_DOT',
-                    title: 'Dot',
-                    className: 'text-center',
-                },
-                {
-                    data: 'VL_CARCACA',
-                    name: 'VL_CARCACA',
-                    title: 'Valor',
-                    className: 'text-center',
-                    render: $.fn.dataTable.render.number('.', ',', 2),
-                },
-                {
-                    data: 'DS_TIPO',
-                    name: 'DS_TIPO',
-                    title: 'Tipo',
-                },
-                {
-                    data: 'LOCAL_ESTOQUE',
-                    name: 'LOCAL_ESTOQUE',
-                    title: 'Local'
-                }
-            ],
-            columnDefs: [{
-                targets: 0,
-                orderable: false,
-                className: 'select-checkbox',
-            }],
-            order: [
-                [0, "desc"]
-            ],
-
-        });
+        initTableCarcaca();
 
         let tabelaCarcacaLocal = agrupaTabelaResumo('estoque-carcacas-local', 'Local');
 
         let tabelaCarcacaMarca = agrupaTabelaResumo('estoque-carcacas-marca', 'Marca');
+
+        function initTableCarcaca() {
+            if (table_carcaca_itens) {
+                table_carcaca_itens.destroy();
+            }
+            table_carcaca_itens = $('#estoque-carcacas').DataTable({
+                processing: false,
+                serverSide: false,
+                responsive: false,
+                scrollX: true,
+                select: {
+                    style: "multi",
+                    selector: "td.select-checkbox"
+                },
+                language: {
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                },
+                pagingType: "simple",
+                ajax: {
+                    url: '{{ route('get-carcaca-casa') }}',
+                    dataSrc: function(response) {
+
+                        $('#total-carcacas').text(response.extra.total_carcacas);
+
+                        // console.log(response.extra.accordion_data);
+
+                        $('#accordionResumoLocal').html(renderizaAccordion(response.extra.accordion_data_local,
+                            'accordionResumoLocal')).removeClass(
+                            'd-none');
+
+                        $('#accordionResumo').html(renderizaAccordion(response.extra.accordion_data,
+                            'accordionResumo')).removeClass(
+                            'd-none');
+
+                        preencheTabelaResumo(tabelaCarcacaLocal, response.extra.local_agrupado);
+                        preencheTabelaResumo(tabelaCarcacaMarca, response.extra.marca_agrupado);
+
+
+                        return response.datatable.data;
+                    }
+                },
+                columns: [
+
+                    {
+                        data: null,
+                        // width: "1%",
+                        defaultContent: "",
+                        className: "select-checkbox",
+                        orderable: false
+                    },
+
+                    @if (!$canEdit)
+                        {
+                            data: 'action',
+                            name: 'action',
+                            title: 'Ações',
+                            orderable: false,
+                            searchable: false,
+                            // width: '10%',
+                            className: 'text-center text-nowrap',
+                        },
+                    @endif {
+                        data: 'ID',
+                        name: 'ID',
+                        title: 'Cód.',
+                        visible: true,
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'DSMEDIDAPNEU',
+                        name: 'DSMEDIDAPNEU',
+                        title: 'Medida'
+                    },
+                    {
+                        data: 'DSMODELO',
+                        name: 'DSMODELO',
+                        title: 'Modelo'
+                    },
+                    {
+                        data: 'NR_FOGO',
+                        name: 'NR_FOGO',
+                        visible: false,
+                        title: 'Fogo',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'NR_SERIE',
+                        name: 'NR_SERIE',
+                        title: 'Serie',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'NR_DOT',
+                        name: 'NR_DOT',
+                        title: 'Dot',
+                        className: 'text-center',
+                    },
+                    {
+                        data: 'VL_CARCACA',
+                        name: 'VL_CARCACA',
+                        title: 'Valor',
+                        className: 'text-center',
+                        render: $.fn.dataTable.render.number('.', ',', 2),
+                    },
+                    {
+                        data: 'DS_TIPO',
+                        name: 'DS_TIPO',
+                        title: 'Tipo',
+                    },
+                    {
+                        data: 'LOCAL_ESTOQUE',
+                        name: 'LOCAL_ESTOQUE',
+                        title: 'Local'
+                    }
+                ],
+                order: [
+                    [0, "desc"]
+                ],
+
+            });
+        }
 
         function agrupaTabelaResumo(idTabela, colunaAgrupamento) {
             return $('#' + idTabela).DataTable({
@@ -586,7 +567,6 @@
             Object.keys(dados).forEach(function(marcaKey, index) {
                 let marcaItem = dados[marcaKey];
                 let marcaCollapseId = 'collapse' + index;
-                // console.log(key);
                 html += `
                 <div class="card divAccordion">
                     <div class="card-header p-1" id="headingMarca${index}">                        
@@ -644,13 +624,62 @@
                             `;
                 });
 
-
-
                 html += `     </div>
                         </div>     
                     </div>
                 `;
             });
+
+            return html;
+        }
+
+        function renderizaAccordion2(dados, idDivAccordion = 'accordionResumo') {
+            let html = ``;
+
+            Object.keys(dados).forEach(function(Nivel1Key, gIndex) {
+                html += `
+                    <div class="card nivel1-card">
+                        ${renderNivel0(Nivel1Key, gIndex)}
+                    </div>
+                `;
+            });
+
+            $("#" + idDivAccordion).html(html);
+        }
+        function renderNivel0(Nivel1Key, gIndex) {
+            let html = `
+                <div class="card-header p-1">
+                    <button class="btn btn-block"
+                        data-toggle="collapse"
+                        data-target="#nivel0-${gIndex}">
+                        <table class="table table-borderless mb-0 w-100">
+                            <tr>
+                                <td class="text-left p-0">
+                                    <small class="text-muted">
+                                        <i class="fas fa-chevron-down"></i>
+                                        <strong>${Nivel1Key}</strong>
+                                    </small>
+                                </td>
+                                <td class="text-right p-0 w-10">
+                                    ${Nivel1Key.qtd} unid.
+                                </td>                                
+                            </tr>
+                        </table>
+                    </button>
+                </div>
+
+                <div id="nivel0-${gIndex}" class="collapse">
+                    <div class="card-body p-1">
+            `;
+
+            // gerente.supervisores.forEach((sup, sIndex) => {
+            //     html += renderSupervisorContainer(sup, gIndex, sIndex);
+            // });
+
+            html += `
+                    </div>
+                </div>
+            `;
 
             return html;
         }

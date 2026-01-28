@@ -104,6 +104,13 @@
                                     Clientes Desabilitados
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-parametros-borracheiro" data-toggle="pill"
+                                    href="#parametros-borracheiro" role="tab" aria-controls="parametros-borracheiro"
+                                    aria-selected="false">
+                                    Parametros Borracheiro
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     <div class="card-body p-0">
@@ -113,8 +120,8 @@
                             </div>
                         </div>
                         <div class="tab-content" id="tabContentRequisicaoBorracharia">
-                            <div class="tab-pane fade show active" id="painel-requisicao-borracharia-pagar" role="tabpanel"
-                                aria-labelledby="tab-requisicao-borracharia-pagar">
+                            <div class="tab-pane fade show active" id="painel-requisicao-borracharia-pagar"
+                                role="tabpanel" aria-labelledby="tab-requisicao-borracharia-pagar">
                                 <div class="card-body p-2">
                                     <div class="mb-2">
                                         <small class="badge badge-danger badge-date"></small>
@@ -209,17 +216,23 @@
                             </div>
                             <div class="tab-pane fade" id="clientes-desabilitados" role="tabpanel"
                                 aria-labelledby="tab-clientes-desabilitados">
-                                <div class="card-body p-2">
-                                    <div class="col-md-8">
-                                        <div class="card-header">
-                                            <h6 class="card-title">Clientes Desabilitados</h6>
-                                        </div>
-                                        <div class="card-body pb-0">
-                                            <table class="table table-bordered compact table-font-small table-responsive"
-                                                id="clientes-desabilitados">
+                                <div class="card-body pb-0">
+                                    <div class="col-md-12">
+                                        <table class="table table-responsive compact table-bordered table-font-small"
+                                            id="table-clientes-desabilitados">
 
-                                            </table>
-                                        </div>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="parametros-borracheiro" role="tabpanel"
+                                aria-labelledby="tab-parametros-borracheiro">
+                                <div class="card-body pb-0">
+                                    <div class="col-md-12">
+                                        <table class="table table-responsive compact table-bordered table-font-small"
+                                            id="table-parametros-borracheiro">
+
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -305,13 +318,13 @@
 
 @section('css')
     <style>
-        table.dataTable {
-            table-layout: fixed;
-        }
+        /* table.dataTable {
+                            table-layout: fixed;
+                        }
 
-        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-            display: none;
-        }
+                        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+                            display: none;
+                        } */
 
         .gerente-card {
             /* border-left: 4px solid #dc3545 !important; */
@@ -375,6 +388,11 @@
             transform: rotate(180deg);
             color: #343a40;
         }
+
+        .btn-action {
+            width: 25px;
+            padding: 0;
+        }
     </style>
 @stop
 
@@ -383,9 +401,11 @@
         var table;
         var tableId = 0;
         var table_item_pedido;
+        var tableClientesDesabilitados;
         let accordionResumoGerenteOriginal = [];
         let accordionResumoGerenteFiltrado = [];
         let datatables = [];
+        let openedAccordions = [];
 
         var routes = {
             'searchPessoa': '{{ route('usuario.search-pessoa') }}'
@@ -430,7 +450,7 @@
             $('#modal-table-detalhes-requisicao-borracharia').modal('show');
 
 
-            initTable('table-item-detalhes-requisicao-borracharia', cd_pessoa, cd_borracheiro);
+            initTableRequisicaoDetalhes('table-item-detalhes-requisicao-borracharia', cd_pessoa, cd_borracheiro);
         });
 
         $(document).on('click', '.btn-desabilita-cliente', function() {
@@ -448,9 +468,7 @@
                 cancelButtonText: 'Cancelar',
                 cancelButtonColor: '#d33'
             }
-
             DesabilitaHabilitaClienteBorracharia(parms);
-
 
         });
 
@@ -517,51 +535,9 @@
             initTableRequisicaoBorracharia(data);
         });
 
-        table.on('search.dt', function() {
-            const termo = table.search().toLowerCase().trim();
-
-            if (!Array.isArray(accordionResumoGerenteOriginal)) return;
-
-            // Se busca vazia → volta tudo
-            if (!termo) {
-                initAccordion(accordionResumoGerenteOriginal, 'accordionResumoGerente');
-                return;
-            } else {
-                accordionResumoGerenteFiltrado = accordionResumoGerenteOriginal
-                    .map(gerente => {
-
-                        const supervisoresFiltrados = gerente.supervisores
-                            .map(supervisor => {
-
-                                const borracheirosFiltrados = supervisor.borracheiros.filter(borracheiro =>
-                                    (borracheiro.nome || '').toLowerCase().includes(termo)
-                                );
-
-                                // Se não sobrar borracheiro → remove supervisor
-                                if (borracheirosFiltrados.length === 0) return null;
-
-                                return {
-                                    ...supervisor,
-                                    borracheiros: borracheirosFiltrados
-                                };
-                            })
-                            .filter(Boolean);
-
-                        // Se não sobrar supervisor → remove gerente
-                        if (supervisoresFiltrados.length === 0) return null;
-
-                        return {
-                            ...gerente,
-                            supervisores: supervisoresFiltrados
-                        };
-                    })
-                    .filter(Boolean);
-            }
-
-            initAccordion(accordionResumoGerenteFiltrado, 'accordionResumoGerente');
+        $(document).on('click', '#tab-clientes-desabilitados', function() {
+            initTableClientesDesabilitados();
         });
-
-        let openedAccordions = [];
 
         function DesabilitaHabilitaClienteBorracharia(parms) {
             Swal.fire({
@@ -606,6 +582,7 @@
                             table.ajax.reload(function() {
                                 restoreAccordions(openedAccordions);
                             });
+                            tableClientesDesabilitados.ajax.reload();
                         },
                         error: function(xhr) {
                             Swal.fire({
@@ -755,7 +732,7 @@
             return table;
         }
 
-        function initTable(tableId, cd_pessoa, cd_borracheiro) {
+        function initTableRequisicaoDetalhes(tableId, cd_pessoa, cd_borracheiro) {
 
             $('#' + tableId).DataTable().clear().destroy();
 
@@ -790,6 +767,13 @@
                         className: 'text-nowrap'
                     },
                     {
+                        data: 'VL_UNITARIO',
+                        name: 'VL_UNITARIO',
+                        title: 'Preço Médio',
+                        render: $.fn.dataTable.render.number('.', ',', 2)
+
+                    },
+                    {
                         data: 'QTD_ITEM',
                         name: 'QTD_ITEM',
                         title: 'Qtde'
@@ -801,6 +785,53 @@
                         title: 'Comissão'
                     }
                 ]
+            });
+        }
+
+        function initTableClientesDesabilitados() {
+            if (tableClientesDesabilitados) {
+                tableClientesDesabilitados.clear().destroy();
+            }
+            tableClientesDesabilitados = $('#table-clientes-desabilitados').DataTable({
+                processing: false,
+                serverSide: false,
+                pagingType: "simple",
+                pageLength: 50,
+                language: {
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                },
+                scrollY: "400px",
+                ajax: {
+                    url: '{{ route('get-cliente-desabilitado-borracharia') }}',
+                },
+                columns: [{
+                        data: 'actions',
+                        name: 'actions',
+                        title: 'Ações',
+                        width: '10%',
+                        className: 'pl-1 text-center'
+
+                    },
+                    {
+                        data: 'NR_CNPJCPF',
+                        name: 'NR_CNPJCPF',
+                        title: 'CNPJ/CPF',
+                        width: '20%',
+                    },
+                    {
+                        data: 'NM_PESSOA',
+                        name: 'NM_PESSOA',
+                        title: 'Cliente',
+                        width: '35%',
+                    },
+                    {
+                        data: 'NM_VENDEDOR',
+                        name: 'NM_VENDEDOR',
+                        title: 'Vendedor',
+                        width: '35%',
+                    }
+                ],
+                order: [2, 'asc'],
             });
         }
 
@@ -989,7 +1020,6 @@
             return html;
         }
 
-
         function getOpenedAccordions(containerId) {
             let opened = [];
 
@@ -1006,5 +1036,4 @@
             });
         }
     </script>
-
 @stop

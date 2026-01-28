@@ -122,8 +122,8 @@ class NotaBorracheiro extends Model
                 ITEM.DS_ITEM,
                 ITEM.cd_grupo,
                 ITEM.CD_SUBGRUPO,               
-                I.QT_ITEMNOTA QTD_ITEM,
-                --I.VL_UNITARIO,
+                REPLACE(I.QT_ITEMNOTA, '.00', '') QTD_ITEM,
+                CAST(I.VL_UNITARIO AS DECIMAL(15,2)) VL_UNITARIO,
                 --I.VL_TOTAL,
 
                 INV.CD_VENDEDOR CD_BORRACHEIRO,
@@ -232,5 +232,27 @@ class NotaBorracheiro extends Model
                 ]
             );
         }
+    }
+
+    public function getClienteDesabilitadoBorracharia()
+    {
+        $query = "
+           SELECT
+                PB.CD_PESSOA,
+                PB.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                P.NR_CNPJCPF,
+                V.CD_VENDEDOR || '-' || PV.NM_PESSOA NM_VENDEDOR,
+                PB.ST_BORRACHEIRO ST_BORRACHARIA
+            FROM PESSOABORRACHEIRO PB
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = PB.CD_PESSOA)
+            INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA)
+            INNER JOIN VENDEDOR V ON (V.CD_VENDEDOR = EP.CD_VENDEDOR)
+            LEFT JOIN PESSOA PV ON (P.CD_PESSOA = PV.CD_PESSOA)
+            WHERE PB.ST_BORRACHEIRO = 'N'        
+        ";
+
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
     }
 }

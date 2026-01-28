@@ -69,11 +69,15 @@ class EstoqueController extends Controller
         $user_auth   = $this->user;
         $uri         = $this->request->route()->uri();
 
+        // Verifica se o usuário tem permissão de edição e enviar a view para bloquear ou liberar as ações
+        $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
+
         return view('admin.estoque.carcaca-casa',
             compact(
                 'uri',
                 'title_page',
-                'user_auth'
+                'user_auth',
+                'canEdit'
             )
         );
     }
@@ -82,16 +86,22 @@ class EstoqueController extends Controller
     {
         $data = $this->estoque->getCarcacasDaCasa();
 
-        // return $this->agruparArrayCarcaca($data);
+        $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
 
+        
         $datatable = Datatables()
             ->of($data)
-            ->addColumn('action', function ($row) {
+            ->addColumn('action', function ($row) use ($canEdit) {
+                if ($canEdit) {
+                    return '';
+                }    
+
                 $btn = '<button class="btn btn-xs btn-editar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Editar"><i class="fas fa-edit"></i></button>';
                 $btn .= '<button class="btn btn-xs btn-baixar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Baixar"><i class="fas fa-sign-out-alt"></i></button>';
                 $btn .= '<button class="btn btn-xs btn-deletar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Deletar"><i class="fas fa-trash-alt"></i></button>';
                 return $btn;
             })
+            ->rawColumns(['action'])
             ->make(true)
             ->getData();
 

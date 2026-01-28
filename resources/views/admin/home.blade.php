@@ -51,6 +51,10 @@
                                 <a href={{ route('requisicao-borracharia.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Req. Borracharia</a>
                             @endhaspermission
+                            @haspermission('ver-estoque')
+                                <a href={{ route('carcaca-casa') }} class="btn btn-sm btn-dark mb-1"
+                                    style="width: 150px">Estoque Carcacas</a>
+                            @endhaspermission
                         </div>
                         @haspermission('ver-rel-cobranca')
                             <div class="col-md-12 mt-2">
