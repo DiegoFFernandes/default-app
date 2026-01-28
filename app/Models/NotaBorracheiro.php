@@ -86,7 +86,7 @@ class NotaBorracheiro extends Model
             INNER JOIN PESSOA PSUPERVISOR ON (PSUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
 
             WHERE NOTA.DT_EMISSAO BETWEEN '{$dados['dtInicio']}' AND '{$dados['dtFim']}'
-                AND ITEM.CD_GRUPO NOT IN (104)
+                AND ITEM.CD_GRUPO IN (102)
                 AND INV.CD_TIPO = 2
                 AND NOTA.ST_NOTA IN ('V')
                 " . (isset($dados['nm_vendedor']) && $dados['nm_vendedor'] != '' ? " AND PVENDEDOR.NM_PESSOA LIKE '%{$dados['nm_vendedor']}%' " : "") . "
@@ -167,7 +167,7 @@ class NotaBorracheiro extends Model
             INNER JOIN PESSOA PSUPERVISOR ON (PSUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
 
             WHERE NOTA.DT_EMISSAO BETWEEN '$dtInicio' AND '$dtFim'
-                AND ITEM.CD_GRUPO NOT IN (104)
+                AND ITEM.CD_GRUPO IN (102)
                 AND INV.CD_TIPO = 2
                 AND NOTA.ST_NOTA IN ('V')
 
