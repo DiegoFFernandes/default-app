@@ -216,12 +216,25 @@
                             </div>
                             <div class="tab-pane fade" id="clientes-desabilitados" role="tabpanel"
                                 aria-labelledby="tab-clientes-desabilitados">
-                                <div class="card-body pb-0">
-                                    <div class="col-md-12">
-                                        <table class="table table-responsive compact table-bordered table-font-small"
-                                            id="table-clientes-desabilitados">
+                                <div class="card">
+                                    <div class="card-header d-flex align-items-center">
+                                        <h3 class="card-title mb-0">
+                                            Não paga Borracharia
+                                        </h3>
 
-                                        </table>
+                                        <div class="card-tools ml-auto">
+                                            <button class="btn btn-tool" id="add-cliente-desabilitado" title="Adicionar Cliente">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-body pb-0">
+                                        <div class="col-md-12">
+                                            <table class="table table-responsive compact table-bordered table-font-small"
+                                                id="table-clientes-desabilitados">
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -244,11 +257,12 @@
     </div>
 
     {{-- Modal de Itens --}}
-    <div class="modal modal-default fade" id="modal-table-detalhes-requisicao-borracharia" tabindex="-1">
+    <div class="modal modal-default fade" id="modal-table-detalhes-requisicao-borracharia"
+        data-backdrop="static"tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Detalhes da Requisição</h5>
+                    <h6 class="modal-title text-small">Detalhes da Requisição</h6>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -313,23 +327,42 @@
         </div>
     </div>
 
+    {{-- Modal de Desabilitar Cliente --}}
+    <div class="modal modal-default fade" id="modal-table-desabilitar-cliente" data-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title text-small">Desabilitar Cliente</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="small">Cliente</label>
+                            <select name='pessoa' class="form-control" id="cd-modal-pessoa" style="width: 100%">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="d-flex">
+                            <button type="button" class="btn btn-secondary btn-sm mr-1"
+                                data-dismiss="modal">Fechar</button>
+                            <button type="button" id="save-desabilitar-cliente"
+                                class="btn btn-secondary btn-sm">Desabilitar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 @stop
 
 @section('css')
     <style>
-        /* table.dataTable {
-                            table-layout: fixed;
-                        }
-
-                        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
-                            display: none;
-                        } */
-
-        .gerente-card {
-            /* border-left: 4px solid #dc3545 !important; */
-        }
-
         .indent-1 {
             padding-left: 10px !important;
         }
@@ -537,6 +570,41 @@
 
         $(document).on('click', '#tab-clientes-desabilitados', function() {
             initTableClientesDesabilitados();
+        });
+
+        $(document).on('click', '#add-cliente-desabilitado', function() {
+            initSelect2Pessoa('#cd-modal-pessoa', routes.searchPessoa, '#modal-table-desabilitar-cliente');
+            $('#modal-table-desabilitar-cliente').modal('show');
+        });
+
+        $(document).on('click', '#save-desabilitar-cliente', function() {
+            var cd_pessoa = $('#cd-modal-pessoa').val();
+
+            if (!cd_pessoa) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Selecione um cliente para desabilitar.'
+                });
+                return;
+            }
+
+            var parms = {
+                cd_pessoa: cd_pessoa,
+                st_borracheiro: 'N',
+                title: 'Desabilitar Cliente?',
+                text: "Tem certeza que deseja desabilitar este cliente para pagar borracharia?",
+                icon: 'warning',
+                confirmButtonText: 'Sim, desabilitar!',
+                confirmButtonColor: '#3085d6',
+                cancelButtonText: 'Cancelar',
+                cancelButtonColor: '#d33'
+            }
+            DesabilitaHabilitaClienteBorracharia(parms);
+
+            $('#modal-table-desabilitar-cliente').modal('hide');
+
+            tableClientesDesabilitados.ajax.reload();
         });
 
         function DesabilitaHabilitaClienteBorracharia(parms) {
@@ -939,31 +1007,30 @@
 
         function renderVendedorContainer(vend, gIndex, sIndex, vIndex) {
             let html = `
-            <div class="vendedor-container">
-                <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
-                        data-target="#borr-${gIndex}-${sIndex}-${vIndex}">
-                    <table class="table table-bordered table-borderless mb-0 w-100">
-                        <tr>
-                            <td class="text-left p-0 indent-2"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
-                                    <strong class="ps-3"> ${vend.nome}</strong> </small> </td>
-                            <td class="text-right p-0 w-10"> <small class="text-muted"> ${vend.qtd_item} </small> </td>
-                            <td class="text-right p-0 w-25"> <small class="text-muted"> R$
-                                    ${formatarValorBR(vend.vl_comissao)} </small> </td>
-                        </tr>
-                    </table>
-                </button>
-                <div id="borr-${gIndex}-${sIndex}-${vIndex}" class="collapse">
-        `;
+                <div class="vendedor-container">
+                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
+                            data-target="#borr-${gIndex}-${sIndex}-${vIndex}">
+                        <table class="table table-bordered table-borderless mb-0 w-100">
+                            <tr>
+                                <td class="text-left p-0 indent-2"> <small class="text-muted"> <i class="fas fa-chevron-down"></i>
+                                        <strong class="ps-3"> ${vend.nome}</strong> </small> </td>
+                                <td class="text-right p-0 w-10"> <small class="text-muted"> ${vend.qtd_item} </small> </td>
+                                <td class="text-right p-0 w-25"> <small class="text-muted"> R$
+                                        ${formatarValorBR(vend.vl_comissao)} </small> </td>
+                            </tr>
+                        </table>
+                    </button>
+                    <div id="borr-${gIndex}-${sIndex}-${vIndex}" class="collapse">
+                    `;
 
             vend.borracheiros.forEach((borr, bIndex) => {
                 html += renderBorracheiroContainer(borr, gIndex, sIndex, vIndex, bIndex);
             });
 
             html += `
+                    </div>
                 </div>
-            </div>  
-
-            `;
+                `;
             return html;
         };
 
