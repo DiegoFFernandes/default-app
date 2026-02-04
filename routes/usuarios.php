@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function () {
     Route::prefix('usuario')->group(function () {        
-        Route::get('search-pessoa', [UserController::class, 'searchPessoa'])->name('usuario.search-pessoa');        
+        Route::post('search-pessoa', [UserController::class, 'searchPessoa'])->name('usuario.search-pessoa');        
     });
 });
 

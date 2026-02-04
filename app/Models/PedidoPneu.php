@@ -100,6 +100,8 @@ class PedidoPneu extends Model
                     DTREGISTRO,
                     IDPESSOA,
                     IDEMPRESA,
+                    DSBLOQUEIO,
+                    DTBLOQUEIO,
                     IDTIPOPEDIDO,
                     STGERAPEDIDO,
                     IDENDERECO,
@@ -113,13 +115,15 @@ class PedidoPneu extends Model
                         CURRENT_DATE,                       
                         CURRENT_DATE+1,                        
                         :idvendedor,              
-                        'N',                                   
+                        'B',                                   
                         :cond_pagto,                 
                         :form_pagto,                 
                         NULL,                               
                         CURRENT_TIMESTAMP,                  
                         :idpessoa,                 
-                        :cd_empresa,                 
+                        :cd_empresa, 
+                        'PEDIDO GERADO PELO PORTAL',
+                        CURRENT_DATE,   
                         1,                                  
                         'S',                                
                         1,                                  
@@ -127,7 +131,7 @@ class PedidoPneu extends Model
                         'S',                                
                         :cd_empresa_fat,                 
                         CAST(CURRENT_TIME AS TIME),             
-                        'C') RETURNING ID
+                        'A') RETURNING ID
             ";
 
 
@@ -276,6 +280,4 @@ class PedidoPneu extends Model
             return $result;
         });
     }
-
-   
 }

@@ -21,7 +21,7 @@ class Pessoa extends Model
         'updated_at',
     ];
 
-    public function FindPessoaJunsoftAll($search)
+    public function FindPessoaJunsoftAll($search, $cd_tipopessoa = null)
     {
         $query = "select first 10 p.cd_pessoa id, 
                     p.cd_pessoa||'-'||p.nm_pessoa nm_pessoa, p.nr_cnpjcpf, 
@@ -29,9 +29,15 @@ class Pessoa extends Model
                     from pessoa p
                     inner join tipopessoa tp on (tp.cd_tipopessoa = p.cd_tipopessoa)
                     inner join enderecopessoa ep on (ep.cd_pessoa = p.cd_pessoa)
-                    where p.st_ativa = 'S'
-                        --and p.cd_tipopessoa in (1,3)
-                        and p.nm_pessoa||'-'||p.cd_pessoa like '%$search%'";
+                    where p.st_ativa = 'S'";
+
+        if (isset($cd_tipopessoa)) {
+            $query .= " and p.cd_tipopessoa in ($cd_tipopessoa) ";
+        }
+
+        $query .= " and p.nm_pessoa||'-'||p.cd_pessoa like '%$search%'";
+
+
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
@@ -43,6 +49,7 @@ class Pessoa extends Model
             SELECT
                 P.CD_PESSOA CD_PESSOA,
                 P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                P.NM_PESSOA PESSOA,
                 P.NR_CNPJCPF,
                 P.DS_EMAIL,
                 TP.CD_TIPOPESSOA,
@@ -123,7 +130,7 @@ class Pessoa extends Model
             'cd_pessoa',
             'nm_pessoa'
         )
-        ->where('cd_usuario', $cd_usuario)->get();
+            ->where('cd_usuario', $cd_usuario)->get();
     }
     public function updateData($input)
     {

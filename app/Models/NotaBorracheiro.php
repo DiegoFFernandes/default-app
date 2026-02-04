@@ -101,6 +101,11 @@ class NotaBorracheiro extends Model
 
             GROUP BY NOTA.CD_EMPRESA, NOTA.CD_PESSOA, PESSOA.NM_PESSOA, INV.CD_VENDEDOR, PBORRACHEIRO.NM_PESSOA, PVENDEDOR.CD_PESSOA, PVENDEDOR.NM_PESSOA, PSUPERVISOR.CD_PESSOA,
                 PSUPERVISOR.NM_PESSOA, PB.CD_PESSOA, PB.ST_BORRACHEIRO   
+            ORDER BY CAST(REPLACE(SUM(CASE
+                WHEN PB.CD_PESSOA IS NULL THEN I.QT_ITEMNOTA
+                WHEN PB.ST_BORRACHEIRO = 'S' THEN I.QT_ITEMNOTA
+                ELSE 0
+                END), '.00', '') AS INTEGER) DESC
             ";
 
         $dados = DB::connection('firebird')->select($query);

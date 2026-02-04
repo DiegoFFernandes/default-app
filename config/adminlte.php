@@ -64,7 +64,7 @@ return [
     */
 
     'logo' => 'Pneus',
-    'logo_img' => 'vendor/adminlte/dist/img/logo-atz.png',
+    'logo_img' => env('AUTH_LOGO', 'vendor/adminlte/dist/img/logo-default.png'),
     // 'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
@@ -113,7 +113,7 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logo-atz-xs.png',
+            'path' => env('PRELOADER_PATH', 'vendor/adminlte/dist/img/logo-default-xs.png'),
             'alt' => 'Recapadora',
             // 'effect' => 'animation__shake',
             // 'width' => 80,

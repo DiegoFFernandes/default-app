@@ -22,7 +22,7 @@ function msgToastr(msg, classe) {
 function exportarParaExcel(
     dados,
     nomeArquivo = "dados.xlsx",
-    nomeAba = "Planilha"
+    nomeAba = "Planilha",
 ) {
     // Cria uma nova planilha a partir dos dados (array de objetos)
     const worksheet = XLSX.utils.json_to_sheet(dados);
@@ -35,7 +35,12 @@ function exportarParaExcel(
     XLSX.writeFile(workbook, nomeArquivo);
 }
 
-function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
+function initSelect2Pessoa(
+    selector,
+    routeUrl,
+    modalSelector = null,
+    cdTipoPessoa = null,
+) {
     const $element = $(selector);
 
     $element.select2({
@@ -47,9 +52,19 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
         minimumInputLength: 2,
         dropdownParent: modalSelector ? $(modalSelector) : $(document.body),
         ajax: {
+            headers: {
+                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
+            },
             url: routeUrl,
+            type: "POST",
             dataType: "json",
             delay: 250,
+            data: function (params) {
+                return {
+                    q:  params.term || "",
+                    cd_tipopessoa: cdTipoPessoa || null,
+                };
+            },
             processResults: function (data) {
                 return {
                     results: $.map(data, function (item) {
@@ -84,7 +99,7 @@ function initSelect2Pessoa(selector, routeUrl, modalSelector = null) {
 function initDateRangePicker(
     daterangeSelector = "#daterange",
     inicioData = null,
-    fimData = null
+    fimData = null,
 ) {
     const $daterange = $(daterangeSelector);
 
@@ -143,7 +158,7 @@ function initDateRangePicker(
         $(this).val(
             picker.startDate.format("DD/MM/YYYY") +
                 " - " +
-                picker.endDate.format("DD/MM/YYYY")
+                picker.endDate.format("DD/MM/YYYY"),
         );
         inicioSelecionado = picker.startDate.format("DD.MM.YYYY");
         fimSelecionado = picker.endDate.format("DD.MM.YYYY");
@@ -262,12 +277,12 @@ async function sendTokenToServer(token, notification) {
 function inicializaSelect2Lista(config) {
     $.ajax({
         url: config.route,
-        type: "GET",        
+        type: "GET",
         dataType: "json",
         success: function (data) {
             let select = $(config.selectId);
 
-            if(select.hasClass("select2-hidden-accessible")) {
+            if (select.hasClass("select2-hidden-accessible")) {
                 select.select2("destroy");
             }
 
@@ -278,7 +293,7 @@ function inicializaSelect2Lista(config) {
                     $("<option>", {
                         value: item[config.valueField],
                         text: item[config.textField],
-                    })
+                    }),
                 );
             });
 
@@ -287,7 +302,9 @@ function inicializaSelect2Lista(config) {
                 theme: "bootstrap4",
                 width: "100%",
                 allowClear: true,
-                dropdownParent: select.closest(config.modalParent || document.body),
+                dropdownParent: select.closest(
+                    config.modalParent || document.body,
+                ),
             });
         },
     });

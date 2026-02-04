@@ -1,5 +1,5 @@
 @extends('layouts.master')
-@section('title', 'Dashboard')
+@section('title', 'Relatorio de Cobrança')
 
 @section('content')
     <!-- Main content -->

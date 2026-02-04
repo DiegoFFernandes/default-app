@@ -124,7 +124,7 @@
                                         <div class="row">
                                             <div class="col-md-2">
                                                 <div class="form-group">
-                                                    <label>Empresa</label>
+                                                    <label class="small">Empresa</label>
                                                     <select name="cd_empresa" id="cd_empresa" class="form-control"
                                                         style="width: 100%;">
                                                         <option value="0" selected>Todas</option>
@@ -137,28 +137,28 @@
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
-                                                    <label>Dt Emissão</label>
+                                                    <label class="small">Dt Emissão</label>
                                                     <input type="text" class="form-control" id="daterange"
                                                         placeholder="Data Emissão">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
-                                                    <label>Pedido Palm</label>
+                                                    <label class="small">Pedido Palm</label>
                                                     <input type="number" class="form-control" id="pedido_palm"
                                                         placeholder="Pedido Palm">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
-                                                    <label>Pedido</label>
+                                                    <label class="small">Pedido</label>
                                                     <input type="number" class="form-control" id="pedido"
                                                         placeholder="Pedido">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Grupo Item</label>
+                                                    <label class="small">Grupo Item</label>
                                                     <select name="grupo_item" id="grupo_item" class="form-control"
                                                         style="width: 100%;" multiple>
                                                         <option value="0">Todos</option>
@@ -173,7 +173,7 @@
                                         <div class="row">
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <label>Região</label>
+                                                    <label class="small">Região</label>
                                                     <select name="cd_regiaocomercial[]" class="form-control"
                                                         id="cd_regiaocomercial" style="width: 100%;" multiple>
                                                         @foreach ($regiao as $r)
@@ -186,14 +186,14 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Vendedor</label>
+                                                    <label class="small">Vendedor</label>
                                                     <input type="text" class="form-control" id="nm_vendedor"
                                                         placeholder="Nome Vendedor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Cliente</label>
+                                                    <label class="small">Cliente</label>
                                                     <input type="text" class="form-control" id="nm_cliente"
                                                         placeholder="Nome Cliente">
                                                 </div>

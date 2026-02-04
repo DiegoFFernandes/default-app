@@ -93,12 +93,12 @@ class UserController extends Controller
     }
     public function searchPessoa()
     {
-        // Helper::searchCliente($this->user_auth->conexao)
         $data = [];
 
         if ($this->request->has('q')) {
-            $search = $this->request->q;
-            $data = $this->pessoa->FindPessoaJunsoftAll($search);
+            $search = $this->request->q;                
+            $cdTipoPessoa = $this->request->cd_tipopessoa;
+            $data = $this->pessoa->FindPessoaJunsoftAll($search, $cdTipoPessoa);
         }
         return response()->json($data);
     }

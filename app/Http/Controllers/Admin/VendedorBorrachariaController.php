@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
+use App\Models\Empresa;
 use App\Models\GerenteUnidade;
 use App\Models\LiberaOrdemComercial;
 use App\Models\NotaBorracheiro;
 use App\Models\PedidoPneu;
+use App\Models\Pessoa;
 use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use App\Models\SupervisorSubgrupo;
@@ -16,12 +18,10 @@ use App\Models\Vendedor;
 use App\Services\SupervisorAuthService;
 use App\Services\UserRoleFilterService;
 use Barryvdh\Snappy\Facades\SnappyPdf;
-use Dflydev\DotAccessData\Data;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Js;
 use Yajra\DataTables\DataTables;
 
 class VendedorBorrachariaController extends Controller
@@ -38,6 +38,8 @@ class VendedorBorrachariaController extends Controller
     public NotaBorracheiro $notaBorracheiro;
     public GerenteUnidade $gerenteUnidade;
     public Vendedor $vendedorComercial;
+    public Pessoa $pessoa;
+    public Empresa $empresa;
 
     public function __construct(
         Request $request,
@@ -49,7 +51,9 @@ class VendedorBorrachariaController extends Controller
         GerenteUnidade $gerenteUnidade,
         Vendedor $vendedor,
         PedidoPneu $pedido,
-        NotaBorracheiro $notaBorracheiro
+        NotaBorracheiro $notaBorracheiro,
+        Empresa $empresa,
+        Pessoa $pessoa
     ) {
         $this->request = $request;
         $this->pedido = $pedido;
@@ -62,6 +66,8 @@ class VendedorBorrachariaController extends Controller
         $this->notaBorracheiro = $notaBorracheiro;
         $this->gerenteUnidade = $gerenteUnidade;
         $this->vendedorComercial = $vendedor;
+        $this->pessoa = $pessoa;
+        $this->empresa = $empresa;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -75,6 +81,7 @@ class VendedorBorrachariaController extends Controller
         $title_page   = 'Requisão Borracharia';
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
+        $empresa      = $this->empresa->empresa();
 
         if ($this->user->hasRole('supervisor')) {
             $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -101,17 +108,17 @@ class VendedorBorrachariaController extends Controller
             'title_page',
             'user_auth',
             'uri',
-            'gerentes'
+            'gerentes',
+            'empresa'
         ));
     }
-
 
     public function getRequisicaoBorracharia()
     {
         $service = new UserRoleFilterService(
             $this->user,
             $this->area,
-            $this->supervisorComercial,
+            $this->supervisorComercialModel,
             $this->gerenteUnidade,
             $this->vendedorComercial,
             null
@@ -213,11 +220,13 @@ class VendedorBorrachariaController extends Controller
                     $btn = '';
 
                     if ($item->ST_BORRACHARIA === 'S') {
-                        $btn .= '<button type="button" class="btn btn-success btn-xs btn-desabilita-cliente" style="width: 25px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-check"></i></button>';
+                        $btn .= '<button type="button" class="btn btn-success btn-xs btn-desabilita-cliente mb-1" style="width: 25px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Desabilitar Cliente"><i class="fas fa-check"></i></button>';
                     } else {
-                        $btn .= '<button type="button" class="btn btn-danger btn-xs btn-habilita-cliente" style="width: 25px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-times"></i></button>';
+                        if ($this->user->hasRole('admin|gerente comercial')) {
+                            $btn .= '<button type="button" class="btn btn-danger btn-xs btn-habilita-cliente mb-1" style="width: 25px" data-cd-pessoa="' . $item->CD_PESSOA . '" title="Habilitar Cliente"><i class="fas fa-times"></i></button>';
+                        }
                     }
-                    $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia ml-1" style="width: 25px;" 
+                    $btn .= '<button type="button" class="btn btn-info btn-xs btn-view-requisicao-borracharia mb-1 ml-1" style="width: 25px;" 
                                 data-cd-borracheiro="' . $item->CD_BORRACHEIRO . '" 
                                 data-nm-borracheiro="' . $item->NM_BORRACHEIRO . '" 
                                 data-nm-pessoa="' . $item->NM_PESSOA . '"
@@ -256,7 +265,7 @@ class VendedorBorrachariaController extends Controller
         unset($vendedor);
 
 
-        $datatables = DataTables::of($dados)           
+        $datatables = DataTables::of($dados)
             ->addColumn('gerente_comercial', function ($data) use ($regioes_mysql) {
                 foreach ($regioes_mysql as $regiao) {
                     if ($data->CD_SUPERVISOR == $regiao->cd_areacomercial) {
@@ -264,8 +273,8 @@ class VendedorBorrachariaController extends Controller
                     }
                 }
                 return 'SEM GERENTE';
-            })            
-            
+            })
+
             ->make(true)
             ->getData();
 
@@ -283,7 +292,6 @@ class VendedorBorrachariaController extends Controller
 
         ]);
     }
-
 
     public function getDetailsRequisicaoBorracharia()
     {
@@ -388,7 +396,8 @@ class VendedorBorrachariaController extends Controller
                             <i class="fas fa-check"></i>
                         </button>';
                 } else {
-                    $btn .= '
+                    if ($this->user->hasRole('admin|gerente comercial')) {
+                        $btn .= '
                                 <button 
                                     type="button" 
                                     class="btn btn-warning btn-sm btn-action btn-habilita-cliente"
@@ -396,10 +405,105 @@ class VendedorBorrachariaController extends Controller
                                     title="Habilitar cliente">
                                     <i class="fas fa-times"></i>
                                 </button>';
+                    }
                 }
                 return $btn;
             })
             ->rawColumns(['actions'])
             ->make(true);
+    }
+
+    public function getlistBorracheiroParm()
+    {
+        $dados = $this->vendedorComercial->listBorracheiroParm();
+
+        return DataTables::of($dados)
+            ->addColumn('actions', function ($item) {
+                $btn = '';
+
+                $btn .= '
+                        <button 
+                            type="button" 
+                            class="btn btn-info btn-sm btn-action btn-editar-parm-borracheiro"
+                            data-cd-borracheiro="' . $item->CD_BORRACHEIRO . '"                           
+                            title="Editar borracheiro">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-danger btn-sm btn-action btn-delete-parm-borracheiro"
+                            data-cd-borracheiro="' . $item->CD_BORRACHEIRO . '"                           
+                            title="Deletar borracheiro">
+                            <i class="fas fa-trash"></i>
+                        </button>                        
+                        ';
+
+                return $btn;
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    public function saveParmBorracheiro()
+    {
+        $this->request->merge(['vl_comissao' => str_replace(',', '.', str_replace('.', '', $this->request->vl_comissao))]);
+
+        $validate = self::_validateParmBorracheiro();
+
+        $vendedor = $this->pessoa->FindPessoaJunsoftId($validate->validated()['cd_borracheiro']);       
+
+        if (empty($vendedor)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Borracheiro não encontrado ou esta desativado no Junsoft!'
+            ]);
+        }
+
+        return $this->vendedorComercial->saveParmBorracheiro($validate->validated(), $vendedor);
+    }
+
+    public function _validateParmBorracheiro()
+    {
+        $rules = [
+            'cd_borracheiro' => 'required|integer',
+            'vl_comissao' => 'required|numeric',
+        ];
+        $message = [
+            'cd_borracheiro.required' => 'O campo borracheiro é obrigatório.',
+            'cd_borracheiro.integer' => 'O campo borracheiro deve ser um número inteiro.',
+            'vl_comissao.required' => 'O campo valor comissão é obrigatório.',
+            'vl_comissao.numeric' => 'O campo valor comissão deve ser numérico.',
+        ];
+
+        return Validator::make($this->request->all(), $rules, $message);
+    }
+
+    public function recalculaComissaoBorracheiro()
+    {
+        $rules = [
+            'cd_empresa' => 'required|integer|in:1,3,5,6',
+            'cd_borracheiro' => 'required|integer',
+            'dt_inicio' => 'required|date_format:d.m.Y',
+            'dt_fim' => 'required|date_format:d.m.Y',
+        ];
+
+        $messages = [
+            'cd_empresa.required' => 'O campo empresa é obrigatório.',
+            'cd_empresa.integer' => 'O campo empresa deve ser um número inteiro.',
+            'cd_empresa.in' => 'O campo empresa deve ser um dos seguintes valores: 1, 3, 5, 6.',
+            'cd_borracheiro.required' => 'O campo borracheiro é obrigatório.',
+            'cd_borracheiro.integer' => 'O campo borracheiro deve ser um número inteiro.',
+            'dt_inicio.required' => 'O campo data início é obrigatório.',
+            'dt_inicio.date_format' => 'O campo data início deve estar no formato dd.mm.aaaa.',
+            'dt_fim.required' => 'O campo data fim é obrigatório.',
+            'dt_fim.date_format' => 'O campo data fim deve estar no formato dd.mm.aaaa.',
+        ];
+
+        $validate = Validator::make($this->request->all(), $rules, $messages);       
+
+
+        return $this->vendedorComercial->recalculaComissao(
+            $validate->validated()
+        );
     }
 }

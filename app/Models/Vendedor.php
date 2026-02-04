@@ -729,7 +729,7 @@ class Vendedor extends Model
             ->orderBy('users.name')
             ->get();
     }
-    
+
     public function destroyData($id)
     {
         return Vendedor::find($id)->delete();
@@ -754,10 +754,162 @@ class Vendedor extends Model
         }
     }
 
-    public function findVendedorUser($idUser){
+    public function findVendedorUser($idUser)
+    {
         $this->connection = 'mysql';
         return Vendedor::select('cd_vendedorcomercial')
             ->where('cd_usuario', $idUser)
             ->get();
+    }
+
+    public function listBorracheiroParm()
+    {
+        $query = "
+            SELECT
+                VENDEDOR.CD_VENDEDOR CD_BORRACHEIRO,
+                VENDEDOR.CD_VENDEDOR || '-' || PV.NM_PESSOA NM_BORRACHEIRO,
+                CV.CD_GRUPO,
+                G.DS_GRUPO,
+                --COUNT(*)
+                REPLACE(CV.VL_COMISSAO, '.', ',') VL_COMISSAO
+            FROM VENDEDOR
+
+            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = VENDEDOR.CD_VENDEDOR)
+            INNER JOIN COMISSAOVENDEDOR CV ON (CV.CD_VENDEDOR = VENDEDOR.CD_VENDEDOR)
+            INNER JOIN GRUPO G ON (G.CD_GRUPO = CV.CD_GRUPO)
+
+            WHERE VENDEDOR.ST_COMISSAO = 'Q'
+                AND CV.CD_GRUPO = 102
+                AND PV.CD_TIPOPESSOA = 7";
+
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
+    }
+
+    public function saveParmBorracheiro($input, $vendedor)
+    {
+        try {
+            return DB::transaction(function () use ($input, $vendedor) {
+
+                DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+                $query = "
+                UPDATE OR INSERT INTO VENDEDOR (
+                    CD_VENDEDOR,
+                    ST_COMISSAO,
+                    ST_ATIVO,
+                    DT_REGISTRO,
+                    ST_REPRESENTANTE,
+                    DS_APELIDO,
+                    PC_EXCEDENTETABELA,
+                    TP_COMISSAOTABPRECO,
+                    TP_METACOMISSAO)
+                VALUES (:cd_vendedor,
+                        'Q',
+                        'S',
+                        CURRENT_TIMESTAMP,
+                        'N',
+                        :nm_borracheiro,
+                        '40',
+                        'B',
+                        'V')
+                MATCHING (CD_VENDEDOR);
+                ";
+
+                $vendedor = DB::connection('firebird')->update($query, [
+                    'cd_vendedor' => $input['cd_borracheiro'],
+                    'nm_borracheiro' => $vendedor->PESSOA
+                ]);
+
+                if ($vendedor) {
+                    $seqQuery = "
+                    SELECT
+                        COALESCE(MAX(CV.NR_SEQUENCIA),0) NR_SEQUENCIA
+                    FROM COMISSAOVENDEDOR CV
+                    WHERE CV.CD_VENDEDOR = :cd_vendedor                       
+                ";
+
+                    $nrSeq = DB::connection('firebird')->select($seqQuery, [
+                        'cd_vendedor' => $input['cd_borracheiro']
+                    ])[0]->NR_SEQUENCIA;
+
+
+                    if ($nrSeq == 0) {
+                        $queryComissao = "
+                    INSERT
+                        INTO COMISSAOVENDEDOR (
+                                    CD_VENDEDOR,
+                                    NR_SEQUENCIA,
+                                    PC_COMISSAOVISTA,
+                                    CD_GRUPO,
+                                    PC_COMISSAOPRAZO,
+                                    DT_REGISTRO,
+                                    VL_COMISSAO)
+                        VALUES (
+                            :cd_vendedor,
+                            1,
+                            0,
+                            102,
+                            0,
+                            CURRENT_TIMESTAMP,
+                            :vl_comissao
+                            );
+                ";
+
+                        DB::connection('firebird')->select($queryComissao, [
+                            'cd_vendedor' => $input['cd_borracheiro'],
+                            'vl_comissao' => str_replace(',', '.', $input['vl_comissao'])
+                        ]);
+                    } else {
+                        $queryComissao = "
+                        UPDATE COMISSAOVENDEDOR
+                        SET PC_COMISSAOVISTA = 0,
+                            CD_GRUPO = 102,
+                            PC_COMISSAOPRAZO = 0,
+                            DT_REGISTRO = CURRENT_TIMESTAMP,
+                            VL_COMISSAO = :vl_comissao
+                        WHERE (CD_VENDEDOR = :cd_vendedor) AND (CD_GRUPO = 102);
+                ";
+
+                        DB::connection('firebird')->update($queryComissao, [
+                            'cd_vendedor' => $input['cd_borracheiro'],
+                            'vl_comissao' => str_replace(',', '.', $input['vl_comissao'])
+                        ]);
+                    }
+                }
+
+                return response()->json(['success' => true, 'message' => 'Parâmetros do borracheiro salvos com sucesso!']);
+            });
+        } catch (\Exception $e) {
+
+            DB::connection('firebird')->rollBack();
+            return $e->getMessage();
+            return response()->json(['errors' => 'Erro ao conectar ao banco de dados.']);
+        }
+    }
+
+    public function recalculaComissao($input)
+    {
+        try {
+            return DB::transaction(function () use ($input) {
+
+                DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+                DB::connection('firebird')->select(
+                    "EXECUTE PROCEDURE RECALCULA_COMISSAOV2(:cd_empresa, :dt_inicio, :dt_fim, :cd_borracheiro, NULL, 'N' )",
+                    [
+                        'cd_empresa' => $input['cd_empresa'],
+                        'dt_inicio' => $input['dt_inicio'],
+                        'dt_fim' => $input['dt_fim'],
+                        'cd_borracheiro' => $input['cd_borracheiro'],
+                    ]
+                );
+
+                return response()->json(['success' => true, 'message' => 'Recalculo de comissão feito com sucesso!']);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' =>  $e->getMessage()]);
+        }
     }
 }

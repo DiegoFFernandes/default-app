@@ -646,6 +646,7 @@
 
             $("#" + idDivAccordion).html(html);
         }
+
         function renderNivel0(Nivel1Key, gIndex) {
             let html = `
                 <div class="card-header p-1">
@@ -837,7 +838,7 @@
 
         $(document).on('click', '.btn-editar', function() {
             const $dataRow = $('#estoque-carcacas').DataTable().row($(this).parents('tr')).data();
-            console.log($dataRow);
+
             $('.modal-title').text('Editar Carcaça');
             $('#id_carcaca').val($dataRow['ID']);
             $('#cd_medida')
@@ -1251,17 +1252,22 @@
                         name: 'PEDIDO',
                         title: 'Pedido',
                         className: 'text-center',
+                    }, {
+                        data: 'LOCAL_ESTOQUE',
+                        name: 'LOCAL_ESTOQUE',
+                        title: 'Local',
+                        className: 'text-center',
                     },
 
                     {
                         data: 'EMPRESA_BAIXA',
                         name: 'EMPRESA_BAIXA',
-                        title: 'Empresa Baixa',
+                        title: 'Baixa',
                     },
                     {
                         data: 'ST_BAIXA',
                         name: 'ST_BAIXA',
-                        title: 'Status Baixa',
+                        title: 'St Baixa',
                     }, {
                         data: 'DT_BAIXA',
                         name: 'DT_BAIXA',
