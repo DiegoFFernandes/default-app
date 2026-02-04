@@ -1359,11 +1359,11 @@
             let html = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="btn-group mb-2">
-                        <button class="btn btn-xs btn-outline-primary" onclick="expandirTudo()">
+                        <button class="btn btn-xs btn-outline-primary btnExpandir" onclick="expandirTudo()">
                             Expandir tudo
                         </button>
 
-                        <button class="btn btn-xs btn-outline-secondary" onclick="recolherTudo()">
+                        <button class="btn btn-xs btn-outline-secondary btnRecolher d-none" onclick="recolherTudo()">
                             Recolher tudo
                         </button>                            
                     </div>
@@ -1573,12 +1573,33 @@
             });
         }
 
-        function expandirTudo() {
-            $('.collapse').collapse('show');
+        function expandirTudo() {            
+
+            $('.loading-card').removeClass('invisible');
+
+            const collapses = $('.collapse');
+            let total = collapses.length;
+            let abertos = 0;            
+
+            collapses.each(function() {
+                $(this)
+                    .one('shown.bs.collapse', function() {
+                        abertos++;
+
+                        if (abertos === total) {
+                            $('.loading-card').addClass('invisible');
+                        }
+                    })
+                    .collapse('show');
+            });
+            $('.btnExpandir').addClass('d-none');
+            $('.btnRecolher').removeClass('d-none');
         }
 
         function recolherTudo() {
             $('.collapse').collapse('hide');
+            $('.btnExpandir').removeClass('d-none');
+            $('.btnRecolher').addClass('d-none');
         }
     </script>
 @stop
