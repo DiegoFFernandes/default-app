@@ -894,7 +894,7 @@
 
             $.ajax({
                 url: '{{ route('save-parm-borracheiro') }}',
-                method: 'GET',
+                method: 'POST',
                 data: {
                     cd_borracheiro: cd_borracheiro,
                     vl_comissao: vl_comissao,
@@ -932,8 +932,7 @@
 
             datasSelecionadasRecalculo = initDateRangePicker('#daterange-recalculo-borracheiro', dtInicio, dtFim);
             initSelect2Pessoa('#cd-recalculo-borracheiro', routes.searchPessoa,
-                '#modal-table-recalcular-borracheiro',
-                7);
+                '#modal-table-recalcular-borracheiro');
 
 
             $('.title-modal-borracheiro').text('Recalcular Comissão Borracheiro');

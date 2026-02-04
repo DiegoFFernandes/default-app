@@ -188,7 +188,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('get-cliente-desabilitado-borracharia', [VendedorBorrachariaController::class, 'getClienteDesabilitadoBorracharia'])->name('get-cliente-desabilitado-borracharia');
 
         Route::get('get-list-borracheiro-parm', [VendedorBorrachariaController::class, 'getlistBorracheiroParm'])->name('get-list-borracheiro-parm');
-        Route::get('save-parm-borracheiro', [VendedorBorrachariaController::class, 'saveParmBorracheiro'])->name('save-parm-borracheiro');
+        Route::post('save-parm-borracheiro', [VendedorBorrachariaController::class, 'saveParmBorracheiro'])->name('save-parm-borracheiro');
         Route::post('delete-parm-borracheiro', [VendedorBorrachariaController::class, 'deleteParmBorracheiro'])->name('delete-parm-borracheiro');
 
         Route::post('recalcula-comissao-borracheiro', [VendedorBorrachariaController::class, 'recalculaComissaoBorracheiro'])->name('recalcula-comissao-borracheiro');
