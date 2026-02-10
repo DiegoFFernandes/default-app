@@ -173,7 +173,7 @@ return [
     |
     */
 
-    'classes_auth_card' => 'card-outline card-danger',
+    'classes_auth_card' => env('CLASSES_AUTH_CARD', 'card-outline card-danger'),
     'classes_auth_header' => '',
     'classes_auth_body' => '',
     'classes_auth_footer' => '',
