@@ -11,7 +11,7 @@
 
         {{-- Use the default preloader content --}}
         <img src="{{ asset(config('adminlte.preloader.img.path', 'vendor/adminlte/dist/img/AdminLTELogo.png')) }}"
-              class=" {{ config('adminlte.preloader.img.effect', 'animation__shake') }} callout callout-danger"
+              class=" {{ config('adminlte.preloader.img.effect', 'animation__shake') }} {{ config('adminlte.preloader.class', 'callout callout-danger') }}"
              {{-- width="{{ config('adminlte.preloader.img.width', 60) }}"
              alt="{{ config('adminlte.preloader.img.alt', 'AdminLTE Preloader Image') }}"
              {{-- width="{{ config('adminlte.preloader.img.width', 60) }}"

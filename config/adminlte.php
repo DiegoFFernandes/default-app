@@ -70,7 +70,7 @@ return [
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
     'logo_img_alt' => '',
-    
+
 
     /*
     |--------------------------------------------------------------------------
@@ -86,7 +86,7 @@ return [
     */
 
     'auth_logo' => [
-         'enabled' => env('AUTH_LOGO_ENABLED', true),
+        'enabled' => env('AUTH_LOGO_ENABLED', true),
         'img' => [
             'path' => env('AUTH_LOGO', 'vendor/adminlte/dist/img/logo-default.png'),
             'alt' => env('APP_NAME', 'Empresa'),
@@ -114,10 +114,11 @@ return [
     'preloader' => [
         'enabled' => true,
         'mode' => 'fullscreen',
+        'class' => env('PRELOADER_CLASS', 'callout callout-danger'),
         'img' => [
             'path' => env('PRELOADER_PATH', 'vendor/adminlte/dist/img/logo-default-xs.png'),
             'alt' => 'Recapadora',
-            // 'effect' => 'animation__shake',
+            'effect' => env('PRELOADER_EFFECT', 'animation__shake'),            
             // 'width' => 80,
             // 'height' => 30,
         ],
@@ -178,7 +179,7 @@ return [
     'classes_auth_body' => '',
     'classes_auth_footer' => '',
     'classes_auth_icon' => '',
-    'classes_auth_btn' => 'btn-flat btn-danger',
+    'classes_auth_btn' => env('CLASSES_AUTH_BTN', 'btn-flat btn-danger'),
 
     /*
     |--------------------------------------------------------------------------
@@ -410,7 +411,7 @@ return [
                         ],
                         [
                             'text' => 'Requisição Borracharia',
-                            'route' => 'requisicao-borracharia.index',                            
+                            'route' => 'requisicao-borracharia.index',
                             'can' => ['ver-requisicao-borracharia']
                         ],
 
@@ -453,7 +454,7 @@ return [
                     'route' => 'analise-faturamento.index',
                     'can' => ['ver-analise-faturamento'],
                 ],
-                 [
+                [
                     'text' => 'Notas de Devolução',
                     'route' => 'nota-devolucao.index',
                     'can' => ['ver-nota-devolucao'],
