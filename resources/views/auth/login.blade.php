@@ -1,5 +1,13 @@
 @extends('adminlte::auth.login')
 
+@section('adminlte_css_pre')
+    <style>
+        .login-logo {
+            background: white;
+            background-size: cover;
+        }   
+    </style>
+@stop
 @section('adminlte_js')
     <script src="{{ asset('/sw.js') }}"></script>
     <script>

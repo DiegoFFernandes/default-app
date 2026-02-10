@@ -72,7 +72,8 @@ class EstoqueController extends Controller
         // Verifica se o usuário tem permissão de edição e enviar a view para bloquear ou liberar as ações
         $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
 
-        return view('admin.estoque.carcaca-casa',
+        return view(
+            'admin.estoque.carcaca-casa',
             compact(
                 'uri',
                 'title_page',
@@ -88,13 +89,13 @@ class EstoqueController extends Controller
 
         $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
 
-        
+
         $datatable = Datatables()
             ->of($data)
             ->addColumn('action', function ($row) use ($canEdit) {
                 if ($canEdit) {
                     return '';
-                }    
+                }
 
                 $btn = '<button class="btn btn-xs btn-editar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Editar"><i class="fas fa-edit"></i></button>';
                 $btn .= '<button class="btn btn-xs btn-baixar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Baixar"><i class="fas fa-sign-out-alt"></i></button>';
@@ -105,15 +106,21 @@ class EstoqueController extends Controller
             ->make(true)
             ->getData();
 
+
+        $arrayCarcacaLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DSMARCA', 'DSMODELO1');
+            
+
         return response()->json([
-            'datatable' => $datatable, // <-- agora é apenas o array
+            'datatable' => $datatable, // <-- agora é apenas o array,
+            'accordion_data_local_marca'   => array_values($arrayCarcacaLocal),
+            // <-- estrutura para o acordeão local > medida > marca > modelo            
             'extra' => [
                 'total_carcacas'   => count($data),
                 'local_agrupado'   => $this->agruparCarcacaLocalQtd($data),
                 'marca_agrupado'   => $this->agruparCarcacaMarcaQtd($data),
-                'accordion_data'   => $this->agruparArrayCarcaca($data, $nivel1 = 'DSMARCA', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
-                'accordion_data_local'   => $this->agruparArrayCarcaca($data, $nivel1 = 'LOCAL_ESTOQUE', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
-            ]
+                // 'accordion_data'   => $this->agruparArrayCarcaca($data, $nivel1 = 'DSMARCA', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
+                // 'accordion_data_local'   => $this->agruparArrayCarcaca($data, $nivel1 = 'LOCAL_ESTOQUE', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
+                ]
         ]);
     }
 
@@ -174,7 +181,7 @@ class EstoqueController extends Controller
 
             // Marca
             if (!isset($result[$nivel1Key])) {
-                $result[$nivel1Key] = [                                     
+                $result[$nivel1Key] = [
                     'qtd'    => 0,
                     'medida' => [],
                 ];
@@ -194,15 +201,88 @@ class EstoqueController extends Controller
 
             // Modelo Pneu
             $modelo = $item->{$nivel3};
-            if (!isset($result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' .$item->DS_TIPO])) {
-                $result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' .$item->DS_TIPO] = [
+            if (!isset($result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' . $item->DS_TIPO])) {
+                $result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' . $item->DS_TIPO] = [
                     'qtd'    => 0,
                 ];
             }
-            $result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' .$item->DS_TIPO]['qtd']++;
+            $result[$nivel1Key]['medida'][$nivel2Key]['modelo'][$modelo . ' - ' . $item->DS_TIPO]['qtd']++;
         }
 
-        return $result;      
+        return $result;
+    }
+
+    public function agruparArrayCarcacaLocal($data, $nivel1 = 'LOCAL_ESTOQUE',  $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMARCA', $nivel4 = 'DSMODELO1')
+    {
+        $result = [];
+
+        foreach ($data as $item) {
+            $nivel1Key = $item->{$nivel1};
+
+            // local
+            $local = $item->{$nivel1} ?? 'Sem Local';
+            if (!isset($result[$nivel1Key])) {
+                $result[$nivel1Key] = [
+                    'local'  => $local,
+                    'qtd'    => 0,
+                    'medida' => []
+                ];
+            }
+            $result[$nivel1Key]['qtd']++;
+
+            // Medida
+            $nivel2Key = $item->{$nivel2} ?? 'Sem Medida';
+             if (!isset($result[$nivel1Key]['medida'][$nivel2Key])) {
+                $result[$nivel1Key]['medida'][$nivel2Key] = [
+                    'medida' => $nivel2Key,
+                    'qtd'    => 0,
+                    'marca' => []                    
+                ];
+            }
+
+            $result[$nivel1Key]['medida'][$nivel2Key]['qtd']++;
+
+            // Marca
+            $marca = $item->{$nivel3} ?? 'Sem Marca';
+            if (!isset($result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca])) {
+                $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca] = [
+                    'marca' => $marca,
+                    'qtd'    => 0,
+                    'modelo' => [],
+                ];
+            }
+            $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['qtd']++;
+
+
+            // Modelo
+            $modelo = $item->{$nivel4} ?? 'Sem Modelo';
+            if (!isset($result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['modelo'][$modelo . ' - ' . $item->DS_TIPO])) {
+                $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['modelo'][$modelo . ' - ' . $item->DS_TIPO] = [
+                    'modelo' => $modelo . ' - ' . $item->DS_TIPO,
+                    'qtd'    => 0,
+                ];
+            }
+            $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['modelo'][$modelo . ' - ' . $item->DS_TIPO]['qtd']++;
+        }
+
+        // return $result;
+
+        //Normaliza a estrutura para o formato esperado pelo frontend       
+        foreach ($result as &$local) {
+            $local['medida'] = array_values($local['medida']);
+            foreach ($local['medida'] as &$medida) {
+                $medida['marca'] = array_values($medida['marca']);
+                foreach ($medida['marca'] as &$marca) {
+                    $marca['modelo'] = array_values($marca['modelo']);
+                }
+                unset($marca);                
+            }
+            unset($medida);
+        }
+        unset($local);
+        
+
+        return $result;
     }
 
     public function storeCarcaca()
@@ -325,7 +405,6 @@ class EstoqueController extends Controller
 
         return response()->json($data);
     }
-
 
     //Ajustar esses dois métodos abaixo para um service específico de pneus
     public function searchMedidasPneu()

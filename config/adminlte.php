@@ -63,12 +63,14 @@ return [
     |
     */
 
+    'first_name' => env('APP_NAME', 'Emp'),
     'logo' => 'Pneus',
     'logo_img' => env('AUTH_LOGO', 'vendor/adminlte/dist/img/logo-default.png'),
-    // 'logo_img_class' => 'brand-image img-circle elevation-3',
+    'logo_img_class' => 'brand-image',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'Atz Pneus',
+    'logo_img_alt' => '',
+    
 
     /*
     |--------------------------------------------------------------------------
@@ -195,7 +197,7 @@ return [
     'classes_brand_text' => '',
     'classes_content_wrapper' => '',
     'classes_content_header' => '',
-    'classes_content' => '',
+    'classes_content' => 'mt-3',
     'classes_sidebar' => 'sidebar-dark-primary elevation-4',
     'classes_sidebar_nav' => '',
     'classes_topnav' => 'navbar-white navbar-light',

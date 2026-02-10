@@ -91,6 +91,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card">
+                                            <x-loading-card />
                                             <div class="card-header">
                                                 <h3 class="card-title">
                                                     <span class="badge badge-secondary">Prévia Tabela</span>
@@ -514,8 +515,12 @@
                     enchimento_ombro_1_valor: enchimento_ombro_1_valor,
                     enchimento_ombro_2_valor: enchimento_ombro_2_valor
                 },
+                beforeSend: function() {
+                    $(".loading-card").removeClass('invisible');
+                },
                 success: function(response) {
                     if (response.errors) {
+                        $(".loading-card").addClass('invisible');
                         Swal.fire({
                             icon: 'error',
                             title: 'Campos obrigatórios',
@@ -538,6 +543,9 @@
                     tabela_preview.clear().rows.add(dados_atualizados).draw();
 
                     msgToastr('Itens adicionados à prévia com sucesso!', 'success');
+                },
+                complete: function() {
+                    $(".loading-card").addClass('invisible');
                 }
             });
 
@@ -577,11 +585,9 @@
                     dadosTabela: dadosTabela,
                 },
                 beforeSend: function() {
-                    $("#loading").removeClass('invisible');
+                    $(".loading-card").removeClass('invisible');
                 },
-                success: function(response) {
-
-                    console.log(response);
+                success: function(response) {                   
                     if (response.success) {
                         Swal.fire({
                             title: 'Atenção',
@@ -603,7 +609,7 @@
                             }
                         });
                     }
-                    $("#loading").addClass('invisible');
+                    $(".loading-card").addClass('invisible');
                 }
             });
         });
@@ -634,10 +640,11 @@
                 },
                 dataType: "json",
                 beforeSend: function() {
-                    $("#loading").removeClass('invisible');
+                    $(".loading-card").removeClass('invisible');
                 },
                 success: function(response) {
                     if (response.error) {
+                        $(".loading-card").addClass('invisible');
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro ao importar',
@@ -646,10 +653,10 @@
                             customClass: {
                                 confirmButton: 'btn btn-danger'
                             }
-                        });
-                        $("#loading").addClass('invisible');
+                        });                        
                         return;
                     } else {
+                        $(".loading-card").addClass('invisible');
                         $('#tabela-preco-cadastradas').DataTable().destroy();
                         initTableTabelaPrecoCadastradasPreview(routes);
                         Swal.fire({
@@ -659,8 +666,7 @@
                             customClass: {
                                 confirmButton: 'btn btn-success'
                             }
-                        });
-                        $("#loading").addClass('invisible');
+                        });                        
                     }
 
                 }

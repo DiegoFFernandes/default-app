@@ -17,7 +17,7 @@
                                     Entradas
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item" @if ($canEdit) style="display:none;" @endif>
                                 <a class="nav-link" id="tab-carcaca-saida" data-toggle="pill" href="#painel-carcaca-saida"
                                     role="tab" aria-controls="painel-carcaca-saida" aria-selected="false">
                                     Saídas
@@ -36,7 +36,9 @@
                                                 @include('admin.estoque.components.buttons-estoque-carcaca')
                                                 <div class="card-tools m-0">
                                                     <button class="btn btn-xs btn-danger" id="btn-add-carcaca"
-                                                        title="Adicionar Carcaça"><i class="fas fa-plus"></i></button>
+                                                        title="Adicionar Carcaça"
+                                                        @if ($canEdit) style="display:none;" @endif>
+                                                        <i class="fas fa-plus"></i></button>
                                                     <button class="btn btn-xs btn-danger" id="download-itens"
                                                         title="Fazer Download"><i class="fas fa-download"></i></button>
                                                 </div>
@@ -81,7 +83,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-12 col-md-12">
+                                                {{-- <div class="col-12 col-md-12">
                                                     <div class="card">
                                                         <div class="card-header">
                                                             <h6 class="card-title">Resumo Marca</h6>
@@ -95,7 +97,7 @@
                                                             <div id="accordionResumo" class="d-none"></div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </div> --}}
                                             </div>
                                         </div>
                                     </div>
@@ -106,7 +108,7 @@
                                 aria-labelledby="tab-carcaca-saida">
                                 <div class="card-body p-2">
                                     <div class="col-md-8" id="div-tabela-carcacas"
-                                        @if (auth()->user()->hasRole('vendedor|supervisor|gerente comercial')) style="display:none;" @endif>
+                                        @if ($canEdit) style="display:none;" @endif>
                                         <div class="card-header">
                                             <h6 class="card-title">Baixas</h6>
                                         </div>
@@ -329,6 +331,158 @@
                 font-size: 12px;
             }
         }
+
+        .indent-1 {
+            padding-left: 10px !important;
+        }
+
+        .indent-2 {
+            padding-left: 20px !important;
+        }
+
+        .indent-3 {
+            padding-left: 30px !important;
+        }
+
+        .indent-4 {
+            padding-left: 40px !important;
+        }
+                
+        .btn-list {
+            background: transparent;
+            text-align: left;
+            border-radius: 0;
+        }
+
+        .btn-list:hover {
+            background-color: rgba(0, 0, 0, .03);
+        }
+
+        .btn i.fa-chevron-down {
+            transition: transform 0.2s ease;
+            color: #6c757d;
+        }
+
+        .btn[aria-expanded="true"] i.fa-chevron-down {
+            transform: rotate(180deg);
+            color: #343a40;
+        }
+
+        .btn-action {
+            width: 25px;
+            padding: 0;
+        }
+
+        .col-nome-header {
+            color: #6c757d !important;
+        }
+
+        .col-qtd-header {
+            width: 15%;
+            white-space: nowrap;
+            text-align: right;
+            color: #6c757d !important;
+        }
+
+        .col-valor-header {
+            width: 25%;
+            text-align: right;
+            white-space: nowrap;
+            color: #6c757d !important;
+        }
+
+        .col-nome {
+            font-size: 14px;
+            color: #6c757d !important;
+        }
+
+        .col-qtd {
+            width: 15%;
+            font-size: 14px;
+            white-space: nowrap;
+            text-align: right;
+            color: #6c757d !important;
+        }
+
+        .col-valor {
+            width: 25%;
+            font-size: 14px;
+            /* font-weight: 600; */
+            text-align: right;
+            white-space: nowrap;
+            color: #6c757d !important;
+        }
+
+        @media (max-width: 576px) {
+
+            .indent-1 {
+                padding-left: 2px !important;
+            }
+
+            .indent-2 {
+                padding-left: 4px !important;
+            }
+
+            .indent-3 {
+                padding-left: 6px !important;
+            }
+
+            .indent-4 {
+                padding-left: 8px !important;
+            }
+
+            .card-title {
+                font-size: 16px;
+            }
+
+            .tabela tr {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .tabela td {
+                padding: 2px 0;
+            }
+
+            .col-nome-header {
+                width: 20%;
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .col-qtd-header {
+                text-align: right;
+                font-size: 14px;
+                font-weight: 600;
+                padding-left: 30px;
+            }
+
+            .col-valor-header {
+                text-align: right;
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .col-nome {
+                width: 100%;
+                font-size: 13px;
+            }
+
+            .col-qtd {
+                width: 50%;
+                text-align: right;
+                font-size: 13px;
+                font-weight: 600;
+                padding-left: 30px;
+            }
+
+            .col-valor {
+                width: 50%;
+                text-align: right;
+                font-weight: 600;
+                font-size: 13px;
+            }
+        }
     </style>
 @stop
 @section('js')
@@ -438,13 +592,13 @@
 
                         // console.log(response.extra.accordion_data);
 
-                        $('#accordionResumoLocal').html(renderizaAccordion(response.extra.accordion_data_local,
+                        $('#accordionResumoLocal').html(initAccordion(response.accordion_data_local_marca,
                             'accordionResumoLocal')).removeClass(
                             'd-none');
 
-                        $('#accordionResumo').html(renderizaAccordion(response.extra.accordion_data,
-                            'accordionResumo')).removeClass(
-                            'd-none');
+                        // $('#accordionResumo').html(renderizaAccordion(response.extra.accordion_data,
+                        //     'accordionResumo')).removeClass(
+                        //     'd-none');
 
                         preencheTabelaResumo(tabelaCarcacaLocal, response.extra.local_agrupado);
                         preencheTabelaResumo(tabelaCarcacaMarca, response.extra.marca_agrupado);
@@ -453,9 +607,7 @@
                         return response.datatable.data;
                     }
                 },
-                columns: [
-
-                    {
+                columns: [{
                         data: null,
                         // width: "1%",
                         defaultContent: "",
@@ -633,10 +785,10 @@
             return html;
         }
 
-        function renderizaAccordion2(dados, idDivAccordion = 'accordionResumo') {
+        function initAccordion(data, idDivAccordion = 'accordionResumo') {
             let html = ``;
 
-            Object.keys(dados).forEach(function(Nivel1Key, gIndex) {
+            data.forEach((Nivel1Key, gIndex) => {
                 html += `
                     <div class="card nivel1-card">
                         ${renderNivel0(Nivel1Key, gIndex)}
@@ -647,18 +799,18 @@
             $("#" + idDivAccordion).html(html);
         }
 
-        function renderNivel0(Nivel1Key, gIndex) {
+        function renderNivel0(Nivel1Key, lIndex) {
             let html = `
                 <div class="card-header p-1">
                     <button class="btn btn-block"
                         data-toggle="collapse"
-                        data-target="#nivel0-${gIndex}">
+                        data-target="#nivel0-${lIndex}">
                         <table class="table table-borderless mb-0 w-100">
                             <tr>
                                 <td class="text-left p-0">
                                     <small class="text-muted">
                                         <i class="fas fa-chevron-down"></i>
-                                        <strong>${Nivel1Key}</strong>
+                                        <strong>${Nivel1Key.local}</strong>
                                     </small>
                                 </td>
                                 <td class="text-right p-0 w-10">
@@ -669,19 +821,96 @@
                     </button>
                 </div>
 
-                <div id="nivel0-${gIndex}" class="collapse">
+                <div id="nivel0-${lIndex}" class="collapse">
                     <div class="card-body p-1">
             `;
 
-            // gerente.supervisores.forEach((sup, sIndex) => {
-            //     html += renderSupervisorContainer(sup, gIndex, sIndex);
-            // });
+            console.log(Nivel1Key.medida);
+
+            Nivel1Key.medida.forEach((Nivel2Key, maIndex) => {
+                html += renderNivel1(Nivel2Key, lIndex, maIndex);
+            });
 
             html += `
                     </div>
                 </div>
             `;
 
+            return html;
+        }
+
+        function renderNivel1(Nivel2Key, lIndex, maIndex) {
+            let html = `
+                <div class="medida-container">
+                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
+                            data-target="#medida-${lIndex}-${maIndex}">
+                        <table class="table table-bordered table-borderless mb-0 w-100 tabela">
+                            <tr>
+                                <td class="text-left p-0 indent-1 col-nome">                                     
+                                        <i class="fas fa-chevron-down"></i>
+                                        <strong class="ps-3"> ${Nivel2Key.medida}</strong>                                     
+                                </td>
+                                <td class="text-right p-0 col-qtd"> ${Nivel2Key.qtd} unid.</td>                                
+                            </tr>
+                        </table>
+                    </button>
+                    <div id="medida-${lIndex}-${maIndex}" class="collapse">
+            `;
+
+            Nivel2Key.marca.forEach((Nivel2Key, moIndex) => {
+                html += renderNivel2(Nivel2Key, lIndex, maIndex, moIndex);
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function renderNivel2(Nivel2Key, lIndex, maIndex, moIndex) {
+            let html = `
+                <div class="marca-container">
+                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
+                            data-target="#marca-${lIndex}-${maIndex}-${moIndex}">
+                        <table class="table table-bordered table-borderless mb-0 w-100 tabela">
+                            <tr>
+                                <td class="text-left p-0 indent-2 col-nome">                                     
+                                    <i class="fas fa-chevron-down"></i>
+                                    <strong class="ps-3"> ${Nivel2Key.marca}</strong>                                        
+                                </td>
+                                <td class="text-right p-0 col-qtd"> ${Nivel2Key.qtd} unid.</td>                                
+                            </tr>
+                        </table>
+                    </button>
+                    <div id="marca-${lIndex}-${maIndex}-${moIndex}" class="collapse">
+                    `;
+
+            Nivel2Key.modelo.forEach((Nivel3Key, moIndex) => {
+                html += renderNivel3(Nivel3Key);
+            });
+
+            html += `
+                    </div>
+                </div>
+                `;
+            return html;
+        }
+
+        function renderNivel3(Nivel3Key) {
+            let html = `
+                <div class="modelo-container ml-1 mr-1">
+                    <button class="btn btn-list btn-block pt-0 pb-0">
+                        <table class="table table-bordered table-borderless mb-0 w-100 tabela">
+                            <tr>
+                                <td class="text-left p-0 indent-3 col-nome"> ${Nivel3Key.modelo} </td>
+                                <td class="text-right p-0 col-qtd"> ${Nivel3Key.qtd} unid.</td>
+                            </tr>
+                        </table>
+                    </button>
+                </div>
+            `;
             return html;
         }
 

@@ -122,8 +122,14 @@ class TabPreco extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getSelectTabPreco($select = null, $id_pessoa = null, $id_desenho = null, $id_medida = null, $valor = null)
-    {
+    public function getSelectTabPreco(
+        $select = null,
+        $id_pessoa = null,
+        $id_desenho = null,
+        $id_medida = null,
+        $valor = null,
+        $subgrupo = null
+    ) {
         // caso o usuario filtrar por desenho, trazer as medidas associadas disponiveis segundo nivel, senão trazer os desenhos disponiveis primeiro nivel
         $filtro = $select === 'desenho' ? 'SP.IDMEDIDAPNEU as ID, MP.DSMEDIDAPNEU as DESCRICAO' : 'BP.IDDESENHOPNEU as ID, DP.DSDESENHO as DESCRICAO';
 
@@ -145,7 +151,7 @@ class TabPreco extends Model
                 AND SERVICO.ST_ATIVO = 'S'
                 " . ($id_desenho ? " AND BP.IDDESENHOPNEU IN ($id_desenho) " : "") . "
                 " . ($id_medida ? " AND SP.IDMEDIDAPNEU IN ($id_medida) " : "") . "
-                AND SERVICO.CD_SUBGRUPO IN (1021, 1022, 1023, 1024, 1026, 1027, 1029)     
+                AND SERVICO.CD_SUBGRUPO IN ($subgrupo)     
             ORDER BY DESCRICAO";
 
         $data = DB::connection('firebird')->select($query);
@@ -153,8 +159,15 @@ class TabPreco extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function getVulcanizacaoManchao($input)
-    {
+    public function getVulcanizacaoManchao(
+        $input,
+        $isValidSubgrupoManchaoCarga,
+        $isValidSubgrupoVulcanizacaoCarga,
+        $isValidSubgrupoManchaoAgricola,
+        $isValidSubgrupoVulcanizacaoAgricola,
+        $isValidSubgrupoEnchimento,
+        $isValidGrupoEnchimento
+    ) {
         if (is_null($input['vlr_manchao'])) {
             $validaValorManchaoSelect = "
                 CASE                             
@@ -188,10 +201,10 @@ class TabPreco extends Model
                 INNER JOIN ITEM I ON (I.CD_ITEM = SP.ID)
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
-                    AND I.CD_SUBGRUPO IN (10026, 122)
+                    AND I.CD_SUBGRUPO IN ($isValidSubgrupoVulcanizacaoCarga, $isValidSubgrupoVulcanizacaoAgricola)
                     AND CASE
-                            WHEN I.CD_SUBGRUPO = 10026 THEN $input[vlr_vulc_carga] 
-                            WHEN I.CD_SUBGRUPO = 122 THEN $input[vlr_vulc_agricola]                            
+                            WHEN I.CD_SUBGRUPO in ($isValidSubgrupoVulcanizacaoCarga) THEN $input[vlr_vulc_carga] 
+                            WHEN I.CD_SUBGRUPO in ($isValidSubgrupoVulcanizacaoAgricola) THEN $input[vlr_vulc_agricola]                            
                     END > 0
 
                 UNION ALL
@@ -203,7 +216,7 @@ class TabPreco extends Model
                     CP.DSCONSERTO AS DESCRICAO,                    
                     CASE                                       
                         -- CONSERTO AGRO
-                        WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]
+                        WHEN I.CD_SUBGRUPO in ($isValidSubgrupoManchaoAgricola) THEN $input[vlr_manchao_agricola]
                         ELSE 0
                     END VALOR,
                     SG.DS_SUBGRUPO AS SUBGRUPO
@@ -211,9 +224,9 @@ class TabPreco extends Model
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
-                    AND I.CD_SUBGRUPO IN (123)
+                    AND I.CD_SUBGRUPO IN ($isValidSubgrupoManchaoAgricola, $isValidSubgrupoManchaoCarga)
                     AND CASE                             
-                            WHEN I.CD_SUBGRUPO = 123 THEN $input[vlr_manchao_agricola]                            
+                            WHEN I.CD_SUBGRUPO in ($isValidSubgrupoManchaoAgricola) THEN $input[vlr_manchao_agricola]                            
                     END > 0
 
                 UNION ALL
@@ -229,7 +242,7 @@ class TabPreco extends Model
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
-                    AND I.CD_SUBGRUPO IN (10037)
+                    AND I.CD_SUBGRUPO IN ($isValidSubgrupoManchaoCarga)
                     $validaValorManchaoWhere
 
                 UNION ALL 
@@ -243,8 +256,8 @@ class TabPreco extends Model
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
-                WHERE ITEM.CD_GRUPO = 105
-                    AND ITEM.CD_SUBGRUPO = 10027
+                WHERE ITEM.CD_GRUPO = $isValidGrupoEnchimento
+                    AND ITEM.CD_SUBGRUPO = $isValidSubgrupoEnchimento
                     AND COALESCE(ITEM.CD_SECAO, 99) = 99
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 99 THEN $input[vlr_enchimento]
@@ -262,8 +275,8 @@ class TabPreco extends Model
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
-                WHERE ITEM.CD_GRUPO = 105
-                    AND ITEM.CD_SUBGRUPO = 10027
+                WHERE ITEM.CD_GRUPO = $isValidGrupoEnchimento
+                    AND ITEM.CD_SUBGRUPO = $isValidSubgrupoEnchimento
                     AND COALESCE(ITEM.CD_SECAO, 99) = 55 
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 55 THEN $input[vlr_enchimento_ombro_1]
@@ -281,8 +294,8 @@ class TabPreco extends Model
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
-                WHERE ITEM.CD_GRUPO = 105
-                    AND ITEM.CD_SUBGRUPO = 10027
+                WHERE ITEM.CD_GRUPO = $isValidGrupoEnchimento
+                    AND ITEM.CD_SUBGRUPO = $isValidSubgrupoEnchimento
                     AND COALESCE(ITEM.CD_SECAO, 99) = 56 
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 56 THEN $input[vlr_enchimento_ombro_2]

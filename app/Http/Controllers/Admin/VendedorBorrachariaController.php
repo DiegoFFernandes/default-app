@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\RequisicaoBorrachariaExcel;
 use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
 use App\Models\Empresa;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\DataTables;
 
 class VendedorBorrachariaController extends Controller
@@ -363,11 +365,22 @@ class VendedorBorrachariaController extends Controller
         $pdf->save($fileName);
 
         return response()->json([
-            'url' => route('download-pdf-temp', ['file' => basename($fileName)])
+            'url' => route('download-temp', ['file' => basename($fileName)])
         ]);
     }
 
-    public function downloadPdfTemp($file)
+    public function downloadExcelRequisicaoBorracharia()
+    {
+        if (session()->has('hierarquia')) {
+            $hierarquia = session('hierarquia');
+            $datas = session('datas');
+        }
+
+        return $file = Excel::download(new RequisicaoBorrachariaExcel($datas, $hierarquia), 'requisicao_borracharia_' . time() . '.xlsx');
+        
+    }
+
+    public function downloadTemp($file)
     {
         $filePath = storage_path('app/temp/' . $file);
 

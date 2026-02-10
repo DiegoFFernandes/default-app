@@ -183,7 +183,10 @@ Route::middleware(['auth'])->group(function () {
 
 
         Route::get('print-pdf-requisicao-borracharia', [VendedorBorrachariaController::class, 'printPdfRequisicaoBorracharia'])->name('print-pdf-requisicao-borracharia');
-        Route::get('download-pdf-temp/{file}', [VendedorBorrachariaController::class, 'downloadPdfTemp'])->name('download-pdf-temp');
+        Route::get('download-temp/{file}', [VendedorBorrachariaController::class, 'downloadTemp'])->name('download-temp');
+
+
+        Route::get('download-excel-requisicao-borracharia', [VendedorBorrachariaController::class, 'downloadExcelRequisicaoBorracharia'])->name('download-excel-requisicao-borracharia');
 
         Route::get('get-cliente-desabilitado-borracharia', [VendedorBorrachariaController::class, 'getClienteDesabilitadoBorracharia'])->name('get-cliente-desabilitado-borracharia');
 

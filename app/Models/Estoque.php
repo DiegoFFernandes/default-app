@@ -84,6 +84,7 @@ class Estoque extends Model
                     PC.IDMODELOPNEU,
                     MARCA.DSMARCA,
                     MODELO.DSMODELO || ' - ' || MARCA.DSMARCA DSMODELO,
+                    MODELO.DSMODELO DSMODELO1,
                     PC.NR_FOGO,
                     PC.NR_SERIE,
                     PC.NR_DOT,

@@ -199,11 +199,11 @@
                                                             <h6 class="card-title">Resumo Gerente</h6>
                                                             <div class="card-tools m-0">
                                                                 <button class="btn btn-xs btn-success"
-                                                                    id="download-resumo-excel"><i
-                                                                        class="fas fa-file-excel"></i></button>
+                                                                    id="download-resumo-excel">EXCEL</button>
+                                                                <button class="btn btn-xs btn-success"
+                                                                    id="download-resumo-csv">CSV</button>
                                                                 <button class="btn btn-xs btn-danger"
-                                                                    id="download-resumo-pdf"><i
-                                                                        class="fas fa-file-pdf"></i></button>
+                                                                    id="download-resumo-pdf">PDF</button>
                                                             </div>
                                                         </div>
                                                         <div class="card-body pt-1">
@@ -753,7 +753,7 @@
             DesabilitaHabilitaClienteBorracharia(parms);
         });
 
-        $(document).on('click', '#download-resumo-excel', function() {
+        $(document).on('click', '#download-resumo-csv', function() {
 
             exportarParaExcel(datatables, "pagamento-borracharia.xlsx", "Pagamento Borracharia");
         });
@@ -772,10 +772,16 @@
                 },
                 success: function(response) {
                     $('.loading-card').addClass('invisible');
-                    window.location.href = response.url;
+                    // window.location.href = response.url;
+                    window.open(response.url, '_blank');
                 }
             });
         });
+
+        $(document).on('click', '#download-resumo-excel', function() {
+            window.location.href = "{{ route('download-excel-requisicao-borracharia') }}";
+        });
+
 
         $(document).on('click', '#btn-filtrar', function() {
 
@@ -1572,13 +1578,13 @@
             });
         }
 
-        function expandirTudo() {            
+        function expandirTudo() {
 
             $('.loading-card').removeClass('invisible');
 
             const collapses = $('.collapse');
             let total = collapses.length;
-            let abertos = 0;            
+            let abertos = 0;
 
             collapses.each(function() {
                 $(this)
