@@ -171,16 +171,16 @@ class TabPreco extends Model
         if (is_null($input['vlr_manchao'])) {
             $validaValorManchaoSelect = "
                 CASE                             
-                        WHEN I.CD_SUBGRUPO = 10037 THEN 0                            
+                        WHEN I.CD_SUBGRUPO = $isValidSubgrupoManchaoCarga THEN 0                            
                     END";
             $validaValorManchaoWhere = "
                 AND CASE                             
-                        WHEN I.CD_SUBGRUPO = 10037 THEN 0                            
+                        WHEN I.CD_SUBGRUPO = $isValidSubgrupoManchaoCarga THEN 0                            
                     END > 0";
         } else {
             $validaValorManchaoSelect = "
                 CASE                             
-                        WHEN I.CD_SUBGRUPO = 10037 THEN $input[vlr_manchao]                            
+                        WHEN I.CD_SUBGRUPO = $isValidSubgrupoManchaoCarga THEN $input[vlr_manchao]                            
                     END ";
             $validaValorManchaoWhere = "";
         }
@@ -192,9 +192,9 @@ class TabPreco extends Model
                     SP.DSSERVICO AS DESCRICAO,                    
                     CASE
                 --VULCANIZACAO CARGA
-                    WHEN I.CD_SUBGRUPO = 10026 THEN $input[vlr_vulc_carga]                    
+                    WHEN I.CD_SUBGRUPO = $isValidSubgrupoVulcanizacaoCarga THEN $input[vlr_vulc_carga]                    
                 -- VULCANIZACAO AGRICOLA
-                    WHEN I.CD_SUBGRUPO = 122 THEN $input[vlr_vulc_agricola]                   
+                    WHEN I.CD_SUBGRUPO = $isValidSubgrupoVulcanizacaoAgricola THEN $input[vlr_vulc_agricola]                   
                     END VALOR,
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM SERVICOPNEU SP

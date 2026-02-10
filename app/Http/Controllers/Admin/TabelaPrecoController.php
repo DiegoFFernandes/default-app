@@ -82,6 +82,42 @@ class TabelaPrecoController extends Controller
             return redirect()->back()->withErrors($isValidSubgrupoReformaCarga['message']);
         }
 
+        $isValidSubgrupoManchaoCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(3);
+
+        if (!$isValidSubgrupoManchaoCarga['success']) {
+            return redirect()->back()->withErrors($isValidSubgrupoManchaoCarga['message']);
+        }
+
+        $isValidSubgrupoVulcanizacaoCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(6);
+
+        if (!$isValidSubgrupoVulcanizacaoCarga['success']) {
+            return redirect()->back()->withErrors($isValidSubgrupoVulcanizacaoCarga['message']);
+        }
+
+        $isValidSubgrupoManchaoAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(4);
+
+        if (!$isValidSubgrupoManchaoAgricola['success']) {
+            return redirect()->back()->withErrors($isValidSubgrupoManchaoAgricola['message']);
+        }
+        $isValidSubgrupoVulcanizacaoAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(7);
+
+        if (!$isValidSubgrupoVulcanizacaoAgricola['success']) {
+            return redirect()->back()->withErrors($isValidSubgrupoVulcanizacaoAgricola['message']);
+        }
+
+        $isValidSubgrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(5);
+
+        if (!$isValidSubgrupoEnchimento['success']) {
+            return redirect()->back()->withErrors($isValidSubgrupoEnchimento['message']);
+        }
+
+        $isValidGrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterGruposValidos(5);
+
+        if (!$isValidGrupoEnchimento['success']) {
+            return redirect()->back()->withErrors($isValidGrupoEnchimento['message']);
+        }
+
+        //Busca os desenhos do grupo de retorma de carga para montar a tabela de preço.
         $desenho = $this->tabela->getSelectTabPreco(null, null, null, null, null, $isValidSubgrupoReformaCarga['data']);
 
 
@@ -90,7 +126,7 @@ class TabelaPrecoController extends Controller
             'user_auth',
             'empresas',
             'uri',
-            'desenho'
+            'desenho'  
         ));
     }
 
@@ -332,7 +368,7 @@ class TabelaPrecoController extends Controller
         $isValidGrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterGruposValidos(5);
 
         if (!$isValidGrupoEnchimento['success']) {
-            return response()->json(['errors' => $isValidGrupoEnchimento['message']]);
+            return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($isValidGrupoEnchimento);
         }
 
         $data = $this->tabela->getVulcanizacaoManchao(

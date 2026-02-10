@@ -40,7 +40,7 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="form-group form-group-sm">
-                                                            <label>Nome da Tabela</label>
+                                                            <label class="small">Nome da Tabela</label>
                                                             <select name='pessoa' class="form-control" id="pessoa"
                                                                 style="width: 100%">
                                                             </select>
@@ -48,9 +48,10 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group form-group-sm">
-                                                            <label>Selecione o Desenho</label>
-                                                            <select class="form-control select2" id="desenho"
-                                                                name="desenho[]" style="width: 100%;" multiple>
+                                                            <label class="small">Selecione o Desenho</label>
+                                                            <select class="form-control form-control-sm select2 select2-sm"
+                                                                id="desenho" name="desenho[]" style="width: 100%;"
+                                                                multiple>
                                                                 @foreach ($desenho as $item)
                                                                     <option value="{{ $item->ID }}">
                                                                         {{ $item->DESCRICAO }}</option>
@@ -60,15 +61,16 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group form-group-sm">
-                                                            <label>Selecione a Medida</label>
-                                                            <select class="form-control select2" id="medida"
-                                                                name="medida[]" style="width: 100%; " multiple="multiple">
+                                                            <label class="small">Selecione a Medida</label>
+                                                            <select class="form-control form-control-sm select2"
+                                                                id="medida" name="medida[]" style="width: 100%; "
+                                                                multiple="multiple">
                                                             </select>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group form-group-sm">
-                                                            <label>Digite o Valor</label>
+                                                            <label class="small">Digite o Valor</label>
                                                             <input type="number" id="valor" class="form-control"
                                                                 placeholder="Digite o Valor...">
                                                         </div>
@@ -233,8 +235,10 @@
 
 @section('css')
     <style>
-
-
+        /* Altura do Select2 small */       
+        .select2-container--bootstrap4 .select2-selection--multiple {            
+            padding: 0;
+        }
     </style>
 @stop
 @section('js')
@@ -587,7 +591,7 @@
                 beforeSend: function() {
                     $(".loading-card").removeClass('invisible');
                 },
-                success: function(response) {                   
+                success: function(response) {
                     if (response.success) {
                         Swal.fire({
                             title: 'Atenção',
@@ -653,7 +657,7 @@
                             customClass: {
                                 confirmButton: 'btn btn-danger'
                             }
-                        });                        
+                        });
                         return;
                     } else {
                         $(".loading-card").addClass('invisible');
@@ -666,7 +670,7 @@
                             customClass: {
                                 confirmButton: 'btn btn-success'
                             }
-                        });                        
+                        });
                     }
 
                 }

@@ -88,8 +88,8 @@ return [
     'auth_logo' => [
         'enabled' => true,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logo-atz.png',
-            'alt' => 'Auth Logo',
+            'path' => env('AUTH_LOGO', 'vendor/adminlte/dist/img/logo-default.png'),
+            'alt' => env('APP_NAME', 'Empresa'),
             'class' => '',
             'width' => 0,
             'height' => 100,
