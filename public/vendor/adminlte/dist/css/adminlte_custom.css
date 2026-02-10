@@ -1,8 +1,8 @@
 .nav-sidebar .nav-item.menu-open>.nav-link,
 .nav-sidebar .nav-item>.nav-link.active {
-    background-color: #dc3545 !important;
+    /* background-color: #dc3545 !important; */
     /* bg-danger */
-    color: #fff !important;
+    /* color: #fff !important; */
 }
 
 /* Submenu ativo com vermelho mais claro */
