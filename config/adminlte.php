@@ -86,7 +86,7 @@ return [
     */
 
     'auth_logo' => [
-        'enabled' => true,
+         'enabled' => env('AUTH_LOGO_ENABLED', true),
         'img' => [
             'path' => env('AUTH_LOGO', 'vendor/adminlte/dist/img/logo-default.png'),
             'alt' => env('APP_NAME', 'Empresa'),
