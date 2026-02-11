@@ -63,7 +63,8 @@ return [
     |
     */
 
-    'first_name' => env('APP_SIGLA_NAME', 'Emp'),
+    'first_name' => env('APP_NAME', 'Emp'),
+    'sigla_name' => env('APP_SIGLA_NAME', 'Emp'),
     'logo' => 'Pneus',
     'logo_img' => env('AUTH_LOGO', 'vendor/adminlte/dist/img/logo-default.png'),
     'logo_img_class' => 'brand-image',

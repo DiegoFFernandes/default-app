@@ -16,7 +16,7 @@
     @endif>
 
     {{-- Small brand logo --}}
-    <span class="text-center" style="padding-left: 15px ">{{ config('adminlte.first_name', 'Emp') }}</span>
+    <span class="text-center" style="padding-left: 15px ">{{ config('adminlte.sigla_name', 'Emp') }}</span>
 
     {{-- Brand text --}}
     <span class="brand-text font-weight-light {{ config('adminlte.classes_brand_text') }}">
