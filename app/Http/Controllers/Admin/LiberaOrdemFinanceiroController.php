@@ -63,6 +63,7 @@ class LiberaOrdemFinanceiroController extends Controller
     public function getListOrdemBloqueadas()
     {
         $id = 0;
+        $cd_regiao = "";
         // $localizacao = Helper::VerifyRegion($this->user->conexao);
         $dados = $this->libera->listPneusOrdensBloqueadas($id);
 

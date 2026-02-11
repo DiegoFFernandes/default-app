@@ -5,7 +5,7 @@ use App\Http\Controllers\Admin\LiberaOrdemFinanceiroController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'role:admin|cobranca'])->group(function () {
+Route::middleware(['auth', 'permission:ver-libera-ordem-financeiro'])->group(function () {
     Route::prefix('libera-ordem-financeiro')->group(function () {
         Route::get('index', [LiberaOrdemFinanceiroController::class, 'index'])->name('libera-ordem-financeiro.index');
 
