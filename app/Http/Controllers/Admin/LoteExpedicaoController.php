@@ -69,7 +69,7 @@ class LoteExpedicaoController extends Controller
         return DataTables::of($data)
             ->addColumn('actions', function ($data) {
                 $btn = '<a href="' . route('show-item-lote-expedicao', ['lote' => $data->LOTE, 'idempresa' => $data->IDEMPRESA]) . '" class="btn btn-xs btn-primary btnOpen" title="Abrir">Abrir</a>';
-                $btn .= ' <button class="btn btn-xs btn-dark btnFinalizar" title="Finalizar">Finalizar</button>';
+                // $btn .= ' <button class="btn btn-xs btn-dark btnFinalizar" title="Finalizar">Finalizar</button>';
                 $btn .= ' <button class="btn btn-xs btn-danger btnDelete" title="Cancelar">Cancelar</button>';
                 return $btn;
             })

@@ -154,17 +154,6 @@ class PedidoPneu extends Model
     public function createItemPedidoPneu($idPedido, $idPneu, $pessoa, $servicoPneu, $valor, $seqItemPedidoPneu)
     {
 
-        // return [
-        //         'idpedidopneu'     => (int) $idPedido,
-        //         'idpneu'           => (int) $idPneu,
-        //         'idservicopneu'    => (int) $servicoPneu->ID,
-        //         'iddesenhopneu'    => (int) $servicoPneu->IDDESENHOPNEU,
-        //         'vlunitario'       => (float) $valor,
-        //         'cdtabpreco'       => (int) $pessoa->CD_TABPRECO,
-        //         'nrsequencia'      => (int) $seqItemPedidoPneu,
-        //         'nrseqcriacao'     => (int) $seqItemPedidoPneu,
-        //         'idcarcacapedido'  => (int) $servicoPneu->IDITEMCARCACA,
-        //     ];
         return DB::transaction(function () use ($idPedido, $idPneu, $pessoa, $servicoPneu, $valor, $seqItemPedidoPneu) {
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");

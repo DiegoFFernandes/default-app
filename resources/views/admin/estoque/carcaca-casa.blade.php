@@ -246,6 +246,10 @@
             aria-labelledby="modal-criar-pedido-label" aria-hidden="true" data-backdrop="static" data-keyboard="false">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
+                    <!-- LOADER -->
+                    <div id="modal-loader" class="loading-card invisible loader-overlay">
+                        <i class="fas fa-3x fa-sync-alt fa-spin"></i>
+                    </div>
                     <div class="modal-header">
                         <h6 class="modal-title">Criar Pedido</h6>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -347,7 +351,7 @@
         .indent-4 {
             padding-left: 40px !important;
         }
-                
+
         .btn-list {
             background: transparent;
             text-align: left;
@@ -483,6 +487,25 @@
                 font-size: 13px;
             }
         }
+
+        
+
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            background: rgba(255, 255, 255, 0.7);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            z-index: 10;
+            /* maior que conteúdo interno */
+        }
     </style>
 @stop
 @section('js')
@@ -588,9 +611,7 @@
                     url: '{{ route('get-carcaca-casa') }}',
                     dataSrc: function(response) {
 
-                        $('#total-carcacas').text(response.extra.total_carcacas);
-
-                        // console.log(response.extra.accordion_data);
+                        $('#total-carcacas').text(response.extra.total_carcacas);                        
 
                         $('#accordionResumoLocal').html(initAccordion(response.accordion_data_local_marca,
                             'accordionResumoLocal')).removeClass(
@@ -823,9 +844,7 @@
 
                 <div id="nivel0-${lIndex}" class="collapse">
                     <div class="card-body p-1">
-            `;
-
-            console.log(Nivel1Key.medida);
+            `;            
 
             Nivel1Key.medida.forEach((Nivel2Key, maIndex) => {
                 html += renderNivel1(Nivel2Key, lIndex, maIndex);
@@ -1237,6 +1256,7 @@
         $(document).on('click', '#btn-criar-pedido', function() {
 
             $('#itens-pedido').html('');
+            $('#btn-confirmar-pedido').prop('disabled', false);
 
             inicializaSelect2Lista({
                 route: routes.condicaoPagamento,
@@ -1325,6 +1345,15 @@
         });
 
         $(document).on('click', '#btn-confirmar-pedido', function() {
+
+            let $btn = $(this);
+
+            if ($btn.prop('disabled')) {
+                return; // impede segundo clique
+            }
+
+            $btn.prop('disabled', true); // bloqueia botão
+
             let cd_empresa = $('#cd_empresa').val();
             let pessoa = $('#pessoa').val();
             let cond_pagto = $('#cd_cond_pagto').val();
@@ -1356,11 +1385,11 @@
                     itens: itens
                 },
                 beforeSend: function() {
-                    $("#loading").removeClass("invisible");
+                    $(".loading-card").removeClass("invisible");
                 },
                 success: function(response) {
                     if (response.success) {
-                        $("#loading").addClass("invisible");
+                        $(".loading-card").addClass("invisible");
                         $('#modal-criar-pedido').modal('hide');
                         $('#estoque-carcacas').DataTable().ajax.reload();
                         Swal.fire({
@@ -1372,7 +1401,7 @@
                         });
                     } else {
                         // Erro
-                        $("#loading").addClass("invisible");
+                        $(".loading-card").addClass("invisible");
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro ao criar pedido.',
@@ -1385,7 +1414,7 @@
                     }
                 },
                 error: function(xhr) {
-                    $("#loading").addClass("invisible");
+                    $(".loading-card").addClass("invisible");
                     Swal.fire({
                         icon: 'error',
                         title: 'Erro ao criar pedido.',

@@ -9,6 +9,7 @@
 
             <div class="col-md-4 col-sm-4 col-xs-6">
                 <div class="info-box">
+                    <x-loading-card />
                     <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="far fa-dot-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Total Pneus</span>
@@ -20,6 +21,7 @@
             @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                 <div class="col-md-4 col-sm-4 col-xs-6">
                     <div class="info-box">
+                        <x-loading-card />
                         <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-dollar-sign"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text">Valor</span>
@@ -31,6 +33,7 @@
 
             <div class="col-md-4 col-sm-4 col-xs-6">
                 <div class="info-box">
+                    <x-loading-card />
                     <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-truck"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Expedicionado</span>
@@ -42,6 +45,7 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
+                    <x-loading-card />
                     <div class="card-header border-0">
                         <div class="d-flex justify-content-between">
                             <h3 class="card-title">Pneus Gerente</h3>
@@ -64,6 +68,7 @@
             </div>
             <div class="col-md-6">
                 <div class="card">
+                    <x-loading-card />
                     <div class="card-header border-0">
                         <div class="d-flex justify-content-between">
                             <h3 class="card-title">Pneus Mês</h3>
@@ -351,10 +356,10 @@
                             data: dados
                         },
                         beforeSend: function() {
-                            $("#loading").removeClass('invisible');
+                            $(".loading-card").removeClass('invisible');
                         },
                         dataSrc: function(json) {
-                            $("#loading").addClass('invisible');
+                            $(".loading-card").addClass('invisible');
                             carregaDados(json.datatables.data);
 
                             return json.datatables.data;

@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\LoteExpedicaoController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'permission:ver-expedicao'])->group(function () {
     Route::prefix('expedicao')->group(function () {
         Route::get('lote-expedicao', [LoteExpedicaoController::class, 'index'])->name('lote-expedicao.index');
 
