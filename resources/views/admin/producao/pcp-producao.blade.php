@@ -82,14 +82,14 @@
                                     aria-labelledby="tab-painelPCP-{{ $emp->CD_EMPRESA }}">
                                     <div class="table-responsive">
                                         <table id="pneus-lote-pcp-{{ $emp->CD_EMPRESA }}"
-                                            class="table compact table-font-small table-striped table-bordered"
+                                            class="table compact table-font-small table-striped table-bordered table-responsive"
                                             style="width:100%; font-size: 11px;">
                                         </table>
                                     </div>
                                 </div>
                             @endforeach
                             <div class="tab-pane fade" id="painel-lotesPCP" role="tabpanel" aria-labelledby="tab-lotesPCP">
-                                <table id="lote-pcp" class="table compact table-font-small table-striped table-bordered"
+                                <table id="lote-pcp" class="table compact table-font-small table-striped table-bordered table-responsive"
                                     style="width:100%; font-size: 11px;">
                                 </table>
                             </div>
@@ -126,22 +126,28 @@
 
             $('#tab-painelPCP-' + empresa[0].CD_EMPRESA).addClass('active');
             $('#painel-pcp-' + empresa[0].CD_EMPRESA).addClass('show active');
-
             $('#tab-pcp').on('click', 'a.nav-link', function() {
                 let empresa = $(this).data('empresa');
+
                 if (empresa) {
+                    if ('pneus-lote-pcp-' + empresa) {
+                        $('#pneus-lote-pcp-' + empresa).DataTable().destroy();
+                    }
                     initTable('pneus-lote-pcp-' + empresa, empresa);
                 }
             });
-            $('#tab-pcp').on('click', '#tab-lotesPCP', function() {
-                $('#lote-pcp').DataTable().destroy();
+
+            $(document).on('click', '#tab-lotesPCP', function() {
+                if ($.fn.DataTable.isDataTable('#lote-pcp')) {
+                    $('#lote-pcp').DataTable().destroy();
+                }
+
                 $('#lote-pcp').DataTable({
                     processing: true,
                     lengthMenu: [
                         [10, 25, 50, 100, -1],
                         [10, 25, 50, 100, 'Todos']
-                    ],
-                    responsive: true,
+                    ],                    
                     pageLength: 100,
                     processing: false,
                     serverSide: false,
@@ -165,7 +171,6 @@
                             name: 'NR_LOTE',
                             'title': 'Nr Lote'
                         },
-
                         {
                             data: 'DSCONTROLELOTEPCP',
                             name: 'DSCONTROLELOTEPCP',
@@ -205,13 +210,12 @@
 
 
             function initTable(idTabela, cdEmpresa) {
-                $('#' + idTabela).DataTable().destroy();
+               if($.fn.DataTable.isDataTable('#' + idTabela)) {
+                    $('#' + idTabela).DataTable().destroy();
+                }
+                
                 $('#' + idTabela).DataTable({
-                    processing: true,
-                    lengthMenu: [
-                        [10, 25, 50, 100, -1],
-                        [10, 25, 50, 100, 'Todos']
-                    ],
+                    processing: true,                    
                     pageLength: 100,
                     processing: false,
                     serverSide: false,
