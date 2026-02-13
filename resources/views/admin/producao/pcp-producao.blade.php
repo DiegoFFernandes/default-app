@@ -6,7 +6,7 @@
     <section class="content">
         <!-- Small boxes (Stat box) -->
         <div class="row">
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
                     <div class="info-box-content">
@@ -15,7 +15,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
                     <div class="info-box-content">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-danger"><i class="fas fa-clock"></i></span>
                     <div class="info-box-content">
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-warning"><i class="fas fa-hourglass-start"></i></span>
                     <div class="info-box-content">
@@ -42,7 +42,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
                 <div class="info-box">
                     <span class="info-box-icon bg-success"><i class="fas fa-check-circle"></i></span>
                     <div class="info-box-content">
@@ -217,8 +217,7 @@
                     $('#' + idTabela).DataTable().destroy();
                 }
 
-                $('#' + idTabela).DataTable({
-                    processing: true,
+                $('#' + idTabela).DataTable({                    
                     pageLength: 100,
                     processing: false,
                     serverSide: false,

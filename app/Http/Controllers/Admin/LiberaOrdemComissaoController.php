@@ -58,7 +58,7 @@ class LiberaOrdemComissaoController extends Controller
 
     public function index()
     {
-        $title_page   = 'Pedidos Bloqueados Comercial';
+        $title   = 'Pedidos Bloqueados Comercial';
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
 
@@ -75,8 +75,8 @@ class LiberaOrdemComissaoController extends Controller
             return Redirect::back()->with('warning', 'Nenhum percentual de desconto comercial cadastrado!');
         }
 
-        return view('admin.comercial.libera-ordem', compact(
-            'title_page',
+        return view('admin.comercial.libera-ordem.index', compact(
+            'title',
             'user_auth',
             'uri',
             'percentual'
@@ -221,6 +221,12 @@ class LiberaOrdemComissaoController extends Controller
 
         $pedidos = $this->libera->listPedidosBloqueadas(0, 0, 0, $supervisor, 'A');
 
+        if (Helper::is_empty_object($pedidos)) {
+            return response()->json([
+                'message' => 'Nenhum pedido abaixo do desconto encontrado para liberação automática!'
+            ]);
+        }
+
         $resultados = [];
 
         foreach ($pedidos as $pedido) {
@@ -238,7 +244,7 @@ class LiberaOrdemComissaoController extends Controller
         }
 
         return response()->json([
-            'success' => implode("</br>", $mensagens)
+            'message' => implode("</br>", $mensagens)
         ]);
     }
 }

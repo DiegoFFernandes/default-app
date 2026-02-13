@@ -213,6 +213,9 @@
                                 </div>
                                 <hr>
                                 <div class="row">
+                                    <div class="mb-2">
+                                        <small class="badge badge-danger badge-date"></small>
+                                    </div>
                                     <div class="col-md-12">
                                         <div class="table-responsive">
                                             <x-loading-card />
@@ -273,7 +276,7 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="row">
+                                <div class="row">                                    
                                     <div class="table-responsive">
                                         <x-loading-card />
                                         <table class="table table-font-small stripe compact nowrap" id="bloqueio-pedidos">
@@ -299,8 +302,8 @@
         }
 
         /* table.dataTable {
-                                        table-layout: fixed;
-                                    } */
+                                                table-layout: fixed;
+                                            } */
 
         @media (max-width: 768px) {
             .info-box .info-box-icon {
@@ -361,6 +364,11 @@
         var fimData = 0;
         var dados;
 
+        var dtInicio = moment().subtract(120, 'days').startOf('day').format('DD.MM.YYYY');
+        var dtFim = moment().subtract(0, 'days').endOf('day').format('DD.MM.YYYY');
+
+        $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
+
         $('#grupo_item').select2({
             theme: 'bootstrap4',
             width: '100%',
@@ -374,11 +382,11 @@
             tableBloqueio = $('#bloqueio-pedidos').DataTable({
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
-                },             
+                },
                 pagingType: "simple",
                 processing: false,
                 serverSide: false,
-                pageLength: 100,                               
+                pageLength: 100,
                 ajax: {
                     url: "{{ route('get-bloqueio-pedidos') }}",
                     beforeSend() {

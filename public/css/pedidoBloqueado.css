@@ -1,0 +1,44 @@
+table.dataTable {
+    table-layout: fixed;
+}
+
+div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    #table-item-pedido_wrapper {
+        display: none !important;
+    }
+
+    [id^="card-pedido"] {
+        display: block !important;
+    }
+
+    .form-control {
+        font-size: 13px;
+    }
+
+}
+
+@media (min-width: 769px) {
+    [id^="card-pedido"] {
+        display: none;
+    }
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 700px;
+        margin: 1.75rem auto;
+    }
+}
+
+.input-destaque {
+    background-color: #218838 !important;
+    /* verde escuro */
+    border: 1px solid #1e7e34 !important;
+    /* borda verde escuro */
+    transition: background-color 0.5s ease;
+    color: #fff !important;
+}

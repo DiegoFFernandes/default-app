@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use GPBMetadata\Google\Api\Auth;
 use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -201,7 +202,8 @@ class LiberaOrdemComercial extends Model
                     UPDATE ITEMPEDIDOPNEUBORRACHEIRO IIPB 
                         SET IIPB.VL_COMISSAO = $VL_COMISSAO, 
                             IIPB.PC_COMISSAO = $PC_COMISSAO,
-                            IIPB.ST_CALCULO = '$ST_CALCULO'
+                            IIPB.ST_CALCULO = '$ST_CALCULO',
+                            IIPB.NMUSUARIOALT = '" . Auth()->user()->name . "'
                     WHERE IIPB.ID = $d->ID";
                 DB::connection('firebird')->statement($query);
             }
