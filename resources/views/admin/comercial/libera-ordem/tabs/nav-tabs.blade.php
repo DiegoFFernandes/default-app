@@ -4,9 +4,11 @@
             <a class="nav-link active" id="tab-inserir" data-toggle="tab" href="#pedidos-bloqueados"
                 role="tab">Pedidos</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="tab-cadastradas" data-toggle="tab" href="#substituir-comissao"
-                role="tab">Substituir Comissão</a>
-        </li>
-    </ul>
-</div>
+        @role('admin')
+            <li class="nav-item">
+                <a class="nav-link" id="tab-substituir-comissao" data-toggle="tab" href="#substituir-comissao"
+                    role="tab">Substituir Comissão</a>
+            </li>
+        @endrole
+        </ul>
+    </div>

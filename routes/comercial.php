@@ -28,6 +28,14 @@ Route::middleware(['auth', 'permission:ver-libera-ordem-comercial'])->group(func
     });
 });
 
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::prefix('comissao')->group(function () {
+        Route::get('get-substitui-comissao-automatica', [LiberaOrdemComissaoController::class, 'substituiComissaoAutomatica'])->name('get-substitui-comissao-automatica');        
+        Route::post('save-substitui-comissao-automatica', [LiberaOrdemComissaoController::class, 'saveSubstituiComissaoAutomatica'])->name('save-substitui-comissao-automatica');
+    
+        });
+});
+
 Route::middleware(['auth', 'role:admin|gerente comercial|supervisor|usuario comercial'])->group(function () {
     Route::prefix('tabela')->group(function () {
         Route::get('tabela-preco', [TabelaPrecoController::class, 'index'])->name('tabela-preco.index');

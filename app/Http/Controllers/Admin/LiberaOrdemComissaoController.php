@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AreaComercial;
+use App\Models\Comissao;
 use App\Models\LiberaOrdemComercial;
 use App\Models\PedidoPneu;
 use App\Models\PercentualDescontoComissao;
@@ -29,6 +30,7 @@ class LiberaOrdemComissaoController extends Controller
     public SupervisorAuthService $supervisorComercial;
     public SupervisorComercial $supervisorComercialModel;
     public SupervisorSubgrupo $supervisorSubgrupo;
+    public Comissao $comissao;
     public PedidoPneu $pedido;
 
     public function __construct(
@@ -41,11 +43,13 @@ class LiberaOrdemComissaoController extends Controller
         SupervisorComercial $supervisorComercialModel,
         SupervisorSubgrupo $supervisorSubgrupo,
         PedidoPneu $pedido,
+        Comissao $comissao
     ) {
         $this->libera = $libera;
         $this->request = $request;
         $this->pedido = $pedido;
         $this->area = $area;
+        $this->comissao = $comissao;
         $this->supervisorComercialModel = $supervisorComercialModel;
         $this->supervisorComercial = $supervisorComercial;
         $this->supervisorSubgrupo = $supervisorSubgrupo;
@@ -58,7 +62,7 @@ class LiberaOrdemComissaoController extends Controller
 
     public function index()
     {
-        $title   = 'Pedidos Bloqueados Comercial';
+        $title   = 'Pedidos Bloqueados';
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
 
@@ -245,6 +249,38 @@ class LiberaOrdemComissaoController extends Controller
 
         return response()->json([
             'message' => implode("</br>", $mensagens)
+        ]);
+    }
+
+    public function substituiComissaoAutomatica()
+    {
+        $pedidosComissaoAutomatica = $this->comissao->substituiComissaoAutomatica();
+
+        return DataTables::of($pedidosComissaoAutomatica)
+            ->make(true);
+    }
+
+    public function saveSubstituiComissaoAutomatica()
+    {
+        $pedidos = $this->request->pedidos;
+        $pedidosAtualizados = [];
+
+        foreach ($pedidos as $pedido) {
+            $resultado = $this->comissao->updateComissaoAutomatica($pedido);
+
+            if ($resultado['success']) {
+                $pedidosAtualizados[] = $resultado['nr_pedido'];
+            } else {
+                return response()->json([
+                    'message' => 'Erro ao atualizar comissão do pedido ' . $resultado['nr_pedido'] . ': ' . $resultado['message']
+                ], 500);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Comissões substituídas com sucesso!',
+            'pedidos_atualizados' => array_unique($pedidosAtualizados)
         ]);
     }
 }

@@ -23,7 +23,7 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('css/pedidoBloqueado.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pedidoBloqueado.css?v=' . time()) }}">
 @stop
 
 @section('js')
@@ -34,8 +34,11 @@
             ordensBloqueadas: "{{ route('get-ordens-bloqueadas-comercial') }}",            
             savePedidosLiberadas: "{{ route('save-libera-pedido') }}",
             liberaAbaixoDesconto: "{{ route('libera-abaixo-desconto') }}",
-            itensPneusOrdensBloqueadas: "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}"
+            itensPneusOrdensBloqueadas: "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}",
+            pedidosComissaoAutomatica: "{{ route('get-substitui-comissao-automatica') }}",
+            saveSubstituiComissaoAutomatica: "{{ route('save-substitui-comissao-automatica') }}"
         };
     </script>
-    <script src="{{ asset('js/dashboard/pedidoBloqueado.js') }}"></script>
+    <script src="{{ asset('js/dashboard/LiberacaoComercial/pedidoBloqueado.js') }}"></script>
+    <script src="{{ asset('js/dashboard/LiberacaoComercial/substituirComissao.js') }}"></script>
 @stop
