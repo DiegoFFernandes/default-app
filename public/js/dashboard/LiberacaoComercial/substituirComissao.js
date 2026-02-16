@@ -92,6 +92,12 @@ function initTableSubstituirComissao() {
                 width: "1%",
                 render: DataTable.render.select(),
             },
+             {
+                data: "CD_EMPRESA",
+                name: "CD_EMPRESA",
+                title: "Emp.",
+                width: "1%",
+            },            
             {
                 data: "NR_PEDIDO",
                 name: "NR_PEDIDO",
@@ -117,7 +123,7 @@ function initTableSubstituirComissao() {
         ],
         columnDefs: [
             {
-                targets: [5],
+                targets: [6],
                 createdCell: function (td) {
                     $(td).css({
                         "background-color": "#5cf5f5",
@@ -127,7 +133,7 @@ function initTableSubstituirComissao() {
                 },
             },
             {
-                targets: [6],
+                targets: [7],
                 createdCell: function (td) {
                     $(td).css({
                         "background-color": "#FFFFCC",
