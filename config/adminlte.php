@@ -221,7 +221,7 @@ return [
     'sidebar_mini' => 'xs',
     'sidebar_collapse' => true,
     'sidebar_collapse_auto_size' => false,
-    'sidebar_collapse_remember' => false,
+    'sidebar_collapse_remember' => true,
     'sidebar_collapse_remember_no_transition' => true,
     'sidebar_scrollbar_theme' => 'os-theme-light',
     'sidebar_scrollbar_auto_hide' => 'l',
@@ -553,6 +553,19 @@ return [
             ],
             // 'label' => 4,
             // 'label_color' => 'success',
+        ],
+        [
+            'text' => 'Producao',
+            'can' => 'ver-pedidos-coletados',
+            'url' => '#',
+            'icon' => 'nav-icon fa fa-clipboard-list',
+            'submenu' => [
+                [
+                    'text' => 'Pedidos Pneus',
+                    'route' => 'pedido-pneus.index',
+                    'can' => 'ver-pedidos-coletados',
+                ]             
+            ],            
         ],
     ],
 

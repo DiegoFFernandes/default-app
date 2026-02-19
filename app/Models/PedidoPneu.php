@@ -21,7 +21,6 @@ class PedidoPneu extends Model
     }
     public function updateData($data, $stpedido, $tpbloqueio)
     {
-
         return DB::transaction(function () use ($data, $stpedido, $tpbloqueio) {
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
@@ -58,7 +57,6 @@ class PedidoPneu extends Model
 
     static function getPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null)
     {
-
         $query = "
             SELECT
                 MP.DSMEDIDAPNEU,
@@ -230,8 +228,6 @@ class PedidoPneu extends Model
 
     public function createItemPedidoPneuBorracheiro($iditemPedidoPneu, $pessoa, $calculaComissao)
     {
-
-
         return DB::transaction(function () use ($iditemPedidoPneu, $pessoa, $calculaComissao) {
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
@@ -268,5 +264,51 @@ class PedidoPneu extends Model
 
             return $result;
         });
+    }
+
+    public function searchPedidoPneu($data)
+    {
+        $where = [];
+        $params = [];
+
+        if (!empty($data['pedido'])) {
+            $where[] = 'PP.ID = :idPedido';
+            $params['idPedido'] = $data['pedido'];
+        }
+
+        if (!empty($data['ordem'])) {
+            $where[] = 'OPR.ID = :nrOrdem';
+            $params['nrOrdem'] = $data['ordem'];
+        }
+
+        $query = "
+            SELECT
+                PP.IDEMPRESA CD_EMPRESA,
+                PP.ID ID_PEDIDO,
+                PP.IDPESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+                IPP.IDSERVICOPNEU,
+                ITEM.DS_ITEM,
+                OPR.id NR_ORDEM,
+                --DADOS DOS PNEUS
+                PNEU.ID ID_PNEU,
+                PNEU.NRSERIE,
+                PNEU.NRFOGO,
+                PNEU.NRDOT
+            FROM PEDIDOPNEU PP
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+            LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)            
+        ";
+
+        $query .= ' WHERE ' . implode(' AND ', $where);
+
+        $data = DB::connection('firebird')->select(
+            $query,
+            $params
+        );
+
+        return Helper::ConvertFormatText($data);
     }
 }

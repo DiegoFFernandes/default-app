@@ -222,7 +222,7 @@
                                     @include('admin.comercial.components.modal-item-tabela-preco', [
                                         'idModal' => 'modal-item-tab-preco-divergencia',
                                         'idTabelaItem' => 'table-item-tab-preco-divergencia',
-                                    ]);
+                                    ])
                                 </div>
                             </div>
                         </div>

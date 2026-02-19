@@ -100,4 +100,9 @@ class User extends Authenticatable
                 'notifications' => $input['notifications']
             ]);
     }
+
+    public function settings()
+    {
+        return $this->hasOne(UserConfiguracoesPainel::class, 'id_usuario');
+    }
 }

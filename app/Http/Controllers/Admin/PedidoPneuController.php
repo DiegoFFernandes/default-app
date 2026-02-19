@@ -9,10 +9,12 @@ use App\Models\LiberaOrdemComercial;
 use App\Models\PedidoPneu;
 use App\Models\Pessoa;
 use App\Models\Pneu;
+use Dflydev\DotAccessData\Data;
 use Helper;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 
 class PedidoPneuController extends Controller
 {
@@ -40,6 +42,48 @@ class PedidoPneuController extends Controller
         $this->pneu = $pneu;
         $this->estoque = $estoque;
         $this->liberaOrdemComercial = $liberaOrdemComercial;
+    }
+
+    public function index()
+    {
+        return view('admin.pedido.index');
+    }
+
+    public function searchPedidoPneu()
+    {
+        $validate = Validator::make($this->request->all(), [
+            'pedido' => 'nullable|integer|required_without:ordem',
+            'ordem' => 'nullable|integer|required_without:pedido',
+        ], [
+            'pedido.integer' => 'Pedido inválido.',
+            'pedido.required_without' => 'Por favor, informe o número do <b>pedido</b> ou da ordem.',
+            'ordem.integer' => 'Número da ordem inválido.',
+            'ordem.required_without' => 'Por favor, informe o número da <b>ordem</b> ou do pedido.',
+        ]);
+
+        if ($validate->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validate->errors()->all()
+            ], 422);
+        }
+
+        if (empty($validate->validated()['pedido']) && empty($validate->validated()['ordem'])) {
+            return response()->json([
+                'success' => false,
+                'errors'  => ['Por favor, informe ao menos um critério de busca, pedido ou ordem.']
+            ], 422);
+        }
+
+        $pedidos = $this->pedidoPneu->searchPedidoPneu($validate->validated());
+
+
+        return DataTables::of($pedidos)
+            ->addColumn('action', function ($pedido) {
+                return '<button class="btn btn-xs btn-secondary btn-editar-pneu" data-id="' . $pedido->ID_PNEU . '"><i class="fas fa-edit"></i></button>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
 
     public function storePedidoPneu()

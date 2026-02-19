@@ -37,6 +37,8 @@ class HomeController extends Controller
         $uri       = $this->request->route()->uri();
         $title_page = "Portal";
 
+        // return Auth::user()->settings->sidebar_collapse == 'S'? 'sidebar-collapse' : '';
+
         return view('admin.home', compact(
             'user_auth',
             'uri', 'title_page'

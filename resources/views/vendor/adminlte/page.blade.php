@@ -8,7 +8,11 @@
     @yield('css')
 @stop
 
-@section('classes_body', $layoutHelper->makeBodyClasses())
+@section('classes_body')
+    {{ $layoutHelper->makeBodyClasses() }}
+    {{-- {{ Auth::user()?->settings?->sidebar_mini === 'S' ? 'sidebar-mini' : '' }}
+    {{ Auth::user()?->settings?->sidebar_collapse === 'S' ? 'sidebar-collapse' : '' }} --}}
+@stop
 
 @section('body_data', $layoutHelper->makeBodyData())
 
@@ -49,10 +53,6 @@
             @include('adminlte::partials.sidebar.right-sidebar')
         @endif
 
-        {{-- Icon loading
-        <div class="invisible" id="loading">
-            <img id="loading-image" class="mb-4" src="{{ asset('img/loader.gif') }}" alt="Loading...">
-        </div> --}}
     </div>
 @stop
 

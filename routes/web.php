@@ -33,10 +33,5 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('produto')->group(function () {
         Route::get('get-servico-pneu-medida', [ItemController::class, 'servicoPneu'])->name('get-servico-pneu-medida');       
-    });
-
-
-    Route::prefix('pedido')->group(function () {
-        Route::post('store-pedido-pneu', [PedidoPneuController::class, 'storePedidoPneu'])->name('store-pedido-pneu');       
-    });
+    });    
 });

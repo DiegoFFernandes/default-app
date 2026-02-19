@@ -27,9 +27,9 @@ $(document).on("click", "#btn-substituir-comissao", function () {
             pedidos: pedidosSelecionados,
         },
         beforeSend: function () {
-            $('.loading-card').removeClass('invisible');
+            $(".loading-card").removeClass("invisible");
         },
-        success: function (response) {           
+        success: function (response) {
             if (response.success) {
                 Swal.fire({
                     title: response.message,
@@ -41,11 +41,11 @@ $(document).on("click", "#btn-substituir-comissao", function () {
                     icon: "success",
                     confirmButtonText: "OK",
                     buttonsStyling: false,
-                    customClass:{
-                        confirmButton: 'btn btn-success btn-sm'
-                    }
+                    customClass: {
+                        confirmButton: "btn btn-success btn-sm",
+                    },
                 });
-                $('.loading-card').addClass('invisible');
+                $(".loading-card").addClass("invisible");
                 tableSubstituirComissao.ajax.reload();
             } else {
                 Swal.fire({
@@ -54,12 +54,12 @@ $(document).on("click", "#btn-substituir-comissao", function () {
                     icon: "error",
                     confirmButtonText: "OK",
                     buttonsStyling: false,
-                    customClass:{
-                        confirmButton: 'btn btn-danger btn-sm'
-                    }
+                    customClass: {
+                        confirmButton: "btn btn-danger btn-sm",
+                    },
                 });
             }
-            $('.loading-card').addClass('invisible');
+            $(".loading-card").addClass("invisible");
         },
     });
 });
@@ -92,12 +92,12 @@ function initTableSubstituirComissao() {
                 width: "1%",
                 render: DataTable.render.select(),
             },
-             {
+            {
                 data: "CD_EMPRESA",
                 name: "CD_EMPRESA",
                 title: "Emp.",
                 width: "1%",
-            },            
+            },
             {
                 data: "NR_PEDIDO",
                 name: "NR_PEDIDO",
@@ -113,17 +113,6 @@ function initTableSubstituirComissao() {
                 title: "Qtd",
                 className: "text-center",
                 width: "1%",
-            },
-            {
-                data: "VL_AUTOMATICO",
-                name: "VL_AUTOMATICO",
-                title: "R$ Autom.",
-            },
-            { data: "VL_MANUAL", name: "VL_MANUAL", title: "R$ Manual" },
-        ],
-        columnDefs: [
-            {
-                targets: [6],
                 createdCell: function (td) {
                     $(td).css({
                         "background-color": "#5cf5f5",
@@ -133,7 +122,9 @@ function initTableSubstituirComissao() {
                 },
             },
             {
-                targets: [7],
+                data: "VL_AUTOMATICO",
+                name: "VL_AUTOMATICO",
+                title: "R$ Autom.",
                 createdCell: function (td) {
                     $(td).css({
                         "background-color": "#FFFFCC",
@@ -143,7 +134,9 @@ function initTableSubstituirComissao() {
                 },
             },
             {
-                targets: [7],
+                data: "VL_MANUAL",
+                name: "VL_MANUAL",
+                title: "R$ Manual",
                 createdCell: function (td) {
                     $(td).css({
                         "background-color": "#CCFFCC",
@@ -152,6 +145,6 @@ function initTableSubstituirComissao() {
                     });
                 },
             },
-        ],
+        ]        
     });
 }
