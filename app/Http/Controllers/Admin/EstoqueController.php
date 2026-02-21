@@ -73,7 +73,7 @@ class EstoqueController extends Controller
         $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
 
         return view(
-            'admin.estoque.carcaca-casa',
+            'admin.estoque.carcaca-casa.carcaca-casa',
             compact(
                 'uri',
                 'title_page',
@@ -107,8 +107,7 @@ class EstoqueController extends Controller
             ->getData();
 
 
-        $arrayCarcacaLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DSMARCA', 'DSMODELO1');
-            
+        $arrayCarcacaLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DSMARCA', 'DSMODELO1');            
 
         return response()->json([
             'datatable' => $datatable, // <-- agora é apenas o array,
@@ -404,6 +403,28 @@ class EstoqueController extends Controller
         $data = $this->estoque->transferCarcaca($ids, $local);
 
         return response()->json($data);
+    }
+
+    public function getCarcacaCasaProntas(){
+        $data = $this->estoque->getCarcacaCasaProntas();
+
+        $arrayCarcacaProntasLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DESENHOPNEU', 'DSMODELO');
+
+        $datatable = Datatables()
+            ->of($data)
+            ->addColumn('action', function ($row) {
+                $btn = '<button class="btn btn-xs btn-reservar btn-success" data-id="' . $row->NR_ORDEM . '" title="Reservar Pneu"><i class="fas fa-circle fa-xs"></i></button>';
+                return $btn;
+            })
+            ->rawColumns(['action'])
+            ->make(true)
+            ->getData();
+
+        return response()->json([
+            'datatable' => $datatable,
+            'total_carcacas_prontas' => count($data),
+            'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),         
+        ]);
     }
 
     //Ajustar esses dois métodos abaixo para um service específico de pneus

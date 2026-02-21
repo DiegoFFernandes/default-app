@@ -10,5 +10,5 @@
                     role="tab">Substituir Comissão</a>
             </li>
         @endrole
-        </ul>
-    </div>
+    </ul>
+</div>

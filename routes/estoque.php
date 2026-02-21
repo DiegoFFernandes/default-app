@@ -21,6 +21,9 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
         //Carcacas baixadas
         Route::get('get-carcacas-baixadas', [EstoqueController::class, 'getCarcacaCasaBaixas'])->name('get-carcaca-casa-baixas');
 
+        //Carcasas prontas
+        Route::get('get-carcacas-prontas', [EstoqueController::class, 'getCarcacaCasaProntas'])->name('get-carcaca-casa-prontas');
+
 
         //Medidas de pneus
         Route::get('search-medidas-pneu', [EstoqueController::class, 'searchMedidasPneu'])->name('search-medidas-pneus');

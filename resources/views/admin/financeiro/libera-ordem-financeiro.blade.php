@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Dashboard')
+@section('title', 'Liberação Financeiro')
 
 @section('content')
     <div class="content-fluid">
@@ -21,7 +21,7 @@
                         <span class="info-box-text">Bloqueado Empresa</span>
                         <!-- Linha compacta com detalhamento -->
                         <span class="info-box-number" id="soma-empresas">
-                            
+
                         </span>
                     </div>
                 </div>
@@ -68,19 +68,7 @@
         </div>
         <div class="card">
             <div class="card-body">
-                <table class="table stripe compact table-font-small" style="width:100%" id="table-ordem-block">
-                    <thead>
-                        <tr>
-                            <th>Emp</th>
-                            <th></th>
-                            <th>Cliente</th>
-                            <th>Pedido</th>
-                            <th>Qtd</th>
-                            <th>Vendedor</th>
-                            <th>Valor</th>
-                            <th>Data Bloqueio</th>
-                        </tr>
-                    </thead>
+                <table class="table table-responsive compact table-font-small" id="table-ordem-block">
                     <tbody></tbody>
                     <tfoot>
                         <tr>
@@ -122,16 +110,7 @@
                         </div>
                     </div>
 
-                    <table class="table compact row-border" id="item-pedido" style="font-size:12px">
-                        <thead>
-                            <tr>
-                                <th style="">Sq</th>
-                                <th>Item</th>
-                                <th style="">Venda</th>
-                                <th style="">Tabela</th>
-                                <th style="">%Desc</th>
-                            </tr>
-                        </thead>
+                    <table class="table compact table-font-small table-bordered table-responsive" id="item-pedido">
                         <tbody></tbody>
                     </table>
                     <div class="modal-footer">
@@ -161,6 +140,9 @@
 @section('css')
     {{-- Add here extra stylesheets --}}
     <style>
+        table.dataTable {
+            table-layout: fixed;
+        }
         div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 
             display: none;
@@ -174,48 +156,60 @@
             var tableId = 0;
             var table_item_pedido;
             var table = $('#table-ordem-block').DataTable({
-                language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
-                },
-                "searching": true,
-                "paging": false,
-                "bInfo": false,
                 processing: false,
                 serverSide: false,
-                scrollX: true,
-                scrollY: '60vh',
+                pagingType: "simple",
+                pageLength: 50,
+                // scrollY: "400px",
+                // scrollX: true,
+                language: {
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                },
                 ajax: "{{ route('get-ordens-bloqueadas-financeiro') }}",
                 columns: [{
                         data: "actions",
-                        name: "actions",
+                        name: "actions",   
+                        "width": "3%", 
+                        className: 'text-center',                    
+                        title: "Emp",
                     },
                     {
                         data: 'EMP',
                         name: 'EMP',
-                        // "width": "1%",
+                        "width": "1%",
                         visible: false,
+                        title: 'Emp.'
                     }, {
                         data: 'PESSOA',
-                        name: 'PESSOA'
+                        name: 'PESSOA',
+                        title: 'Cliente'
                     }, {
                         data: 'PEDIDO',
-                        name: 'PEDIDO'
+                        name: 'PEDIDO',
+                        "width": "6%",
+                        title: 'Pedido',
+                        className: 'text-center'
                     },
                     {
                         data: 'QTDPNEUS',
-                        name: 'QTDPNEUS'
+                        name: 'QTDPNEUS',
+                        title: 'Qtd',
+                        className: 'text-center'
                     }, {
                         data: 'VENDEDOR',
                         name: 'VENDEDOR',
+                        title: 'Vendedor',
                         visible: true
                     },
                     {
                         data: 'VL_TOTAL',
                         name: 'VL_TOTAL',
+                        title: 'Valor',
                         visible: true
                     }, {
                         data: 'DTBLOQUEIO',
                         name: 'DTBLOQUEIO',
+                        title: 'Bloqueio',
                         visible: true
                     }
                 ],

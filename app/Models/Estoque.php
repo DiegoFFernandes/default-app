@@ -5,6 +5,8 @@ namespace App\Models;
 use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class Estoque extends Model
@@ -296,9 +298,89 @@ class Estoque extends Model
             WHERE ID = :idPneuCarcaca
         ";
 
-        DB::connection('firebird')->update($query, [            
+        DB::connection('firebird')->update($query, [
             'idPneuCarcaca' => $idPneuCarcaca,
             'idItemPedidoPneu' => $iditemPedidoPneu
         ]);
+    }
+
+    public function getCarcacaCasaProntas()
+    {
+        $query = "                
+            SELECT DISTINCT
+                PP.ID NR_COLETA,
+                PP.IDEMPRESA,
+                CASE PP.IDEMPRESA
+                WHEN 1 THEN 'CAMBE'
+                WHEN 3 THEN 'OSVALDO'
+                WHEN 5 THEN 'PONTA GROSSA'
+                WHEN 6 THEN 'CATANDUVA'
+                END LOCAL_ESTOQUE,
+                PP.IDPESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+                IPP.VLUNITARIO VALOR,
+                OPR.DTFECHAMENTO,
+                --PP.DTENTREGA,
+                OPR.ID NR_ORDEM,
+
+                NULL DS_TIPO,
+                --BANDA PNEU
+                DP.dsdesenho||' '||REPLACE(BP.NRLARGURA, '.00', '') DESENHOPNEU,
+
+                --DADOS PNEUS
+                IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM AS DS_ITEM,
+                MP.DSMODELO || ' - ' || MA.DSMARCA DSMODELO,
+                MA.DSMARCA,
+                MP.DSMODELO DSMODELO1,
+                MD.DSMEDIDAPNEU DSMEDIDAPNEU,
+                PNEU.NRSERIE,
+                PNEU.NRFOGO,
+                PNEU.NRDOT
+
+            FROM PEDIDOPNEU PP
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+            INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+            INNER JOIN BANDAPNEU BP ON (BP.ID = SP.IDBANDAPNEU)
+            INNER JOIN DESENHOPNEU DP ON (DP.ID = BP.IDDESENHOPNEU)
+            INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
+            INNER JOIN PNEU P ON (P.ID = IPP.IDPNEU)
+            INNER JOIN MODELOPNEU MP ON (MP.ID = P.IDMODELOPNEU)
+            INNER JOIN MARCAPNEU MA ON (MA.ID = MP.IDMARCAPNEU)
+            INNER JOIN MEDIDAPNEU MD ON (MD.ID = P.IDMEDIDAPNEU)
+
+            LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
+            LEFT JOIN PLUGORDRECAPPEDIDO POP ON (POP.IDORDEMPRODUCAORECAP = OPR.ID)
+            LEFT JOIN PEDIDO PD ON (PD.CD_EMPRESA = POP.CD_EMPRESA
+                AND PD.NR_PEDIDO = POP.NR_PEDIDO
+                AND PD.TP_PEDIDO = POP.TP_PEDIDO)
+            LEFT JOIN ITEMPEDIDO IP ON (IP.CD_EMPRESA = PD.CD_EMPRESA
+                AND IP.NR_PEDIDO = PD.NR_PEDIDO
+                AND IP.TP_PEDIDO = PD.TP_PEDIDO
+                AND IP.CD_ITEM = IPP.IDSERVICOPNEU)
+            LEFT JOIN RETORNA_CHAVENOTA(PD.CD_EMPRESA, PD.NR_PEDIDO, PD.TP_PEDIDO) RCH ON (RCH.O_CD_ITEM = IPP.IDSERVICOPNEU)
+
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
+            WHERE
+                OPR.STORDEM <> 'C'
+                AND OPR.STEXAMEFINAL <> 'T'
+                AND COALESCE(PD.ST_PEDIDO, 'N') <> 'C'
+                AND RCH.O_NR_LANCAMENTO IS NULL
+                AND PP.STGERAPEDIDO = 'S'
+                AND ITEM.CD_GRUPO = 132
+                AND PP.IDPESSOA IN (27322, 1)
+                AND EF.DTFIM IS NOT NULL
+                --AND PP.ID IN (228552)
+       
+            ";        
+
+        $key = "carcacas-prontas-". Auth::user()->id ."-". date('YmdHis');
+
+        return Cache::remember($key, now()->addMinutes(10), function () use ($query) {
+            $datos = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($datos);
+        });
+
+        
     }
 }

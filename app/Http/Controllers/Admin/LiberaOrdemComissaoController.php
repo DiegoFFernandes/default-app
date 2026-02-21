@@ -62,7 +62,7 @@ class LiberaOrdemComissaoController extends Controller
 
     public function index()
     {
-        $title   = 'Pedidos Bloqueados';
+        $title   = 'Liberação Comercial';
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
 
@@ -127,7 +127,7 @@ class LiberaOrdemComissaoController extends Controller
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
-                return '<span class="right btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
+                return '<span class="btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
             })
             ->rawColumns(['actions'])
             ->setRowClass(function ($d) {

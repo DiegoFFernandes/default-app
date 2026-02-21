@@ -35,24 +35,23 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->namespace($this->namespace)
-                ->group(function(){
+                ->group(function () {
                     require base_path('routes/web.php');
                     require base_path('routes/comercial.php');
                     require base_path('routes/usuarios.php');
                     require base_path('routes/cobranca.php');
-                    require base_path('routes/financeiro.php'); 
+                    require base_path('routes/financeiro.php');
                     require base_path('routes/faturamento.php');
                     require base_path('routes/expedicao.php');
                     require base_path('routes/producao.php');
                     require base_path('routes/nota.php');
-                    require base_path('routes/cliente.php');  
-                    require base_path('routes/tarefas.php'); 
-                    require base_path('routes/follow-up.php');   
-                    require base_path('routes/fcm.php'); 
-                    require base_path('routes/estoque.php'); 
-                        require base_path('routes/pedido.php');                
+                    require base_path('routes/cliente.php');
+                    require base_path('routes/tarefas.php');
+                    require base_path('routes/follow-up.php');
+                    require base_path('routes/fcm.php');
+                    require base_path('routes/estoque.php');
+                    require base_path('routes/pedido.php');
                 });
-             
         });
     }
 

@@ -1,0 +1,189 @@
+
+.divAccordion {
+    margin-bottom: 3px;
+}
+
+@media (max-width: 768px) {
+
+    .divAccordion {
+        margin-bottom: 0px;
+        font-size: 13px;
+    }
+
+    .btn-sm-phone {
+        padding: .25rem .4rem;
+        margin-bottom: .4rem;
+        font-size: 12px;
+    }
+}
+
+.indent-1 {
+    padding-left: 10px !important;
+}
+
+.indent-2 {
+    padding-left: 20px !important;
+}
+
+.indent-3 {
+    padding-left: 30px !important;
+}
+
+.indent-4 {
+    padding-left: 40px !important;
+}
+
+.btn-list {
+    background: transparent;
+    text-align: left;
+    border-radius: 0;
+}
+
+.btn-list:hover {
+    background-color: rgba(0, 0, 0, .03);
+}
+
+.btn i.fa-chevron-down {
+    transition: transform 0.2s ease;
+    color: #6c757d;
+}
+
+.btn[aria-expanded="true"] i.fa-chevron-down {
+    transform: rotate(180deg);
+    color: #343a40;
+}
+
+.btn-action {
+    width: 25px;
+    padding: 0;
+}
+
+.col-nome-header {
+    color: #6c757d !important;
+}
+
+.col-qtd-header {
+    width: 15%;
+    white-space: nowrap;
+    text-align: right;
+    color: #6c757d !important;
+}
+
+.col-valor-header {
+    width: 25%;
+    text-align: right;
+    white-space: nowrap;
+    color: #6c757d !important;
+}
+
+.col-nome {
+    font-size: 14px;
+    color: #6c757d !important;
+}
+
+.col-qtd {
+    width: 15%;
+    font-size: 14px;
+    white-space: nowrap;
+    text-align: right;
+    color: #6c757d !important;
+}
+
+.col-valor {
+    width: 25%;
+    font-size: 14px;
+    /* font-weight: 600; */
+    text-align: right;
+    white-space: nowrap;
+    color: #6c757d !important;
+}
+
+@media (max-width: 576px) {
+
+    .indent-1 {
+        padding-left: 2px !important;
+    }
+
+    .indent-2 {
+        padding-left: 4px !important;
+    }
+
+    .indent-3 {
+        padding-left: 6px !important;
+    }
+
+    .indent-4 {
+        padding-left: 8px !important;
+    }
+
+    .card-title {
+        font-size: 16px;
+    }
+
+    .tabela tr {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .tabela td {
+        padding: 2px 0;
+    }
+
+    .col-nome-header {
+        width: 20%;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .col-qtd-header {
+        text-align: right;
+        font-size: 14px;
+        font-weight: 600;
+        padding-left: 30px;
+    }
+
+    .col-valor-header {
+        text-align: right;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .col-nome {
+        width: 100%;
+        font-size: 13px;
+    }
+
+    .col-qtd {
+        width: 50%;
+        text-align: right;
+        font-size: 13px;
+        font-weight: 600;
+        padding-left: 30px;
+    }
+
+    .col-valor {
+        width: 50%;
+        text-align: right;
+        font-weight: 600;
+        font-size: 13px;
+    }
+}
+
+
+
+.loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background: rgba(255, 255, 255, 0.7);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 10;
+    /* maior que conteúdo interno */
+}
