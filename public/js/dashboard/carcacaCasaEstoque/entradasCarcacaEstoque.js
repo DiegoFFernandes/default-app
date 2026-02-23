@@ -329,10 +329,10 @@ function deleteOrDown(status, id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: window.routes.deleteCArcaca,
+                url: window.routes.deleteCarcaca,
                 type: "POST",
                 data: {
-                    _token: "{{ csrf_token() }}",
+                    _token: window.routes.token,
                     id: id,
                     status: status,
                 },
@@ -412,7 +412,7 @@ $(document).on("click", "#btn-save-carcaca", function () {
         url: window.routes.storeCarcaca,
         type: "POST",
         data: {
-            _token: "{{ csrf_token() }}",
+            _token: window.routes.token,
             medida: medida,
             modelo: modelo,
             fogo: fogo,
@@ -521,7 +521,7 @@ $(document).on("click", "#btn-edit-carcaca", function () {
         url: window.routes.editCarcaca,
         type: "GET",
         data: {
-            _token: "{{ csrf_token() }}",
+            _token: window.routes.token,
             id: id_carcaca,
             medida: medida,
             modelo: modelo,
@@ -618,7 +618,7 @@ $(document).on("click", "#btn-transferir-carcaca", function () {
         url: window.routes.transferCarcaca,
         type: "POST",
         data: {
-            _token: "{{ csrf_token() }}",
+            _token: window.routes.token,
             ids: ids,
             local: local,
         },
@@ -782,7 +782,7 @@ $(document).on("click", "#btn-confirmar-pedido", function () {
         url: window.routes.storePedidoPneu,
         type: "POST",
         data: {
-            _token: "{{ csrf_token() }}",
+            _token: window.routes.token,
             cd_empresa: cd_empresa,
             pessoa: pessoa,
             cond_pagto: cond_pagto,

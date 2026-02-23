@@ -26,73 +26,70 @@
                     </div>
                 </div>
             </div>
+        </div>        
+    </section>
 
-            <div class="modal fade" id="loteExpedicaoModal" tabindex="-1" role="dialog"
-                aria-labelledby="loteExpedicaoModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-scrollable" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Novo Lote de Expedição</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body pt-2 pb-1">
-                            <form id="loteExpedicaoForm">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-2">
-                                            <label for="empresa">Empresa</label>
-                                            <select class="form-control form-control-sm select2" name="empresa"
-                                                id="empresa">
-                                                @foreach ($empresas as $empresa)
-                                                    <option value="{{ $empresa->CD_EMPRESA }}">{{ $empresa->NM_EMPRESA }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-2">
-                                            <label for="emissao">Emissão</label>
-                                            <input type="date" class="form-control form-control-sm" name="emissao"
-                                                id="emissao" placeholder="Data de Emissão">
-                                        </div>
-                                    </div>
+    <div class="modal fade" id="loteExpedicaoModal" tabindex="-1" role="dialog" aria-labelledby="loteExpedicaoModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo Lote de Expedição</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pt-2 pb-1">
+                    <form id="loteExpedicaoForm">
+                        @csrf
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label for="empresa">Empresa</label>
+                                    <select class="form-control form-control-sm select2" name="empresa" id="empresa">
+                                        @foreach ($empresas as $empresa)
+                                            <option value="{{ $empresa->CD_EMPRESA }}">{{ $empresa->NM_EMPRESA }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-12 col-sm-12 col-12">
-                                        <div class="form-group mb-2">
-                                            <label for="vendedor">Vendedor</label>
-                                            <select class="form-control form-control-sm select2" name="vendedor"
-                                                id="vendedor">
-                                                <option value=""></option>
-                                            </select>
-                                        </div>
-                                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label for="emissao">Emissão</label>
+                                    <input type="date" class="form-control form-control-sm" name="emissao" id="emissao"
+                                        placeholder="Data de Emissão">
                                 </div>
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group mb-2">
-                                            <label for="observacao">Observações</label>
-                                            <textarea class="form-control form-control-sm" name="observacao" id="observacao" rows="2"
-                                                placeholder="Observações"></textarea>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 col-sm-12 col-12">
+                                <div class="form-group mb-2">
+                                    <label for="vendedor">Vendedor</label>
+                                    <select class="form-control form-control-sm select2" name="vendedor" id="vendedor">
+                                        <option value=""></option>
+                                    </select>
                                 </div>
-                            </form>
+                            </div>
                         </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-sm btn-secondary" data-dismiss="modal">Fechar</button>
-                            <button class="btn btn-sm btn-primary" form="loteExpedicaoForm">Salvar</button>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-2">
+                                    <label for="observacao">Observações</label>
+                                    <textarea class="form-control form-control-sm" name="observacao" id="observacao" rows="2"
+                                        placeholder="Observações"></textarea>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button class="btn btn-sm btn-primary" form="loteExpedicaoForm">Salvar</button>
                 </div>
             </div>
         </div>
-        </div>
-    </section>
+    </div>
 @stop
 @section('css')
     <style>
@@ -156,13 +153,12 @@
                     }
                 ],
                 columnDefs: [{
-                        targets: [2],
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return moment(data).format('DD/MM/YYYY');
-                        }
+                    targets: [2],
+                    className: 'text-center',
+                    render: function(data, type, row) {
+                        return moment(data).format('DD/MM/YYYY');
                     }
-                ],
+                }],
                 order: [
                     [0, 'desc']
                 ],
@@ -218,7 +214,7 @@
                             $('#loteExpedicaoModal').modal('hide');
                             $('#loteExpedicaoTable').DataTable().ajax.reload();
                             msgToastr(response.success, 'success');
-                        }else {
+                        } else {
                             msgToastr(response.errors, 'error');
                         }
 

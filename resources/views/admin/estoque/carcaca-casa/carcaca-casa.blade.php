@@ -36,6 +36,7 @@
 @section('js')
     <script type="text/javascript">
         window.routes = {
+            token: "{{ csrf_token() }}",
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             searchPessoa: "{{ route('usuario.search-pessoa') }}",
             condicaoPagamento: "{{ route('get-cond-pagamento') }}",
@@ -43,7 +44,7 @@
             servicoPneu: "{{ route('get-servico-pneu-medida') }}",
             searchMedidas: "{{ route('search-medidas-pneus') }}",
             searchModelos: "{{ route('search-modelo-pneus') }}",
-            deleteCArcaca: "{{ route('delete-carcaca') }}",
+            deleteCarcaca: "{{ route('delete-carcaca') }}",
             storeCarcaca: "{{ route('store-carcaca') }}",
             editCarcaca: "{{ route('edit-carcaca') }}",
             getCarcacaCasa: "{{ route('get-carcaca-casa') }}",
