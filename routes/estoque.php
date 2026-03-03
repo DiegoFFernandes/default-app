@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\EstoqueController;
-use App\Http\Controllers\admin\ItemLoteEntradaEstoqueController;
-use App\Http\Controllers\Admin\LoteEntradaEstoqueController;
+use App\Http\Controllers\Admin\ItemLoteEstoqueController;
+use App\Http\Controllers\Admin\LoteEstoqueController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
@@ -33,24 +33,22 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
     });
 
     Route::prefix('estoque-entrada')->group(function () {
-        Route::get('index', [LoteEntradaEstoqueController::class, 'index'])->name('estoque.index');
-        Route::post('cria-lote', [LoteEntradaEstoqueController::class, 'store'])->name('estoque.cria-lote');
-        Route::get('get-lotes', [LoteEntradaEstoqueController::class, 'getLotes'])->name('estoque.get-lotes');
-        Route::post('finaliza-lote', [LoteEntradaEstoqueController::class, 'finishLote'])->name('estoque.finish-lote');
-        Route::delete('delete-lote', [LoteEntradaEstoqueController::class, 'delete'])->name('estoque.delete-lote');
+        Route::get('index', [LoteEstoqueController::class, 'index'])->name('estoque.index');
+        Route::get('cria-lote', [LoteEstoqueController::class, 'store'])->name('estoque.cria-lote');
+        Route::get('get-lotes', [LoteEstoqueController::class, 'getLotes'])->name('estoque.get-lotes');
+        Route::post('finaliza-lote', [LoteEstoqueController::class, 'finishLote'])->name('estoque.finish-lote');
+        Route::delete('delete-lote', [LoteEstoqueController::class, 'delete'])->name('estoque.delete-lote');
 
 
-        Route::get('add-item-lote/{id}', [ItemLoteEntradaEstoqueController::class, 'index'])->name('add-item-lote.index');
-        Route::get('get-busca-item/{cd_barras}', [ItemLoteEntradaEstoqueController::class, 'getBuscaItem'])->name('get-item-lote');
-        Route::get('get-itens-lote', [ItemLoteEntradaEstoqueController::class, 'getItensLote'])->name('estoque.get-itens-lote');
-        Route::get('get-resume-itens-lote', [ItemLoteEntradaEstoqueController::class, 'getResumeItens'])->name('estoque.get-resume-itens-lote');
+        Route::get('add-item-lote/{id}', [ItemLoteEstoqueController::class, 'index'])->name('add-item-lote.index');
+        Route::get('get-busca-item/{cd_barras}', [ItemLoteEstoqueController::class, 'getBuscaItem'])->name('get-item-lote');
+        Route::get('get-itens-lote', [ItemLoteEstoqueController::class, 'getItensLote'])->name('estoque.get-itens-lote');
+        Route::get('get-resume-itens-lote', [ItemLoteEstoqueController::class, 'getResumeItens'])->name('estoque.get-resume-itens-lote');
 
-        Route::get('get-busca-item',  function () {
-            return;
-        });
-        Route::post('add-item-lote/store', [ItemLoteEntradaEstoqueController::class, 'store'])->name('add-item-lote.store');
-        Route::delete('delete-item-lote', [ItemLoteEntradaEstoqueController::class, 'delete'])->name('delete-item-lote');
+        
+        Route::post('add-item-lote/store', [ItemLoteEstoqueController::class, 'store'])->name('add-item-lote.store');
+        Route::delete('delete-item-lote', [ItemLoteEstoqueController::class, 'delete'])->name('delete-item-lote');
 
-        Route::get('item-lote-fechado/{id}', [ItemLoteEntradaEstoqueController::class, 'listItemLote'])->name('item-lote-fechado');
+        Route::get('item-lote-fechado/{id}', [ItemLoteEstoqueController::class, 'listItemLote'])->name('item-lote-fechado');
     });
 });

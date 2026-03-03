@@ -14,8 +14,7 @@ class ItemController extends Controller
     public function __construct(
         Item $item,
         Request $request
-    )
-    {
+    ) {
         $this->item = $item;
         $this->request = $request;
     }
@@ -23,9 +22,20 @@ class ItemController extends Controller
     public function servicoPneu()
     {
         $idMedidaPneu = $this->request->get('idMedidaPneu');
-        
+
         $servicos = $this->item->servicoPneu($idMedidaPneu);
 
         return response()->json($servicos);
+    }
+
+    public function searchProduto()
+    {        
+        $data = [];
+
+        if ($this->request->has('q')) {
+            $search = $this->request->q;
+            $data = $this->item->FindProdutoAll($search);
+        }
+        return response()->json($data);
     }
 }

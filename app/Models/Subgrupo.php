@@ -11,6 +11,8 @@ class Subgrupo extends Model
 {
     use HasFactory;
 
+    protected $table = 'sub_grupos';
+
     public function subgrupoAll()
     {
        $query = "
@@ -25,4 +27,6 @@ class Subgrupo extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+   
 }

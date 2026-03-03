@@ -11,6 +11,8 @@ class Item extends Model
 {
     use HasFactory;
 
+    protected $table = 'item';
+
     public function getGroupItem()
     {
         $query = "
@@ -44,5 +46,22 @@ class Item extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    public function ItemFind($cd_barra)
+    {
+        $this->connection = 'mysql';
+
+        return Item::where('cd_codbarraemb', $cd_barra)->firstOr(function () {
+            return 0;
+        });
+    }
+
+    public function FindProdutoAll($term)
+    {
+        $this->connection = 'mysql';
+
+        return Item::where('ds_item', 'like', '%' . $term . '%')->where('st_ativo', 'S')
+            ->limit(10)->get();
     }
 }
