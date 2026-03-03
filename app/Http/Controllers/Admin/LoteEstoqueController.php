@@ -112,7 +112,7 @@ class LoteEstoqueController extends Controller
             'ds_lote'  => 'required|string',
             'tp_lote' => 'required|string|in:E,T,I',
             'tp_produto' => 'required|integer|in:1,2',
-            'cd_marca' => 'required|integer|exists:marca_pneus,id|in:1'
+            'cd_marca' => 'required|integer|exists:marca_lote_estoque,id|in:1'
         ];
 
         $messages = [

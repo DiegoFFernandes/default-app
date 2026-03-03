@@ -315,7 +315,7 @@
                 success: function(result) {
                     $("#loading").addClass('hidden');
                     msgToastr(result.success, "success");
-                    window.location.replace("{{ route('estoque.index') }}");
+                    window.location.replace("{{ route('entrada-estoque.index') }}");
                 }
             });
         });
