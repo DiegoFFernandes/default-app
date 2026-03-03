@@ -33,7 +33,7 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
     });
 
     Route::prefix('estoque-entrada')->group(function () {
-        Route::get('index', [LoteEstoqueController::class, 'index'])->name('estoque.index');
+        Route::get('index', [LoteEstoqueController::class, 'index'])->name('entrada-estoque.index');
         Route::get('cria-lote', [LoteEstoqueController::class, 'store'])->name('estoque.cria-lote');
         Route::get('get-lotes', [LoteEstoqueController::class, 'getLotes'])->name('estoque.get-lotes');
         Route::post('finaliza-lote', [LoteEstoqueController::class, 'finishLote'])->name('estoque.finish-lote');

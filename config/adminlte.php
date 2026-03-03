@@ -549,6 +549,11 @@ return [
                     'text' => 'Carcacas Casa',
                     'route' => 'carcaca-casa',
                     'can' => 'ver-estoque',
+                ],
+                [
+                    'text' => 'Contagem Estoque',
+                    'route' => 'entrada-estoque.index',
+                    'can' => 'ver-estoque',
                 ]
             ],
             // 'label' => 4,
