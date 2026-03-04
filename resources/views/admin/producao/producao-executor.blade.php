@@ -219,9 +219,10 @@
             let fimData = moment().format('DD.MM.YYYY 23:59');
             let abaAtiva = 'exame-inicial';
             let todosSetores = [];
+            let empresaNome = $('#filtro-empresa option:selected').text();
 
             $('.badge-periodo').text(`Periodo: ${inicioData} - ${fimData}`);
-            $('.badge-empresa').text('Empresa: Cambé')
+            $('.badge-empresa').text(`Empresa: ${empresaNome}`);
 
             // Variável global da tabela
             let tabela;
