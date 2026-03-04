@@ -10,7 +10,6 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
         Route::get('estoque-negativo', [EstoqueController::class, 'estoqueNegativo'])->name('estoque-negativo');
         Route::get('get-estoque-negativo', [EstoqueController::class, 'getEstoqueNegativo'])->name('get-estoque-negativo');
 
-
         //Carcaças da casa
         Route::get('carcacas-da-casa', [EstoqueController::class, 'carcacaCasa'])->name('carcaca-casa');
         Route::get('get-carcacas-da-casa', [EstoqueController::class, 'getCarcacaCasa'])->name('get-carcaca-casa');
@@ -19,13 +18,14 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
         Route::post('delete-carcaca', [EstoqueController::class, 'deleteCarcaca'])->name('delete-carcaca');
         Route::post('transfer-carcaca', [EstoqueController::class, 'transferCarcaca'])->name('transfer-carcaca');
 
-
         //Carcacas baixadas
         Route::get('get-carcacas-baixadas', [EstoqueController::class, 'getCarcacaCasaBaixas'])->name('get-carcaca-casa-baixas');
 
-        //Carcasas prontas
+        //Carcasas prontas Deposito
         Route::get('get-carcacas-prontas', [EstoqueController::class, 'getCarcacaCasaProntas'])->name('get-carcaca-casa-prontas');
 
+        //Carcasas prontas Terceiros
+        Route::get('get-carcacas-prontas-terceiros', [EstoqueController::class, 'getCarcacaCasaProntasTerceiros'])->name('get-carcaca-casa-prontas-terceiros');
 
         //Medidas de pneus
         Route::get('search-medidas-pneu', [EstoqueController::class, 'searchMedidasPneu'])->name('search-medidas-pneus');

@@ -17,6 +17,8 @@
                             @include('admin.estoque.carcaca-casa.tabs.painel-carcaca-saida')
 
                             @include('admin.estoque.carcaca-casa.tabs.painel-carcaca-pronta')
+
+                            @include('admin.estoque.carcaca-casa.tabs.painel-carcaca-pronta-terceiros')
                         </div>
                     </div>
                 </div>
@@ -52,11 +54,12 @@
             storePedidoPneu: "{{ route('store-pedido-pneu') }}",
             getCarcacaCasaBaixas: "{{ route('get-carcaca-casa-baixas') }}",
             getCarcacaCasaProntas: "{{ route('get-carcaca-casa-prontas') }}",
+            getCarcacaCasaProntasTerceiros: "{{ route('get-carcaca-casa-prontas-terceiros') }}",
         }
         window.canEdit = @json($canEdit);
     </script>
         
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/entradasCarcacaEstoque.js?v=' . time()) }}"></script>
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaPronta.js?v=' . time()) }}"></script>
-    
+    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaProntaTerceiros.js?v=' . time()) }}"></script>
 @endsection

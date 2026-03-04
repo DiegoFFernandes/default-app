@@ -15,7 +15,13 @@
         <li class="nav-item">
             <a class="nav-link" id="tab-carcaca-pronta" data-toggle="pill" href="#painel-carcaca-pronta" role="tab"
                 aria-controls="painel-carcaca-pronta" aria-selected="false">
-                Prontos
+                Prontos Deposito
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-carcaca-pronta-terceiros" data-toggle="pill" href="#painel-carcaca-pronta-terceiros" role="tab"
+                aria-controls="painel-carcaca-pronta-terceiros" aria-selected="false">
+                Prontos Terceiros
             </a>
         </li>
     </ul>

@@ -427,6 +427,23 @@ class EstoqueController extends Controller
         ]);
     }
 
+    public function getCarcacaCasaProntasTerceiros(){
+        $data = $this->estoque->getCarcacasProntasTerceiros();
+
+        $arrayCarcacaProntasLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DS_MEDIDA', 'DS_DESENHO', 'DSMODELO');
+
+        $datatable = Datatables()
+            ->of($data)            
+            ->make(true)
+            ->getData();
+
+        return response()->json([
+            'datatable' => $datatable,
+            'total_carcacas_prontas' => count($data),
+            'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),         
+        ]);
+    }
+
     //Ajustar esses dois métodos abaixo para um service específico de pneus
     public function searchMedidasPneu()
     {

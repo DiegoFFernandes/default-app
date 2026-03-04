@@ -1,4 +1,4 @@
-<div class="tab-pane fade" id="painel-carcaca-pronta" role="tabpanel" aria-labelledby="tab-carcaca-pronta">
+<div class="tab-pane fade" id="painel-carcaca-pronta-terceiros" role="tabpanel" aria-labelledby="tab-carcaca-pronta-terceiros">
     <div class="card-body p-2">
         <div class="row">
             <div class="col-md-8" id="div-tabela-carcacas-prontas">
@@ -8,7 +8,7 @@
                     </button>
                 </div>
                 <div class="card-body pb-0">
-                    <table class="table table-bordered compact table-font-small" id="table-carcacas-prontas" style="width: 100%">
+                    <table class="table table-bordered compact table-font-small" id="table-carcacas-prontas-terceiros">
                     </table>
                 </div>
             </div>
@@ -19,7 +19,7 @@
                             <div class="info-box-content">
                                 <span class="info-box-text">Total</span>
                                 <span class="info-box-number">
-                                    <span id="total-carcacas-prontas"></span>
+                                    <span id="total-carcacas-prontas-terceiros"></span>
                                     <small>Unidades</small>
                                 </span>
                             </div>
@@ -30,14 +30,14 @@
                     <div class="col-12 col-md-12">
                         <div class="card">
                             <div class="card-header">
-                                <h6 class="card-title">Resumo Local</h6>
+                                <h6 class="card-title">Resumo Terceiros</h6>
                                 <div class="card-tools m-0">
-                                    <button class="btn btn-xs btn-danger" id="download-resumo-local"><i
+                                    <button class="btn btn-xs btn-danger" id="download-resumo-terceiros"><i
                                             class="fas fa-download"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <div id="accordionResumoCarcacaProntaLocal" class="d-none"></div>
+                                <div id="accordionResumoCarcacaProntaTerceiros" class="d-none"></div>
                             </div>
                         </div>
                     </div>

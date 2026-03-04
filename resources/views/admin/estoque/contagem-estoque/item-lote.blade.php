@@ -21,7 +21,7 @@
                         <input type="hidden" class="form-control form-control-sm" id="id_marca"
                             value="{{ $lote->id_marca }}">
                         <div class="row">
-                            <div class="col-md-2 col-xs-6">
+                            <div class="col-4 col-md-2 col-xs-6">
                                 <div class="form-group">
                                     <label class="small" for="lote">Cód. Lote</label>
                                     <input type="text" class="form-control form-control-sm" id="id_lote"
@@ -35,7 +35,7 @@
                                         value="{{ $lote->descricao }}" disabled>
                                 </div>
                             </div> --}}
-                            <div class="col-md-5 hidden-xs">
+                            <div class="col-8 col-md-5 hidden-xs">
                                 <div class="form-group">
                                     <label class="small" for="responsavel">Responsável</label>
                                     <input type="text" class="form-control form-control-sm" id="responsavel"
@@ -52,24 +52,24 @@
                             <div class="col-md-4 col-xs-6">
                                 <div class="form-group">
                                     <label class="small" for="cd_barras">Cód. Barras Prod.</label>
-                                    <div class="input-group">
+                                    <div class="input-group input-group-sm">
                                         <input type="text" class="form-control form-control-sm pula" id="cd_barras"
                                             placeholder="Cód. Barras">
-                                        <div class="input-group-addon" id="">
-                                            <button data-toggle="modal" data-target="#modal-search"><i
-                                                    class="fa fa-search"></i></button>
-                                        </div>
+                                        <button class="btn btn-sm btn-outline-secondary" id="search-cd-barras" type="button"
+                                            data-toggle="modal" data-target="#modal-search">
+                                            <i class="fa fa-search"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3 hidden-xs">
+                            <div class="col-4 col-md-3 hidden-xs">
                                 <div class="form-group">
                                     <label class="small" for="cd_item">Cód. Produto</label>
                                     <input type="text" class="form-control form-control-sm" id="cd_item" disabled
                                         required>
                                 </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-8 col-md-5">
                                 <div class="form-group">
                                     <label class="small" for="ds_produto">Descrição Produto</label>
                                     <input type="text" class="form-control form-control-sm" id="ds_produto" disabled>
@@ -236,7 +236,7 @@
 
         $("#cd_barras_peso").on("keydown input blur", function(event) {
             var keycode = (event.keyCode ? event.keyCode : event.which);
-            
+
             if (keycode == '9' || keycode == '13' || event.type == "focusout") {
                 processarCodigoPeso(marca);
             }
