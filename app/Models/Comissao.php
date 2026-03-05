@@ -90,7 +90,8 @@ class Comissao extends Model
                 INV.TP_NOTA,
                 INV.CD_SERIE,
                 INV.CD_ITEM,
-                INV.CD_VENDEDOR
+                INV.CD_VENDEDOR,
+                COALESCE(INV.ST_AJUSTE, 'N') ST_AJUSTE
             FROM PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN ITEMPEDIDOPNEUBORRACHEIRO IPPB ON (IPPB.IDITEMPEDIDOPNEU = IPP.ID
@@ -127,7 +128,7 @@ class Comissao extends Model
                 AND INV.PC_COMISSAO IS NOT NULL
                 AND INV.ST_COMISSAOMANUAL NOT IN ('S')
                 --AND PP.ID IN (221978)
-
+                AND COALESCE(INV.ST_AJUSTE, 'N') = 'N'
             GROUP BY PP.ID,
                 PP.IDEMPRESA,
                 IPP.IDSERVICOPNEU,
@@ -148,7 +149,8 @@ class Comissao extends Model
                 INV.TP_NOTA,
                 INV.CD_SERIE,
                 INV.CD_ITEM,
-                INV.CD_VENDEDOR  
+                INV.CD_VENDEDOR,
+                INV.ST_AJUSTE 
             ";
 
         $data = DB::connection('firebird')->select($query);
@@ -167,7 +169,8 @@ class Comissao extends Model
                 UPDATE ITEMNOTAVENDEDOR INV
                 SET INV.PC_COMISSAO = :pc_comissao,
                     INV.VL_COMISSAO = :vl_comissao,
-                    INV.ST_COMISSAOMANUAL = 'S'  
+                    INV.ST_COMISSAOMANUAL = 'S',
+                    INV.ST_AJUSTE = 'N'
                 WHERE INV.CD_EMPRESA = :cd_empresa
                     AND INV.NR_LANCAMENTO = :nr_lancamento
                     AND INV.TP_NOTA = :tp_nota
@@ -196,6 +199,48 @@ class Comissao extends Model
                     'success' => false,
                     'nr_pedido' => $pedido['NR_PEDIDO'],
                     'message' => 'Erro ao atualizar comissão!' . $th->getMessage()
+                ];
+            }
+        });
+    }
+
+    public function updateManterComissaoAutomatica($pedido)
+    {
+        return DB::transaction(function () use ($pedido) {
+
+            try {
+                DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+                $query = "
+                UPDATE ITEMNOTAVENDEDOR INV
+                SET 
+                    INV.ST_AJUSTE = 'S'
+                WHERE INV.CD_EMPRESA = :cd_empresa
+                    AND INV.NR_LANCAMENTO = :nr_lancamento
+                    AND INV.TP_NOTA = :tp_nota
+                    AND INV.CD_SERIE = :cd_serie
+                    AND INV.CD_ITEM = :cd_item
+                    AND INV.CD_VENDEDOR = :cd_vendedor";
+
+                DB::connection('firebird')->update($query, [
+                    'cd_empresa' => $pedido['CD_EMPRESA'],
+                    'nr_lancamento' => $pedido['NR_LANCAMENTO'],
+                    'tp_nota' => $pedido['TP_NOTA'],
+                    'cd_serie' => $pedido['CD_SERIE'],
+                    'cd_item' => $pedido['CD_ITEM'],
+                    'cd_vendedor' => $pedido['CD_VENDEDOR']
+                ]);
+
+                return [
+                    'success' => true,
+                    'nr_pedido' => $pedido['NR_PEDIDO'],
+                    'message' => 'Comissão mantida automaticamente!'
+                ];
+            } catch (\Throwable $th) {
+                return [
+                    'success' => false,
+                    'nr_pedido' => $pedido['NR_PEDIDO'],
+                    'message' => 'Erro ao manter comissão automaticamente!' . $th->getMessage()
                 ];
             }
         });

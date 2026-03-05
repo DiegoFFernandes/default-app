@@ -61,7 +61,18 @@
     </section>
 @stop
 @section('css')
-
+    <style>
+        @supports (-webkit-touch-callout: none) {
+            input,
+            select,
+            textarea {
+                font-size: 16px;
+            }
+        }
+        .form-control {
+            font-size: 16px;
+        }
+    </style>
 @stop
 @section('js')
     <script type="text/javascript">
@@ -72,10 +83,10 @@
             deleteLote: "{{ route('estoque.delete-lote') }}",
         }
 
-        $('#cd_marca').select2({
-            theme: 'bootstrap4',
-            allowClear: true,
-        });
+        // $('#cd_marca').select2({
+        //     theme: 'bootstrap4',
+        //     allowClear: true,
+        // });
 
         $('#table-lote').DataTable({
             processing: false,
@@ -165,7 +176,7 @@
 
         $('#btnCriarLote').click(function() {
 
-            let marca = $('#cd_marca').val();            
+            let marca = $('#cd_marca').val();
 
             $.ajax({
                 url: window.routes.criarLote,

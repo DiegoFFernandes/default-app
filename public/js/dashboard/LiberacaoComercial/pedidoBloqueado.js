@@ -418,6 +418,7 @@ function initTable(tableId, data) {
             {
                 data: 'DS_ITEM',
                 name: 'DS_ITEM',
+                className: 'text-nowrap',
                 width: '20%',
                 title: 'Item'
             },

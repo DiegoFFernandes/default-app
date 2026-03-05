@@ -33,6 +33,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('get-substitui-comissao-automatica', [LiberaOrdemComissaoController::class, 'substituiComissaoAutomatica'])->name('get-substitui-comissao-automatica');        
         Route::post('save-substitui-comissao-automatica', [LiberaOrdemComissaoController::class, 'saveSubstituiComissaoAutomatica'])->name('save-substitui-comissao-automatica');
     
+        Route::post('save-substitui-comissao-automatica', [LiberaOrdemComissaoController::class, 'saveSubstituiComissaoAutomatica'])->name('save-substitui-comissao-automatica');
+        Route::post('save-manter-comissao-automatica', [LiberaOrdemComissaoController::class, 'saveManterComissaoAutomatica'])->name('save-manter-comissao-automatica');
         });
 });
 

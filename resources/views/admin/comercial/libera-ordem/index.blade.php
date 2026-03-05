@@ -36,9 +36,10 @@
             liberaAbaixoDesconto: "{{ route('libera-abaixo-desconto') }}",
             itensPneusOrdensBloqueadas: "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}",
             pedidosComissaoAutomatica: "{{ route('get-substitui-comissao-automatica') }}",
-            saveSubstituiComissaoAutomatica: "{{ route('save-substitui-comissao-automatica') }}"
+            saveSubstituiComissaoAutomatica: "{{ route('save-substitui-comissao-automatica') }}",
+            saveManterComissaoAutomatica: "{{ route('save-manter-comissao-automatica') }}",
         };
     </script>
-    <script src="{{ asset('js/dashboard/LiberacaoComercial/pedidoBloqueado.js') }}"></script>
-    <script src="{{ asset('js/dashboard/LiberacaoComercial/substituirComissao.js') }}"></script>
+    <script src="{{ asset('js/dashboard/LiberacaoComercial/pedidoBloqueado.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/LiberacaoComercial/substituirComissao.js') }}?v={{ time() }}"></script>
 @stop

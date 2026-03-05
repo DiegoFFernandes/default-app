@@ -68,8 +68,8 @@ class LoteEstoqueController extends Controller
                 if ($lotes->status == 'F') {
                     return '<a href="' . route('item-lote-fechado', Crypt::encryptString($lotes->id)) . '" id="ver-itens" class="btn btn-default btn-xs"><i class="fas fa-eye"></i></a>';
                 } else {
-                    return '<a href="' . route('add-item-lote.index', Crypt::encryptString($lotes->id)) . '" id="add-itens" class="btn btn-default btn-xs"><i class="fas fa-plus"></i></a>
-                    <button type="button" data-idlote="' . $lotes->id . '" class="btn btn-danger btn-xs delete"><i class="fas fa-trash"></i></button>';
+                    return '<a href="' . route('add-item-lote.index', Crypt::encryptString($lotes->id)) . '" id="add-itens" class="btn btn-default btn-xs">Adicionar Itens</a>
+                    <button type="button" data-idlote="' . $lotes->id . '" class="btn btn-danger btn-xs delete">Deletar Lote</button>';
                 }
             })
             ->rawColumns(['Actions'])

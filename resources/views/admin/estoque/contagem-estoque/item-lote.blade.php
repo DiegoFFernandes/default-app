@@ -179,7 +179,20 @@
         </div>
     </div>
 @endsection
-
+@section('css')
+    <style>
+        @supports (-webkit-touch-callout: none) {
+            input,
+            select,
+            textarea {
+                font-size: 16px;
+            }
+        }
+        .form-control {
+            font-size: 16px;
+        }
+    </style>
+@stop
 @section('js')
     <script type="text/javascript">
         window.route = {

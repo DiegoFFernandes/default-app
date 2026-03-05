@@ -2,14 +2,14 @@
     <div class="card">
         <x-loading-card />
         <div class="card-header">
-            <button class="btn btn-xs btn-success" id="btn-substituir-comissao">Substituir Comissão</button>
+            @include('admin.comercial.libera-ordem.buttons.buttons-tab')
         </div>
         <div class="card-body">
             <table class="table table-responsive compact table-font-small" id="table-substituir-comissao">
             </table>
         </div>
         <div class="card-footer">
-            <button class="btn btn-xs btn-success" id="btn-substituir-comissao">Substituir Comissão</button>
+            @include('admin.comercial.libera-ordem.buttons.buttons-tab')
         </div>
     </div>
 </div>

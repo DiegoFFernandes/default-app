@@ -64,6 +64,66 @@ $(document).on("click", "#btn-substituir-comissao", function () {
     });
 });
 
+$(document).on("click", "#btn-manter-comissao", function () {
+    var pedidosSelecionados = tableSubstituirComissao
+        .rows({ selected: true })
+        .data()
+        .toArray();
+
+    if (pedidosSelecionados.length === 0) {
+        Swal.fire({
+            title: "Nenhum pedido selecionado",
+            text: "Por favor, selecione pelo menos um pedido para manter a comissão automática.",
+            icon: "warning",
+        });
+        return;
+    }
+
+    $.ajax({
+        url: window.routes.saveManterComissaoAutomatica,
+        method: "POST",
+        data: {
+            _token: $('meta[name="csrf-token"]').attr("content"),
+            pedidos: pedidosSelecionados,
+        },
+        beforeSend: function () {
+            $(".loading-card").removeClass("invisible");
+        },
+        success: function (response) {
+            if (response.success) {
+                Swal.fire({
+                    title: response.message,
+                    html: `                    
+                    <p><strong>Pedidos:</strong></br>
+                    ${response.pedidos_atualizados.join("<br>")}
+                    </p>
+                    `,
+                    icon: "success",
+                    confirmButtonText: "OK",
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: "btn btn-success btn-sm",
+                    },
+                });
+                $(".loading-card").addClass("invisible");
+                tableSubstituirComissao.ajax.reload();
+            } else {
+                Swal.fire({
+                    title: "Erro",
+                    text: response.message,
+                    icon: "error",
+                    confirmButtonText: "OK",
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: "btn btn-danger btn-sm",
+                    },
+                });
+            }
+            $(".loading-card").addClass("invisible");
+        },
+    });
+});
+
 function initTableSubstituirComissao() {
     // if (!$.fn.DataTable.isDataTable("#table-substituir-comissao")) {
     $("#table-substituir-comissao").DataTable().clear().destroy();
@@ -103,6 +163,13 @@ function initTableSubstituirComissao() {
                 name: "NR_PEDIDO",
                 title: "Pedido",
                 width: "2%",
+            },
+            {
+                data: "NR_LANCAMENTO",
+                name: "NR_LANCAMENTO",
+                title: "Lançamento",
+                width: "2%",
+                className: "text-center",
             },
             { data: "NM_PESSOA", name: "NM_PESSOA", title: "Cliente" },
             { data: "DS_ITEM", name: "DS_ITEM", title: "Item" },
@@ -145,6 +212,6 @@ function initTableSubstituirComissao() {
                     });
                 },
             },
-        ]        
+        ],
     });
 }

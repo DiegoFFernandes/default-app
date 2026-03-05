@@ -272,14 +272,40 @@ class LiberaOrdemComissaoController extends Controller
                 $pedidosAtualizados[] = $resultado['nr_pedido'];
             } else {
                 return response()->json([
+                    'success' => false,
                     'message' => 'Erro ao atualizar comissão do pedido ' . $resultado['nr_pedido'] . ': ' . $resultado['message']
-                ], 500);
+                ]);
             }
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Comissões substituídas com sucesso!',
+            'pedidos_atualizados' => array_unique($pedidosAtualizados)
+        ]);
+    }
+
+    public function saveManterComissaoAutomatica()
+    {
+        $pedidos = $this->request->pedidos;
+        $pedidosAtualizados = [];
+
+        foreach ($pedidos as $pedido) {
+            $resultado = $this->comissao->updateManterComissaoAutomatica($pedido);
+
+            if ($resultado['success']) {
+                $pedidosAtualizados[] = $resultado['nr_pedido'];
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erro ao atualizar comissão do pedido ' . $resultado['nr_pedido'] . ': ' . $resultado['message']
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Comissões mantidas com sucesso!',
             'pedidos_atualizados' => array_unique($pedidosAtualizados)
         ]);
     }
