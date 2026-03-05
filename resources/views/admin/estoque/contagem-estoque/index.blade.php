@@ -196,11 +196,19 @@
                 success: function(result) {
                     $("#loading").addClass('hidden');
                     if (result.errors) {
-                        // alert(result.errors);
-                        msgToastr(result.errors, 'warning');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: result.errors,
+                        });
                     } else {
-                        // alert(result.success);
-                        msgToastr(result.success, 'success');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sucesso',
+                            text: result.success,
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
                     }
                     $('#table-lote').DataTable().ajax.reload();
                 },
