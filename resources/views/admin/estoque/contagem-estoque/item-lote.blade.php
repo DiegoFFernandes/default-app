@@ -55,10 +55,12 @@
                                     <div class="input-group input-group-sm">
                                         <input type="text" class="form-control form-control-sm pula" id="cd_barras"
                                             placeholder="Cód. Barras">
-                                        <button class="btn btn-sm btn-outline-secondary" id="search-cd-barras" type="button"
-                                            data-toggle="modal" data-target="#modal-search">
-                                            <i class="fa fa-search"></i>
-                                        </button>
+                                        <div class="input-group-append">
+                                            <button class="btn btn-sm btn-outline-secondary" id="search-cd-barras"
+                                                type="button" data-toggle="modal" data-target="#modal-search">
+                                                <i class="fa fa-search"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -175,6 +177,10 @@
                         <select class="form-control form-control-sm" id="item" style="width: 100%"></select>
                     </div>
                 </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal">Fechar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -182,14 +188,30 @@
 @section('css')
     <style>
         @supports (-webkit-touch-callout: none) {
+
             input,
             select,
             textarea {
                 font-size: 16px;
             }
         }
-        .form-control {
+
+        .form-control,
+        .form-control-sm {
             font-size: 16px;
+        }
+
+
+        .input-group-sm>.custom-select,
+        .input-group-sm>.form-control,
+        .input-group-sm>.btn,
+        .input-group-sm>.input-group-text,
+        .input-group-sm>.input-group-prepend>.btn,
+        .input-group-sm>.input-group-prepend>.input-group-text {
+            padding: .25rem .5rem;
+            font-size: 16px;
+            line-height: 1.5;
+            border-radius: .2rem;
         }
     </style>
 @stop
@@ -247,7 +269,16 @@
             }
         });
 
-        $("#cd_barras_peso").on("keydown input blur", function(event) {
+        let timeLeitura = null;
+
+        $("#cd_barras_peso").on("input", function(event) {
+            clearTimeout(timeLeitura);
+            timeLeitura = setTimeout(function() {
+                processarCodigoPeso(marca);
+            }, 500);
+        });
+
+        $("#cd_barras_peso").on("keydown blur", function(event) {
             var keycode = (event.keyCode ? event.keyCode : event.which);
 
             if (keycode == '9' || keycode == '13' || event.type == "focusout") {
@@ -255,8 +286,8 @@
             }
         });
 
-        $("#submit-add-item").on('click', function() {
 
+        $("#submit-add-item").on('click', function() {
             let cd_item = $("#cd_item").val();
             let cd_peso = $("#peso").val();
             if (cd_item == "") {
@@ -297,17 +328,33 @@
 
                     $("#loading").addClass('hidden');
                     if (result.errors) {
-                        msgToastr(result.errors, 'warning');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: result.errors,
+                        });
 
-                    } else {
-                        //console.log(result);  
+                    } else {                         
                         $("#cd_barras").val("");
                         $('#cd_item').val("");
                         $('#peso').val("");
                         $('#cd_barras_peso').val("");
-                        msgToastr(result.success, 'success');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sucesso',
+                            text: result.success,
+                            showConfirmButton: false,
+                            timer: 1000,
+                        });
                         $('#table-item-lote').DataTable().ajax.reload();
                         $('#qtd_itens_coleta').text(result.qtde + " Itens");
+
+                        campo = $('.pula');
+                        indice = campo.index(this);
+                        if (campo[indice + 1] != null) {
+                            proximo = campo[indice + 1];
+                            proximo.focus();
+                        }
                     }
                 }
             });
@@ -406,32 +453,46 @@
 
         $("#table-item-lote").on('click', '.delete', function() {
             let rowId = $(this).data();
-            toastr.error(
-                "<button type='button' id='confirmationButtonYes' class='btn btn-danger'>Sim</button><button type='button' id='confirmationButtonNo' class='btn btn-warning'>Não</button>",
-                'Deletar item?', {
-                    closeButton: false,
-                    allowHtml: true,
-                    onShown: function(toast) {
-                        $("#confirmationButtonYes").click(function() {
-                            $.ajax({
-                                method: "DELETE",
-                                url: "{{ route('delete-item-lote') }}",
-                                data: {
-                                    id: rowId['id'],
-                                    _token: token
-                                },
-                                beforeSend: function() {
-                                    $("#loading").removeClass('hidden');
-                                },
-                                success: function(result) {
-                                    $("#loading").addClass('hidden');
-                                    msgToastr(result.success, "success");
-                                    location.reload()
-                                }
+
+            Swal.fire({
+                title: 'Tem certeza que deseja deletar este item?',
+                showDenyButton: true,
+                confirmButtonText: 'Sim',
+                denyButtonText: 'Não',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        method: "DELETE",
+                        url: "{{ route('delete-item-lote') }}",
+                        data: {
+                            id: rowId['id'],
+                            _token: token
+                        },
+                        beforeSend: function() {
+                            $("#loading").removeClass('hidden');
+                        },
+                        success: function(result) {
+                            $("#loading").addClass('hidden');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sucesso',
+                                text: result.success,
+                                showConfirmButton: false,
+                                timer: 1500,
                             });
-                        });
-                    }
-                });
+                            $('#table-item-lote').DataTable().ajax.reload();
+
+                            if (result.qtde == undefined) {
+                                $('#qtd_itens_coleta').text("0 Itens");
+                            } else {
+                                $('#qtd_itens_coleta').text(result.qtde + " Itens");
+                            }
+                        }
+                    });
+                } else if (result.isDenied) {
+                    Swal.fire('Ação cancelada', '', 'info');
+                }
+            });
         });
 
         $('.nav-tabs a[href="#table-resumo"]').on('click', function() {
@@ -541,8 +602,7 @@
                         confirmButtonText: 'OK'
                     });
                     return;
-                } else if (codigoLido.length == 5) {
-                    console.log(codigoLido);
+                } else if (codigoLido.length == 5) {                    
                     let peso = parseFloat(codigoLido.replace(',', '.')).toFixed(2);
                     return $("#peso").val(peso);
                 }

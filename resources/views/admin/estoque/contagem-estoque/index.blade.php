@@ -63,12 +63,14 @@
 @section('css')
     <style>
         @supports (-webkit-touch-callout: none) {
+
             input,
             select,
             textarea {
                 font-size: 16px;
             }
         }
+
         .form-control {
             font-size: 16px;
         }
@@ -240,11 +242,20 @@
                 success: function(result) {
                     $('#loading').addClass('hidden');
                     if (result.error) {
-                        // alert(result.error);
-                        msg(result.error, 'alert-warning', 'fa fa-warning');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro',
+                            text: result.error,
+                        });
                         return false;
                     } else {
-                        msg(result.success, 'alert-success', 'fa fa-check');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sucesso',
+                            text: result.success,
+                            showConfirmButton: false,
+                            timer: 1500,
+                        });
                         $('#table-lote').DataTable().ajax.reload();
                     }
                 },
