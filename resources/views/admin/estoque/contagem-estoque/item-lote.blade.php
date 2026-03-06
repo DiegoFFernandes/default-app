@@ -235,15 +235,6 @@
         var id_lote = $("#id_lote").val();
         let token = $("meta[name='csrf-token']").attr("content");
 
-
-        // $("#cd_barras").inputmask({
-        //     mask: ['A99999999', '9999999999999']
-        // });
-
-        // $("#cd_barras_peso").inputmask({
-        //     mask: ['99.99', 'Q99.99', '9Q99.99', '999999']
-        // });
-
         $("#cd_barras").on("keydown input blur", function(event) {
             var keycode = (event.keyCode ? event.keyCode : event.which);
             var cd_barras = $("#cd_barras").val();
@@ -334,7 +325,7 @@
                             text: result.errors,
                         });
 
-                    } else {                         
+                    } else {
                         $("#cd_barras").val("");
                         $('#cd_item').val("");
                         $('#peso').val("");
@@ -602,7 +593,7 @@
                         confirmButtonText: 'OK'
                     });
                     return;
-                } else if (codigoLido.length == 5) {                    
+                } else if (codigoLido.length == 5) {
                     let peso = parseFloat(codigoLido.replace(',', '.')).toFixed(2);
                     return $("#peso").val(peso);
                 }

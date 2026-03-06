@@ -155,7 +155,7 @@
     </script>
 
     {{-- Script de Funções --}}
-    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=20') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=' . time()) }}"></script>
     <script>
         document.getElementById("ativarNotificacoesCheckbox").addEventListener("click", handleNotificationToggle);
 

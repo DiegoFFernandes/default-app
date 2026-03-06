@@ -76,10 +76,8 @@ function initTableCarcaca() {
     let columns = [
         {
             data: null,
-            // width: "1%",
-            defaultContent: "",
-            className: "select-checkbox",
-            orderable: false,
+            width: "1%",
+            render: DataTable.render.select(),
         },
     ];
 
@@ -158,7 +156,6 @@ function initTableCarcaca() {
         scrollX: true,
         select: {
             style: "multi",
-            selector: "td.select-checkbox",
         },
         language: {
             url: window.routes.languageDatatables,
@@ -729,11 +726,6 @@ $(document).on("click", "#btn-criar-pedido", function () {
 
         $("#itens-pedido").append(itemHtml);
 
-        $(".input-venda").inputmask({
-            mask: ["999", "9.999"],
-            radixPoint: ",",
-        });
-
         inicializaSelect2Lista({
             route:
                 window.routes.servicoPneu +
@@ -745,6 +737,11 @@ $(document).on("click", "#btn-criar-pedido", function () {
             textField: "DSSERVICO",
             valueField: "ID",
         });
+    });
+
+    $(".input-venda").inputmask({
+        mask: ["999", "9.999"],
+        radixPoint: ",",
     });
 
     $("#modal-criar-pedido").modal("show");
@@ -832,6 +829,7 @@ $(document).on("click", "#btn-confirmar-pedido", function () {
 });
 
 $(document).on("click", ".btn-atualizar-servicos", function () {
+    let btn = $(this);
     let itemId = $(this).data("item-id");
     let medidaPneu = $(this).data("medida-pneu");
     let selectServico = $(`.servico-item-${itemId}`);
@@ -845,14 +843,25 @@ $(document).on("click", ".btn-atualizar-servicos", function () {
         return;
     }
 
+    let btnOriginalHtml = btn.html();
+
+    // coloca loading
+    btn.prop("disabled", true);
+    btn.html('<i class="fas fa-spinner fa-spin"></i>');
+
     // reinicializa o select2 com os novos serviços
     inicializaSelect2Lista({
         route: window.routes.servicoPneu + "?idMedidaPneu=" + medidaPneu,
         selectId: `.servico-item-${itemId}`,
         placeholder: "Selecione o Serviço",
-        modalParent: "#modal-criar-pedido",
+        modalParent: ".item-pedido",
         textField: "DSSERVICO",
         valueField: "ID",
+        callback: function () {
+            // volta botão ao normal
+            btn.prop("disabled", false);
+            btn.html(btnOriginalHtml);
+        },
     });
 });
 
@@ -991,8 +1000,8 @@ $(document).on("click", "#download-itens", function () {
             Fogo: item.NR_FOGO,
             Serie: item.NR_SERIE,
             Dot: item.NR_DOT,
-            Tipo: item.DS_TIPO,           
-            Local: item.LOCAL_ESTOQUE                    
+            Tipo: item.DS_TIPO,
+            Local: item.LOCAL_ESTOQUE,
         });
     });
 

@@ -61,7 +61,7 @@ function initSelect2Pessoa(
             delay: 250,
             data: function (params) {
                 return {
-                    q:  params.term || "",
+                    q: params.term || "",
                     cd_tipopessoa: cdTipoPessoa || null,
                 };
             },
@@ -301,11 +301,15 @@ function inicializaSelect2Lista(config) {
                 placeholder: config.placeholder,
                 theme: "bootstrap4",
                 width: "100%",
-                allowClear: true,
+                allowClear: false,
                 dropdownParent: select.closest(
                     config.modalParent || document.body,
                 ),
             });
+
+            if (config.callback) {
+                config.callback();
+            }
         },
     });
 }

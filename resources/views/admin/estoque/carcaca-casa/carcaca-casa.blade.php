@@ -37,6 +37,10 @@
 @stop
 @section('js')
     <script type="text/javascript">
+        $(document).on('select2:open', function() {
+            $('.select2-results__options').css('max-height', '100px');
+            $('.select2-results__options').css('overflow-y', 'auto');
+        });
         window.routes = {
             token: "{{ csrf_token() }}",
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
@@ -58,7 +62,7 @@
         }
         window.canEdit = @json($canEdit);
     </script>
-        
+
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/entradasCarcacaEstoque.js?v=' . time()) }}"></script>
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaPronta.js?v=' . time()) }}"></script>
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaProntaTerceiros.js?v=' . time()) }}"></script>

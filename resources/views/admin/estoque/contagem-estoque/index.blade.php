@@ -83,12 +83,7 @@
             getLotes: "{{ route('estoque.get-lotes') }}",
             criarLote: "{{ route('estoque.cria-lote') }}",
             deleteLote: "{{ route('estoque.delete-lote') }}",
-        }
-
-        // $('#cd_marca').select2({
-        //     theme: 'bootstrap4',
-        //     allowClear: true,
-        // });
+        }        
 
         $('#table-lote').DataTable({
             processing: false,
