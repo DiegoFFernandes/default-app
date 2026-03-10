@@ -10,7 +10,6 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
         scrollX: true,
         select: {
             style: "multi",
-            selector: "td.select-checkbox",
         },
         language: {
             url: window.routes.languageDatatables,
@@ -19,7 +18,9 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
         ajax: {
             url: window.routes.getCarcacaCasaProntas,
             dataSrc: function (response) {
-                $("#total-carcacas-prontas").text(response.total_carcacas_prontas);
+                $("#total-carcacas-prontas").text(
+                    response.total_carcacas_prontas,
+                );
 
                 $("#accordionResumoCarcacaProntaLocal")
                     .html(
@@ -37,9 +38,8 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
         columns: [
             {
                 data: null,
-                // width: "1%",
-                defaultContent: "",
-                className: "select-checkbox",
+                width: "1%",
+                render: DataTable.render.select(),
                 orderable: false,
             },
             {
@@ -94,7 +94,6 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
                 data: "NRDOT",
                 name: "NRDOT",
                 title: "Nr Dot",
-                
             },
         ],
         columnDefs: [
@@ -105,3 +104,80 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
         ],
     });
 });
+
+$(document).on("click", "#btn-reservar-carcaca", function () {
+    let selectedRows = tableCarcacaPronta.rows({ selected: true }).data();
+    let config = {
+        swalText:
+            "Por favor, selecione pelo menos uma carcaça para reservar.",
+    };
+
+    reservarCarcacaPronta(selectedRows, "S", config);
+});
+
+$(document).on("click", "#btn-cancelar-reserva-carcaca", function () {
+    let selectedRows = tableCarcacaPronta.rows({ selected: true }).data();
+    let config = {
+        swalText:
+            "Por favor, selecione pelo menos uma carcaça para cancelar a reservar.",
+    };
+    reservarCarcacaPronta(selectedRows, "N", config);
+});
+
+function reservarCarcacaPronta(selectedRows, st_Reserva, config) {
+    if (selectedRows.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Nenhuma carcaça selecionada",
+            text: config.swalText,
+        });
+        return;
+    }
+
+    let NrOrdens = [];
+
+    selectedRows.each(function (rowData) {
+        NrOrdens.push(rowData.NR_ORDEM);
+    });
+
+    $.ajax({
+        url: window.routes.reservarCarcacaCasaPronta,
+        method: "GET",
+        data: {
+            _token: window.routes.token,
+            NR_ORDEM: NrOrdens,
+            ST_RESERVA: st_Reserva,
+        },
+        beforeSend: function () {
+            $(".loading-card").removeClass("invisible");
+        },
+        success: function (response) {
+            $(".loading-card").addClass("invisible");
+            if (response.success) {
+                Swal.fire({
+                    icon: "success",
+                    text: response.message,
+                    showConfirmButton: true,
+                    confirmButtonText: "Ok",
+                });
+                tableCarcacaPronta.ajax.reload();
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Erro ao reservar carcaças.",
+                    text: response.errors
+                        ? response.message
+                        : "Ocorreu um erro inesperado.",
+                });
+            }
+        },
+        error: function (xhr) {
+            $(".loading-card").addClass("invisible");
+            Swal.fire({
+                icon: "error",
+                title: "Erro ao reservar carcaças.",
+                text: xhr.responseText,
+            });
+        },
+    });
+}

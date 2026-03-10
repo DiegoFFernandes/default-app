@@ -1,6 +1,6 @@
 <div class="modal fade" id="modal-criar-pedido" tabindex="-1" role="dialog" aria-labelledby="modal-criar-pedido-label"
     aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <!-- LOADER -->
             <div id="modal-loader" class="loading-card invisible loader-overlay">

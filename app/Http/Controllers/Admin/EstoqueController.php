@@ -107,7 +107,7 @@ class EstoqueController extends Controller
             ->getData();
 
 
-        $arrayCarcacaLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DSMARCA', 'DSMODELO1');            
+        $arrayCarcacaLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DSMARCA', 'DSMODELO1');
 
         return response()->json([
             'datatable' => $datatable, // <-- agora é apenas o array,
@@ -119,7 +119,7 @@ class EstoqueController extends Controller
                 'marca_agrupado'   => $this->agruparCarcacaMarcaQtd($data),
                 // 'accordion_data'   => $this->agruparArrayCarcaca($data, $nivel1 = 'DSMARCA', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
                 // 'accordion_data_local'   => $this->agruparArrayCarcaca($data, $nivel1 = 'LOCAL_ESTOQUE', $nivel2 = 'DSMEDIDAPNEU', $nivel3 = 'DSMODELO'),
-                ]
+            ]
         ]);
     }
 
@@ -231,11 +231,11 @@ class EstoqueController extends Controller
 
             // Medida
             $nivel2Key = $item->{$nivel2} ?? 'Sem Medida';
-             if (!isset($result[$nivel1Key]['medida'][$nivel2Key])) {
+            if (!isset($result[$nivel1Key]['medida'][$nivel2Key])) {
                 $result[$nivel1Key]['medida'][$nivel2Key] = [
                     'medida' => $nivel2Key,
                     'qtd'    => 0,
-                    'marca' => []                    
+                    'marca' => []
                 ];
             }
 
@@ -274,12 +274,12 @@ class EstoqueController extends Controller
                 foreach ($medida['marca'] as &$marca) {
                     $marca['modelo'] = array_values($marca['modelo']);
                 }
-                unset($marca);                
+                unset($marca);
             }
             unset($medida);
         }
         unset($local);
-        
+
 
         return $result;
     }
@@ -405,7 +405,8 @@ class EstoqueController extends Controller
         return response()->json($data);
     }
 
-    public function getCarcacaCasaProntas(){
+    public function getCarcacaCasaProntas()
+    {
         $data = $this->estoque->getCarcacaCasaProntas();
 
         $arrayCarcacaProntasLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DESENHOPNEU', 'DSMODELO');
@@ -413,7 +414,12 @@ class EstoqueController extends Controller
         $datatable = Datatables()
             ->of($data)
             ->addColumn('action', function ($row) {
-                $btn = '<button class="btn btn-xs btn-reservar btn-success" data-id="' . $row->NR_ORDEM . '" title="Reservar Pneu"><i class="fas fa-circle fa-xs"></i></button>';
+                $btn = '';
+                if ($row->ST_RESERVA === 'S') {
+                    $btn = '<button class="btn btn-xs btn-reservar btn-warning" data-id="' . $row->NR_ORDEM . '" title="Pneu Reservado"><i class="fas fa-circle fa-xs"></i></button>';
+                } else {
+                    $btn = '<button class="btn btn-xs btn-reservar btn-success" data-id="' . $row->NR_ORDEM . '" title="Reservar Pneu"><i class="fas fa-circle fa-xs"></i></button>';
+                }
                 return $btn;
             })
             ->rawColumns(['action'])
@@ -423,25 +429,56 @@ class EstoqueController extends Controller
         return response()->json([
             'datatable' => $datatable,
             'total_carcacas_prontas' => count($data),
-            'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),         
+            'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),
         ]);
     }
 
-    public function getCarcacaCasaProntasTerceiros(){
+    public function getCarcacaCasaProntasTerceiros()
+    {
         $data = $this->estoque->getCarcacasProntasTerceiros();
 
         $arrayCarcacaProntasLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DS_MEDIDA', 'DS_DESENHO', 'DSMODELO');
 
         $datatable = Datatables()
-            ->of($data)            
+            ->of($data)
             ->make(true)
             ->getData();
 
         return response()->json([
             'datatable' => $datatable,
             'total_carcacas_prontas' => count($data),
-            'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),         
+            'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),
         ]);
+    }
+
+
+    public function reservarCarcacaCasaPronta()
+    {
+        $rules = [
+            'NR_ORDEM' => 'array|required',
+            'ST_RESERVA' => 'string|required|in:S,N',
+        ];
+
+        $messages = [
+            'NR_ORDEM.array' => 'Número de ordem inválido.',
+            'NR_ORDEM.required' => 'Número de ordem é obrigatório.',
+            'ST_RESERVA.string' => 'Status de reserva inválido.',
+            'ST_RESERVA.required' => 'Status de reserva é obrigatório.',
+            'ST_RESERVA.in' => 'Status de reserva inválido.',
+        ];
+
+        $input = Validator::make($this->request->all(), $rules, $messages);
+
+        if ($input->fails()) {
+            return Helper::formatErrorsAsHtml($input);
+        }
+
+        $nrOrdem = $input->validated()['NR_ORDEM'];
+        $stReserva = $input->validated()['ST_RESERVA'];
+
+        $data = $this->estoque->reservarCarcacaCasaPronta($nrOrdem, $stReserva);
+
+        return response()->json($data);
     }
 
     //Ajustar esses dois métodos abaixo para um service específico de pneus

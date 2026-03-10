@@ -334,8 +334,8 @@ class Estoque extends Model
                 MD.DSMEDIDAPNEU DSMEDIDAPNEU,
                 PNEU.NRSERIE,
                 PNEU.NRFOGO,
-                PNEU.NRDOT
-
+                PNEU.NRDOT,
+                COALESCE(OPR.ST_RESERVA, 'N') ST_RESERVA
             FROM PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
@@ -503,5 +503,43 @@ class Estoque extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    public function reservarCarcacaCasaPronta($nr_ordens, $st_reserva)
+    {
+        try {
+            return DB::transaction(function () use ($nr_ordens, $st_reserva) {
+
+                $bindings = [];
+
+                foreach ($nr_ordens as $i => $ordem) {
+                    $bindings["ordem$i"] = $ordem;
+                }
+
+                $bindings['st_reserva'] = $st_reserva;
+
+                $placeholders = implode(',', array_map(fn($i) => ":ordem$i", array_keys($nr_ordens)));
+
+                $query = "
+                UPDATE ORDEMPRODUCAORECAP
+                SET ST_RESERVA = :st_reserva
+                WHERE ID IN ($placeholders)                    
+                    ";
+
+
+                DB::connection('firebird')->statement("EXECUTE PROCEDURE GERA_SESSAO");
+
+                DB::connection('firebird')->update($query, $bindings);
+
+                if ($st_reserva === 'S') {
+                    return ['success' => true, 'message' => 'Pneu(s) ' . implode(', ', $nr_ordens) . ' reservado(s) com sucesso.'];
+                } else {
+                    return ['success' => true, 'message' => 'Reserva de pneu(s) ' . implode(', ', $nr_ordens) . ' cancelada com sucesso.'];
+                }
+            });
+        } catch (\Exception $e) {
+
+            return ['errors' => true, 'message' => 'Erro ao reservar pneu: ' . $e->getMessage()];
+        }
     }
 }

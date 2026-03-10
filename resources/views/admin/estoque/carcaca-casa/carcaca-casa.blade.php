@@ -59,6 +59,7 @@
             getCarcacaCasaBaixas: "{{ route('get-carcaca-casa-baixas') }}",
             getCarcacaCasaProntas: "{{ route('get-carcaca-casa-prontas') }}",
             getCarcacaCasaProntasTerceiros: "{{ route('get-carcaca-casa-prontas-terceiros') }}",
+            reservarCarcacaCasaPronta: "{{ route('reservar-carcaca-casa-pronta') }}",
         }
         window.canEdit = @json($canEdit);
     </script>

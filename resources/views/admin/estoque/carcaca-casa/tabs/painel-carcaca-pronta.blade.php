@@ -6,6 +6,9 @@
                     <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;" id="btn-reservar-carcaca">
                         Reservar Pneus
                     </button>
+                    <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;" id="btn-cancelar-reserva-carcaca">
+                        Cancelar Reserva
+                    </button>
                 </div>
                 <div class="card-body pb-0">
                     <table class="table table-bordered compact table-font-small" id="table-carcacas-prontas" style="width: 100%">

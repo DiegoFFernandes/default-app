@@ -692,13 +692,20 @@ $(document).on("click", "#btn-criar-pedido", function () {
     selectedRows.each(function (rowData) {
         let itemHtml = `
                                 <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-4 col-md-3">
                                         <label class="form-label small">Medida</label>
                                         <input type="text"
                                             class="form-control form-control-sm"
                                             value="${rowData.DSMEDIDAPNEU}"
                                             readonly />
                                     </div>
+                                    <div class="col-4 col-md-3">
+                                        <label class="form-label small">Marca/Modelo</label>
+                                        <input type="text"
+                                            class="form-control form-control-sm"
+                                            value="${rowData.DSMODELO}"
+                                            readonly />
+                                    </div>    
 
                                      <!-- Botão -->
                                     <div class="col-1 col-md-auto d-flex align-items-end">
@@ -710,12 +717,12 @@ $(document).on("click", "#btn-criar-pedido", function () {
                                             <i class="fas fa-sync-alt"></i>
                                         </button>
                                     </div>
-                                    <div class="col-11 col-md-5">
+                                    <div class="col-11 col-md-4">
                                         <label class="form-label small">Serviço</label>
                                         <select class="form-control form-control-sm servico-item-${rowData.ID}" style="width: 100%">                                           
                                         </select>
                                     </div>
-                                    <div class="col-12 col-md-2">
+                                    <div class="col-12 col-md-1">
                                         <label class="form-label small">Valor</label>
                                         <input type="text"
                                             class="form-control form-control-sm input-venda"                                           
@@ -814,6 +821,7 @@ $(document).on("click", "#btn-confirmar-pedido", function () {
                         htmlContainer: "text-left",
                     },
                 });
+                $("#btn-confirmar-pedido").prop("disabled", false);
                 return;
             }
         },
