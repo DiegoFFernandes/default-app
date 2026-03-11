@@ -49,8 +49,8 @@ class ImportaJunsoftController extends Controller
     public function AjaxImportaItem(){
         $cd_marca = $this->request->cd_marca;            
         
-        // 6 - BANDAS
-        $isValidSubgrupoReformaCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(6);
+        // 8 - BANDAS
+        $isValidSubgrupoReformaCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(8);
 
         $import = $this->item->ImportaItemJunsoft($cd_marca, $isValidSubgrupoReformaCarga);
         
