@@ -4,12 +4,12 @@
 
 @section('content')
     <section class="content">
-        <div class="card card-outline card-dark">
+        <div class="card card-outline card-dark collapsed-card">
             <div class="card-header">
                 <h3 class="card-title">Filtros:</h3>
                 <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
+                        <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
@@ -17,8 +17,8 @@
                 <div class="row">
                     <div class="col-12 col-md-2 mb-2">
                         <div class="form-group mb-0">
-                            <label for="filtro-empresa">Empresa:</label>
-                            <select id="filtro-empresa" class="form-control mt-1">
+                            <label class="small" for="filtro-empresa">Empresa:</label>
+                            <select id="filtro-empresa" class="form-control form-control-sm mt-1">
                                 @foreach ($empresas as $empresa)
                                     <option value="{{ $empresa->CD_EMPRESA }}">{{ $empresa->NM_EMPRESA }}</option>
                                 @endforeach
@@ -27,25 +27,25 @@
                     </div>
                     <div class="col-12 col-md-4 mb-2">
                         <div class="form-group mb-0">
-                            <label for="daterange">Data:</label>
+                            <label class="small" for="daterange">Data:</label>
                             <div class="input-group mt-1">
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
                                 </div>
-                                <input type="text" class="form-control" id="daterange" placeholder="Selecione a Data">
+                                <input type="text" class="form-control form-control-sm" id="daterange" placeholder="Selecione a Data">
                             </div>
                         </div>
                     </div>
                     <div class="col-12 col-md-4 mb-2">
                         <div class="form-group mb-0">
-                            <label for="filtro-executor">Executor:</label>
-                            <select id="filtro-executor" class="form-control mt-1">
+                            <label class="small" for="filtro-executor">Executor:</label>
+                            <select id="filtro-executor" class="form-control form-control-sm mt-1">
                                 <option value="">Todos</option>
                             </select>
                         </div>
                     </div>
                     <div class="col-12 col-md-2 mb-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-primary btn-block" id="submit-seach">Buscar</button>
+                        <button type="button" class="btn btn-primary btn-block btn-sm" id="submit-seach">Buscar</button>
                     </div>
                 </div>
             </div>
@@ -509,7 +509,7 @@
                 $('.badge-empresa').text(`Empresa: ${empresaNome}`);
                 // automatiza o  badge-danger do periodo e formata o valor 
                 $('.badge-periodo').text(
-                    `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "MM/DD/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
+                    `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
                 );
 
 
