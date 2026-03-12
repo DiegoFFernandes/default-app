@@ -109,7 +109,9 @@ class AcompanhamentoPneu extends Model
                         EP.CD_REGIAOCOMERCIAL,
                         PPM.DTREGISTROPALM,
                         PP.DHSINCRONIZACAO,
-                        PP.HREMISSAO,
+                        CAST(PP.DHSINCRONIZACAO AS TIME) AS HR_SINCRONIZACAO,
+
+                        --PP.HREMISSAO,
                         PP.DTEMISSAO,
                         PP.DTENTREGA DTENTREGAPED,
                         CASE

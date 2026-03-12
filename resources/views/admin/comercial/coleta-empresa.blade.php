@@ -849,9 +849,9 @@
                         visible: false
                     },
                     {
-                        data: 'HREMISSAO',
-                        name: 'HREMISSAO',
-                        title: "Hr Emissão"
+                        data: 'HR_SINCRONIZACAO',
+                        name: 'HR_SINCRONIZACAO',
+                        title: "Hr Sinc."
                     },
                     {
                         data: 'IDPEDIDOMOVEL',
