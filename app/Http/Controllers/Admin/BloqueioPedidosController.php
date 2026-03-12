@@ -209,6 +209,7 @@ class BloqueioPedidosController extends Controller
                     'dt_emissao' => $d->DTEMISSAO,
                     'dt_entrega' => $d->DTENTREGAPED,
                     'dt_sincronizacao' => $d->DHSINCRONIZACAO,
+                    'dt_registro_palm' => $d->DTREGISTROPALM,
                     'ds_motivo' => $d->MOTIVO,
                     'ds_bloqueio' => $d->DSBLOQUEIO,
                 ];

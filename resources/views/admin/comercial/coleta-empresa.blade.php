@@ -197,7 +197,8 @@
                             <div class="modal-header py-2">
                                 <h5 class="modal-title">Detalhes Pedido
                                     <span class="badge badge-danger" id="badge-num-pedido"></span>
-                                    <span class="badge badge-info" id="badge-dt-sinc"></span>
+                                    <span class="badge badge-warning" id="badge-dt-registro-palm"></span>
+                                    <span class="badge badge-info" id="badge-dt-sinc"></span>                                    
                                     <span class="badge" id="badge-ds-motivo"></span>
                                 </h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -485,9 +486,11 @@
             $('#item-pedido').DataTable().destroy();
             $('#modal-detalhes-pedido').modal('show');
             const dt_sinc = formatDate($(this).data('dt_sincronizacao'));
+            const dt_registro_palm = formatDate($(this).data('dt_registro_palm'));
 
             $('#badge-num-pedido').text('#' + $(this).data('pedido'));
             $('#badge-dt-sinc').text("Sinc: " + dt_sinc);
+            $('#badge-dt-registro-palm').text("Reg. Palm: " + dt_registro_palm);
 
             let ds_motivo = $(this).data('ds_motivo').trim();
 
