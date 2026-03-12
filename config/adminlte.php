@@ -459,6 +459,11 @@ return [
                     'text' => 'Notas de Devolução',
                     'route' => 'nota-devolucao.index',
                     'can' => ['ver-nota-devolucao'],
+                ],
+                [
+                    'text' => 'Pedidos Alterados',
+                    'route' => 'troca-servico-valor',
+                    'can' => ['ver-nota-devolucao'],
                 ]
             ]
         ],
@@ -569,6 +574,19 @@ return [
                     'text' => 'Pedidos Pneus',
                     'route' => 'pedido-pneus.index',
                     'can' => 'ver-pedidos-coletados',
+                ]             
+            ],            
+        ],
+        [
+            'text' => 'Importar',
+            'can' => 'ver-importar-dados',
+            'url' => '#',
+            'icon' => 'nav-icon fas fa-file-import',
+            'submenu' => [
+                [
+                    'text' => 'Importar Junsoft',
+                    'route' => 'importar.index',
+                    'can' => 'ver-importar-dados',
                 ]             
             ],            
         ],

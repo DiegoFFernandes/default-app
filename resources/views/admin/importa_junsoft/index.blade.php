@@ -51,7 +51,7 @@
 
 
             $.ajax({
-                url: "{{ route('importa-item.index') }}",
+                url: "{{ route('importar-item.index') }}",
                 method: 'GET',
                 data: {
                     cd_marca: $("#importa-produto option:selected").val(),

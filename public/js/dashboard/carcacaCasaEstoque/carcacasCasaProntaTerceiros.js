@@ -48,6 +48,11 @@ $(document).on("click", "#tab-carcaca-pronta-terceiros", function () {
                 className: "text-nowrap",
                 title: "Item",
             },
+            {
+                data: "QTD",
+                name: "QTD",                
+                title: "Quantidade",
+            },
         ],
     });
 });

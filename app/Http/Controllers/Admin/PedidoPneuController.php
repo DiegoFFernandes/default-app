@@ -7,9 +7,9 @@ use App\Models\Estoque;
 use App\Models\Item;
 use App\Models\LiberaOrdemComercial;
 use App\Models\PedidoPneu;
+use App\Models\PedidosAlterados;
 use App\Models\Pessoa;
 use App\Models\Pneu;
-use Dflydev\DotAccessData\Data;
 use Helper;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -20,6 +20,7 @@ class PedidoPneuController extends Controller
 {
     protected Request $request;
     protected PedidoPneu $pedidoPneu;
+    protected PedidosAlterados $pedidosAlterados;
     protected Pessoa $pessoa;
     protected Item $item;
     protected Pneu $pneu;
@@ -29,6 +30,7 @@ class PedidoPneuController extends Controller
     public function __construct(
         Request $request,
         PedidoPneu $pedidoPneu,
+        PedidosAlterados $pedidosAlterados,
         Pessoa $pessoa,
         Item $item,
         Pneu $pneu,
@@ -37,6 +39,7 @@ class PedidoPneuController extends Controller
     ) {
         $this->request = $request;
         $this->pedidoPneu = $pedidoPneu;
+        $this->pedidosAlterados = $pedidosAlterados;
         $this->pessoa = $pessoa;
         $this->item = $item;
         $this->pneu = $pneu;
@@ -211,5 +214,18 @@ class PedidoPneuController extends Controller
         ];
 
         return Validator::make($this->request->all(), $rules, $messages);
+    }
+
+    public function pedidosAlterados(){
+        
+        return view('admin.pedido.pedidos-alterados');
+    }
+
+    public function getPedidosAlterados(){
+
+        $pedidos = $this->pedidosAlterados->getPedidosAlterados('F');
+
+        return DataTables::of($pedidos)            
+            ->make(true);
     }
 }

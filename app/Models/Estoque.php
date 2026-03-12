@@ -117,7 +117,8 @@ class Estoque extends Model
                         WHEN 5 THEN 'PONTA GROSSA'
                         WHEN 6 THEN 'CATANDUVA'
                     END EMPRESA_BAIXA,
-                    PC.DT_ATUALIZACAO DT_BAIXA
+                    PC.DT_ATUALIZACAO DT_BAIXA,
+                    1 QTD
                 FROM PNEUCARCACA PC
                 INNER JOIN MEDIDAPNEU MP ON (MP.ID = PC.IDMEDIDAPNEU)
                 INNER JOIN MODELOPNEU MODELO ON (MODELO.ID = PC.IDMODELOPNEU)
@@ -335,7 +336,8 @@ class Estoque extends Model
                 PNEU.NRSERIE,
                 PNEU.NRFOGO,
                 PNEU.NRDOT,
-                COALESCE(OPR.ST_RESERVA, 'N') ST_RESERVA
+                COALESCE(OPR.ST_RESERVA, 'N') ST_RESERVA,
+                1 QTD
             FROM PEDIDOPNEU PP
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)

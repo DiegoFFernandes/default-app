@@ -227,7 +227,7 @@ class EstoqueController extends Controller
                     'medida' => []
                 ];
             }
-            $result[$nivel1Key]['qtd']++;
+            $result[$nivel1Key]['qtd'] += $item->QTD;
 
             // Medida
             $nivel2Key = $item->{$nivel2} ?? 'Sem Medida';
@@ -239,7 +239,7 @@ class EstoqueController extends Controller
                 ];
             }
 
-            $result[$nivel1Key]['medida'][$nivel2Key]['qtd']++;
+            $result[$nivel1Key]['medida'][$nivel2Key]['qtd'] += $item->QTD;
 
             // Marca
             $marca = $item->{$nivel3} ?? 'Sem Marca';
@@ -250,7 +250,7 @@ class EstoqueController extends Controller
                     'modelo' => [],
                 ];
             }
-            $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['qtd']++;
+            $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['qtd'] += $item->QTD;
 
 
             // Modelo
@@ -261,7 +261,7 @@ class EstoqueController extends Controller
                     'qtd'    => 0,
                 ];
             }
-            $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['modelo'][$modelo . ' - ' . $item->DS_TIPO]['qtd']++;
+            $result[$nivel1Key]['medida'][$nivel2Key]['marca'][$marca]['modelo'][$modelo . ' - ' . $item->DS_TIPO]['qtd'] += $item->QTD;
         }
 
         // return $result;
