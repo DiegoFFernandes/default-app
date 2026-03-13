@@ -462,9 +462,9 @@ return [
                 ],
                 [
                     'text' => 'Pedidos Alterados',
-                    'route' => 'troca-servico-valor',
-                    'can' => ['ver-nota-devolucao'],
-                ]
+                    'route' => 'pedidos-alterados-valor',
+                    'can' => ['ver-pedidos-alterados-valor'],
+                ]                
             ]
         ],
         [

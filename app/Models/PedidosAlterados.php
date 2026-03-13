@@ -14,6 +14,8 @@ class PedidosAlterados extends Model
 
     public function getPedidosAlterados($statusFaturamento)
     {
+        $statusFaturamento = $statusFaturamento === 'N' ? "AND N.NR_NOTAFISCAL IS NOT NULL" : "AND N.NR_NOTAFISCAL IS NULL";
+
         $query = "
             SELECT
                 PP.IDEMPRESA,
@@ -37,7 +39,7 @@ class PedidosAlterados extends Model
 
                 CAST(TD.R_VLSERVANTIGO AS NUMERIC(16,2)) VLSERVCOLETA,
                 IPP.VLUNITARIO VLSERVALTERADO,
-                TD.R_DTREGISTRO,
+                TD.R_DTREGISTRO DTALTERACAO,
                 N.NR_NOTAFISCAL,
 
                 PLUG.CD_EMPRESA,
@@ -76,7 +78,7 @@ class PedidosAlterados extends Model
                 AND OPR.DTENTRADA >= '01.08.2025'
                 AND OPR.STORDEM NOT IN ('C')
                 --AND PLUG.NR_PEDIDO IS NULL
-                AND N.NR_NOTAFISCAL IS NULL
+                $statusFaturamento
                 --AND IPP.ID = 855237    
         ";
 

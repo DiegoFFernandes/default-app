@@ -137,6 +137,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="card card-primary">
+                                            <x-loading-card />
                                             <div class="card-body">
                                                 <table
                                                     class="table table-bordered compact table-responsive table-font-small"

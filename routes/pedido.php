@@ -15,8 +15,8 @@ Route::middleware('auth')->group(function () {
         Route::get('search-pedido-pneu', [PedidoPneuController::class, 'searchPedidoPneu'])->name('search-pedido-pneu'); 
         
 
-        Route::get('pedidos-alterados', [PedidoPneuController::class, 'pedidosAlterados'])->name('troca-servico-valor');
-        Route::get('get-pedidos-alterados', [PedidoPneuController::class, 'getPedidosAlterados'])->name('get-pedidos-alterados');
+        Route::get('pedidos-alterados-valor', [PedidoPneuController::class, 'pedidosAlterados'])->name('pedidos-alterados-valor');
+        Route::get('get-pedidos-alterados-valor', [PedidoPneuController::class, 'getPedidosAlterados'])->name('get-pedidos-alterados-valor');
 
 
     });

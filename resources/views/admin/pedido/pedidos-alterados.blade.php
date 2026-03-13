@@ -32,13 +32,16 @@
                                 aria-labelledby="tab-pedidos-alterados-sem-faturar">
                                 <div class="card-body p-2">
                                     <div class="row">
-                                        <div class="col-md-8" id="div-tabela-pedidos-alterados-sem-faturar">
+                                        <div class="col-md-12" id="div-tabela-pedidos-alterados-sem-faturar">
                                             <div class="card-header">
-                                                <h3 class="card-title">Pedidos Alterados - Sem faturar</h3>
+                                                <button class="btn btn-xs btn-secondary"
+                                                    id="btn-atualizar-pedidos-alterados-sem-faturar">
+                                                    <i class="fas fa-sync-alt"></i> Atualizar Valores
+                                                </button>
                                             </div>
                                             <div class="card-body pb-0">
                                                 <table class="table table-bordered compact table-font-small"
-                                                    id="pedidos-alterados-sem-faturar">
+                                                    id="table-pedidos-alterados-sem-faturar">
                                                 </table>
                                             </div>
                                         </div>
@@ -50,14 +53,16 @@
                                 aria-labelledby="tab-pedidos-alterados-faturados">
                                 <div class="card-body p-2">
                                     <div class="row">
-                                        <div class="col-md-8" id="div-tabela-pedidos-alterados-faturados">
+                                        <div class="col-md-12" id="div-tabela-pedidos-alterados-faturados">
                                             <div class="card-header">
-                                                <h3 class="card-title">Pedidos Alterados - Faturados</h3>
+                                                <button class="btn btn-xs btn-secondary"
+                                                    id="btn-atualizar-pedidos-alterados-faturados">
+                                                    <i class="fas fa-sync-alt"></i> Atualizar Valores
+                                                </button>
                                             </div>
                                             <div class="card-body pb-0">
-                                                <h3> teste</h3>
                                                 <table class="table table-bordered compact table-font-small"
-                                                    id="pedidos-alterados-faturados">
+                                                    id="table-pedidos-alterados-faturados">
                                                 </table>
                                             </div>
                                         </div>
@@ -75,11 +80,25 @@
     <script>
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
-            getPedidosAlteradosData: "{{ route('get-pedidos-alterados') }}"
+            getPedidosAlteradosData: "{{ route('get-pedidos-alterados-valor') }}"
         }
 
-        initTablePedidosAlterados('pedidos-alterados-sem-faturar', 'N');
-        // initTablePedidosAlterados('pedidos-alterados-faturados', 'F');
+        initTablePedidosAlterados('table-pedidos-alterados-sem-faturar', 'N');
+
+        $('#tab-pedidos-alterados-sem-faturar').on('click', function() {
+
+            $('#table-pedidos-alterados-sem-faturar').DataTable().clear().destroy();
+
+            initTablePedidosAlterados('table-pedidos-alterados-sem-faturar', 'N');
+        });
+
+        $('#tab-pedidos-alterados-faturados').on('click', function() {
+
+            $('#table-pedidos-alterados-faturados').DataTable().clear().destroy();
+
+            initTablePedidosAlterados('table-pedidos-alterados-faturados', 'F');
+        });
+
 
         function initTablePedidosAlterados(idTabela, statusPedido) {
             console.log('aqui');
@@ -89,6 +108,7 @@
                 language: {
                     url: window.routes.languageDatatables
                 },
+
                 ajax: {
                     url: window.routes.getPedidosAlteradosData,
                     data: {
@@ -98,32 +118,37 @@
                 columns: [{
                         data: 'IDEMPRESA',
                         name: 'IDEMPRESA',
-                        title: 'Emp.'
+                        title: 'Emp.',
+                        width: '1%',
+                        className: 'text-nowrap text-center'
                     },
                     {
                         data: 'NM_PESSOA',
                         name: 'NM_PESSOA',
-                        title: 'Cliente'
+                        title: 'Cliente',
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'DS_VELHO',
                         name: 'DS_VELHO',
-                        title: 'Ser. Antigo'
+                        title: 'Ser. Antigo',
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'DS_NOVO',
                         name: 'DS_NOVO',
-                        title: 'Ser. Novo'
+                        title: 'Ser. Novo',
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'VLSERVCOLETA',
                         name: 'VLSERVCOLETA',
-                        title: 'Valor Coleta.'
+                        title: 'R$ Coleta'
                     },
                     {
                         data: 'VLSERVALTERADO',
                         name: 'VLSERVALTERADO',
-                        title: 'Valor Alterado'
+                        title: 'R$ Alterado'
                     },
                     {
                         data: 'DTALTERACAO',
