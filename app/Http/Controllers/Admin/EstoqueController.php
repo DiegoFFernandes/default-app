@@ -446,7 +446,7 @@ class EstoqueController extends Controller
 
         return response()->json([
             'datatable' => $datatable,
-            'total_carcacas_prontas' => count($data),
+            'total_carcacas_prontas' => array_sum(array_column($data, 'QTD')),
             'accordion_data_local_marca'   => array_values($arrayCarcacaProntasLocal),
         ]);
     }

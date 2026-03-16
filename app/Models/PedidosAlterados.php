@@ -14,11 +14,12 @@ class PedidosAlterados extends Model
 
     public function getPedidosAlterados($statusFaturamento)
     {
-        $statusFaturamento = $statusFaturamento === 'N' ? "AND N.NR_NOTAFISCAL IS NOT NULL" : "AND N.NR_NOTAFISCAL IS NULL";
+        $statusFaturamento = $statusFaturamento == 'N' ? "AND N.NR_NOTAFISCAL IS NULL" : "AND N.NR_NOTAFISCAL IS NOT NULL";
 
         $query = "
             SELECT
                 PP.IDEMPRESA,
+                PP.ID PEDIDO,
                 P.NM_PESSOA,
                 CASE
                 WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
@@ -27,6 +28,7 @@ class PedidosAlterados extends Model
                 END STORDEM,
                 TD.R_IDORDEMPRODUCAORECAO NR_ORDEM,
                 IPP.ID IDITEMPEDIDOPNEU,
+                IPP.NRSEQUENCIA,
 
                 TD.R_IDSERVANTIGO,
                 SA.DSSERVICO DS_VELHO,
@@ -85,5 +87,55 @@ class PedidosAlterados extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    public function updateItemPedidoPneu($pedido)
+    {
+        return DB::transaction(function () use ($pedido) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+            UPDATE ITEMPEDIDOPNEU SET 
+                IDPEDIDOPNEU = $pedido->PEDIDO,
+                ID = $pedido->IDITEMPEDIDOPNEU,
+                NRSEQUENCIA = $pedido->NRSEQUENCIA,
+                IDSERVICOPNEU = $pedido->IDSERVNOVO,
+                VLUNITARIO = $pedido->VLSERVCOLETA
+
+            WHERE IDPEDIDOPNEU = $pedido->PEDIDO
+                AND ID = $pedido->IDITEMPEDIDOPNEU
+                AND NRSEQUENCIA = $pedido->NRSEQUENCIA
+                AND IDSERVICOPNEU = $pedido->IDSERVNOVO
+                ";           
+
+            return DB::connection('firebird')->update($query);
+        });
+    }
+
+    public function updateItemPedido($pedido)
+    {
+        return DB::transaction(function () use ($pedido) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                UPDATE ITEMPEDIDO SET 
+                    CD_EMPRESA = $pedido->CD_EMPRESA,
+                    NR_PEDIDO = $pedido->NR_PEDIDO,
+                    TP_PEDIDO = '$pedido->TP_PEDIDO',
+                    CD_ITEM = $pedido->IDSERVNOVO,
+                    VL_UNITARIO = $pedido->VLSERVCOLETA,
+                    VL_TOTAL = $pedido->VLSERVCOLETA
+                WHERE CD_EMPRESA = $pedido->CD_EMPRESA 
+                    AND NR_PEDIDO = $pedido->NR_PEDIDO 
+                    AND TP_PEDIDO = '$pedido->TP_PEDIDO' 
+                    AND CD_ITEM = $pedido->IDSERVNOVO                    
+                ";
+
+            DB::connection('firebird')->update($query);
+
+            return true;
+        });
     }
 }

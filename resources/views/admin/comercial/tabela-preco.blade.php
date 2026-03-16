@@ -135,7 +135,7 @@
                             </div>
                             <div class="tab-pane fade" id="painel-cadastradas" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-md-8">
                                         <div class="card card-primary">
                                             <x-loading-card />
                                             <div class="card-body">

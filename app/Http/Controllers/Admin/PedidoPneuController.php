@@ -216,16 +216,77 @@ class PedidoPneuController extends Controller
         return Validator::make($this->request->all(), $rules, $messages);
     }
 
-    public function pedidosAlterados(){
-        
-        return view('admin.pedido.pedidos-alterados');
+    public function pedidosAlterados()
+    {
+
+        return view('admin.pedido.pedido-alterado.pedidos-alterados');
     }
 
-    public function getPedidosAlterados(){
+    public function getPedidosAlterados()
+    {
 
-        $pedidos = $this->pedidosAlterados->getPedidosAlterados('F');
+        $rules = [
+            'status_pedido' => 'required|string|in:N,F'
+        ];
 
-        return DataTables::of($pedidos)            
+        $messages = [
+            'status_pedido.required' => 'Por favor, informe o status do pedido.',
+            'status_pedido.string' => 'Status do pedido inválido.',
+            'status_pedido.in' => 'Status do pedido deve ser "N" para não faturados ou "F" para faturados.',
+        ];
+
+        $validate = Validator::make($this->request->all(), $rules, $messages);
+
+
+        $pedidos = $this->pedidosAlterados->getPedidosAlterados($validate->validated()['status_pedido']);
+
+        return DataTables::of($pedidos)
             ->make(true);
+    }
+
+    public function atualizarPedidosAlterados()
+    {
+        $rules = [
+            'statusFaturamento' => 'required|string|in:N'
+        ];
+
+        $messages = [
+            'statusFaturamento.required' => 'Por favor, informe o status do pedido.',
+            'statusFaturamento.string' => 'Status do pedido inválido.',
+            'statusFaturamento.in' => 'Status do pedido deve ser "N" para não faturados.',
+        ];
+
+        $validate = Validator::make($this->request->all(), $rules, $messages);
+
+
+        $pedidos = $this->pedidosAlterados->getPedidosAlterados($validate->validated()['statusFaturamento']);
+
+        $ordens = [];
+        foreach ($pedidos as $pedido) {
+            if (empty($pedido->NR_PEDIDO)) {
+                // return $pedido;
+                $ped = $this->pedidosAlterados->updateItemPedidoPneu($pedido);
+                if ($ped) {
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Alterado com sucesso';
+                } else {
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Falha ao alterar valor';
+                }
+            } else {
+                // altera itempedido antes de fazer a alteração no ItemPedido Pneu para evitar inconsistências no sistema
+                $this->pedidosAlterados->updateItemPedido($pedido);
+                $ped = $this->pedidosAlterados->updateItemPedidoPneu($pedido);
+                if ($ped) {
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Alterado com sucesso';
+                } else {
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Falha ao alterar valor';
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Processamento concluído.',
+            'details' => $ordens
+        ]);
     }
 }

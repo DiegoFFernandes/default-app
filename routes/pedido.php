@@ -17,7 +17,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('pedidos-alterados-valor', [PedidoPneuController::class, 'pedidosAlterados'])->name('pedidos-alterados-valor');
         Route::get('get-pedidos-alterados-valor', [PedidoPneuController::class, 'getPedidosAlterados'])->name('get-pedidos-alterados-valor');
-
+        Route::post('atualizar-pedidos-alterados', [PedidoPneuController::class, 'atualizarPedidosAlterados'])->name('atualizar-pedidos-alterados');
 
     });
 

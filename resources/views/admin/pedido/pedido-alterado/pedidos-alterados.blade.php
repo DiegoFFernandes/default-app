@@ -28,47 +28,9 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="tab-content" id="tabContentPedidosAlterados">
-                            <div class="tab-pane fade show active" id="painel-pedidos-alterados-sem-faturar" role="tabpanel"
-                                aria-labelledby="tab-pedidos-alterados-sem-faturar">
-                                <div class="card-body p-2">
-                                    <div class="row">
-                                        <div class="col-md-12" id="div-tabela-pedidos-alterados-sem-faturar">
-                                            <div class="card-header">
-                                                <button class="btn btn-xs btn-secondary"
-                                                    id="btn-atualizar-pedidos-alterados-sem-faturar">
-                                                    <i class="fas fa-sync-alt"></i> Atualizar Valores
-                                                </button>
-                                            </div>
-                                            <div class="card-body pb-0">
-                                                <table class="table table-bordered compact table-font-small"
-                                                    id="table-pedidos-alterados-sem-faturar">
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('admin.pedido.pedido-alterado.tabs.tab-pedidos-alterados-sem-faturar')
 
-                            <div class="tab-pane fade" id="painel-pedidos-alterados-faturados" role="tabpanel"
-                                aria-labelledby="tab-pedidos-alterados-faturados">
-                                <div class="card-body p-2">
-                                    <div class="row">
-                                        <div class="col-md-12" id="div-tabela-pedidos-alterados-faturados">
-                                            <div class="card-header">
-                                                <button class="btn btn-xs btn-secondary"
-                                                    id="btn-atualizar-pedidos-alterados-faturados">
-                                                    <i class="fas fa-sync-alt"></i> Atualizar Valores
-                                                </button>
-                                            </div>
-                                            <div class="card-body pb-0">
-                                                <table class="table table-bordered compact table-font-small"
-                                                    id="table-pedidos-alterados-faturados">
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('admin.pedido.pedido-alterado.tabs.tab-pedidos-alterados-faturados')
                         </div>
                     </div>
                 </div>
@@ -99,16 +61,53 @@
             initTablePedidosAlterados('table-pedidos-alterados-faturados', 'F');
         });
 
+        $('#btn-atualizar-pedidos-alterados-sem-faturar').on('click', function() {
+            Swal.fire({
+                text: 'Alterar os pedidos alterados para o valor atualizado? Essa ação não pode ser desfeita.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, atualizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('atualizar-pedidos-alterados') }}",
+                        method: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            statusFaturamento: 'N'
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                title: response.message,
+                                html: response.details.join('<br>'),
+                                icon: 'success'
+                            });
+                            $('#table-pedidos-alterados-sem-faturar').DataTable().ajax.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                text: 'Ocorreu um erro ao atualizar os pedidos alterados.',
+                                icon: 'error'
+                            });
+                        }
+                    });
+                }
+
+            });
+        });
 
         function initTablePedidosAlterados(idTabela, statusPedido) {
-            console.log('aqui');
+
             $('#' + idTabela).DataTable({
                 processing: false,
                 serverSide: false,
+                pagingType: "simple",
+                pageLength: 20,
+                scrollY: '400px',
                 language: {
                     url: window.routes.languageDatatables
                 },
-
                 ajax: {
                     url: window.routes.getPedidosAlteradosData,
                     data: {
@@ -120,6 +119,18 @@
                         name: 'IDEMPRESA',
                         title: 'Emp.',
                         width: '1%',
+                        className: 'pl-1 text-nowrap text-center'
+                    },
+                    {
+                        data: 'PEDIDO',
+                        name: 'PEDIDO',
+                        title: 'Pedido',
+                        className: 'text-nowrap text-center'
+                    },
+                    {
+                        data: 'NR_ORDEM',
+                        name: 'NR_ORDEM',
+                        title: 'Ordem',
                         className: 'text-nowrap text-center'
                     },
                     {
@@ -153,18 +164,29 @@
                     {
                         data: 'DTALTERACAO',
                         name: 'DTALTERACAO',
-                        title: 'Data Alteração'
+                        title: 'Data Alteração',
+                        className: 'text-nowrap'
                     },
                     {
                         data: 'STORDEM',
                         name: 'STORDEM',
-                        title: 'Status Ordem'
+                        title: 'Status Ordem',
+                        className: 'text-nowrap text-center'
+                    },
+
+                    {
+                        data: 'NR_PEDIDO',
+                        name: 'NR_PEDIDO',
+                        title: 'Pedido'
                     },
                     {
                         data: 'NR_NOTAFISCAL',
                         name: 'NR_NOTAFISCAL',
                         title: 'Nota Fiscal'
                     }
+                ],
+                order: [
+                    [1, 'desc']
                 ]
             });
         }

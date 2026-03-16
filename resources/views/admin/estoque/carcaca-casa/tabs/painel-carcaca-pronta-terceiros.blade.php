@@ -1,14 +1,31 @@
-<div class="tab-pane fade" id="painel-carcaca-pronta-terceiros" role="tabpanel" aria-labelledby="tab-carcaca-pronta-terceiros">
+<div class="tab-pane fade" id="painel-carcaca-pronta-terceiros" role="tabpanel"
+    aria-labelledby="tab-carcaca-pronta-terceiros">
     <div class="card-body p-2">
         <div class="row">
             <div class="col-md-8" id="div-tabela-carcacas-prontas">
-                <div class="card-header">                    
-                    <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;" id="btn-reservar-carcaca">
+                <div class="card-header">
+                    <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;"
+                        id="btn-reservar-carcaca">
                         Reservar Pneus
                     </button>
                 </div>
                 <div class="card-body pb-0">
                     <table class="table table-bordered compact table-font-small" id="table-carcacas-prontas-terceiros">
+                        <thead>
+                            <tr>
+                                <th>Local</th>
+                                <th>Item</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th class="text-right">Total:</th>
+                                <th id="total-carcacas-prontas-terceiros-footer"></th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
