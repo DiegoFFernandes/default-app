@@ -18,6 +18,8 @@ class Kernel extends ConsoleKernel
         foreach (['08:00', '12:00', '16:00'] as $hora) {
             $schedule->command('send:msg_fcm')->dailyAt($hora);
         }
+        
+        $schedule->command('pedidos:atualizar-alterados')->everyTenMinutes();
     }
 
     /**
