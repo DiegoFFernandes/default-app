@@ -112,7 +112,7 @@
                 processing: false,
                 serverSide: false,
                 pagingType: "simple",
-                pageLength: 20,
+                pageLength: 25,
                 scrollY: '400px',
                 language: {
                     url: window.routes.languageDatatables
