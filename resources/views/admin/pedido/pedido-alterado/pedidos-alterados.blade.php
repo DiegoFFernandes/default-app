@@ -67,7 +67,12 @@
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim, atualizar',
-                cancelButtonText: 'Cancelar'
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn btn-sm btn-danger mr-2',
+                    cancelButton: 'btn btn-sm btn-secondary',
+                },
+                buttonsStyling: false
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -88,16 +93,25 @@
                         },
                         success: function(response) {
                             Swal.fire({
+                                icon: 'success',
                                 title: response.message,
                                 html: response.details.join('<br>'),
-                                icon: 'success'
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    confirmButton: 'btn btn-sm btn-primary'
+                                },
+                                buttonsStyling: false
                             });
                             $('#table-pedidos-alterados-sem-faturar').DataTable().ajax.reload();
                         },
                         error: function(xhr) {
                             Swal.fire({
                                 text: 'Ocorreu um erro ao atualizar os pedidos alterados.',
-                                icon: 'error'
+                                icon: 'error',
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    confirmButton: 'btn btn-sm btn-primary'
+                                }
                             });
                         }
                     });
