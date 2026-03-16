@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Helper;
+use Illuminate\Support\Facades\Auth;
 
 class PedidoPneu extends Model
 {
@@ -106,7 +108,7 @@ class PedidoPneu extends Model
                     DSOBSFATURAMENTO,
                     STFATURAAUTO,
                     IDEMPRESAFATURAMENTO,
-                    HREMISSAO,
+                    HREMISSAO,                    
                     TP_BLOQUEIO)
                 VALUES ( 
                         NEXT VALUE FOR SEQ_IDPEDIDOPNEU,                     
@@ -116,7 +118,7 @@ class PedidoPneu extends Model
                         'B',                                   
                         :cond_pagto,                 
                         :form_pagto,                 
-                        NULL,                               
+                        :dsobservacao,                               
                         CURRENT_TIMESTAMP,                  
                         :idpessoa,                 
                         :cd_empresa, 
@@ -128,7 +130,7 @@ class PedidoPneu extends Model
                         NULL,                               
                         'S',                                
                         :cd_empresa_fat,                 
-                        CAST(CURRENT_TIME AS TIME),             
+                        CAST(CURRENT_TIME AS TIME),                               
                         'A') RETURNING ID
             ";
 
@@ -140,6 +142,7 @@ class PedidoPneu extends Model
                 'form_pagto'    => (string) $input['form_pagto'],
                 'cd_empresa'    => (int) $input['cd_empresa'],
                 'cd_empresa_fat' => (int) $input['cd_empresa'],
+                'dsobservacao'  => (string) 'Criado pelo usuario - '. Auth::user()->name
             ]);
 
             if (empty($result)) {

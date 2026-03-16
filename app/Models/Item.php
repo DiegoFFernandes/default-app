@@ -38,12 +38,14 @@ class Item extends Model
                     BP.ID IDBANDAPNEU,                    
                     DP.ID IDDESENHOPNEU                                    
                 FROM SERVICOPNEU SP
+                INNER JOIN ITEM ON (ITEM.CD_ITEM = SP.ID)
                 LEFT JOIN BANDAPNEU BP ON (BP.ID = SP.IDBANDAPNEU)
                 LEFT JOIN DESENHOPNEU DP ON (DP.ID = BP.IDDESENHOPNEU)
                 WHERE
                     " . (!$idItem == null ? "SP.ID = $idItem" : "1=1") . " 
-                    " . (!$idMedidaPneu == null ? "AND SP.IDMEDIDAPNEU = $idMedidaPneu" : "") . "
-                                     
+                    " . (!$idMedidaPneu == null ? "AND SP.IDMEDIDAPNEU = $idMedidaPneu" : "") . "   
+                    AND SP.STATIVO = 'S'
+                    AND ITEM.ST_ATIVO = 'S'                                   
                     ";
         $data = DB::connection('firebird')->select($query);
 
