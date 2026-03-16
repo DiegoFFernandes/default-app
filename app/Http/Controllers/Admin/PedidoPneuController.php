@@ -267,18 +267,18 @@ class PedidoPneuController extends Controller
                 // return $pedido;
                 $ped = $this->pedidosAlterados->updateItemPedidoPneu($pedido);
                 if ($ped) {
-                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Alterado com sucesso';
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Alterado com sucesso.';
                 } else {
-                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Falha ao alterar valor';
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Falha ao alterar valor.';
                 }
             } else {
                 // altera itempedido antes de fazer a alteração no ItemPedido Pneu para evitar inconsistências no sistema
                 $this->pedidosAlterados->updateItemPedido($pedido);
                 $ped = $this->pedidosAlterados->updateItemPedidoPneu($pedido);
                 if ($ped) {
-                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Alterado com sucesso';
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Alterado com sucesso.';
                 } else {
-                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Falha ao alterar valor';
+                    $ordens[] = 'Ordem ' . $pedido->NR_ORDEM . ' Falha ao alterar valor.';
                 }
             }
         }

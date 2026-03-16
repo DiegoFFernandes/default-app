@@ -63,7 +63,7 @@
 
         $('#btn-atualizar-pedidos-alterados-sem-faturar').on('click', function() {
             Swal.fire({
-                text: 'Alterar os pedidos alterados para o valor atualizado? Essa ação não pode ser desfeita.',
+                text: 'Alterar os pedidos alterados para o valor de coleta? Essa ação não pode ser desfeita.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim, atualizar',
@@ -76,6 +76,15 @@
                         data: {
                             _token: "{{ csrf_token() }}",
                             statusFaturamento: 'N'
+                        },
+                        beforeSend: function() {
+                            Swal.fire({
+                                text: 'Atualizando os pedidos alterados...',
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
                         },
                         success: function(response) {
                             Swal.fire({
