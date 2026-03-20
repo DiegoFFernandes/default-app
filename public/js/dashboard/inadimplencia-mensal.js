@@ -18,7 +18,7 @@ function vincularTabelaAoGrafico(idTabela, idGrafico) {
             });
     } else {
         console.warn(
-            "DataTable ainda não foi inicializado em: " + seletorTabela
+            "DataTable ainda não foi inicializado em: " + seletorTabela,
         );
     }
 }
@@ -66,7 +66,7 @@ $('a[data-toggle="tab"], a[data-toggle="pill"]').on(
     function (e) {
         let abaAtiva = $(e.target).attr("href");
         resetarVisualizacaoAba(abaAtiva);
-    }
+    },
 );
 
 //quando clica na aba ativa
@@ -91,8 +91,8 @@ function formatarValorBR(valor) {
 }
 function formatDate(value) {
     if (!value) return "";
-    const date = new Date(value);
-    return date.toLocaleDateString("pt-BR");
+    const [ano, mes, dia] = value.split("-");
+    return `${dia}/${mes}/${ano}`;
 }
 function criarGraficoInadimplencia(data, canvasId) {
     const ctx = document.getElementById(canvasId).getContext("2d");
@@ -102,7 +102,7 @@ function criarGraficoInadimplencia(data, canvasId) {
         .reverse();
     const percentuais = data
         .map((item) =>
-            parseFloat(String(item.PC_INADIMPLENCIA).replace(",", "."))
+            parseFloat(String(item.PC_INADIMPLENCIA).replace(",", ".")),
         )
         .reverse();
 

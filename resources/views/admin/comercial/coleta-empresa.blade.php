@@ -198,7 +198,7 @@
                                 <h5 class="modal-title">Detalhes Pedido
                                     <span class="badge badge-danger" id="badge-num-pedido"></span>
                                     <span class="badge badge-warning" id="badge-dt-registro-palm"></span>
-                                    <span class="badge badge-info" id="badge-dt-sinc"></span>                                    
+                                    <span class="badge badge-info" id="badge-dt-sinc"></span>
                                     <span class="badge" id="badge-ds-motivo"></span>
                                 </h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -523,9 +523,13 @@
         });
 
         function formatDate(value) {
-            if (!value) return '';
-            const date = new Date(value);
-            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+            if (!value) return "";
+
+            const [data, hora] = value.split(' ');
+
+            const [ano, mes, dia] = data.split('-');
+
+            return `${dia}/${mes}/${ano} ${hora ?? ''}`;
         }
 
         function configurarDetalhesLinha(selector, options) {

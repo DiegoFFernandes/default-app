@@ -132,11 +132,11 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                                             </tr>
                                             <tr>
                                                 <th class="text-muted">Emissão</th>
-                                                <td class="td-small-text">${formatDate(
+                                                <td class="td-small-text">${formatDateCobranca(
                                                     detalhe.DT_LANCAMENTO
                                                 )}</td>
                                                 <th class="text-muted">Venc.</th>
-                                                <td>${formatDate(
+                                                <td>${formatDateCobranca(
                                                     detalhe.DT_VENCIMENTO
                                                 )}</td>
                                             </tr>
@@ -539,11 +539,11 @@ function initTableInadimplenciaMeses(
                                             </tr>
                                             <tr>
                                                 <th class="text-muted">Emissão</th>
-                                                <td class="td-small-text">${formatDate(
+                                                <td class="td-small-text">${formatDateCobranca(
                                                     detalhe.DT_LANCAMENTO
                                                 )}</td>
                                                 <th class="text-muted">Venc.</th>
-                                                <td>${formatDate(
+                                                <td>${formatDateCobranca(
                                                     detalhe.DT_VENCIMENTO
                                                 )}</td>
                                             </tr>
@@ -579,6 +579,14 @@ function initTableInadimplenciaMeses(
             },
         });
     });
+}
+
+function formatDateCobranca(value) {
+    if (!value) return "";
+
+    const [ano, mes, dia] = value.split('-');
+
+    return `${dia}/${mes}/${ano}`;
 }
 
 let debounceTimer;

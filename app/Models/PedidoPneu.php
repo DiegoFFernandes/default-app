@@ -118,11 +118,11 @@ class PedidoPneu extends Model
                         'B',                                   
                         :cond_pagto,                 
                         :form_pagto,                 
-                        :dsobservacao,                               
+                        NULL,                               
                         CURRENT_TIMESTAMP,                  
                         :idpessoa,                 
                         :cd_empresa, 
-                        'PEDIDO GERADO PELO PORTAL',
+                        :dsbloqueio,
                         CURRENT_DATE,   
                         1,                                  
                         'S',                                
@@ -142,7 +142,7 @@ class PedidoPneu extends Model
                 'form_pagto'    => (string) $input['form_pagto'],
                 'cd_empresa'    => (int) $input['cd_empresa'],
                 'cd_empresa_fat' => (int) $input['cd_empresa'],
-                'dsobservacao'  => (string) 'Criado pelo usuario - '. Auth::user()->name
+                'dsbloqueio'  => (string) 'Pedido Gerado pelo portal - '. Auth::user()->name
             ]);
 
             if (empty($result)) {

@@ -83,7 +83,7 @@
             display: none;
         }
 
-        
+
 
         /* deixa os card da tabela e grafico da mesma altura */
         @media (min-width: 768px) {
@@ -112,8 +112,8 @@
 
         /* diminui a fonte do modal da nota*/
         /* .td-small-text {
-            font-size: 12px;
-        } */
+                font-size: 12px;
+            } */
     </style>
 @stop
 
@@ -264,7 +264,7 @@
                                             <th class="text-muted">Nota</th>
                                             <td class="td-small-text">${detalhe.NR_DOCUMENTO}</td>
                                             <th class="text-muted">Venc.</th>
-                                        <td>${formatDate(detalhe.DT_VENCIMENTO)}</td>
+                                        <td>${formatDateCobranca(detalhe.DT_VENCIMENTO)}</td>
                                         </tr>
                                         <tr>
                                             <th class="text-muted">Valor</th>
@@ -297,12 +297,12 @@
 
         });
 
-        function formatDate(value) {
+        function formatDateCobranca(value) {
             if (!value) return "";
-            const date = new Date(value);
-            return (
-                date.toLocaleDateString("pt-BR")
-            );
+
+            const [ano, mes, dia] = value.split('-');
+
+            return `${dia}/${mes}/${ano}`;
         }
     </script>
     <script src="{{ asset('js/dashboard/rel-cobranca-vendedor.js') }}"></script>

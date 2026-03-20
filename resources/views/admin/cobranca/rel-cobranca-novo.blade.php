@@ -201,9 +201,9 @@
 
 @section('js')
     <script src="{{ asset('js/dashboard/inadimplencia.js?v=') }}" {{ time() }}></script>
-    <script src="{{ asset('js/dashboard/prazoMedio.js?v=2') }}"></script>
-    <script src="{{ asset('js/dashboard/limiteCredito.js?v=5') }}"></script>
-    <script src="{{ asset('js/dashboard/canhoto.js?v=2') }}"></script>
+    <script src="{{ asset('js/dashboard/prazoMedio.js?v=') }}" {{ time() }}></script>
+    <script src="{{ asset('js/dashboard/limiteCredito.js?v=') }}" {{ time() }}></script>
+    <script src="{{ asset('js/dashboard/canhoto.js?v=') }}" {{ time() }}></script>
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;

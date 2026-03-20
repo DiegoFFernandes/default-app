@@ -276,7 +276,7 @@
                                     </div>
                                 </div>
                                 <hr>
-                                <div class="row">                                    
+                                <div class="row">
                                     <div class="table-responsive">
                                         <x-loading-card />
                                         <table class="table table-font-small stripe compact nowrap" id="bloqueio-pedidos">
@@ -302,8 +302,8 @@
         }
 
         /* table.dataTable {
-                                                table-layout: fixed;
-                                            } */
+                                                    table-layout: fixed;
+                                                } */
 
         @media (max-width: 768px) {
             .info-box .info-box-icon {
@@ -629,14 +629,25 @@
                         title: 'Pneus'
                     },
                     {
+                        data: 'QTD_FINALIZADAS',
+                        name: 'QTD_FINALIZADAS',
+                        className: 'dt-center',
+                        "width": "1%",
+                        title: 'Finalizados'
+                    },
+                    {
                         data: 'DTEMISSAO',
                         name: 'DTEMISSAO',
-                        title: 'Dt Emissão'
+                        title: 'Dt Emissão',
+                        className: 'dt-center',
+                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                     },
                     {
                         data: 'DTENTREGAPED',
                         name: 'DTENTREGAPED',
-                        title: 'Dt Entrega'
+                        title: 'Dt Entrega',
+                        className: 'dt-center',
+                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                     },
                     {
                         data: 'STPEDIDO',
@@ -649,12 +660,8 @@
                         title: 'Tipo Pedido'
                     }
                 ],
-                columnDefs: [{
-                    targets: [6, 7],
-                    className: 'dt-center',
-                    render: $.fn.dataTable.render.moment('DD/MM/YYYY')
-                }],
-                "order": [6, 'desc'],
+                
+                "order": [7, 'desc'],
                 footerCallback: function(row, data, start, end, display) {
 
                     let finalizados = data.filter(item => item.STPEDIDO === "ATENDIDO        ").length;

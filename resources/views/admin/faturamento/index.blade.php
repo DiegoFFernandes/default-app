@@ -360,9 +360,13 @@
         });
 
         function formatDate(value) {
-            if (!value) return '';
-            const date = new Date(value);
-            return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+            if (!value) return "";
+
+            const [data, hora] = value.split(' ');
+
+            const [ano, mes, dia] = data.split('-');
+
+            return `${dia}/${mes}/${ano} ${hora ?? ''}`;
         }
 
         function tableFiltred() {

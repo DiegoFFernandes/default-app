@@ -34,7 +34,14 @@ class ExecutorEtapaController extends Controller
     public function producaoExecutorEtapa()
     {
         $empresas = $this->empresa->empresa();
-        return view('admin.producao.producao-executor', compact('empresas'));
+        $executores = $this->executorEtapa->getExecutores();
+        return view(
+            'admin.producao.producao-executor.producao-executor',
+            compact(
+                'empresas',
+                'executores'
+            )
+        );
     }
 
 
@@ -43,10 +50,43 @@ class ExecutorEtapaController extends Controller
         $cd_empresa = $this->request->cd_empresa;
         $dt_inicio = $this->request->dt_inicio;
         $dt_fim = $this->request->dt_fim;
+        $tabela = $this->request->tabela;
+        $executor = $this->request->executor;
+        $painel = $this->request->painel;
 
-        $data = $this->executorEtapa->producaoExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim);
+        $data = $this->executorEtapa->producaoExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim, $tabela, $executor, $painel);
 
         return DataTables::of($data)
+            ->addColumn('actions', function ($row) use ($tabela) {
+                return '<button class="btn btn-xs btn-detalhes-executor" style="font-size: 10px;" 
+                
+                    data-cd_empresa="' . $row->IDEMPRESA . '"
+                    data-dt_fim="' . $row->DT_FIM . '"
+                    data-idexecutor="' . $row->IDEXECUTOR . '"
+                    data-tabela="' . $tabela . '"
+                
+                
+                ">Detalhes</button>';
+            })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    public function detalhesExecutor()
+    {
+        $cd_empresa = $this->request->cd_empresa;
+        $dt_fim = $this->request->dt_fim;
+        $idexecutor = $this->request->idexecutor;
+        $tabela = $this->request->tabela;
+        $painel = $this->request->painel;
+
+        $data = $this->executorEtapa->producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $idexecutor, $painel);
+
+        return DataTables::of($data)
+            ->editColumn('ST_RETRABALHO', function ($row) {
+                return $row->ST_RETRABALHO === 'Sim' ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>';
+            })
+            ->rawColumns(['ST_RETRABALHO'])
             ->make(true);
     }
 }

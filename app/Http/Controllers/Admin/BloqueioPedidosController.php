@@ -225,9 +225,9 @@ class BloqueioPedidosController extends Controller
                     $btn .= '<span class="btn-detalhes btn-show-modal right mr-2" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
                 }
                 $btn .=  '<span class="btn-detalhes details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+
                 return $btn;
             })
-            ->rawColumns(['actions'])
             ->setRowClass(function ($p) {
                 if ($p->STPEDIDO == "ATENDIDO        ") {
                     return 'bg-green';
@@ -239,6 +239,10 @@ class BloqueioPedidosController extends Controller
                     return 'bg-red';
                 }
             })
+            ->editColumn('QTD_FINALIZADAS', function ($d) {
+                return '<span class="badge badge-secondary">' . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
+            })
+            ->rawColumns(['actions', 'QTD_FINALIZADAS'])
             ->make();
     }
     public function getItemPedidoAcompanhar()

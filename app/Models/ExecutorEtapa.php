@@ -11,354 +11,106 @@ class ExecutorEtapa extends Model
 {
     use HasFactory;
 
-    public function producaoExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim){
-        $query = "        
-            SELECT
-                X.DT_FIM,
-                X.IDEMPRESA,
-                X.IDEXECUTOR || '-' || E.NMEXECUTOR NM_EXECUTOR,
-                cast(SUM(X.EXAMEINICIAL) AS INTEGER) EXAME_INI,
-                cast(SUM(X.RASPA) AS INTEGER) RASPA,
-                cast(SUM(X.PREPBANDA) AS INTEGER) PREPBANDA,
-                cast(SUM(X.ESCAREACAO) AS INTEGER) ESCAREACAO,
-                cast(SUM(X.LIMPEZAMANCHAO) AS INTEGER) LIMPEZAMANCHAO,
-                cast(SUM(X.APLICOLA) AS INTEGER) APLICOLA,
-                cast(SUM(X.EMBORRACHAMENTO) AS INTEGER) EMBORRACHAMENTO,
-                cast(SUM(X.VULCANIZACAO) AS INTEGER) VULCANIZACAO,
-                cast(SUM(X.EXAMEFINAL) AS INTEGER) EXAMEFINAL
-            FROM (SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    COUNT(I.ID) EXAMEINICIAL,
-                    EE.QTMETADIARIA METAEXAMEINI,
-                    0 RASPA,
-                    0 METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM EXAMEINICIAL I
-                LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.STORDEM <> 'C'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    EE.QTMETADIARIA,
-                    I.IDEXECUTOR,
-                    METAEXAMEINI
+    public function getExecutores()
+    {
+        $query = "SELECT ID, NMEXECUTOR FROM EXECUTORETAPA";
 
-                UNION ALL
+        $data = DB::connection('firebird')->select($query);
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    COUNT(I.ID) RASPA,
-                    EE.QTMETADIARIA METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM RASPAGEMPNEU I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    METARASPA
+        return Helper::ConvertFormatText($data);
+    }
 
-                UNION ALL
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    0 METARASPA,
-                    COUNT(I.ID) PREPBANDA,
-                    EE.QTMETADIARIA METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM PREPARACAOBANDAPNEU I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    METAPREPBANDA
+    public function producaoExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim, $tabela, $executor = 0, $painel = 'painel-ativos')
+    {
+        if ($painel === 'painel-ativos') {
+            $query = "
+                AND ITEM.CD_SUBGRUPO NOT IN (10211)";
+        } elseif ($painel === 'painel-recusados') {
+            $query = "
+                AND ITEM.CD_SUBGRUPO = 10211";
+        } else {
+            $query = "";
+        }
 
-                UNION ALL
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    0 METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    COUNT(I.ID) ESCAREACAO,
-                    EE.QTMETADIARIA METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM ESCAREACAOPNEU I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    METAESCAREACAO
+        $query = "
+        SELECT
+            OPR.IDEMPRESA,
+            COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
+            COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
+            CAST(I.DTFIM AS DATE) DT_FIM,
+            COUNT(I.ID) QTD,
+            COALESCE(EE.QTMETADIARIA, 0) META,
+            COUNT (CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 1 END) AS QTD_RETRABALHO  
 
-                UNION ALL
+        FROM $tabela I
+        LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
+        LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
+        LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
+        LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+        WHERE
+            I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
+            AND I.ST_ETAPA = 'F'
+            AND OPR.STORDEM <> 'C'
+            AND OPR.IDEMPRESA = $cd_empresa
+            $query
+            " . ($executor != 0 ? "AND I.IDEXECUTOR = $executor" : "") . "
+        GROUP BY DT_FIM,
+            OPR.IDEMPRESA,
+            EE.QTMETADIARIA,
+            I.IDEXECUTOR,
+            EE.QTMETADIARIA,
+            E.NMEXECUTOR
+     ";
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    EE.QTMETADIARIA METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    COUNT(I.ID) LIMPEZAMANCHAO,
-                    EE.QTMETADIARIA METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM LIMPEZAMANCHAO I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    METALIMPEZAMANCHAO
 
-                UNION ALL
+        $data = DB::connection('firebird')->select($query);
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    EE.QTMETADIARIA METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    COUNT(I.ID) APLICOLA,
-                    EE.QTMETADIARIA METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM APLICACAOCOLAPNEU I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    EE.QTMETADIARIA
+        return Helper::ConvertFormatText($data);
+    }
 
-                UNION ALL
+    public function producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $executor, $painel = 'painel-ativos')
+    {
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    EE.QTMETADIARIA METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    COUNT(I.ID) EMBORRACHAMENTO,
-                    EE.QTMETADIARIA METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM EMBORRACHAMENTO I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    EE.QTMETADIARIA
+        if ($painel === 'painel-ativos') {
+            $query = "
+                AND ITEM.CD_SUBGRUPO NOT IN (10211)";
+        } elseif ($painel === 'painel-recusados') {
+            $query = "
+                AND ITEM.CD_SUBGRUPO = 10211";
+        } else {
+            $query = "";
+        }
 
-                UNION ALL
 
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    EE.QTMETADIARIA METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    COUNT(I.ID) VULCANIZACAO,
-                    EE.QTMETADIARIA METAVULC,
-                    0 EXAMEFINAL,
-                    0 METAEXAMEFINAL
-                FROM VULCANIZACAO I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    EE.QTMETADIARIA
+        $query = "
+        SELECT
+            OPR.IDEMPRESA,
+            COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
+            COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
+            OPR.ID NR_ORDEM,
+            IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
+            I.DTFIM DT_FIM,
+            CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO
+        FROM $tabela I
+        LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
+        LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
+        LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
+        LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
+        WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'
+            AND I.ST_ETAPA = 'F'
+            AND OPR.STORDEM <> 'C'
+            AND OPR.IDEMPRESA = $cd_empresa
+            AND COALESCE(I.IDEXECUTOR, '9999') = $executor  
+            $query
+     ";
 
-                UNION ALL
-
-                SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    0 EXAMEINICIAL,
-                    0 METAEXAMEINI,
-                    0 RASPA,
-                    EE.QTMETADIARIA METARASPA,
-                    0 PREPBANDA,
-                    0 METAPREPBANDA,
-                    0 ESCAREACAO,
-                    0 METAESCAREACAO,
-                    0 LIMPEZAMANCHAO,
-                    0 METALIMPEZAMANCHAO,
-                    0 APLICOLA,
-                    0 METAAPLICCOLA,
-                    0 EMBORRACHAMENTO,
-                    0 METAEMBORRACHAMENTO,
-                    0 VULCANIZACAO,
-                    0 METAVULC,
-                    COUNT(I.ID) EXAMEFINAL,
-                    EE.QTMETADIARIA METAEXAMEFINAL
-                FROM EXAMEFINALPNEU I
-                INNER JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                WHERE I.DTFIM between '$dt_inicio' and '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY DT_FIM,
-                    OPR.IDEMPRESA,
-                    I.IDEXECUTOR,
-                    EE.QTMETADIARIA
-
-            ) X
-            INNER JOIN EXECUTORETAPA E ON (E.ID = X.IDEXECUTOR)
-            GROUP BY X.IDEMPRESA,
-                E.NMEXECUTOR,
-                X.IDEXECUTOR,
-                X.DT_FIM
-            ORDER BY E.NMEXECUTOR,
-                X.DT_FIM ASC
-                    ";
 
         $data = DB::connection('firebird')->select($query);
 

@@ -128,6 +128,10 @@ class AcompanhamentoPneu extends Model
                         END STPEDIDO,                        
                         TP.DSTIPOPEDIDO,
                         COUNT(IPP.id) QTDPNEUS,
+                        COUNT(
+                        CASE
+                        WHEN OPR.STORDEM = 'F' THEN 1
+                        END) QTD_FINALIZADAS,
                         CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO, 
                         FORMAPAGTO.DS_FORMAPAGTO,
                         CONDPAGTO.DS_CONDPAGTO,
@@ -144,6 +148,7 @@ class AcompanhamentoPneu extends Model
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
+                    LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)                  
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
                     INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
