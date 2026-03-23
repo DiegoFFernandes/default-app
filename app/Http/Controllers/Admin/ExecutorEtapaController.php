@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Models\ExecutorEtapa;
 use App\Models\User;
-use Dflydev\DotAccessData\Data;
+use App\Services\ServiceFiltroGrupoSubgrupo;
 use Illuminate\Http\Request;
-use JeroenNoten\LaravelAdminLte\View\Components\Tool\Datatable;
 use Yajra\DataTables\Facades\DataTables;
 
 class ExecutorEtapaController extends Controller
@@ -17,18 +16,21 @@ class ExecutorEtapaController extends Controller
         $request,
         $empresa,
         $user,
-        $executorEtapa;
+        $executorEtapa,
+        $serviceFiltroGrupoSubgrupo;
 
     public function __construct(
         Request $request,
         Empresa $empresa,
         User $user,
-        ExecutorEtapa $executorEtapa
+        ExecutorEtapa $executorEtapa,
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
     ) {
         $this->request = $request;
         $this->empresa = $empresa;
         $this->user = $user;
         $this->executorEtapa = $executorEtapa;
+        $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
     }
 
     public function producaoExecutorEtapa()
@@ -53,18 +55,22 @@ class ExecutorEtapaController extends Controller
         $tabela = $this->request->tabela;
         $executor = $this->request->executor;
         $painel = $this->request->painel;
+        $etapa = $this->classificaEtapa($tabela);
 
-        $data = $this->executorEtapa->producaoExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim, $tabela, $executor, $painel);
+        // 9 - CANCELADAS
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
+        $data = $this->executorEtapa->producaoExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim, $tabela, $executor, $painel, $etapa, $subgrupo['data']);
 
         return DataTables::of($data)
-            ->addColumn('actions', function ($row) use ($tabela) {
+            ->addColumn('actions', function ($row) use ($tabela, $painel) {
                 return '<button class="btn btn-xs btn-detalhes-executor" style="font-size: 10px;" 
                 
                     data-cd_empresa="' . $row->IDEMPRESA . '"
                     data-dt_fim="' . $row->DT_FIM . '"
-                    data-idexecutor="' . $row->IDEXECUTOR . '"
-                    data-tabela="' . $tabela . '"
-                
+
+                    ' . ($painel === 'painel-canceladas' ? '' : 'data-idexecutor="' . $row->IDEXECUTOR . '"') . '
+                    data-tabela="' . $tabela . '"                
                 
                 ">Detalhes</button>';
             })
@@ -79,14 +85,45 @@ class ExecutorEtapaController extends Controller
         $idexecutor = $this->request->idexecutor;
         $tabela = $this->request->tabela;
         $painel = $this->request->painel;
+        $etapa = $this->classificaEtapa($tabela);
 
-        $data = $this->executorEtapa->producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $idexecutor, $painel);
+        // 9 - CANCELADAS
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
+        $data = $this->executorEtapa->producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $idexecutor, $painel, $etapa, $subgrupo['data']);
 
         return DataTables::of($data)
-            ->editColumn('ST_RETRABALHO', function ($row) {
+            ->editColumn('ST_RETRABALHO', function ($row) use ($painel) {
+                if ($painel === 'painel-canceladas') {
+                    return '<span class="badge badge-danger">Cancelado</span>';
+                }
                 return $row->ST_RETRABALHO === 'Sim' ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>';
             })
             ->rawColumns(['ST_RETRABALHO'])
             ->make(true);
+    }
+
+    public function classificaEtapa($tabela)
+    {
+        switch ($tabela) {
+            case 'EXAMEINICIAL':
+                return 1;
+            case 'RASPAGEMPNEU':
+                return 2;
+            case 'PREPARACAOBANDAPNEU':
+                return 3;
+            case 'ESCAREACAOPNEU':
+                return 4;
+            case 'LIMPEZAMANCHAO':
+                return 5;
+            case 'APLICACAOCOLAPNEU':
+                return 6;
+            case 'EMBORRACHAMENTO':
+                return 9;
+            case 'VULCANIZACAO':
+                return 11;
+            case 'EXAMEFINALPNEU':
+                return 12;
+        }
     }
 }

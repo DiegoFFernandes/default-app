@@ -48,11 +48,13 @@
                                     ])
                                 </div>
                                 <div class="tab-pane fade" id="painel-canceladas">
-                                    @include('admin.producao.producao-executor.components.servicos', [
-                                        'painelPrincipal' => 'painel-canceladas',
-                                    ])
+                                    @include(
+                                        'admin.producao.producao-executor.components.servicos-cancelados',
+                                        [
+                                            'painelPrincipal' => 'painel-canceladas',
+                                        ]
+                                    )
                                 </div>
-
                             </div>
                         </div>
                     </div>
@@ -60,17 +62,19 @@
             </div>
         </div>
         @include('admin.producao.producao-executor.modals.modal-details-producao-executor')
+        @include('admin.producao.producao-executor.modals.modal-details-canceladas')
+
     </section>
 @stop
 @section('css')
     <style>
         /* .badge {
-            background-color: #e9ecef !important;
-            color: #495057 !important;
-            font-weight: 500 !important;
-            font-size: 11px !important;
-            border-radius: 6px !important;
-        } */
+                                                                                                                                                            background-color: #e9ecef !important;
+                                                                                                                                                            color: #495057 !important;
+                                                                                                                                                            font-weight: 500 !important;
+                                                                                                                                                            font-size: 11px !important;
+                                                                                                                                                            border-radius: 6px !important;
+                                                                                                                                                        } */
 
         .btn-detalhes-executor {
             background-color: #0d6efd26 !important;
@@ -225,7 +229,7 @@
                         name: 'META',
                         title: 'Meta',
                         "width": '3%',
-                    },                    
+                    },
                     {
                         data: 'QTD_RETRABALHO',
                         name: 'QTD_RETRABALHO',
@@ -254,13 +258,125 @@
             });
         }
 
-        function initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, tabela, painel) {
+        function initTableCanceladas(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {
+
+            idEmpresa = $('#filtro-empresa').val();
+
+            if ($.fn.DataTable.isDataTable('#' + idTabelaDataTable)) {
+                $('#' + idTabelaDataTable).DataTable().destroy();
+            }
+
+            tabela = $('#' + idTabelaDataTable).DataTable({
+                processing: false,
+                serverSide: false,
+                pageLength: 100,
+                pagingType: 'simple',
+                // scrollY: '400px',                
+                language: {
+                    url: window.routes.languageDatatables
+                },
+                ajax: {
+                    url: window.routes.getExecutorEtapas,
+                    type: 'GET',
+                    data: {
+                        cd_empresa: idEmpresa,
+                        dt_inicio: dtinicio,
+                        dt_fim: dtfim,
+                        tabela: nomeTabela,
+                        painel: painel
+                    }
+                },
+                columns: [{
+                        data: 'actions',
+                        name: 'actions',
+                        title: 'Ações',
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false,
+                        "width": '3%',
+                    },
+
+                    {
+                        data: 'IDEMPRESA',
+                        name: 'IDEMPRESA',
+                        title: 'Emp',
+                        className: 'text-center',
+                        "width": '1%',
+                    },
+                    {
+                        data: 'QTD',
+                        name: 'QTD',
+                        title: 'Canceladas',
+                        "width": '3%',
+                    },
+                    {
+                        data: 'DT_FIM',
+                        name: 'DT_FIM',
+                        title: 'Data de Cancelamento',
+                        className: 'text-center',
+                        render: $.fn.dataTable.render.moment('DD/MM/YYYY'),
+                        "width": '2%',
+                    },
+                ],
+                order: [
+                    [3, 'asc']
+                ],
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    var total = api.column(2).data().reduce(function(a, b) {
+                        return a + parseInt(b);
+                    }, 0);
+                    $(api.column(2).footer()).html(total);
+                }
+            });
+        }
+
+        function initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor = null, tabela, painel) {
 
             if ($.fn.DataTable.isDataTable('#details-executor-table')) {
                 $('#details-executor-table').DataTable().destroy();
             }
 
-            tabela = $('#details-executor-table').DataTable({
+            const columns = [];
+            
+            columns.push({
+                data: 'IDEMPRESA',
+                name: 'IDEMPRESA',
+                title: 'Emp',
+                className: 'text-center',
+                "width": '1%',
+            }, {
+                data: 'NM_EXECUTOR',
+                name: 'NM_EXECUTOR',
+                title: 'Executor',
+                className: 'text-nowrap',
+            }, {
+                data: 'NR_ORDEM',
+                name: 'NR_ORDEM',
+                title: 'Ordem',
+                className: 'text-center',
+                "width": '1%',
+            }, {
+                data: 'DS_ITEM',
+                name: 'DS_ITEM',
+                title: 'Serviço',
+                className: 'text-nowrap'
+            }, {
+                data: 'DT_FIM',
+                name: 'DT_FIM',
+                title: 'Finalização',
+                className: 'text-nowrap',
+                // render: $.fn.dataTable.render.moment('DD/MM/YYYY'),                       
+            }, {
+                data: 'ST_RETRABALHO',
+                name: 'ST_RETRABALHO',
+                title: 'Retrabalho',
+                className: 'text-center',
+                "width": '1%',
+            })
+
+
+            return $('#details-executor-table').DataTable({
                 processing: false,
                 serverSide: false,
                 pageLength: 100,
@@ -281,53 +397,77 @@
                     },
                     type: 'GET',
                 },
-                columns: [{
-                        data: 'IDEMPRESA',
-                        name: 'IDEMPRESA',
-                        title: 'Emp',
-                        className: 'text-center',
-                        "width": '1%',
-                    },
-                    {
-                        data: 'NM_EXECUTOR',
-                        name: 'NM_EXECUTOR',
-                        title: 'Executor',
-                        className: 'text-nowrap',
-                    }, {
-                        data: 'NR_ORDEM',
-                        name: 'NR_ORDEM',
-                        title: 'Ordem',
-                        className: 'text-center',
-                        "width": '1%',
-                    },
-                    {
-                        data: 'DS_ITEM',
-                        name: 'DS_ITEM',
-                        title: 'Serviço',
-                        className: 'text-nowrap'
-                    },
-                    {
-                        data: 'DT_FIM',
-                        name: 'DT_FIM',
-                        title: 'Finalização',
-                        className: 'text-nowrap',
-                        // render: $.fn.dataTable.render.moment('DD/MM/YYYY HH:mm'),                        
-                    },{
-                        data: 'ST_RETRABALHO',
-                        name: 'ST_RETRABALHO',
-                        title: 'Retrabalho',
-                        className: 'text-center',
-                        "width": '1%',
-                    }
-                ],
+                columns: columns,
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
                     var total_linhas = api.data().count();
-
                     $(api.column(4).footer()).html(total_linhas);
                 }
+            });
+        }
 
+        function initTableDetailsCanceladas(cd_empresa, dt_fim, IdDataTables, tabelaDb, painel) {
 
+            if ($.fn.DataTable.isDataTable('#' + IdDataTables)) {
+                $('#' + IdDataTables).DataTable().destroy();
+            }
+            
+
+            return $('#' + IdDataTables).DataTable({
+                processing: false,
+                serverSide: false,
+                pageLength: 100,
+                pagingType: 'simple',
+                scrollY: '400px',
+                scrollCollapse: true,
+                language: {
+                    url: window.routes.languageDatatables
+                },
+                ajax: {
+                    type: 'GET',
+                    url: window.routes.getDetailsExecutor,
+                    data: {
+                        cd_empresa: cd_empresa,
+                        dt_fim: dt_fim,
+                        dt_inicio: dt_fim,
+                        tabela: tabelaDb,
+                        painel: painel
+                    },
+                },
+                columns: [{
+                    data: 'IDEMPRESA',
+                    name: 'IDEMPRESA',
+                    title: 'Emp',
+                    className: 'text-center',
+                    "width": '1%',
+                }, {
+                    data: 'NR_ORDEM',
+                    name: 'NR_ORDEM',
+                    title: 'Ordem',
+                    className: 'text-center',
+                    "width": '1%',
+                }, {
+                    data: 'DS_ITEM',
+                    name: 'DS_ITEM',
+                    title: 'Serviço',
+                    className: 'text-nowrap'
+                }, {
+                    data: 'DT_FIM',
+                    name: 'DT_FIM',
+                    title: 'Cancelamento',
+                    className: 'text-center',
+                    "width": '2%',
+                }, {
+                    data: 'ST_RETRABALHO',
+                    name: 'ST_RETRABALHO',
+                    title: 'Motivo',
+                    className: 'text-center',
+                }],
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    var total_linhas = api.data().count();
+                    $(api.column(3).footer()).html(total_linhas);
+                }
             });
         }
 
@@ -348,22 +488,36 @@
                 tabela
             };
         }
-
+        
+        // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
         $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
             const estado = getEstadoAtual();
 
-            initTable(idEmpresa,
-                datasSelecionadas.getInicio() + ' 00:00',
-                datasSelecionadas.getFim() + ' 23:59',
-                estado.tabela,
-                'EXAMEINICIAL',
-                estado.idPainel
-            );
+            $('#tab-exame-inicial-' + estado.idPainel).tab('show');
+
+            if (estado.idPainel === 'painel-canceladas') {
+                initTableCanceladas(idEmpresa,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    'table-canceladas-painel-canceladas',
+                    'EXAMEINICIAL',
+                    'painel-canceladas'
+                );
+            } else {
+                initTable(idEmpresa,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    estado.tabela,
+                    'EXAMEINICIAL',
+                    estado.idPainel
+                );
+            }
 
         })
 
+        //Clique nas subtabs para atualizar a tabela de acordo com a etapa selecionada
         $(document).on('shown.bs.tab', '.tab-content .nav-link', function(e) {
-            const estado = getEstadoAtual();          
+            const estado = getEstadoAtual();
 
             const tabs = [{
                     nomeTabela: 'EXAMEINICIAL',
@@ -425,9 +579,6 @@
 
             const estado = getEstadoAtual();
 
-            console.log('Estado Atual:', estado);
-
-
             if (!empresa) {
                 Swal.fire({
                     title: 'Seleção de Empresa',
@@ -459,23 +610,33 @@
 
             $('#tab-servicos-ativos').tab('show');
 
-            $('#tab-exame-inicial').tab('show');
+            $('#tab-exame-inicial-' + estado.idPainel).tab('show');
 
 
+            if (estado.idPainel === 'painel-canceladas') {
+                initTableCanceladas(empresa, inicioData, fimData, 'table-canceladas-painel-canceladas', 'EXAMEINICIAL', estado.idPainel);
+                return;
+            }
+            
             initTable(idEmpresa, inicioData, fimData, estado.tabela, 'EXAMEINICIAL', estado.idPainel);
-        
+
         });
 
         $(document).on('click', '.btn-detalhes-executor', function() {
             const cd_empresa = $(this).data('cd_empresa');
             const dt_fim = $(this).data('dt_fim');
             const idexecutor = $(this).data('idexecutor');
-            const tabela = $(this).data('tabela');
+            const nomeTabela = $(this).data('tabela');
             const estado = getEstadoAtual();
 
-            $('#modal-details-executor').modal('show');
-
-            initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, tabela, estado.idPainel);
+            if (estado.idPainel === 'painel-canceladas') {
+                $('#modal-details-canceladas').modal('show');
+                initTableDetailsCanceladas(cd_empresa, dt_fim, 'details-canceladas-table', nomeTabela,
+                    estado.idPainel);
+            } else {
+                $('#modal-details-executor').modal('show');
+                initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, nomeTabela, estado.idPainel);
+            }
         });
 
         // // Inicializa a tabela Resumo Executor
