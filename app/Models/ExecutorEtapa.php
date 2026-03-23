@@ -46,7 +46,7 @@ class ExecutorEtapa extends Model
                     AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                    AND ITEM.CD_SUBGRUPO NOT IN (10211)
+                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                     " . ($executor != 0 ? "AND I.IDEXECUTOR = $executor" : "") . "
                 GROUP BY DT_FIM,
                     OPR.IDEMPRESA,
