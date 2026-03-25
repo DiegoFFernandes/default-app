@@ -69,12 +69,12 @@
 @section('css')
     <style>
         /* .badge {
-                                                                                                                                                            background-color: #e9ecef !important;
-                                                                                                                                                            color: #495057 !important;
-                                                                                                                                                            font-weight: 500 !important;
-                                                                                                                                                            font-size: 11px !important;
-                                                                                                                                                            border-radius: 6px !important;
-                                                                                                                                                        } */
+                                                                                                                                                                                                                                                                background-color: #e9ecef !important;
+                                                                                                                                                                                                                                                                color: #495057 !important;
+                                                                                                                                                                                                                                                                font-weight: 500 !important;
+                                                                                                                                                                                                                                                                font-size: 11px !important;
+                                                                                                                                                                                                                                                                border-radius: 6px !important;
+                                                                                                                                                                                                                                                            } */
 
         .btn-detalhes-executor {
             background-color: #0d6efd26 !important;
@@ -134,7 +134,8 @@
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             getExecutorEtapas: "{{ route('get-producao-executor-etapas') }}",
-            getDetailsExecutor: "{{ route('get-details-executor') }}"
+            getDetailsExecutor: "{{ route('get-details-executor') }}",
+            getResumoProducaoSetor: "{{ route('get-resumo-producao-setor') }}"
         };
 
         $('#filtro-executor').select2({
@@ -157,14 +158,220 @@
         initTable(idEmpresa,
             datasSelecionadas.getInicio() + ' 00:00',
             datasSelecionadas.getFim() + ' 23:59',
-            estado.tabela,
+            estado.tabela1,
             'EXAMEINICIAL',
             estado.idPainel
         );
 
+        initResumoExecutorSetor(
+            'setorResumo-' + estado.idPainel,
+            datasSelecionadas.getInicio() + ' 00:00',
+            datasSelecionadas.getFim() + ' 23:59',
+            estado.idSubTab2,
+            'Setor'
+        );
+
+
+
+        // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
+        $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
+            const estado = getEstadoAtual();
+
+            $('#tab-exame-inicial-' + estado.idPainel).tab('show');
+
+            if (estado.idPainel === 'painel-canceladas') {
+                initTableCanceladas(idEmpresa,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    'table-canceladas-painel-canceladas',
+                    'EXAMEINICIAL',
+                    'painel-canceladas'
+                );
+            } else {
+                initTable(idEmpresa,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    estado.tabela1,
+                    'EXAMEINICIAL',
+                    estado.idPainel
+                );
+
+                initResumoExecutorSetor(
+                    'setorResumo-' + estado.idPainel,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    estado.idSubTab2,
+                    'Setor')
+            }
+
+        })
+
+        //Clique nas subtabs1 etapas para atualizar a tabela de acordo com a etapa selecionada
+        $(document).on('shown.bs.tab', '#nav-tabs-setores .nav-link', function(e) {
+            const estado = getEstadoAtual();
+
+            const dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
+            const dt_fim = datasSelecionadas.getFim() + ' 23:59';
+            const executor = $('#filtro-executor').val();
+
+            const tabs = [{
+                    nomeTabela: 'EXAMEINICIAL',
+                    tableId: 'table-exame-inicial'
+                },
+                {
+                    nomeTabela: 'RASPAGEMPNEU',
+                    tableId: 'table-raspa'
+                },
+                {
+
+                    nomeTabela: 'PREPARACAOBANDAPNEU',
+                    tableId: 'table-prep-banda'
+                },
+                {
+                    nomeTabela: 'ESCAREACAOPNEU',
+                    tableId: 'table-escareacao'
+                },
+                {
+                    nomeTabela: 'LIMPEZAMANCHAO',
+                    tableId: 'table-limpeza-manchao'
+                },
+                {
+                    nomeTabela: 'APLICACAOCOLAPNEU',
+                    tableId: 'table-cola'
+                },
+                {
+                    nomeTabela: 'EMBORRACHAMENTO',
+                    tableId: 'table-emborrachamento'
+                },
+                {
+                    nomeTabela: 'VULCANIZACAO',
+                    tableId: 'table-vulcanizacao'
+                },
+                {
+                    nomeTabela: 'EXAMEFINALPNEU',
+                    tableId: 'table-exame-final'
+                }
+            ];
+
+            const tabSelecionada = tabs.find(tab => tab.tableId + '-' + estado.idPainel === estado.tabela1);
+
+
+            initTable(idEmpresa,
+                dt_inicio,
+                dt_fim,
+                estado.tabela1,
+                tabSelecionada.nomeTabela,
+                estado.idPainel
+            );
+        });
+
+        //Clique nas subtabs2 resumos para atualizar a tabela de acordo com a etapa selecionada
+        $(document).on('shown.bs.tab', '#navs-tabs-resumo .nav-link', function(e) {
+            const estado = getEstadoAtual();
+
+            const dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
+            const dt_fim = datasSelecionadas.getFim() + ' 23:59';
+            const executor = $('#filtro-executor').val();
+
+            // console.log(estado.idSubTab2);
+
+            if (estado.idSubTab2 === 'resumo-setor-painel-retrabalhos') {
+                initResumoExecutorSetor(
+                    'setorResumo-' + estado.idPainel,
+                    dt_inicio,
+                    dt_fim,
+                    estado.idSubTab2,
+                    'Setor',
+                    executor
+                );
+                return;
+            } else {
+
+                montaFooterTabelaResumo('executorResumo-' + estado.idPainel);
+
+                initResumoExecutorSetor(
+                    'executorResumo-' + estado.idPainel,
+                    dt_inicio,
+                    dt_fim,
+                    estado.idSubTab2,
+                    'Executor',
+                    executor
+                );
+            }
+        });
+
+        //Busca os dados ao clicar no botão "Buscar novos"
+        $('#submit-seach').on('click', function() {
+
+            const estado = getEstadoAtual();           
+
+            $('#tab-servicos-ativos').tab('show');
+            $('#tab-exame-inicial-' + estado.idPainel).tab('show');
+            $('#resumo-setor-tab-' + estado.idPainel).tab('show');
+
+            const inicioData = datasSelecionadas.getInicio() + ' 00:00';
+            const fimData = datasSelecionadas.getFim() + ' 23:59';
+
+            const empresa = $('#filtro-empresa').val(); // puxa o código da empresa
+            const empresaNome = $('#filtro-empresa option:selected').text(); //puxa o nome da empresa
+
+            const executor = $('#filtro-executor').val(); // puxa o código do executor
+            const executorNome = $('#filtro-executor option:selected').text(); // puxa o nome do executor                 
+
+            // automatiza o  badge-danger da empresa 
+            $('.badge-empresa').text(`Empresa: ${empresaNome}`);
+            // automatiza o  badge-danger do executor
+            $('.badge-executor').text(`Executor: ${executorNome}`);
+            // automatiza o  badge-danger do periodo e formata o valor 
+            $('.badge-periodo').text(
+                `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
+            );           
+
+
+            if (estado.idPainel === 'painel-canceladas') {
+                initTableCanceladas(empresa, inicioData, fimData, 'table-canceladas-painel-canceladas',
+                    'EXAMEINICIAL', estado.idPainel);
+                return;
+            }
+
+            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL', estado.idPainel);
+
+            if(estado.idSubTab2 === 'resumo-setor-painel-ativos') {
+                initResumoExecutorSetor(
+                    'setorResumo-' + estado.idPainel,
+                    inicioData,
+                    fimData,
+                    estado.idSubTab2,
+                    'Setor',
+                    executor
+                );
+                return;
+            }
+            
+
+        });
+
+        $(document).on('click', '.btn-detalhes-executor', function() {
+            const cd_empresa = $(this).data('cd_empresa');
+            const dt_fim = $(this).data('dt_fim');
+            const idexecutor = $(this).data('idexecutor');
+            const nomeTabela = $(this).data('tabela');
+            const estado = getEstadoAtual();
+
+            if (estado.idPainel === 'painel-canceladas') {
+                $('#modal-details-canceladas').modal('show');
+                initTableDetailsCanceladas(cd_empresa, dt_fim, 'details-canceladas-table', nomeTabela,
+                    estado.idPainel);
+            } else {
+                $('#modal-details-executor').modal('show');
+                initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, nomeTabela, estado.idPainel);
+            }
+        });
 
         // Função para iniciar/reiniciar a DataTable
-        function initTable(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {
+        function initTable(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {       
+            
+            
 
             idEmpresa = $('#filtro-empresa').val();
             idExecutor = $('#filtro-executor').val();
@@ -178,7 +385,8 @@
                 serverSide: false,
                 pageLength: 100,
                 pagingType: 'simple',
-                // scrollY: '400px',                
+                searching: false, 
+                scrollY: '400px',                
                 language: {
                     url: window.routes.languageDatatables
                 },
@@ -250,9 +458,13 @@
                 ],
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
-                    var total = api.column(3).data().reduce(function(a, b) {
-                        return a + parseInt(b);
-                    }, 0);
+                    var total = api
+                        .column(3, {
+                            search: 'applied'
+                        })
+                        .data().reduce(function(a, b) {
+                            return a + parseInt(b || 0);
+                        }, 0);
                     $(api.column(3).footer()).html(total);
                 }
             });
@@ -323,7 +535,10 @@
                 ],
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
-                    var total = api.column(2).data().reduce(function(a, b) {
+                    var total = api.
+                    column(2, {
+                        search: 'applied'
+                    }).data().reduce(function(a, b) {
                         return a + parseInt(b);
                     }, 0);
                     $(api.column(2).footer()).html(total);
@@ -338,7 +553,7 @@
             }
 
             const columns = [];
-            
+
             columns.push({
                 data: 'IDEMPRESA',
                 name: 'IDEMPRESA',
@@ -411,7 +626,7 @@
             if ($.fn.DataTable.isDataTable('#' + IdDataTables)) {
                 $('#' + IdDataTables).DataTable().destroy();
             }
-            
+
 
             return $('#' + IdDataTables).DataTable({
                 processing: false,
@@ -477,204 +692,110 @@
             const painel = tabPrincipal.attr('href');
             const idPainel = painel.replace('#', '');
 
-            const subTab = $(painel).find('.nav-link.active').attr('href');
-            const idSubTab = subTab.replace('#', '');
+            const resultado = [];
 
-            const tabela = $(subTab).find('table').attr('id');
+            $(painel).find('.grupo-tabs').each(function() {
+                const ativas = $(this).find('.nav-link.active');
+
+                // console.log(ativas);
+                if (ativas.length) {
+                    const href = ativas.attr('href');
+                    // console.log(href);
+                    resultado.push({
+                        idSubTab: href.replace('#', ''),
+                        tabela: $(href).find('table').attr('id')
+                    });
+                }
+            });
+
+            console.log(resultado);
+            const idSubTab1 = resultado[0]?.idSubTab || null;
+            const tabela1 = resultado[0]?.tabela || null;
+
+            const idSubTab2 = resultado[1]?.idSubTab || null;
+            const tabela2 = resultado[1]?.tabela || null;
 
             return {
                 idPainel,
-                idSubTab,
-                tabela
+                idSubTab1,
+                tabela1,
+                idSubTab2,
+                tabela2
             };
         }
-        
-        // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
-        $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
+
+        function initResumoExecutorSetor(idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor',
+            idExecutor = 0) {
+
             const estado = getEstadoAtual();
+            idEmpresa = $('#filtro-empresa').val();
+            idExecutor = $('#filtro-executor').val();
 
-            $('#tab-exame-inicial-' + estado.idPainel).tab('show');
+            // console.log(idTabelaDatatable);
 
-            if (estado.idPainel === 'painel-canceladas') {
-                initTableCanceladas(idEmpresa,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    'table-canceladas-painel-canceladas',
-                    'EXAMEINICIAL',
-                    'painel-canceladas'
-                );
-            } else {
-                initTable(idEmpresa,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    estado.tabela,
-                    'EXAMEINICIAL',
-                    estado.idPainel
-                );
+            if ($.fn.DataTable.isDataTable('#' + idTabelaDatatable)) {
+                $('#' + idTabelaDatatable).DataTable().destroy();
             }
 
-        })
-
-        //Clique nas subtabs para atualizar a tabela de acordo com a etapa selecionada
-        $(document).on('shown.bs.tab', '.tab-content .nav-link', function(e) {
-            const estado = getEstadoAtual();
-
-            const tabs = [{
-                    nomeTabela: 'EXAMEINICIAL',
-                    tableId: 'table-exame-inicial'
+            return $('#' + idTabelaDatatable).DataTable({
+                processing: false,
+                serverSide: false,                
+                paging: false,
+                scrollY: '400px',
+                searching: false,               
+                ordering: false,
+                language: {
+                    url: window.routes.languageDatatables
                 },
-                {
-                    nomeTabela: 'RASPAGEMPNEU',
-                    tableId: 'table-raspa'
+                ajax: {
+                    url: window.routes.getResumoProducaoSetor,
+                    type: 'GET',
+                    data: {
+                        cd_empresa: idEmpresa,
+                        dt_inicio: dt_inicio,
+                        dt_fim: dt_fim,
+                        executor: idExecutor,
+                        painel: estado.idPainel,
+                        subPainel: idSubPainel
+                    }
                 },
-                {
-
-                    nomeTabela: 'PREPARACAOBANDAPNEU',
-                    tableId: 'table-prep-banda'
-                },
-                {
-                    nomeTabela: 'ESCAREACAOPNEU',
-                    tableId: 'table-escareacao'
-                },
-                {
-                    nomeTabela: 'LIMPEZAMANCHAO',
-                    tableId: 'table-limpeza-manchao'
-                },
-                {
-                    nomeTabela: 'APLICACAOCOLAPNEU',
-                    tableId: 'table-cola'
-                },
-                {
-                    nomeTabela: 'EMBORRACHAMENTO',
-                    tableId: 'table-emborrachamento'
-                },
-                {
-                    nomeTabela: 'VULCANIZACAO',
-                    tableId: 'table-vulcanizacao'
-                },
-                {
-                    nomeTabela: 'EXAMEFINALPNEU',
-                    tableId: 'table-exame-final'
+                columns: [{
+                        title: tipoResumo,
+                        data: 'SETOR',
+                        width: '70%'
+                    },
+                    {
+                        title: 'Quantidade',
+                        data: 'QTD',
+                        width: '30%'
+                    }
+                ],
+                footerCallback: function(row, data, start, end, display) {
+                    var api = this.api();
+                    var total = api
+                        .column(1, {
+                            search: 'applied'
+                        })
+                        .data().reduce(function(a, b) {
+                            return a + parseInt(b || 0);
+                        }, 0);
+                    $(api.column(1).footer()).html(total);
                 }
-            ];
+            });
 
-            const tabSelecionada = tabs.find(tab => tab.tableId + '-' + estado.idPainel === estado.tabela);
+        }
 
-            initTable(idEmpresa, datasSelecionadas.getInicio() + ' 00:00', datasSelecionadas
-                .getFim() + ' 23:59', estado.tabela, tabSelecionada.nomeTabela, estado.idPainel);
-        });
+        function montaFooterTabelaResumo(idTabela) {
+            $('#' + idTabela + ' tfoot').remove();
 
-
-        //Busca os dados ao clicar no botão "Buscar novos"
-        $('#submit-seach').on('click', function() {
-
-            const inicioData = datasSelecionadas.getInicio() + ' 00:00';
-            const fimData = datasSelecionadas.getFim() + ' 23:59';
-
-            const empresa = $('#filtro-empresa').val(); // puxa o código da empresa
-            const empresaNome = $('#filtro-empresa option:selected').text(); //puxa o nome da empresa
-
-            const executor = $('#filtro-executor').val(); // puxa o código do executor
-            const executorNome = $('#filtro-executor option:selected').text(); // puxa o nome do executor
-
-            const estado = getEstadoAtual();
-
-            if (!empresa) {
-                Swal.fire({
-                    title: 'Seleção de Empresa',
-                    text: 'Por favor, selecione uma empresa para continuar.',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            if (datasSelecionadas.getInicio() == 0 || datasSelecionadas.getFim() == 0) {
-                Swal.fire({
-                    title: 'Seleção de Período',
-                    text: 'Por favor, selecione um período para continuar.',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // automatiza o  badge-danger da empresa 
-            $('.badge-empresa').text(`Empresa: ${empresaNome}`);
-            // automatiza o  badge-danger do executor
-            $('.badge-executor').text(`Executor: ${executorNome}`);
-            // automatiza o  badge-danger do periodo e formata o valor 
-            $('.badge-periodo').text(
-                `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
+            $('#' + idTabela).append(
+                `<tfoot>
+                    <tr>
+                        <th>Total:</th>
+                        <th></th>
+                    </tr>
+                </tfoot>`
             );
-
-            $('#tab-servicos-ativos').tab('show');
-
-            $('#tab-exame-inicial-' + estado.idPainel).tab('show');
-
-
-            if (estado.idPainel === 'painel-canceladas') {
-                initTableCanceladas(empresa, inicioData, fimData, 'table-canceladas-painel-canceladas', 'EXAMEINICIAL', estado.idPainel);
-                return;
-            }
-            
-            initTable(idEmpresa, inicioData, fimData, estado.tabela, 'EXAMEINICIAL', estado.idPainel);
-
-        });
-
-        $(document).on('click', '.btn-detalhes-executor', function() {
-            const cd_empresa = $(this).data('cd_empresa');
-            const dt_fim = $(this).data('dt_fim');
-            const idexecutor = $(this).data('idexecutor');
-            const nomeTabela = $(this).data('tabela');
-            const estado = getEstadoAtual();
-
-            if (estado.idPainel === 'painel-canceladas') {
-                $('#modal-details-canceladas').modal('show');
-                initTableDetailsCanceladas(cd_empresa, dt_fim, 'details-canceladas-table', nomeTabela,
-                    estado.idPainel);
-            } else {
-                $('#modal-details-executor').modal('show');
-                initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, nomeTabela, estado.idPainel);
-            }
-        });
-
-        // // Inicializa a tabela Resumo Executor
-        // let tabelaResumoExecutor = $('#executorResumo').DataTable({
-        //     columns: [{
-        //             title: 'Executor',
-        //             data: 'executor',
-        //             width: '50%'
-        //         },
-        //         {
-        //             title: 'Total Produzido',
-        //             data: 'total',
-        //             render: $.fn.dataTable.render.number('.', ',', 0)
-        //         }
-        //     ],
-        //     searching: false,
-        //     paging: false,
-        //     info: false,
-        //     ordering: false
-        // });
-
-        // // Inicializa a tabela Resumo Setor
-        // let tabelaResumoSetor = $('#setorResumo').DataTable({
-        //     columns: [{
-        //             title: 'Setor',
-        //             data: 'setor',
-        //             width: '50%'
-        //         },
-        //         {
-        //             title: 'Total Produção',
-        //             data: 'total',
-        //             render: $.fn.dataTable.render.number('.', ',', 0)
-        //         }
-        //     ],
-        //     searching: false,
-        //     paging: false,
-        //     info: false,
-        //     ordering: false
-        // });
+        }
     </script>
 @stop

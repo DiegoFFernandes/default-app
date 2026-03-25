@@ -34,8 +34,8 @@
             <div class="col-12 col-md-4 mb-2">
                 <div class="form-group mb-0">
                     <label class="small" for="filtro-executor">Executor:</label>
-                    <select id="filtro-executor" class="form-control form-control-sm mt-1">
-                        <option value="0">Todos</option>
+                    <select id="filtro-executor" class="form-control form-control-sm mt-1" multiple>
+                        <option value="0" selected>Todos</option>
                         @foreach ($executores as $executor)
                             <option value="{{ $executor->ID }}">{{ $executor->NMEXECUTOR }}</option>
                         @endforeach

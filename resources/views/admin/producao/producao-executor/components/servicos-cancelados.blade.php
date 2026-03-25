@@ -2,7 +2,7 @@
     <div class="col-12 col-lg-8 mb-3 d-flex flex-column">
         <div class="card shadow-sm border-0 flex-fill">
             <div class="card-header p-0 border-bottom-0">
-                <ul class="nav nav-tabs" id="nav-tabs-setores" role="tablist">
+                <ul class="nav nav-tabs grupo-tabs" id="nav-tabs-canceladas" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="tab-canceladas-painel-canceladas" data-toggle="pill"
                             href="#painel-canceladas" role="tab"

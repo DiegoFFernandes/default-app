@@ -38,7 +38,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         });
 });
 
-Route::middleware(['auth', 'role:admin|gerente comercial|supervisor|usuario comercial'])->group(function () {
+Route::middleware(['auth', 'permission:ver-tabela-preco'])->group(function () {
     Route::prefix('tabela')->group(function () {
         Route::get('tabela-preco', [TabelaPrecoController::class, 'index'])->name('tabela-preco.index');
         Route::get('get-tabela-preco', [TabelaPrecoController::class, 'getTabPreco'])->name('get-tabela-preco');
@@ -116,7 +116,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     });
 });
 
-Route::middleware(['permission:ver-pedidos-coletados-acompanhamento'])->group(function () {
+Route::middleware(['permission:ver-pedidos-coletados-acompanhamento|ver-pedidos-coletados-acompanhamento-cliente'])->group(function () {
     // Bloqueio de Pedidos
     Route::get('movimento/acompanha-pedidos', [BloqueioPedidosController::class, 'index'])->name('bloqueio-pedidos');
     Route::get('movimento/get-bloqueio-pedidos', [BloqueioPedidosController::class, 'getBloqueioPedido'])->name('get-bloqueio-pedidos');

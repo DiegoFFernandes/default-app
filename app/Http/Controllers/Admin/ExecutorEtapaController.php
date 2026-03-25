@@ -53,7 +53,7 @@ class ExecutorEtapaController extends Controller
         $dt_inicio = $this->request->dt_inicio;
         $dt_fim = $this->request->dt_fim;
         $tabela = $this->request->tabela;
-        $executor = $this->request->executor;
+        $executor = isset($this->request->executor) ? implode(',', $this->request->executor) : 0;
         $painel = $this->request->painel;
         $etapa = $this->classificaEtapa($tabela);
 
@@ -82,7 +82,7 @@ class ExecutorEtapaController extends Controller
     {
         $cd_empresa = $this->request->cd_empresa;
         $dt_fim = $this->request->dt_fim;
-        $idexecutor = $this->request->idexecutor;
+        $executor = isset($this->request->executor) ? implode(',', $this->request->executor) : 0;
         $tabela = $this->request->tabela;
         $painel = $this->request->painel;
         $etapa = $this->classificaEtapa($tabela);
@@ -90,7 +90,7 @@ class ExecutorEtapaController extends Controller
         // 9 - CANCELADAS
         $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
 
-        $data = $this->executorEtapa->producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $idexecutor, $painel, $etapa, $subgrupo['data']);
+        $data = $this->executorEtapa->producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $executor, $painel, $etapa, $subgrupo['data']);
 
         return DataTables::of($data)
             ->editColumn('ST_RETRABALHO', function ($row) use ($painel) {
@@ -125,5 +125,32 @@ class ExecutorEtapaController extends Controller
             case 'EXAMEFINALPNEU':
                 return 12;
         }
+    }
+
+    public function resumoProducaoSetor()
+    {
+        $cd_empresa = $this->request->cd_empresa;
+        $dt_inicio = $this->request->dt_inicio;
+        $dt_fim = $this->request->dt_fim;
+        $executor = isset($this->request->executor) ? implode(',', $this->request->executor) : 0;
+        $painel = $this->request->painel;
+        $subPainel = $this->request->subPainel;
+
+        // 9 - CANCELADAS
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
+        $data = $this->executorEtapa->resumoExecutorSetor(
+            $cd_empresa,
+            $dt_inicio,
+            $dt_fim,
+            $subgrupo['data'],
+            $executor,
+            $painel,
+            $subPainel
+        );
+
+        return DataTables::of($data)
+
+            ->make(true);
     }
 }

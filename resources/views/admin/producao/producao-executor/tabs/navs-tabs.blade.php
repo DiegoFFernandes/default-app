@@ -1,5 +1,5 @@
 <div class="card-header p-0 border-bottom-0">
-    <ul class="nav nav-tabs" id="nav-tabs-setores" role="tablist">
+    <ul class="nav nav-tabs grupo-tabs" id="nav-tabs-setores" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="tab-exame-inicial-{{ $painelPrincipal }}" data-toggle="pill" href="#painel-exame-inicial-{{ $painelPrincipal }}" role="tab"
                 aria-controls="painel-exame-inicial-{{ $painelPrincipal }}" aria-selected="true">Exame Inicial</a>
