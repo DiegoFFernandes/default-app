@@ -565,8 +565,7 @@ return [
             // 'label_color' => 'success',
         ],
         [
-            'text' => 'Producao',
-            'can' => 'ver-pedidos-coletados',
+            'text' => 'Producao',            
             'url' => '#',
             'icon' => 'nav-icon fa fa-clipboard-list',
             'submenu' => [
@@ -574,7 +573,12 @@ return [
                     'text' => 'Pedidos Pneus',
                     'route' => 'pedido-pneus.index',
                     'can' => 'ver-pedidos-coletados',
-                ]             
+                ],
+                 [
+                    'text' => 'Executor X Etapa',
+                    'route' => 'executor-etapas.index',
+                    'can' => 'ver-producao',
+                ]           
             ],            
         ],
         [
