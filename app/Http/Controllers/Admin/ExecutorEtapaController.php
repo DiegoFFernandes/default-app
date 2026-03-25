@@ -82,7 +82,7 @@ class ExecutorEtapaController extends Controller
     {
         $cd_empresa = $this->request->cd_empresa;
         $dt_fim = $this->request->dt_fim;
-        $executor = isset($this->request->executor) ? implode(',', $this->request->executor) : 0;
+        $executor = $this->request->idexecutor; //sempre vai vir um executor, pois o botão de detalhes só é exibido para quem tem executor definido
         $tabela = $this->request->tabela;
         $painel = $this->request->painel;
         $etapa = $this->classificaEtapa($tabela);
