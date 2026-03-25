@@ -18,7 +18,7 @@
                     <div class="tab-pane fade show active" id="painel-canceladas" role="tabpanel"
                         aria-labelledby="tab-canceladas-painel-canceladas">
                         <table id="table-canceladas-painel-canceladas"
-                            class="table compact table-bordered table-striped table-font-small">
+                            class="table compact table-bordered table-striped table-font-small table-responsive">
                             <thead></thead>
                             <tbody></tbody>
                             <tfoot>

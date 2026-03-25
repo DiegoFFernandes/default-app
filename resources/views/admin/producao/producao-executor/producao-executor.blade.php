@@ -12,8 +12,8 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-2 col-sm-2">
-                            <div class="nav flex-column nav-tabs h-100" id="tabs-principais" role="tablist"
+                        <div class="col-12 col-sm-2">
+                            <div class="nav flex-column nav-tabs" id="tabs-principais" role="tablist"
                                 aria-orientation="vertical">
                                 <a class="nav-link active" id="tab-servicos-ativos" data-toggle="pill"
                                     href="#painel-ativos">
@@ -30,7 +30,7 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="col-10 col-sm-10">
+                        <div class="col-12 col-sm-10">
                             <div class="tab-content" id="ver-tabs-tabContent-servicos">
                                 <div class="tab-pane fade show active" id="painel-ativos">
                                     @include('admin.producao.producao-executor.components.servicos', [
@@ -48,8 +48,12 @@
                                     ])
                                 </div>
                                 <div class="tab-pane fade" id="painel-canceladas">
-                                    @include('admin.producao.producao-executor.components.servicos-cancelados', [
-                                            'painelPrincipal' => 'painel-canceladas'])
+                                    @include(
+                                        'admin.producao.producao-executor.components.servicos-cancelados',
+                                        [
+                                            'painelPrincipal' => 'painel-canceladas',
+                                        ]
+                                    )
                                 </div>
                             </div>
                         </div>
@@ -64,14 +68,6 @@
 @stop
 @section('css')
     <style>
-        /* .badge {
-                                                                                                                                                                                                                                                                    background-color: #e9ecef !important;
-                                                                                                                                                                                                                                                                    color: #495057 !important;
-                                                                                                                                                                                                                                                                    font-weight: 500 !important;
-                                                                                                                                                                                                                                                                    font-size: 11px !important;
-                                                                                                                                                                                                                                                                    border-radius: 6px !important;
-                                                                                                                                                                                                                                                                } */
-
         .btn-detalhes-executor {
             background-color: #0d6efd26 !important;
             color: #0d6efd !important;
@@ -84,11 +80,9 @@
             background-color: #0d6efd40 !important;
         }
 
-
-
-        #nav-tabs-servicos .nav-link {
-            margin-bottom: 4px;
-            padding: 8px 12px;
+        .nav-tabs.flex-column {
+            border-bottom: 0;
+            border-right: none !important;
         }
 
         #nav-tabs-servicos .nav-link.active {
@@ -115,6 +109,12 @@
             background: transparent;
         }
 
+        #tabs-principais .nav-link.active {
+            font-weight: 600;
+            border-right: 2px solid #0d6efd;
+            background: transparent
+        }
+
         #nav-tabs-setores .nav-link {
             padding: 5px 8px;
             font-size: 12px;
@@ -122,6 +122,17 @@
 
         #nav-tabs-setores .nav-item {
             margin-right: 2px;
+        }
+
+        @media (max-width: 767.98px) {
+            #tabs-principais {
+                padding-bottom: 10px;
+            }
+
+            #tabs-principais .nav-link.active {
+                border-right: none;
+                border-bottom: 2px solid #0d6efd;
+            }
         }
     </style>
 @stop
@@ -313,7 +324,7 @@
 
             const executor = $('#filtro-executor').val(); // puxa o código do executor
             const executorNome = $('#filtro-executor option:selected')
-        .text(); // puxa o nome do executor                 
+                .text(); // puxa o nome do executor                 
 
             // automatiza o  badge-danger da empresa 
             $('.badge-empresa').text(`Empresa: ${empresaNome}`);
