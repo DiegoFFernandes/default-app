@@ -48,12 +48,8 @@
                                     ])
                                 </div>
                                 <div class="tab-pane fade" id="painel-canceladas">
-                                    @include(
-                                        'admin.producao.producao-executor.components.servicos-cancelados',
-                                        [
-                                            'painelPrincipal' => 'painel-canceladas',
-                                        ]
-                                    )
+                                    @include('admin.producao.producao-executor.components.servicos-cancelados', [
+                                            'painelPrincipal' => 'painel-canceladas'])
                                 </div>
                             </div>
                         </div>
@@ -69,12 +65,12 @@
 @section('css')
     <style>
         /* .badge {
-                                                                                                                                                                                                                                                                background-color: #e9ecef !important;
-                                                                                                                                                                                                                                                                color: #495057 !important;
-                                                                                                                                                                                                                                                                font-weight: 500 !important;
-                                                                                                                                                                                                                                                                font-size: 11px !important;
-                                                                                                                                                                                                                                                                border-radius: 6px !important;
-                                                                                                                                                                                                                                                            } */
+                                                                                                                                                                                                                                                                    background-color: #e9ecef !important;
+                                                                                                                                                                                                                                                                    color: #495057 !important;
+                                                                                                                                                                                                                                                                    font-weight: 500 !important;
+                                                                                                                                                                                                                                                                    font-size: 11px !important;
+                                                                                                                                                                                                                                                                    border-radius: 6px !important;
+                                                                                                                                                                                                                                                                } */
 
         .btn-detalhes-executor {
             background-color: #0d6efd26 !important;
@@ -143,7 +139,7 @@
             width: '100%'
         });
 
-        const datasSelecionadas = initDateRangePicker('#daterange', '11.03.2026', '11.03.2026');
+        const datasSelecionadas = initDateRangePicker('#daterange');
 
         let empresaNome = $('#filtro-empresa option:selected').text();
         let idEmpresa = $('#filtro-empresa').val();
@@ -303,7 +299,7 @@
         //Busca os dados ao clicar no botão "Buscar novos"
         $('#submit-seach').on('click', function() {
 
-            const estado = getEstadoAtual();           
+            const estado = getEstadoAtual();
 
             $('#tab-servicos-ativos').tab('show');
             $('#tab-exame-inicial-' + estado.idPainel).tab('show');
@@ -316,7 +312,8 @@
             const empresaNome = $('#filtro-empresa option:selected').text(); //puxa o nome da empresa
 
             const executor = $('#filtro-executor').val(); // puxa o código do executor
-            const executorNome = $('#filtro-executor option:selected').text(); // puxa o nome do executor                 
+            const executorNome = $('#filtro-executor option:selected')
+        .text(); // puxa o nome do executor                 
 
             // automatiza o  badge-danger da empresa 
             $('.badge-empresa').text(`Empresa: ${empresaNome}`);
@@ -325,7 +322,7 @@
             // automatiza o  badge-danger do periodo e formata o valor 
             $('.badge-periodo').text(
                 `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
-            );           
+            );
 
 
             if (estado.idPainel === 'painel-canceladas') {
@@ -334,9 +331,10 @@
                 return;
             }
 
-            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL', estado.idPainel);
+            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL', estado
+                .idPainel);
 
-            if(estado.idSubTab2 === 'resumo-setor-painel-ativos') {
+            if (estado.idSubTab2 === 'resumo-setor-painel-ativos') {
                 initResumoExecutorSetor(
                     'setorResumo-' + estado.idPainel,
                     inicioData,
@@ -347,7 +345,7 @@
                 );
                 return;
             }
-            
+
 
         });
 
@@ -369,9 +367,9 @@
         });
 
         // Função para iniciar/reiniciar a DataTable
-        function initTable(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {       
-            
-            
+        function initTable(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {
+
+
 
             idEmpresa = $('#filtro-empresa').val();
             idExecutor = $('#filtro-executor').val();
@@ -385,8 +383,8 @@
                 serverSide: false,
                 pageLength: 100,
                 pagingType: 'simple',
-                searching: false, 
-                scrollY: '400px',                
+                searching: false,
+                scrollY: '400px',
                 language: {
                     url: window.routes.languageDatatables
                 },
@@ -739,10 +737,10 @@
 
             return $('#' + idTabelaDatatable).DataTable({
                 processing: false,
-                serverSide: false,                
+                serverSide: false,
                 paging: false,
                 scrollY: '400px',
-                searching: false,               
+                searching: false,
                 ordering: false,
                 language: {
                     url: window.routes.languageDatatables

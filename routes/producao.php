@@ -15,7 +15,6 @@ Route::middleware('auth')->group(function () {
 
 
         Route::get('detalhes-executor', [ExecutorEtapaController::class, 'detalhesExecutor'])->name('get-details-executor');
-
         Route::get('get-resumo-producao-setor', [ExecutorEtapaController::class, 'resumoProducaoSetor'])->name('get-resumo-producao-setor');
     });
 });

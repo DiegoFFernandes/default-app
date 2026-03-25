@@ -13,6 +13,7 @@
             <div class="card-body">
                 <span class="badge badge-info badge-empresa">Empresa:</span>
                 <span class="badge badge-info badge-periodo">Periodo:</span>
+                <span class="badge badge-warning badge-msg">Não usa filtro de executor</span>
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="painel-canceladas" role="tabpanel"
                         aria-labelledby="tab-canceladas-painel-canceladas">
