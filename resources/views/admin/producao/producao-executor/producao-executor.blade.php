@@ -335,15 +335,15 @@
                 `Período: ${moment(datasSelecionadas.getInicio() + ' 00:00', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")} - ${moment(datasSelecionadas.getFim() + ' 23:59', "DD/MM/YYYY HH:mm").format("DD/MM/YYYY HH:mm")}`
             );
 
-
             if (estado.idPainel === 'painel-canceladas') {
                 initTableCanceladas(empresa, inicioData, fimData, 'table-canceladas-painel-canceladas',
                     'EXAMEINICIAL', estado.idPainel);
                 return;
             }
 
-            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL', estado
-                .idPainel);
+            console.log(estado.idPainel);
+
+            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL', 'painel-ativos');
 
             if (estado.idSubTab2 === 'resumo-setor-painel-ativos') {
                 initResumoExecutorSetor(
@@ -379,8 +379,6 @@
 
         // Função para iniciar/reiniciar a DataTable
         function initTable(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {
-
-
 
             idEmpresa = $('#filtro-empresa').val();
             idExecutor = $('#filtro-executor').val();
@@ -446,6 +444,7 @@
                         name: 'META',
                         title: 'Meta',
                         "width": '3%',
+                        visible: false
                     },
                     {
                         data: 'QTD_RETRABALHO',
@@ -717,7 +716,7 @@
                 }
             });
 
-            console.log(resultado);
+            // console.log(resultado);
             const idSubTab1 = resultado[0]?.idSubTab || null;
             const tabela1 = resultado[0]?.tabela || null;
 
