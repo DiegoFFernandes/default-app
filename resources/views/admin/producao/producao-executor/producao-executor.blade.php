@@ -178,12 +178,9 @@
             'Setor'
         );
 
-
-
         // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
         $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
             const estado = getEstadoAtual();
-
             $('#tab-exame-inicial-' + estado.idPainel).tab('show');
 
             if (estado.idPainel === 'painel-canceladas') {
@@ -194,11 +191,41 @@
                     'EXAMEINICIAL',
                     'painel-canceladas'
                 );
-            } else {
+            } else if (estado.idPainel === 'painel-ativos') {
                 initTable(idEmpresa,
                     datasSelecionadas.getInicio() + ' 00:00',
                     datasSelecionadas.getFim() + ' 23:59',
-                    estado.tabela1,
+                    'table-exame-inicial-painel-ativos',
+                    'EXAMEINICIAL',
+                    estado.idPainel
+                );
+
+                initResumoExecutorSetor(
+                    'setorResumo-' + estado.idPainel,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    estado.idSubTab2,
+                    'Setor')
+            } else if (estado.idPainel === 'painel-recusados') {
+                initTable(idEmpresa,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    'table-exame-inicial-painel-recusados',
+                    'EXAMEINICIAL',
+                    estado.idPainel
+                );
+
+                initResumoExecutorSetor(
+                    'setorResumo-' + estado.idPainel,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    estado.idSubTab2,
+                    'Setor')
+            } else if (estado.idPainel === 'painel-retrabalhos') {
+                initTable(idEmpresa,
+                    datasSelecionadas.getInicio() + ' 00:00',
+                    datasSelecionadas.getFim() + ' 23:59',
+                    'table-exame-inicial-painel-retrabalhos',
                     'EXAMEINICIAL',
                     estado.idPainel
                 );
@@ -211,7 +238,7 @@
                     'Setor')
             }
 
-        })
+        });
 
         //Clique nas subtabs1 etapas para atualizar a tabela de acordo com a etapa selecionada
         $(document).on('shown.bs.tab', '#nav-tabs-setores .nav-link', function(e) {
@@ -261,7 +288,6 @@
             ];
 
             const tabSelecionada = tabs.find(tab => tab.tableId + '-' + estado.idPainel === estado.tabela1);
-
 
             initTable(idEmpresa,
                 dt_inicio,
@@ -336,14 +362,18 @@
             );
 
             if (estado.idPainel === 'painel-canceladas') {
-                initTableCanceladas(empresa, inicioData, fimData, 'table-canceladas-painel-canceladas',
-                    'EXAMEINICIAL', estado.idPainel);
+                initTableCanceladas(
+                    empresa,
+                    inicioData,
+                    fimData,
+                    'table-canceladas-painel-canceladas',
+                    'EXAMEINICIAL',
+                    estado.idPainel);
                 return;
             }
 
-            console.log(estado.idPainel);
-
-            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL', 'painel-ativos');
+            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL',
+                'painel-ativos');
 
             if (estado.idSubTab2 === 'resumo-setor-painel-ativos') {
                 initResumoExecutorSetor(
@@ -382,6 +412,8 @@
 
             idEmpresa = $('#filtro-empresa').val();
             idExecutor = $('#filtro-executor').val();
+
+            // console.log(idTabelaDataTable);
 
             if ($.fn.DataTable.isDataTable('#' + idTabelaDataTable)) {
                 $('#' + idTabelaDataTable).DataTable().destroy();
@@ -705,7 +737,6 @@
             $(painel).find('.grupo-tabs').each(function() {
                 const ativas = $(this).find('.nav-link.active');
 
-                // console.log(ativas);
                 if (ativas.length) {
                     const href = ativas.attr('href');
                     // console.log(href);
@@ -715,8 +746,6 @@
                     });
                 }
             });
-
-            // console.log(resultado);
             const idSubTab1 = resultado[0]?.idSubTab || null;
             const tabela1 = resultado[0]?.tabela || null;
 

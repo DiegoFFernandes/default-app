@@ -405,7 +405,6 @@ class ExecutorEtapa extends Model
     {
         if ($subPainel == 'resumo-setor-painel-retrabalhos') {
             return "
-
                 SELECT  
                         '{$setor}' SETOR,
                         COUNT(I.ID) QTD,
