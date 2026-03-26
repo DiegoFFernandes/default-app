@@ -111,6 +111,7 @@ class ExecutorEtapa extends Model
                     AND I.ST_ETAPA = 'F'                    
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND OPR.STRETRABALHO = 'S'
+                    AND OPR.STORDEM <> 'C'
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                 GROUP BY DT_FIM, 
                 OPR.IDEMPRESA, 
