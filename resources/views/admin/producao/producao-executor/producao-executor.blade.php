@@ -242,7 +242,7 @@
 
         //Clique nas subtabs1 etapas para atualizar a tabela de acordo com a etapa selecionada
         $(document).on('shown.bs.tab', '.grupo-tabs .nav-link', function(e) {
-            const estado = getEstadoAtual();          
+            const estado = getEstadoAtual();
 
             const dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
             const dt_fim = datasSelecionadas.getFim() + ' 23:59';
@@ -302,11 +302,9 @@
         $(document).on('shown.bs.tab', '.grupo-tabs-resumo  .nav-link', function(e) {
             const estado = getEstadoAtual();
 
-            console.log(estado);
-
             const dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
             const dt_fim = datasSelecionadas.getFim() + ' 23:59';
-            
+
             const executor = $('#filtro-executor').val();
 
             // console.log(estado.idSubTab2);
@@ -324,7 +322,7 @@
             } else {
 
                 montaFooterTabelaResumo('executorResumo-' + estado.idPainel);
-                // (idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor', idExecutor = 0) 
+
                 initResumoExecutorSetor(
                     estado.tabela2,
                     dt_inicio,
@@ -429,6 +427,33 @@
                 pagingType: 'simple',
                 searching: false,
                 scrollY: '400px',
+                layout: {
+                    topStart: {
+                        buttons: [{
+                                extend: "excelHtml5",
+                                exportOptions: {
+                                    columns: [1,2,3,5,6]
+                                },
+                                title: "Relatório de Produção - Executor x Etapa",
+                                footer: true
+                            },
+                            {
+                                extend: "print",
+                                title: "Relatório de Produção - Executor x Etapa",
+                                footer: true,
+                                exportOptions: {
+                                    columns: [1,2,3,5,6]
+                                },
+                                customize: function(win) {
+                                    $(win.document.body)
+                                        .find("h1")
+                                        .css("font-size", "12pt")
+                                        .css("color", "#333");
+                                },
+                            },                            
+                        ],
+                    },
+                },
                 language: {
                     url: window.routes.languageDatatables
                 },
@@ -501,14 +526,26 @@
                 ],
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
-                    var total = api
+                    var totalProduzidos = api
                         .column(3, {
                             search: 'applied'
                         })
                         .data().reduce(function(a, b) {
                             return a + parseInt(b || 0);
                         }, 0);
-                    $(api.column(3).footer()).html(total);
+
+                    var totalRetrabalho = api
+                        .column(5, {
+                            search: 'applied'
+                        })
+                        .data().reduce(function(a, b) {
+                            return a + parseInt(b || 0);
+                        }, 0);    
+
+                    $(api.column(3).footer()).html(totalProduzidos);
+                    $(api.column(5).footer()).html(totalRetrabalho);
+
+                    $(api.column(6).footer()).html(totalProduzidos-totalRetrabalho);
                 }
             });
         }
@@ -745,7 +782,7 @@
                     // console.log(href);
                     resultado.push({
                         idSubTab: href.replace('#', ''),
-                        tabela: $(href).data('tabela') || null                        
+                        tabela: $(href).data('tabela') || null
                     });
                 }
             });
@@ -765,7 +802,8 @@
             };
         }
 
-        function initResumoExecutorSetor(idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor', idExecutor = 0) {
+        function initResumoExecutorSetor(idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor',
+            idExecutor = 0) {
 
             const estado = getEstadoAtual();
             idEmpresa = $('#filtro-empresa').val();
