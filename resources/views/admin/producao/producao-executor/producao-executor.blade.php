@@ -241,8 +241,8 @@
         });
 
         //Clique nas subtabs1 etapas para atualizar a tabela de acordo com a etapa selecionada
-        $(document).on('shown.bs.tab', '#nav-tabs-setores .nav-link', function(e) {
-            const estado = getEstadoAtual();
+        $(document).on('shown.bs.tab', '.grupo-tabs .nav-link', function(e) {
+            const estado = getEstadoAtual();          
 
             const dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
             const dt_fim = datasSelecionadas.getFim() + ' 23:59';
@@ -299,18 +299,21 @@
         });
 
         //Clique nas subtabs2 resumos para atualizar a tabela de acordo com a etapa selecionada
-        $(document).on('shown.bs.tab', '#navs-tabs-resumo .nav-link', function(e) {
+        $(document).on('shown.bs.tab', '.grupo-tabs-resumo  .nav-link', function(e) {
             const estado = getEstadoAtual();
+
+            console.log(estado);
 
             const dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
             const dt_fim = datasSelecionadas.getFim() + ' 23:59';
+            
             const executor = $('#filtro-executor').val();
 
             // console.log(estado.idSubTab2);
 
             if (estado.idSubTab2 === 'resumo-setor-painel-retrabalhos') {
                 initResumoExecutorSetor(
-                    'setorResumo-' + estado.idPainel,
+                    estado.tabela2,
                     dt_inicio,
                     dt_fim,
                     estado.idSubTab2,
@@ -321,9 +324,9 @@
             } else {
 
                 montaFooterTabelaResumo('executorResumo-' + estado.idPainel);
-
+                // (idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor', idExecutor = 0) 
                 initResumoExecutorSetor(
-                    'executorResumo-' + estado.idPainel,
+                    estado.tabela2,
                     dt_inicio,
                     dt_fim,
                     estado.idSubTab2,
@@ -742,10 +745,11 @@
                     // console.log(href);
                     resultado.push({
                         idSubTab: href.replace('#', ''),
-                        tabela: $(href).find('table').attr('id')
+                        tabela: $(href).data('tabela') || null                        
                     });
                 }
             });
+
             const idSubTab1 = resultado[0]?.idSubTab || null;
             const tabela1 = resultado[0]?.tabela || null;
 
@@ -761,8 +765,7 @@
             };
         }
 
-        function initResumoExecutorSetor(idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor',
-            idExecutor = 0) {
+        function initResumoExecutorSetor(idTabelaDatatable, dt_inicio, dt_fim, idSubPainel, tipoResumo = 'Setor', idExecutor = 0) {
 
             const estado = getEstadoAtual();
             idEmpresa = $('#filtro-empresa').val();

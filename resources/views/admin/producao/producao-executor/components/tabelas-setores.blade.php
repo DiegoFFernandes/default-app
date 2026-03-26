@@ -1,6 +1,6 @@
 <div class="tab-pane fade {{ $visible }}" id="{{ $painelSub }}" role="tabpanel"
-    aria-labelledby="{{ $painelSub }}">
-    <table id="{{ $idTabela }}" class="table compact table-bordered table-striped table-font-small">
+    aria-labelledby="{{ $painelSub }}" data-tabela="{{ $idTabela }}">
+    <table id="{{ $idTabela }}" class="table table-setores compact table-bordered table-striped table-font-small">
         <thead></thead>
         <tbody></tbody>
         <tfoot>
