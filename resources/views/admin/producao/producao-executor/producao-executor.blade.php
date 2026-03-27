@@ -17,7 +17,7 @@
                                 aria-orientation="vertical">
                                 <a class="nav-link active" id="tab-servicos-ativos" data-toggle="pill"
                                     href="#painel-ativos">
-                                    Serviços Finalizados
+                                    Serviços Aprovados
                                 </a>
                                 <a class="nav-link" id="tab-servicos-recusados" data-toggle="pill" href="#painel-recusados">
                                     Serviços Recusados
@@ -50,13 +50,7 @@
                                 <div class="tab-pane fade" id="painel-canceladas">
                                     @include('admin.producao.producao-executor.components.servicos', [
                                         'painelPrincipal' => 'painel-canceladas',
-                                    ])
-                                    {{-- @include(
-                                        'admin.producao.producao-executor.components.servicos-cancelados',
-                                        [
-                                            'painelPrincipal' => 'painel-canceladas',
-                                        ]
-                                    ) --}}
+                                    ])                                    
                                 </div>
                             </div>
                         </div>
@@ -65,8 +59,6 @@
             </div>
         </div>
         @include('admin.producao.producao-executor.modals.modal-details-producao-executor')
-        @include('admin.producao.producao-executor.modals.modal-details-canceladas')
-
     </section>
 @stop
 @section('css')
@@ -470,6 +462,7 @@
                         name: 'QTD_RETRABALHO',
                         title: 'Retrabalho',
                         "width": '3%',
+                        visible: false
                     },
                     {
                         data: 'DT_FIM',
@@ -504,7 +497,7 @@
                     $(api.column(3).footer()).html(totalProduzidos);
                     $(api.column(5).footer()).html(totalRetrabalho);
 
-                    $(api.column(6).footer()).html(totalProduzidos - totalRetrabalho);
+                    // $(api.column(6).footer()).html(totalProduzidos - totalRetrabalho);
                 }
             });
         }
