@@ -95,6 +95,7 @@ class ExecutorEtapa extends Model
                     PP.IDEMPRESA,
                     COALESCE(REP.O_IDEXECUTOR, '9999') IDEXECUTOR,
                     COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
+                    CAST(REP.O_DTFIM AS DATE) DT_FIM,
                     COUNT(OPR.ID) QTD,
                     0 META,
                     COUNT(OPR.ID) QTD_RETRABALHO                                     
@@ -193,29 +194,25 @@ class ExecutorEtapa extends Model
         } elseif ($painel === 'painel-retrabalhos') {
             $query = "
                 SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
+                    PP.IDEMPRESA,
+                    COALESCE(REP.O_IDEXECUTOR, '9999') IDEXECUTOR,
                     COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
                     OPR.ID NR_ORDEM,
                     IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
-                    I.DTFIM DT_FIM,
-                    CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO
-                FROM $tabela I
-                LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
+                    REP.O_DTFIM DT_FIM,
+                    CASE WHEN OPR.STRETRABALHO = 'S' THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO                    
+                FROM ORDEMPRODUCAORECAP OPR
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
-                WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'
-                    AND I.ST_ETAPA = 'F'
-                    --AND OPR.STORDEM <> 'C'
-                    AND OPR.STRETRABALHO = 'S'
-                    AND OPR.IDEMPRESA = $cd_empresa
-                    AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
-                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)    
-                ORDER BY DT_FIM";
+                INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                LEFT JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                LEFT JOIN RETORNA_ETAPASPRODUCAO(OPR.ID) REP ON (REP.O_IDETAPA = OPR.IDETAPARETRABALHO)
+                LEFT JOIN EXECUTORETAPA E ON (E.ID = REP.O_IDEXECUTOR)
+                WHERE OPR.STRETRABALHO = 'S'
+                    AND PP.IDEMPRESA = $cd_empresa
+                    AND COALESCE(REP.O_IDEXECUTOR, '9999') in ($executor)                     
+                    AND REP.O_IDETAPA = $etapa                    
+                    AND CAST(REP.O_DTFIM AS DATE) = '$dt_fim'
+                ";
         } elseif ($painel === 'painel-canceladas') {
             $query = "
                 SELECT
