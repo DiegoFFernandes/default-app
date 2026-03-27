@@ -54,6 +54,7 @@ class ExecutorEtapa extends Model
                     I.IDEXECUTOR,
                     EE.QTMETADIARIA,
                     E.NMEXECUTOR
+                ORDER BY DT_FIM
                 ";
         } elseif ($painel === 'painel-recusados') {
             $query = "
@@ -86,39 +87,27 @@ class ExecutorEtapa extends Model
                     I.IDEXECUTOR,
                     EE.QTMETADIARIA,
                     E.NMEXECUTOR
+                ORDER BY DT_FIM
                 ";
         } elseif ($painel === 'painel-retrabalhos') {
             $query = "
                 SELECT
-                    OPR.IDEMPRESA,
-                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
+                    PP.IDEMPRESA,
+                    COALESCE(REP.O_IDEXECUTOR, '9999') IDEXECUTOR,
                     COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
-                    CAST(I.DTFIM AS DATE) DT_FIM,
-                    COUNT(I.ID) QTD,
-                    COALESCE(EE.QTMETADIARIA, 0) META,
-                    COUNT(
-                    CASE
-                    WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 1
-                    END) AS QTD_RETRABALHO
-                FROM $tabela I
-                LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
+                    COUNT(OPR.ID) QTD,
+                    0 META,
+                    COUNT(OPR.ID) QTD_RETRABALHO                                     
+                FROM ORDEMPRODUCAORECAP OPR
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
-                WHERE I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                    AND I.ST_ETAPA = 'F'                    
-                    AND OPR.IDEMPRESA = $cd_empresa
-                    AND OPR.STRETRABALHO = 'S'
-                    AND OPR.STORDEM <> 'C'
-                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
-                GROUP BY DT_FIM, 
-                OPR.IDEMPRESA, 
-                EE.QTMETADIARIA,
-                I.IDEXECUTOR, 
-                EE.QTMETADIARIA, 
-                E.NMEXECUTOR
+                LEFT JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                LEFT JOIN RETORNA_ETAPASPRODUCAO(OPR.ID) REP ON (REP.O_IDETAPA = OPR.IDETAPARETRABALHO)
+                LEFT JOIN EXECUTORETAPA E ON (E.ID = REP.O_IDEXECUTOR)
+                WHERE OPR.STRETRABALHO = 'S'
+                    AND PP.IDEMPRESA = $cd_empresa
+                    AND REP.O_IDETAPA = $etapa
+                    AND REP.O_DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
+                GROUP BY CAST(REP.O_DTFIM AS DATE), IDEXECUTOR, NM_EXECUTOR, PP.IDEMPRESA 
 
              ";
         } elseif ($painel === 'painel-canceladas') {
@@ -134,7 +123,8 @@ class ExecutorEtapa extends Model
                     OPR.DTREGISTRO BETWEEN '$dt_inicio' AND '$dt_fim'                
                     AND OPR.STORDEM = 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY OPR.IDEMPRESA, DT_FIM          
+                GROUP BY OPR.IDEMPRESA, DT_FIM
+                ORDER BY DT_FIM          
             ";
         } else {
             $query = "";
@@ -172,6 +162,8 @@ class ExecutorEtapa extends Model
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                ORDER BY DT_FIM
+
                     ";
         } elseif ($painel === 'painel-recusados') {
             $query = "
@@ -196,7 +188,8 @@ class ExecutorEtapa extends Model
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)            
-                    AND ITEM.CD_SUBGRUPO IN ($subgrupo)";
+                    AND ITEM.CD_SUBGRUPO IN ($subgrupo)
+                ORDER BY DT_FIM";
         } elseif ($painel === 'painel-retrabalhos') {
             $query = "
                 SELECT
@@ -222,7 +215,7 @@ class ExecutorEtapa extends Model
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)    
-             ";
+                ORDER BY DT_FIM";
         } elseif ($painel === 'painel-canceladas') {
             $query = "
                 SELECT
@@ -237,7 +230,7 @@ class ExecutorEtapa extends Model
                     CAST(OPR.DTREGISTRO AS DATE) = '$dt_fim'                    
                     AND OPR.STORDEM = 'C'
                     AND OPR.IDEMPRESA = $cd_empresa    
-            ";
+                ORDER BY DT_FIM";
         } else {
             $query = "";
         }
@@ -332,7 +325,7 @@ class ExecutorEtapa extends Model
                         AND OPR.IDEMPRESA = $cd_empresa
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
                         AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
-                    GROUP BY SETOR, IDETAPA         
+                    GROUP BY SETOR, IDETAPA                                           
                 ";
         } elseif ($subPainel == 'resumo-setor-painel-recusados') {
             return "
