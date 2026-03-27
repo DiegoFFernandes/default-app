@@ -115,19 +115,35 @@ class ExecutorEtapa extends Model
         } elseif ($painel === 'painel-canceladas') {
             $query = "
                 SELECT
-                    OPR.IDEMPRESA,                    
-                    CAST(OPR.DTREGISTRO AS DATE) DT_FIM,
-                    COUNT(OPR.ID) QTD                    
-                FROM ORDEMPRODUCAORECAP OPR
+                    OPR.IDEMPRESA,
+                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
+                    COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
+                    CAST(I.DTFIM AS DATE) DT_FIM,
+                    COUNT(I.ID) QTD,
+                    COALESCE(EE.QTMETADIARIA, 0) META,
+                    COUNT (CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 1 END) AS QTD_RETRABALHO  
+
+                FROM $tabela I
+                LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
+                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
+                LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
+                LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
                 INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                 WHERE
-                    OPR.DTREGISTRO BETWEEN '$dt_inicio' AND '$dt_fim'                
+                    I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'                    
                     AND OPR.STORDEM = 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                GROUP BY OPR.IDEMPRESA, DT_FIM
-                ORDER BY DT_FIM          
-            ";
+                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                    " . ($executor != 0 ? "AND I.IDEXECUTOR in ($executor)" : "") . "
+                GROUP BY DT_FIM,
+                    OPR.IDEMPRESA,
+                    EE.QTMETADIARIA,
+                    I.IDEXECUTOR,
+                    EE.QTMETADIARIA,
+                    E.NMEXECUTOR
+                ORDER BY DT_FIM
+                ";
         } else {
             $query = "";
         }
@@ -218,17 +234,28 @@ class ExecutorEtapa extends Model
             $query = "
                 SELECT
                     OPR.IDEMPRESA,
+                    COALESCE(I.IDEXECUTOR, '9999') IDEXECUTOR,
+                    COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') NM_EXECUTOR,
                     OPR.ID NR_ORDEM,
                     IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
-                    CAST(OPR.DTREGISTRO AS DATE) DT_FIM                    
-                FROM ORDEMPRODUCAORECAP OPR
+                    I.DTFIM DT_FIM,
+                    CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO
+                FROM $tabela I
+                LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
+                LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
+                LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
+                LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
-                WHERE
-                    CAST(OPR.DTREGISTRO AS DATE) = '$dt_fim'                    
+                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
+                WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'                    
                     AND OPR.STORDEM = 'C'
-                    AND OPR.IDEMPRESA = $cd_empresa    
-                ORDER BY DT_FIM";
+                    AND OPR.IDEMPRESA = $cd_empresa
+                    AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
+                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                ORDER BY DT_FIM
+
+                    ";
         } else {
             $query = "";
         }
@@ -261,7 +288,7 @@ class ExecutorEtapa extends Model
                     FROM (
             ";
 
-        if ($painel == 'painel-ativos' || $painel == 'painel-recusados') {
+        if ($painel == 'painel-ativos' || $painel == 'painel-recusados' || $painel == 'painel-canceladas') {
             foreach ($setores as $setor) {
                 $query[] = $this->montarResumoSelectAtivos(
                     $setor['tabela'],
@@ -276,7 +303,6 @@ class ExecutorEtapa extends Model
                 );
             }
         } elseif ($painel === 'painel-retrabalhos') {
-
             $query[] = $this->montarResumoSelectRetrabalhos(
                 $executor,
                 $dt_inicio,
@@ -299,6 +325,7 @@ class ExecutorEtapa extends Model
 
     public function montarResumoSelectAtivos($tabela, $setor, $idetapa, $executor = 0, $dt_inicio, $dt_fim, $cd_empresa, $subgrupo, $subPainel = null)
     {
+        // aqui monto o select do resumo por setor, para ativos e recusados, o cancelados tem filtro diferente e o retrabalho tem outro select
         if ($subPainel == 'resumo-setor-painel-ativos') {
             return "
                     SELECT  
@@ -340,6 +367,26 @@ class ExecutorEtapa extends Model
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
                         AND ITEM.CD_SUBGRUPO IN ($subgrupo)
                     GROUP BY SETOR, IDETAPA";
+        } if ($subPainel == 'resumo-setor-painel-canceladas') {
+            return "
+                    SELECT  
+                        '{$setor}' SETOR,
+                        COUNT(I.ID) QTD,
+                        {$idetapa} IDETAPA
+                    FROM {$tabela} I
+                    LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
+                    LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
+                    INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
+                    LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                    INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                    WHERE
+                        I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'                        
+                        AND OPR.STORDEM = 'C'
+                        AND OPR.IDEMPRESA = $cd_empresa
+                        " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
+                        AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                    GROUP BY SETOR, IDETAPA                                           
+                ";
         }
 
         // aqui para baixo monto select do resumo por executor
@@ -385,6 +432,26 @@ class ExecutorEtapa extends Model
                         AND ITEM.CD_SUBGRUPO IN ($subgrupo)
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
                     GROUP BY E.NMEXECUTOR, IDETAPA";
+        } elseif ($subPainel == 'resumo-executor-painel-canceladas') {
+            return "
+                    SELECT
+                        COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') SETOR,
+                        COUNT(I.ID) QTD,
+                        1 IDETAPA
+                    FROM {$tabela} I
+                    LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
+                    LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
+                    LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
+                    LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
+                    LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                    INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                    WHERE
+                        I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'                       
+                        AND OPR.STORDEM = 'C'
+                        AND OPR.IDEMPRESA = $cd_empresa
+                        AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                        " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
+                    GROUP BY E.NMEXECUTOR, IDETAPA";
         }
     }
 
@@ -411,24 +478,20 @@ class ExecutorEtapa extends Model
         } elseif ($subPainel == 'resumo-executor-painel-retrabalhos') {
             return "
                     SELECT
-                        COALESCE(E.NMEXECUTOR, 'SEM OPERADOR') SETOR,
-                        COUNT(I.ID) QTD,
-                        1 IDETAPA
-                    FROM {$tabela} I
-                    LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
-                    LEFT JOIN ETAPASPRODUCAOEXECUTORRECAP EE ON (EE.IDEXECUTOR = E.ID)
-                    LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = I.IDORDEMPRODUCAORECAP)
-                    LEFT JOIN ORDEMPRODUCAORECAPRETRABALHO OPPR ON (OPPR.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
-                    WHERE
-                        I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
-                        AND OPR.STRETRABALHO = 'S'
-                        AND OPR.IDEMPRESA = $cd_empresa
-                        AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
-                        " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
-                    GROUP BY E.NMEXECUTOR, IDETAPA";
+                    UPPER(E.NMEXECUTOR) SETOR,
+                    COUNT(OPR.ID) QTD,
+                    0 IDETAPA                   
+                FROM ORDEMPRODUCAORECAP OPR
+                LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                LEFT JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                LEFT JOIN RETORNA_ETAPASPRODUCAO(OPR.ID) REP ON (REP.O_IDETAPA = OPR.IDETAPARETRABALHO)
+                LEFT JOIN EXECUTORETAPA E ON (E.ID = REP.O_IDEXECUTOR)
+                WHERE OPR.STRETRABALHO = 'S'
+                    AND PP.IDEMPRESA = $cd_empresa                    
+                    AND REP.O_DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
+                    " . ($executor != 0 ? "AND REP.O_IDEXECUTOR IN ($executor)" : "") . "
+                GROUP BY E.NMEXECUTOR";
         }
     }
 }

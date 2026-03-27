@@ -68,8 +68,7 @@ class ExecutorEtapaController extends Controller
                 
                     data-cd_empresa="' . $row->IDEMPRESA . '"
                     data-dt_fim="' . $row->DT_FIM . '"
-
-                    ' . ($painel === 'painel-canceladas' ? '' : 'data-idexecutor="' . $row->IDEXECUTOR . '"') . '
+                    data-idexecutor="' . $row->IDEXECUTOR . '"
                     data-tabela="' . $tabela . '"                
                 
                 ">Detalhes</button>';

@@ -48,12 +48,15 @@
                                     ])
                                 </div>
                                 <div class="tab-pane fade" id="painel-canceladas">
-                                    @include(
+                                    @include('admin.producao.producao-executor.components.servicos', [
+                                        'painelPrincipal' => 'painel-canceladas',
+                                    ])
+                                    {{-- @include(
                                         'admin.producao.producao-executor.components.servicos-cancelados',
                                         [
                                             'painelPrincipal' => 'painel-canceladas',
                                         ]
-                                    )
+                                    ) --}}
                                 </div>
                             </div>
                         </div>
@@ -181,62 +184,25 @@
         // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
         $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
             const estado = getEstadoAtual();
+
+            console.log(estado);
+
             $('#tab-exame-inicial-' + estado.idPainel).tab('show');
 
-            if (estado.idPainel === 'painel-canceladas') {
-                initTableCanceladas(idEmpresa,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    'table-canceladas-painel-canceladas',
-                    'EXAMEINICIAL',
-                    'painel-canceladas'
-                );
-            } else if (estado.idPainel === 'painel-ativos') {
-                initTable(idEmpresa,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    'table-exame-inicial-painel-ativos',
-                    'EXAMEINICIAL',
-                    estado.idPainel
-                );
+            initTable(idEmpresa,
+                datasSelecionadas.getInicio() + ' 00:00',
+                datasSelecionadas.getFim() + ' 23:59',
+                estado.tabela1,
+                'EXAMEINICIAL',
+                estado.idPainel
+            );
 
-                initResumoExecutorSetor(
-                    'setorResumo-' + estado.idPainel,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    estado.idSubTab2,
-                    'Setor')
-            } else if (estado.idPainel === 'painel-recusados') {
-                initTable(idEmpresa,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    'table-exame-inicial-painel-recusados',
-                    'EXAMEINICIAL',
-                    estado.idPainel
-                );
-
-                initResumoExecutorSetor(
-                    'setorResumo-' + estado.idPainel,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    estado.idSubTab2,
-                    'Setor')
-            } else if (estado.idPainel === 'painel-retrabalhos') {
-                initTable(idEmpresa,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    'table-exame-inicial-painel-retrabalhos',
-                    'EXAMEINICIAL',
-                    estado.idPainel
-                );
-
-                initResumoExecutorSetor(
-                    'setorResumo-' + estado.idPainel,
-                    datasSelecionadas.getInicio() + ' 00:00',
-                    datasSelecionadas.getFim() + ' 23:59',
-                    estado.idSubTab2,
-                    'Setor')
-            }
+            initResumoExecutorSetor(
+                'setorResumo-' + estado.idPainel,
+                datasSelecionadas.getInicio() + ' 00:00',
+                datasSelecionadas.getFim() + ' 23:59',
+                estado.idSubTab2,
+                'Setor');
 
         });
 
@@ -398,14 +364,9 @@
             const nomeTabela = $(this).data('tabela');
             const estado = getEstadoAtual();
 
-            if (estado.idPainel === 'painel-canceladas') {
-                $('#modal-details-canceladas').modal('show');
-                initTableDetailsCanceladas(cd_empresa, dt_fim, 'details-canceladas-table', nomeTabela,
-                    estado.idPainel);
-            } else {
-                $('#modal-details-executor').modal('show');
-                initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, nomeTabela, estado.idPainel);
-            }
+            $('#modal-details-executor').modal('show');
+            initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, nomeTabela, estado.idPainel);
+
         });
 
         // Função para iniciar/reiniciar a DataTable
@@ -413,8 +374,6 @@
 
             idEmpresa = $('#filtro-empresa').val();
             idExecutor = $('#filtro-executor').val();
-
-            // console.log(idTabelaDataTable);
 
             if ($.fn.DataTable.isDataTable('#' + idTabelaDataTable)) {
                 $('#' + idTabelaDataTable).DataTable().destroy();
@@ -432,7 +391,7 @@
                         buttons: [{
                                 extend: "excelHtml5",
                                 exportOptions: {
-                                    columns: [1,2,3,5,6]
+                                    columns: [1, 2, 3, 5, 6]
                                 },
                                 title: "Relatório de Produção - Executor x Etapa",
                                 footer: true
@@ -442,7 +401,7 @@
                                 title: "Relatório de Produção - Executor x Etapa",
                                 footer: true,
                                 exportOptions: {
-                                    columns: [1,2,3,5,6]
+                                    columns: [1, 2, 3, 5, 6]
                                 },
                                 customize: function(win) {
                                     $(win.document.body)
@@ -450,7 +409,7 @@
                                         .css("font-size", "12pt")
                                         .css("color", "#333");
                                 },
-                            },                            
+                            },
                         ],
                     },
                 },
@@ -540,12 +499,12 @@
                         })
                         .data().reduce(function(a, b) {
                             return a + parseInt(b || 0);
-                        }, 0);    
+                        }, 0);
 
                     $(api.column(3).footer()).html(totalProduzidos);
                     $(api.column(5).footer()).html(totalRetrabalho);
 
-                    $(api.column(6).footer()).html(totalProduzidos-totalRetrabalho);
+                    $(api.column(6).footer()).html(totalProduzidos - totalRetrabalho);
                 }
             });
         }
