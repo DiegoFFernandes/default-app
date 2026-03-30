@@ -7,7 +7,7 @@
         <!-- Small boxes (Stat box) -->
         <div class="row">
 
-            <div class="col-md-4 col-sm-4 col-xs-6">
+            <div class="col-md-3 col-sm-4 col-xs-6">
                 <div class="info-box">
                     <x-loading-card />
                     <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="far fa-dot-circle"></i></span>
@@ -19,7 +19,7 @@
             </div>
 
             @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                <div class="col-md-4 col-sm-4 col-xs-6">
+                <div class="col-md-3 col-sm-4 col-xs-6">
                     <div class="info-box">
                         <x-loading-card />
                         <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-dollar-sign"></i></span>
@@ -31,13 +31,23 @@
                 </div>
             @endhasrole
 
-            <div class="col-md-4 col-sm-4 col-xs-6">
+            <div class="col-md-3 col-sm-4 col-xs-6">
                 <div class="info-box">
                     <x-loading-card />
                     <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-truck"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Expedicionado</span>
                         <span class="info-box-number" id="expedicionado"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-4 col-xs-6">
+                <div class="info-box">
+                    <x-loading-card />
+                    <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-door-open"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Embarque</span>
+                        <span class="info-box-number" id="embarque"></span>
                     </div>
                 </div>
             </div>
@@ -105,8 +115,9 @@
                         <div class="row">
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>Empresa</label>
-                                    <select name="cd_empresa" id="cd_empresa" class="form-control" style="width: 100%;">
+                                    <label class="small">Empresa</label>
+                                    <select name="cd_empresa" id="cd_empresa" class="form-control form-control-sm"
+                                        style="width: 100%;">
                                         <option value="0" selected>Todas</option>
                                         @foreach ($empresa as $e)
                                             <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA }}
@@ -117,26 +128,30 @@
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>Dt Emissão</label>
-                                    <input type="text" class="form-control" id="daterange" placeholder="Data Emissão">
+                                    <label class="small">Dt Emissão</label>
+                                    <input type="text" class="form-control form-control-sm" id="daterange"
+                                        placeholder="Data Emissão">
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>Pedido Palm</label>
-                                    <input type="number" class="form-control" id="pedido_palm" placeholder="Pedido Palm">
+                                    <label class="small">Pedido Palm</label>
+                                    <input type="number" class="form-control form-control-sm" id="pedido_palm"
+                                        placeholder="Pedido Palm">
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label>Pedido</label>
-                                    <input type="number" class="form-control" id="pedido" placeholder="Pedido">
+                                    <label class="small">Pedido</label>
+                                    <input type="number" class="form-control form-control-sm" id="pedido"
+                                        placeholder="Pedido">
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>Grupo Item</label>
-                                    <select name="grupo_item" id="grupo_item" class="form-control" style="width: 100%;">
+                                    <label class="small">Grupo Item</label>
+                                    <select name="grupo_item" id="grupo_item" class="form-control form-control-sm"
+                                        style="width: 100%;">
                                         <option value="0">Todos</option>
                                         {{-- @foreach ($grupo as $g)
                                         <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}
@@ -149,9 +164,23 @@
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>Região</label>
-                                    <select name="cd_regiaocomercial[]" class="form-control" id="cd_regiaocomercial"
-                                        style="width: 100%;" multiple>
+                                    <label class="small">Vendedor</label>
+                                    <input type="text" class="form-control form-control-sm" id="nm_vendedor"
+                                        placeholder="Nome Vendedor">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="small">Cliente</label>
+                                    <input type="text" class="form-control form-control-sm" id="nm_cliente"
+                                        placeholder="Nome Cliente">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="small">Região</label>
+                                    <select name="cd_regiaocomercial[]" class="form-control form-control-sm"
+                                        id="cd_regiaocomercial" style="width: 100%;" multiple>
                                         @foreach ($regiao as $r)
                                             <option value="{{ $r->CD_REGIAOCOMERCIAL }}">
                                                 {{ $r->DS_REGIAOCOMERCIAL }}
@@ -160,18 +189,15 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-group">
-                                    <label>Vendedor</label>
-                                    <input type="text" class="form-control" id="nm_vendedor"
-                                        placeholder="Nome Vendedor">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>Cliente</label>
-                                    <input type="text" class="form-control" id="nm_cliente"
-                                        placeholder="Nome Cliente">
+                                    <label class="small">Status Embarque</label>
+                                    <select name="st_embarque" id="st_embarque" class="form-control form-control-sm"
+                                        style="width: 100%;">
+                                        <option value="0">Todos</option>
+                                        <option value="1">Com Embarque</option>
+                                        <option value="2">Sem Embarque</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -193,6 +219,7 @@
             <div class="col-md-12">
                 <div class="card card-primary">
                     <div class="card-body">
+                        <span class="badge badge-danger periodo"></span>
                         <table id="produzidosTable" class="table table-bordered table-font-small compact">
                             <tfoot>
                                 <tr>
@@ -250,7 +277,7 @@
     <script>
         $(document).ready(function() {
             var inicioData = 0;
-            var fimData = 0;
+            var fimData = moment().subtract(0, 'days').format('DD.MM.YYYY');
             var dados;
             var table;
 
@@ -263,10 +290,31 @@
             });
             var template = Handlebars.compile($("#details-template").html());
 
-            initTablePneus();
+            var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
+
+            $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas.getFim());
+
+            dados = {
+                cd_empresa: $('#cd_empresa').val(),
+                nm_cliente: $('#nm_cliente').val(),
+                nm_vendedor: $('#nm_vendedor').val(),
+                pedido_palm: $('#pedido_palm').val(),
+                pedido: $('#pedido').val(),
+                grupo_item: $('#grupo_item').val(),
+                cd_regiaocomercial: $('#cd_regiaocomercial').val(),
+                dt_inicial: datasSelecionadas.getInicio(),
+                dt_final: datasSelecionadas.getFim(),
+                regiao: $('#cd_regiaocomercial').val(),
+                st_embarque: $('#st_embarque').val()
+            };
+
+            initTablePneus(dados);
 
             $('#search').click(function() {
                 $('#produzidosTable').DataTable().destroy();
+
+                $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas
+                    .getFim());
 
                 dados = {
                     cd_empresa: $('#cd_empresa').val(),
@@ -276,19 +324,22 @@
                     pedido: $('#pedido').val(),
                     grupo_item: $('#grupo_item').val(),
                     cd_regiaocomercial: $('#cd_regiaocomercial').val(),
-                    dt_inicial: inicioData,
-                    dt_final: fimData,
-                    regiao: $('#cd_regiaocomercial').val()
+                    dt_inicial: datasSelecionadas.getInicio(),
+                    dt_final: datasSelecionadas.getFim(),
+                    regiao: $('#cd_regiaocomercial').val(),
+                    st_embarque: $('#st_embarque').val()
+
                 };
 
                 initTablePneus(dados);
             });
 
             $(document).on('click', '.btn-detalhes', function() {
+
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
-                // console.log(tableId);
-                var tableId = 'pedido-' + row.data().NR_COLETA;
+                var tableId = 'pedido-' + row.data().NR_COLETA + '-' + row.data().EXPEDICIONADO + '-' + row
+                    .data().NR_EMBARQUE;
 
                 if (row.child.isShown()) {
                     // This row is already open - close it
@@ -385,7 +436,7 @@
                         },
                         {
                             "data": "NR_COLETA",
-                            title: "Coleta"
+                            title: "Pedido"
                         },
                         {
                             "data": "NM_PESSOA",
@@ -403,6 +454,7 @@
                         {
                             "data": "EXPEDICIONADO",
                             title: "Expedicionado",
+                            className: "text-center",
                         },
                         {
                             "data": "DTFIM",
@@ -439,6 +491,8 @@
                         let valorTotal = 0;
                         let expedicionadoSim = 0;
                         let expedicionadoNao = 0;
+                        let embarqueSim = 0;
+                        let embarqueNao = 0;
 
                         data.forEach(function(item) {
                             QtdPneus += Number(item.PNEUS);
@@ -449,7 +503,11 @@
                             } else {
                                 expedicionadoNao += Number(item.PNEUS);
                             }
-
+                            if (item.ST_EMBARQUE != 'SEM EMBARQUE') {
+                                embarqueSim += Number(item.PNEUS);
+                            } else {
+                                embarqueNao += Number(item.PNEUS);
+                            }
                         });
 
                         $(this.api().column(5).footer()).html('Total: ' + QtdPneus);
@@ -459,6 +517,7 @@
                             /\B(?=(\d{3})+(?!\d))/g, '.'));
                         $('#expedicionado').html('Sim: ' + expedicionadoSim + ' | Não: ' +
                             expedicionadoNao);
+                        $('#embarque').html('Sim: ' + embarqueSim + ' | Não: ' + embarqueNao);
 
                     },
 
@@ -466,7 +525,12 @@
             }
 
             function initTable(tableId, data) {
-                var tableItemOrdem = $('#' + tableId + '-' + data.EXPEDICIONADO + '-' + data.NR_EMBARQUE)
+
+                if ($.fn.DataTable.isDataTable('#' + tableId)) {
+                    $('#' + tableId).DataTable().destroy();
+                }
+
+                var tableItemOrdem = $('#' + tableId)
                     .DataTable({
                         "language": {
                             url: "{{ asset('vendor/datatables/pt-br.json') }}",
@@ -545,7 +609,6 @@
                 //VERIFICO SE TEVE AUMENTO NO ULTIMO MES
                 const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
 
-                console.log(penultimoMes, ultimoMes, MesAtual);
                 const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
 
                 const calcPercentual = $('.calc-percentual').html(`

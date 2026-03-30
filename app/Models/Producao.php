@@ -25,6 +25,7 @@ class Producao extends Model
             $grupo_item = 0;
             $inicioData = 0;
             $fimData = 0;
+            $st_embarque = 0;
         } else {
             $empresa = $data['cd_empresa'];
             $pedido = $data['pedido'];
@@ -34,10 +35,15 @@ class Producao extends Model
             $grupo_item = $data['grupo_item'];
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
+            $st_embarque = intval($data['st_embarque'] ?? 0);
         }
 
         $query = "
             SELECT DISTINCT
+                CASE 
+                    WHEN OCP.NR_EMBARQUE IS NULL THEN 'SEM EMBARQUE' 
+                    ELSE 'COM EMBARQUE' 
+                END AS ST_EMBARQUE,
                 COALESCE(OCP.NR_EMBARQUE, 'SEM EMBARQUE') AS NR_EMBARQUE,
                 COUNT(PP.ID) AS PNEUS,
                 PP.ID AS NR_COLETA,
@@ -49,7 +55,7 @@ class Producao extends Model
                 ELSE 'SIM'
                 END AS EXPEDICIONADO,
                 MAX(EF.DTFIM) AS DTFIM,
-                MES.O_DS_ABREVIACAOMES || '/' || EXTRACT(YEAR FROM EF.DTFIM) MES_ANO,
+               RIGHT(0|| EXTRACT(MONTH FROM MAX(EF.DTFIM)), 2) || '-' || EXTRACT(YEAR FROM MAX(EF.DTFIM)) MES_ANO,
                 PP.DTENTREGA,
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA NM_VENDEDOR,
@@ -83,7 +89,7 @@ class Producao extends Model
             INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PESSOA.CD_PESSOA
                 AND EP.CD_ENDERECO = 1)
             INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)  
-            LEFT JOIN MES_EXTENSO(EF.DTFIM) MES ON (1 = 1)  
+            --LEFT JOIN MES_EXTENSO(EF.DTFIM) MES ON (1 = 1)  
             WHERE OPR.STORDEM <> 'C'             
                     " . (($cd_regiao != "") ? "AND EP.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
                     " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
@@ -95,13 +101,19 @@ class Producao extends Model
                     " . (($fimData != 0) ? "AND PP.DTEMISSAO <= '$fimData'" : "") . "
                     " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
                     " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
+                    " . (($st_embarque != 0) ? "AND CASE 
+                                                    WHEN OCP.NR_EMBARQUE IS NULL THEN 2 
+                                                    ELSE 1
+                                                END = $st_embarque" : "") . "
                 AND OPR.STEXAMEFINAL <> 'T'
                 AND COALESCE(PD.ST_PEDIDO, 'N') <> 'C'
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND PD.ST_PEDIDO <> 'A'
                 --AND PP.ID IN (216776, 220077, 212108, 219583, 221729, 75610, 213068)
-            GROUP BY NR_EMBARQUE,
+            GROUP BY 
+                ST_EMBARQUE,
+                NR_EMBARQUE,
                 PP.ID,
                 PP.IDEMPRESA,
                 PP.IDPESSOA,
@@ -111,8 +123,7 @@ class Producao extends Model
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA,
                 VENDEDOR.CD_VENDEDORGERAL,
-                EMBARQUE.DS_OBSFATURAMENTO,
-                MES_ANO
+                EMBARQUE.DS_OBSFATURAMENTO
             ORDER BY DTFIM asc    
                 ";
 

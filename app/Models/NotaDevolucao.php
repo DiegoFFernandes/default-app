@@ -137,7 +137,7 @@ class NotaDevolucao extends Model
                 AND ORIGEM.CD_EMPRESA = $cd_empresa
                 AND ORIGEM.ST_NOTA NOT IN ('C')
                 AND ORIGEM.DT_EMISSAO >= '18.07.2025'
-                AND ITEMORIGEM.CD_ITEM = $cd_item
+                AND ITEMORIGEM.CD_ITEM = $cd_item           
         ";
 
         $data = DB::connection('firebird')->select($query);   
