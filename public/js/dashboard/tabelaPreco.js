@@ -142,8 +142,8 @@ function initTableItemTabelaPreco(
     idTabelaItem,
     idModal
 ) {
+    const title = $("#" + idModal + " .title-nm-tabela").text();
 
-    console.log(idTabela)
     $("#" + idModal).modal("show");
     if ($.fn.DataTable.isDataTable("#" + idTabelaItem)) {
         $("#" + idTabelaItem)
@@ -161,11 +161,11 @@ function initTableItemTabelaPreco(
                 buttons: [
                     {
                         extend: "excelHtml5",
-                        title: $(".title-nm-tabela").html(),
+                        title: title,
                     },
                     {
                         extend: "print",
-                        title: $(".title-nm-tabela").text(),
+                        title: title,
                         customize: function (win) {
                             $(win.document.body)
                                 .find("h1")

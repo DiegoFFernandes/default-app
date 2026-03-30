@@ -48,12 +48,35 @@ class NotaDevolucaoController extends Controller
         $data = $this->devolucao->getNotaDevolucao();
 
         return DataTables::of($data)
-
-            ->setRowClass(function($d){
-                if($d->SALDO < $d->QT_ENTRADA){
+            ->addcolumn('actions', function ($data) {
+                return '<button class="btn btn-xs btn-primary btn-detalhes-nota" style="font-size: 10px;"
+                    data-nr-lancamento="' . $data->NR_LANCORIG . '"
+                    data-cd-empresa="' . $data->CD_EMPRESA . '"
+                    data-cd-item="' . $data->CD_ITEM . '"
+                >Saidas</button>';
+            })
+            ->setRowClass(function ($d) {
+                if ($d->SALDO < $d->QT_ENTRADA) {
                     return 'bg-warning';
                 }
             })
+            ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    public function getNotaDevolucaoDetalhes()
+    {
+        $cd_empresa = $this->request->get('cd_empresa');
+        $nr_lancamento = $this->request->get('nr_lancamento');
+        $cd_item = $this->request->get('cd_item');
+
+        $data = $this->devolucao->getNotaDevolucaoDetalhes($cd_empresa, $nr_lancamento, $cd_item);
+
+        return DataTables::of($data)
+            ->editcolumn('ST_MDFE', function ($data) {
+                return $data->ST_MDFE == 1 ? '<span class="badge badge-success">C/ MDFE</span>' : '<span class="badge badge-danger">S/ MDFE</span>';
+            })
+            ->rawColumns(['ST_MDFE'])
             ->make(true);
     }
 }

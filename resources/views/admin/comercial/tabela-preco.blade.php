@@ -236,8 +236,8 @@
 
 @section('css')
     <style>
-        /* Altura do Select2 small */       
-        .select2-container--bootstrap4 .select2-selection--multiple {            
+        /* Altura do Select2 small */
+        .select2-container--bootstrap4 .select2-selection--multiple {
             padding: 0;
         }
     </style>
@@ -291,8 +291,12 @@
         $('#tabela-preco').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('.title-nm-tabela').html($(this).data('nm_tabela'));
-            initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco', 'table-item-tab-preco',
-                'modal-item-tab-preco');
+            initTableItemTabelaPreco(
+                routes,
+                cd_tabela, 'tabela_preco',
+                'table-item-tab-preco',
+                'modal-item-tab-preco'
+            );
         });
 
         $('#tabela-preco').on('click', '.btn-vincular-tabela', function() {
