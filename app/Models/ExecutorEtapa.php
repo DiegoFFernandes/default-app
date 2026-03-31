@@ -43,7 +43,7 @@ class ExecutorEtapa extends Model
                 INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                 WHERE
                     I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                    AND I.ST_ETAPA = 'F'
+                    --AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
@@ -76,7 +76,7 @@ class ExecutorEtapa extends Model
                 INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                 WHERE
                     I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                    AND I.ST_ETAPA = 'F'
+                    --AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND ITEM.CD_SUBGRUPO IN ($subgrupo)
@@ -134,7 +134,7 @@ class ExecutorEtapa extends Model
                     I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'                    
                     AND OPR.STORDEM = 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                    --AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                     " . ($executor != 0 ? "AND I.IDEXECUTOR in ($executor)" : "") . "
                 GROUP BY DT_FIM,
                     OPR.IDEMPRESA,
@@ -175,7 +175,7 @@ class ExecutorEtapa extends Model
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
                 WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'
-                    AND I.ST_ETAPA = 'F'
+                    --AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
@@ -202,7 +202,7 @@ class ExecutorEtapa extends Model
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
                 WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'
-                    AND I.ST_ETAPA = 'F'
+                    --AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)            
@@ -252,7 +252,7 @@ class ExecutorEtapa extends Model
                     AND OPR.STORDEM = 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
                     AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
-                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                    --AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                 ORDER BY DT_FIM
 
                     ";
@@ -340,7 +340,7 @@ class ExecutorEtapa extends Model
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                     WHERE
                         I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
+                        --AND I.ST_ETAPA = 'F'
                         AND OPR.STORDEM <> 'C'
                         AND OPR.IDEMPRESA = $cd_empresa
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
@@ -361,7 +361,7 @@ class ExecutorEtapa extends Model
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                     WHERE
                         I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
+                        --AND I.ST_ETAPA = 'F'
                         AND OPR.STORDEM <> 'C'
                         AND OPR.IDEMPRESA = $cd_empresa
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
@@ -384,7 +384,7 @@ class ExecutorEtapa extends Model
                         AND OPR.STORDEM = 'C'
                         AND OPR.IDEMPRESA = $cd_empresa
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
-                        AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                        --AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                     GROUP BY SETOR, IDETAPA                                           
                 ";
         }
@@ -405,7 +405,7 @@ class ExecutorEtapa extends Model
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                     WHERE
                         I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
+                        --AND I.ST_ETAPA = 'F'
                         AND OPR.STORDEM <> 'C'
                         AND OPR.IDEMPRESA = $cd_empresa
                         AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
@@ -426,7 +426,7 @@ class ExecutorEtapa extends Model
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                     WHERE
                         I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'
-                        AND I.ST_ETAPA = 'F'
+                        --AND I.ST_ETAPA = 'F'
                         AND OPR.STORDEM <> 'C'
                         AND OPR.IDEMPRESA = $cd_empresa
                         AND ITEM.CD_SUBGRUPO IN ($subgrupo)
@@ -449,7 +449,7 @@ class ExecutorEtapa extends Model
                         I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'                       
                         AND OPR.STORDEM = 'C'
                         AND OPR.IDEMPRESA = $cd_empresa
-                        AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                        --AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
                     GROUP BY E.NMEXECUTOR, IDETAPA";
         }
