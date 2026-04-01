@@ -125,7 +125,7 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Empresa</label>
-                                                    <select name="cd_empresa" id="cd_empresa" class="form-control"
+                                                    <select name="cd_empresa" id="cd_empresa" class="form-control form-control-sm"
                                                         style="width: 100%;">
                                                         <option value="0" selected>Todas</option>
                                                         @foreach ($empresa as $e)
@@ -138,28 +138,28 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Dt Emissão</label>
-                                                    <input type="text" class="form-control" id="daterange"
+                                                    <input type="text" class="form-control form-control-sm" id="daterange"
                                                         placeholder="Data Emissão">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Pedido Palm</label>
-                                                    <input type="number" class="form-control" id="pedido_palm"
+                                                    <input type="number" class="form-control form-control-sm" id="pedido_palm"
                                                         placeholder="Pedido Palm">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Pedido</label>
-                                                    <input type="number" class="form-control" id="pedido"
+                                                    <input type="number" class="form-control form-control-sm" id="pedido"
                                                         placeholder="Pedido">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="small">Grupo Item</label>
-                                                    <select name="grupo_item" id="grupo_item" class="form-control"
+                                                    <select name="grupo_item" id="grupo_item" class="form-control form-control-sm"
                                                         style="width: 100%;" multiple>
                                                         <option value="0">Todos</option>
                                                         @foreach ($grupo as $g)
@@ -174,7 +174,7 @@
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label class="small">Região</label>
-                                                    <select name="cd_regiaocomercial[]" class="form-control"
+                                                    <select name="cd_regiaocomercial[]" class="form-control form-control-sm"
                                                         id="cd_regiaocomercial" style="width: 100%;" multiple>
                                                         @foreach ($regiao as $r)
                                                             <option value="{{ $r->CD_REGIAOCOMERCIAL }}">
@@ -187,14 +187,14 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="small">Vendedor</label>
-                                                    <input type="text" class="form-control" id="nm_vendedor"
+                                                    <input type="text" class="form-control form-control-sm" id="nm_vendedor"
                                                         placeholder="Nome Vendedor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="small">Cliente</label>
-                                                    <input type="text" class="form-control" id="nm_cliente"
+                                                    <input type="text" class="form-control form-control-sm" id="nm_cliente"
                                                         placeholder="Nome Cliente">
                                                 </div>
                                             </div>
@@ -242,21 +242,21 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Supervisor</label>
-                                                    <input type="text" class="form-control" id="nm_supervisor_bloq"
+                                                    <input type="text" class="form-control form-control-sm" id="nm_supervisor_bloq"
                                                         placeholder="Nome Supervisor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Vendedor</label>
-                                                    <input type="text" class="form-control" id="nm_vendedor_bloq"
+                                                    <input type="text" class="form-control form-control-sm" id="nm_vendedor_bloq"
                                                         placeholder="Nome Vendedor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Cliente</label>
-                                                    <input type="text" class="form-control" id="nm_cliente_bloq"
+                                                    <input type="text" class="form-control form-control-sm" id="nm_cliente_bloq"
                                                         placeholder="Nome Cliente">
                                                 </div>
                                             </div>
@@ -266,7 +266,7 @@
                                             <div class="row">
                                                 <div class="col-md-12">
                                                     <button type="button"
-                                                        class="btn btn-secondary btn-sm float-right mr-2"
+                                                        class="btn btn-secondary btn-xs float-right mr-2"
                                                         id="searchRegiao">Filtrar</button>
                                                 </div>
                                                 <!-- /.row -->
@@ -302,8 +302,8 @@
         }
 
         /* table.dataTable {
-                                                    table-layout: fixed;
-                                                } */
+                                                        table-layout: fixed;
+                                                    } */
 
         @media (max-width: 768px) {
             .info-box .info-box-icon {
@@ -366,6 +366,8 @@
 
         var dtInicio = moment().subtract(120, 'days').startOf('day').format('DD.MM.YYYY');
         var dtFim = moment().subtract(0, 'days').endOf('day').format('DD.MM.YYYY');
+
+        var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
 
         $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
 
@@ -549,6 +551,11 @@
         $('#searchRegiao').click(function() {
             $('#pedido-acompanhar').DataTable().destroy();
 
+            var dtInicio = datasSelecionadas.getInicio();
+            var dtFim = datasSelecionadas.getFim();
+
+            $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
+
             dados = {
                 cd_empresa: $('#cd_empresa').val(),
                 nm_cliente: $('#nm_cliente').val(),
@@ -557,8 +564,8 @@
                 pedido: $('#pedido').val(),
                 grupo_item: $('#grupo_item').val(),
                 cd_regiaocomercial: $('#cd_regiaocomercial').val(),
-                dt_inicial: inicioData,
-                dt_final: fimData,
+                dt_inicial: dtInicio,
+                dt_final: dtFim,
                 regiao: $('#cd_regiaocomercial').val(),
                 idvendedor: ''
             };
@@ -660,7 +667,7 @@
                         title: 'Tipo Pedido'
                     }
                 ],
-                
+
                 "order": [7, 'desc'],
                 footerCallback: function(row, data, start, end, display) {
 

@@ -21,7 +21,7 @@
                     </div>
                     <div class="card-body row">
                         <div class="col-md-12">
-                            @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento'])
+                            @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento', 'ver-pedidos-coletados-acompanhamento-cliente'])
                                 <p>Comercial</p>
                             @endcanany
                             @haspermission('ver-coleta-empresa')
@@ -39,10 +39,10 @@
                                     style="width: 150px">Produzidos P/ Faturar</a>
                             @endhaspermission
 
-                            @haspermission('ver-pedidos-coletados-acompanhamento')
+                            @canany(['ver-pedidos-coletados-acompanhamento', 'ver-pedidos-coletados-acompanhamento-cliente'])
                                 <a href={{ route('bloqueio-pedidos') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Acompanha Pedidos</a>
-                            @endhaspermission
+                            @endcanany
                             @haspermission('ver-analise-faturamento')
                                 <a href={{ route('analise-faturamento.index') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Análise Faturista</a>

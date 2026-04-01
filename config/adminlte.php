@@ -119,7 +119,7 @@ return [
         'img' => [
             'path' => env('PRELOADER_PATH', 'vendor/adminlte/dist/img/logo-default-xs.png'),
             'alt' => 'Recapadora',
-            'effect' => env('PRELOADER_EFFECT', 'animation__shake'),            
+            'effect' => env('PRELOADER_EFFECT', 'animation__shake'),
             // 'width' => 80,
             // 'height' => 30,
         ],
@@ -383,7 +383,7 @@ return [
                     'text' => 'Movimentos',
                     'url' => '#',
                     'icon' => 'nav-icon fas fa-edit',
-                    'can' => ['ver-libera-ordem-comercial', 'ver-bloqueio-pedidos', 'ver-rel-cobranca', 'ver-coleta-empresa', 'ver-tabela-preco'],
+                    'can' => ['ver-libera-ordem-comercial', 'ver-pedidos-coletados-acompanhamento', 'ver-pedidos-coletados-acompanhamento-cliente', 'ver-rel-cobranca', 'ver-coleta-empresa', 'ver-tabela-preco'],
                     'submenu' => [
                         [
                             'text' => 'Liberação Comercial',
@@ -393,7 +393,7 @@ return [
                         [
                             'text' => 'Acompanha Pedidos',
                             'route' => 'bloqueio-pedidos',
-                            // 'can' => ['ver-bloqueio-pedidos']
+                            'can' => ['ver-pedidos-coletados-acompanhamento', 'ver-pedidos-coletados-acompanhamento-cliente']
                         ],
                         [
                             'text' => 'Financeiro Cliente',
@@ -464,7 +464,7 @@ return [
                     'text' => 'Pedidos Alterados',
                     'route' => 'pedidos-alterados-valor',
                     'can' => ['ver-pedidos-alterados-valor'],
-                ]                
+                ]
             ]
         ],
         [
@@ -565,7 +565,7 @@ return [
             // 'label_color' => 'success',
         ],
         [
-            'text' => 'Producao',            
+            'text' => 'Producao',
             'url' => '#',
             'icon' => 'nav-icon fa fa-clipboard-list',
             'submenu' => [
@@ -574,12 +574,12 @@ return [
                     'route' => 'pedido-pneus.index',
                     'can' => 'ver-pedidos-coletados',
                 ],
-                 [
+                [
                     'text' => 'Executor X Etapa',
                     'route' => 'executor-etapas.index',
                     'can' => 'ver-producao',
-                ]           
-            ],            
+                ]
+            ],
         ],
         [
             'text' => 'Importar',
@@ -591,8 +591,8 @@ return [
                     'text' => 'Importar Junsoft',
                     'route' => 'importar.index',
                     'can' => 'ver-importar-dados',
-                ]             
-            ],            
+                ]
+            ],
         ],
     ],
 
