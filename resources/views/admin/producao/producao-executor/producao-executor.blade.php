@@ -50,7 +50,7 @@
                                 <div class="tab-pane fade" id="painel-canceladas">
                                     @include('admin.producao.producao-executor.components.servicos', [
                                         'painelPrincipal' => 'painel-canceladas',
-                                    ])                                    
+                                    ])
                                 </div>
                             </div>
                         </div>
@@ -383,17 +383,21 @@
                         buttons: [{
                                 extend: "excelHtml5",
                                 exportOptions: {
-                                    columns: [1, 2, 3, 5, 6]
+                                    columns: [1, 2, 3, 6]
                                 },
-                                title: "Relatório de Produção - Executor x Etapa",
+                                title: "Relatório " + retornaDsPainel(painel) + " - Executor x Etapa " +
+                                    retornarNomeTabela(
+                                        nomeTabela),
                                 footer: true
                             },
                             {
                                 extend: "print",
-                                title: "Relatório de Produção - Executor x Etapa",
+                                title: "Relatório " + retornaDsPainel(painel) + " - Executor x Etapa " +
+                                    retornarNomeTabela(
+                                        nomeTabela),
                                 footer: true,
                                 exportOptions: {
-                                    columns: [1, 2, 3, 5, 6]
+                                    columns: [1, 2, 3, 6]
                                 },
                                 customize: function(win) {
                                     $(win.document.body)
@@ -826,6 +830,46 @@
                     </tr>
                 </tfoot>`
             );
+        }
+
+        function retornarNomeTabela(nomeTabela) {
+            switch (nomeTabela) {
+                case 'EXAMEINICIAL':
+                    return 'Exame Inicial';
+                case 'RASPAGEMPNEU':
+                    return 'Raspagem de Pneu';
+                case 'PREPARACAOBANDAPNEU':
+                    return 'Preparação de Banda de Pneu';
+                case 'ESCAREACAOPNEU':
+                    return 'Escareação de Pneu';
+                case 'LIMPEZAMANCHAO':
+                    return 'Limpeza de Manchão';
+                case 'APLICACAOCOLAPNEU':
+                    return 'Aplicação de Cola de Pneu';
+                case 'EMBORRACHAMENTO':
+                    return 'Emborrachamento';
+                case 'VULCANIZACAO':
+                    return 'Vulcanização';
+                case 'EXAMEFINALPNEU':
+                    return 'Exame Final de Pneu';
+                default:
+                    return nomeTabela;
+            }
+        }
+
+        function retornaDsPainel(painel) {
+            switch (painel) {
+                case 'painel-ativos':
+                    return 'Serviços Aprovados';
+                case 'painel-recusados':
+                    return 'Serviços Recusados';
+                case 'painel-retrabalhos':
+                    return 'Retrabalhos';
+                case 'painel-canceladas':
+                    return 'Canceladas';
+                default:
+                    return painel;
+            }
         }
     </script>
 @stop

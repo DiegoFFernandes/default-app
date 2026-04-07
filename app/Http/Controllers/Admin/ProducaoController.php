@@ -121,7 +121,7 @@ class ProducaoController extends Controller
             foreach ($regioes_mysql as $regiao) {
                 if ($r->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
 
-                    //Adiciona o nome do geerente no objeto data
+                    //Adiciona o nome do gerente no objeto data
                     $r->NM_GERENTE = $regiao->name ?? 'Sem gerente';
 
                     // --- GERENTE ---

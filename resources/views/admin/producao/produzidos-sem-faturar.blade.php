@@ -56,22 +56,53 @@
             <div class="col-md-6">
                 <div class="card">
                     <x-loading-card />
-                    <div class="card-header border-0">
-                        <div class="d-flex justify-content-between">
-                            <h3 class="card-title">Pneus Gerente</h3>
+                    <div class="card-header ui-sortable-handle">
+                        <h3 class="card-title card-title-chart">Pneus Gerente</h3>
+                        <div class="card-tools">
+                            <ul class="nav nav-pills ml-auto">
+                                <li class="nav-item">
+                                    <button href="#cliente-chart" class="btn btn-xs nav-link" data-toggle="tab">Cliente</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button href="#gerente-chart" class="btn btn-xs nav-link active ml-1" data-toggle="tab">Gerente</button>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="card-body pt-0">
-                        <div class="d-flex">
-                            <p class="d-flex flex-column">
-                                <span class="text-bold text-lg pneusTotal"></span>
-                                <span>Pneus Sem Faturar</span>
-                            </p>
-                            <p class="ml-auto d-flex flex-column text-right calc-percentual">
-                            </p>
-                        </div>
-                        <div class="position-relative mb-4">
-                            <canvas id="chartPneusGerente" style="width: 100%; height: 150px;"></canvas>
+                    <div class="card-body" style="height: 300px">
+                        <div class="tab-content p-0">
+                            <div class="tab-pane active" id="gerente-chart">
+                                <div class="d-flex">
+                                    <p class="d-flex flex-column">
+                                        <span class="text-bold text-lg pneusTotal"></span>
+                                        <span>Pneus Sem Faturar</span>
+                                    </p>
+                                    <p class="ml-auto d-flex flex-column text-right calc-percentual">
+                                    </p>
+                                </div>
+                                {{-- Legenda fixa --}}
+                                <div class="mb-2 text-center" id="legend-container-gerente"></div>
+
+                                <div style="overflow-x: auto;">
+                                    <div class="position-relative mb-4" style="height: 150px;">
+                                        <canvas id="chartPneusGerente"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="cliente-chart">
+                                <p class="d-flex flex-column">
+                                    <span class="text-bold text-lg pneusTotalCliente"></span>
+                                    <span>Pneus Sem Faturar</span>
+                                </p>
+                                {{-- Legenda fixa --}}
+                                <div class="mb-2 text-center" id="legend-container-cliente"></div>
+
+                                <div style="overflow-x: auto;">
+                                    <div id="chart-container-cliente" style="height: 180px;">
+                                        <canvas id="chartPneusCliente"></canvas>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -79,12 +110,10 @@
             <div class="col-md-6">
                 <div class="card">
                     <x-loading-card />
-                    <div class="card-header border-0">
-                        <div class="d-flex justify-content-between">
-                            <h3 class="card-title">Pneus Mês</h3>
-                        </div>
+                    <div class="card-header ui-sortable-handle">
+                        <h3 class="card-title">Pneus Mês</h3>
                     </div>
-                    <div class="card-body pt-0">
+                    <div class="card-body" style="height: 300px">
                         <div class="d-flex">
                             <p class="d-flex flex-column">
                                 <span class="text-bold text-lg pneusTotal"></span>
@@ -244,7 +273,7 @@
     <style>
         .col-actions {
             width: 1% !important;
-        }
+        }        
 
         @media (max-width: 768px) {
             .table-left {
@@ -281,6 +310,12 @@
             var dados;
             var table;
 
+            window.routes = {
+                getPneusProduzidosSemFaturar: "{{ route('get-pneus-produzidos-sem-faturar') }}",
+                getPneusProduzidosSemFaturarDetails: "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
+                languageDataTable: "{{ asset('vendor/datatables/pt-br.json') }}"
+            };
+
             $('#grupo_item').select2({
                 placeholder: 'Selecione o grupo',
                 theme: 'bootstrap4',
@@ -291,6 +326,7 @@
             var template = Handlebars.compile($("#details-template").html());
 
             var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
+            // var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
 
             $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas.getFim());
 
@@ -374,11 +410,21 @@
                 });
             });
 
+            document.querySelectorAll('.nav-link').forEach(tab => {
+                tab.addEventListener('click', function() {
+
+                    const texto = this.textContent.trim();
+
+                    document.querySelector('.card-title-chart').textContent = 'Pneus ' + texto;
+
+                });
+            });
+
             function initTablePneus(dados) {
                 table = $('#produzidosTable').DataTable({
                     pageLength: 50,
                     "language": {
-                        url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                        url: window.routes.languageDataTable,
                     },
                     fixedHeader: true,
                     "scrollX": true,
@@ -402,7 +448,7 @@
                         },
                     },
                     ajax: {
-                        url: "{{ route('get-pneus-produzidos-sem-faturar') }}",
+                        url: window.routes.getPneusProduzidosSemFaturar,
                         data: {
                             data: dados
                         },
@@ -510,7 +556,18 @@
                             }
                         });
 
-                        $(this.api().column(5).footer()).html('Total: ' + QtdPneus);
+                        const totalPneus = this.api()
+                            .column(5, {
+                                search: 'applied'
+                            })
+                            .data()
+                            .sum()
+
+
+                        $(this.api().column(5).footer()).html(
+                            "Total: " + totalPneus.toLocaleString('pt-BR')
+                        );
+
 
                         $('.pneusTotal').html(QtdPneus);
                         $('#valorTotal').html('R$ ' + valorTotal.toFixed(2).replace('.', ',').replace(
@@ -533,13 +590,13 @@
                 var tableItemOrdem = $('#' + tableId)
                     .DataTable({
                         "language": {
-                            url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                            url: window.routes.languageDataTable,
                         },
                         sDom: 't',
                         paging: false,
                         searching: true,
                         ajax: {
-                            "url": "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
+                            "url": window.routes.getPneusProduzidosSemFaturarDetails,
                             "method": "GET",
                             "data": {
                                 'pedido': data.NR_COLETA,
@@ -580,31 +637,69 @@
                 const acumuladorGerentes = {};
                 const qtdMes = {};
                 const qtdGerente = {};
+                const vlrGerente = {};
+
+                const acumuladorClientes = {};
+                const acumuladorNomeCliente = {};
+                const qtdClientes = {};
+                const vlrClientes = {};
 
                 data.forEach(({
                     MES_ANO,
                     NM_GERENTE,
-                    PNEUS
+                    CD_PESSOA,
+                    NM_PESSOA,
+                    PNEUS,
+                    VALOR
                 }) => {
                     const qtde = Number(PNEUS);
+                    const valor = parseFloat(VALOR.replace(/\./g, '').replace(',', '.'));
 
                     acumuladorMeses[MES_ANO] ??= {};
                     acumuladorMeses[MES_ANO][NM_GERENTE] ??= 0;
                     acumuladorGerentes[NM_GERENTE] ??= 0;
+                    acumuladorClientes[CD_PESSOA] ??= 0;
+                    acumuladorNomeCliente[CD_PESSOA] ??= NM_PESSOA;
 
                     qtdMes[MES_ANO] ??= 0;
                     qtdGerente[NM_GERENTE] ??= 0;
+                    vlrGerente[NM_GERENTE] ??= 0;
 
                     acumuladorMeses[MES_ANO][NM_GERENTE] += qtde;
                     qtdMes[MES_ANO] += qtde;
                     qtdGerente[NM_GERENTE] += qtde;
+                    vlrGerente[NM_GERENTE] += valor;
+
+                    qtdClientes[CD_PESSOA] ??= 0;
+                    vlrClientes[CD_PESSOA] ??= 0;
+                    qtdClientes[CD_PESSOA] += qtde;
+                    vlrClientes[CD_PESSOA] += valor;
+
                 });
 
                 const meses = Object.keys(acumuladorMeses);
-                const NomeGerentes = Object.keys(acumuladorGerentes);
+                const NomeGerentes = Object.keys(acumuladorGerentes);                
 
                 const qtdPneusMes = Object.values(qtdMes);
                 const qtdPneusGerente = Object.values(qtdGerente);
+                const vlrPneusGerente = Object.values(vlrGerente);
+
+                // Transformo o objeto de clientes em um array para ordenar pelo valor total 
+                const clientesArray = Object.keys(vlrClientes).map(cliente => ({
+                    idcliente: cliente,
+                    nomeCliente: acumuladorNomeCliente[cliente].split(' ')[0], // Pego apenas o primeiro nome para exibir no gráfico
+                    valor: vlrClientes[cliente],
+                    quantidade: qtdClientes[cliente]
+                }));
+
+                clientesArray.sort((a, b) => b.valor - a.valor);
+
+                const labelsClientes = clientesArray.map(c => c.nomeCliente);
+                const qtdPneusCliente = clientesArray.map(c => c.quantidade);
+                const vlrPneusCliente = clientesArray.map(c => c.valor);
+
+                
+
 
                 //VERIFICO SE TEVE AUMENTO NO ULTIMO MES
                 const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
@@ -642,24 +737,177 @@
                 ];
 
                 const datasetsGerente = [{
-                    data: qtdPneusGerente,
-                    backgroundColor: coresGerentes,
-                    borderColor: coresGerentes.map(cor => cor.replace('0.5', '1')),
-                    borderWidth: 1
-                }];
+                        label: "Quantidade",
+                        type: 'bar',
+                        data: qtdPneusGerente,
+                        backgroundColor: coresGerentes,
+                        borderColor: coresGerentes.map(cor => cor.replace('0.5', '1')),
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Valor (R$)',
+                        data: vlrPneusGerente,
+                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ];
+
+                // Gráfico de clientes
+                const datasetsClientes = [{
+                        label: "Quantidade",
+                        type: 'bar',
+                        data: qtdPneusCliente,
+                        backgroundColor: 'rgba(60, 145, 230, 0.5)',
+                        borderColor: 'rgba(60, 145, 230, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Valor (R$)',
+                        data: vlrPneusCliente,
+                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ];
 
                 // Renderiza o gráfico de gerentes
-                renderChartJs(
+                renderChartJsDualAxis(
                     NomeGerentes,
                     datasetsGerente,
                     'chartPneusGerente',
-                    'bar',
-                    'Meses');
+                    'Meses',
+                    'legend-container-gerente'
+                );
+
+                // Renderiza o gráfico de Clientes
+                renderChartJsDualAxis(
+                    labelsClientes,
+                    datasetsClientes,
+                    'chartPneusCliente',
+                    'Clientes',
+                    'legend-container-cliente'
+                );
+
             }
 
             const charts = {};
 
-            function renderChartJs(nomeMes, datasets, chartId, typeChart, labelChart) {
+            function renderChartJsDualAxis(labels, datasets, chartId, labelChart, legendContainerId) {
+
+                const larguraPorItem = 80; // px por barra
+                const total = labels.length;
+
+                const larguraTotal = total * larguraPorItem;
+
+                const ctx = document.getElementById(chartId).getContext('2d');
+                if (chartId === 'chartPneusCliente') {
+                    ctx.canvas.parentElement.style.width = larguraTotal + 'px';
+                }
+
+
+                if (charts[chartId]) {
+                    charts[chartId].destroy();
+                }
+
+                charts[chartId] = new Chart(ctx, {
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        resposive: true,
+                        onClick: function(evt) {
+
+                            const points = this.getElementsAtEventForMode(
+                                evt,
+                                'nearest', {
+                                    intersect: true
+                                },
+                                true
+                            );
+
+                            if (!points.length) return;
+
+                            const point = points[0];
+
+                            const label = this.data.labels[point.index];
+                            const value = this.data.datasets[point.datasetIndex].data[point.index];
+
+                            onChartClick(label, value, chartId);
+                        },
+
+                        plugins: {
+                            legend: {
+                                display: false,
+                                position: 'top'
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'center', // 'top', 'bottom', 'center'
+                                color: '#000',
+                                font: {
+                                    weight: 'bold',
+                                    size: 12
+                                },
+                                formatter: function(value, context) {
+
+                                    // Se for o dataset de VALOR
+                                    if (context.dataset.label.includes('Valor')) {
+                                        return value.toLocaleString('pt-BR', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                                    }
+
+                                    // Se for quantidade
+                                    return value;
+                                    s
+                                }
+                            },
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                position: 'left',
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + value.toLocaleString('pt-BR');
+                                    }
+                                }
+                            }
+                        },
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                gerarLegenda(charts[chartId], legendContainerId);
+
+            }
+
+            function renderChartJs(labels, datasets, chartId, typeChart, labelChart) {
 
                 const ctx = document.getElementById(chartId).getContext('2d');
 
@@ -670,7 +918,7 @@
                 charts[chartId] = new Chart(ctx, {
                     type: typeChart,
                     data: {
-                        labels: nomeMes,
+                        labels: labels,
                         datasets: datasets
                     },
                     options: {
@@ -733,6 +981,53 @@
             function onChartClick(label, value, chartId) {
                 table.search(label).draw();
             }
+
+            function gerarLegenda(chart, containerId) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+
+                chart.data.datasets.forEach((dataset, index) => {
+
+                    const item = document.createElement('span');
+                    item.style.marginRight = '10px';
+                    item.style.cursor = 'pointer';
+                    item.style.display = 'inline-flex';
+                    item.style.alignItems = 'center';
+                    item.style.padding = '4px 8px';
+                    item.style.borderRadius = '6px';
+                    item.style.background = '#f4f6f9';
+
+                    const colorBox = document.createElement('span');
+                    colorBox.style.width = '12px';
+                    colorBox.style.height = '12px';
+                    colorBox.style.background = dataset.borderColor;
+                    colorBox.style.marginRight = '5px';
+                    colorBox.style.borderRadius = '2px';
+
+                    const label = document.createElement('span');
+                    label.textContent = dataset.label;
+
+                    item.appendChild(colorBox);
+                    item.appendChild(label);
+
+
+                    item.addEventListener('click', () => {
+                        const meta = chart.getDatasetMeta(index);
+
+                        // alterna visibilidade
+                        meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden :
+                            null;
+
+                        chart.update();
+
+                        // efeito visual (apagado quando desativado)
+                        item.style.opacity = meta.hidden ? '0.3' : '1';
+                    });
+
+                    container.appendChild(item);
+                });
+            }
+
 
 
         });

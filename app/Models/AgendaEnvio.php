@@ -48,7 +48,7 @@ class AgendaEnvio extends Model
                 " . (($request->cd_pessoa != 0) ? "and ae.cd_pessoa = $request->cd_pessoa" : "") . "
                 " . (($request->nm_pessoa != 0) ? "and p.nm_pessoa like '%$request->nm_pessoa%'" : "") . "
                 " . (($request->cpf_cnpj != 0) ? "and p.nr_cnpjcpf = '$request->cpf_cnpj'" : "") . "
-                " . (($request->inicio_data != 0) ? "and ae.dt_envio between '$request->inicio_data' and '$request->fim_data'" : "") . "
+                " . (($request->inicio_data != 0) ? "and cast(ae.dt_envio as date) between '$request->inicio_data' and '$request->fim_data'" : "") . "
                 " . (($request->ds_email != 0) ? "and ae.ds_emaildest like '%$request->ds_email%'" : "") . "    
                 " . (($request->nr_contexto != 0) ? "and ae.nr_contexto in ($request->nr_contexto)" : "")
                 . " order by ae.dt_registro desc";

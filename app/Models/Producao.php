@@ -48,6 +48,7 @@ class Producao extends Model
                 COUNT(PP.ID) AS PNEUS,
                 PP.ID AS NR_COLETA,
                 PP.IDEMPRESA AS CD_EMPRESA,
+                PP.IDPESSOA AS CD_PESSOA,
                 PP.IDPESSOA || '-' || PESSOA.NM_PESSOA AS NM_PESSOA,
                 CAST(SUM(IPP.VLUNITARIO) AS NUMERIC(18,5)) AS VALOR,
                 CASE
