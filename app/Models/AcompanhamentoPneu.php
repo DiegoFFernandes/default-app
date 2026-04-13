@@ -78,6 +78,9 @@ class AcompanhamentoPneu extends Model
             $grupo_item = 0;
             $inicioData = 0;
             $fimData = 0;
+            $nr_fogo = "";
+            $nr_serie = "";
+            $nr_dot = "";
         } else {
             $empresa = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa']; //altero a empresa 7 para 6 adaptação para os agricolas
             $pedido = $data['pedido'];
@@ -88,6 +91,9 @@ class AcompanhamentoPneu extends Model
             $grupo_item = isset($data['grupo_item']) ? implode(',', $data['grupo_item']) : 0;
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
+            $nr_fogo = $data['nr_fogo'];
+            $nr_serie = $data['nr_serie'];
+            $nr_dot = $data['nr_dot'];
         }
 
         $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);
@@ -147,7 +153,8 @@ class AcompanhamentoPneu extends Model
                         PC.ST_SCPC
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id)  
+                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id) 
+                    INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU) 
                     LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
                     INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)                  
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
@@ -172,6 +179,9 @@ class AcompanhamentoPneu extends Model
                         " . (($supervisor != 0) ? "AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)" : "") . "
                         " . (($cd_pessoa != 0) ? "AND PP.IDPESSOA IN ($cd_pessoa)" : "") . "
                         " . (($cd_vendedor != 0) ? "AND PP.IDVENDEDOR IN ($cd_vendedor)" : "") . "
+                        " . (($nr_fogo != "") ? "AND PNEU.NRFOGO = '$nr_fogo'" : "") . "
+                        " . (($nr_serie != "") ? "AND PNEU.NRSERIE = '$nr_serie'" : "") . "
+                        " . (($nr_dot != "") ? "AND PNEU.NRDOT = '$nr_dot'" : "") . "
                         AND PP.STPEDIDO <> 'C'               
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
@@ -209,8 +219,12 @@ class AcompanhamentoPneu extends Model
             return Helper::ConvertFormatText($data);
         });
     }
-    public function ItemPedidoPneu($pedido)
+    public function ItemPedidoPneu($pedido, $dadosPneus)
     {
+        $nr_fogo = $dadosPneus['nr_fogo'] ?? '';
+        $nr_serie = $dadosPneus['nr_serie'] ?? '';
+        $nr_dot = $dadosPneus['nr_dot'] ?? '';
+
         $query = "
                     SELECT
                         PP.IDEMPRESA CD_EMPRESA,
@@ -252,6 +266,9 @@ class AcompanhamentoPneu extends Model
                     LEFT JOIN PESSOA PV ON (PV.CD_PESSOA = IPPB.IDBORRACHEIRO)
                     WHERE
                         PP.ID = $pedido 
+                        AND (P.NRFOGO LIKE '%$nr_fogo%' OR P.NRFOGO IS NULL)
+                        AND (P.NRSERIE LIKE '%$nr_serie%' OR P.NRSERIE IS NULL)
+                        AND (P.NRDOT LIKE '%$nr_dot%' OR P.NRDOT IS NULL)
                     GROUP BY PP.IDEMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,

@@ -247,7 +247,15 @@ class BloqueioPedidosController extends Controller
     }
     public function getItemPedidoAcompanhar()
     {
-        $itempedidos = $this->acompanha->ItemPedidoPneu($this->request->id);
+        //dados dos pneus
+        $dadosPneus = [
+            'nr_fogo' => $this->request->nr_fogo ?? '',
+            'nr_serie' => $this->request->nr_serie ?? '',
+            'nr_dot' => $this->request->nr_dot ?? '',
+        ];      
+
+        $itempedidos = $this->acompanha->ItemPedidoPneu($this->request->id, $dadosPneus);
+
         return DataTables::of($itempedidos)
             ->addColumn('details_item_pedido_url', function ($i) {
                 return route('get-detalhe-item-pedido', $i->ID);

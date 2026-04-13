@@ -861,7 +861,7 @@
                     className: 'text-truncate'
                 }],
                 order: [
-                    [3, 'asc']
+                    [10, 'asc']
                 ]
 
             });

@@ -199,6 +199,31 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <p class="bold">Dados Pneus:</p>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="small">Nr Fogo</label>
+                                                    <input type="text" class="form-control form-control-sm" id="nr_fogo"
+                                                        placeholder="Nr Fogo">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="small">Nr Serie</label>
+                                                    <input type="text" class="form-control form-control-sm" id="nr_serie"
+                                                        placeholder="Nr Serie">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label class="small">Nr Dot</label>
+                                                    <input type="text" class="form-control form-control-sm" id="nr_dot"
+                                                        placeholder="Nr Dot">
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="card-footer">
                                             <div class="row">
                                                 <div class="col-md-12">
@@ -260,7 +285,7 @@
                                                         placeholder="Nome Cliente">
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div>                                        
                                         <!-- /.row -->
                                         <div class="card-footer">
                                             <div class="row">
@@ -323,16 +348,7 @@
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
             <table class="table row-border table-left" id="pedido-{{ ID }}" style="width:80%; ">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Sq</th>
-                        <th>Nr Ordem</th>
-                        <th>Serviço</th>
-                        <th>Nr Fogo</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                    </tr>
+                <thead>                    
                 </thead>
             </table>
         @endverbatim
@@ -567,7 +583,10 @@
                 dt_inicial: dtInicio,
                 dt_final: dtFim,
                 regiao: $('#cd_regiaocomercial').val(),
-                idvendedor: ''
+                idvendedor: '',
+                nr_dot: $('#nr_dot').val(),
+                nr_serie: $('#nr_serie').val(),
+                nr_fogo: $('#nr_fogo').val(),
             };
 
             initTableAcompanhar(dados);
@@ -691,6 +710,7 @@
 
         function initTable(tableId, data) {
 
+            console.log(data);
             table_item_pedido = $('#' + tableId).DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
@@ -705,7 +725,11 @@
                     url: " {{ route('get-item-pedido-acompanhar') }}",
                     data: {
                         _token: $("[name=csrf-token]").attr("content"),
-                        id: data.ID
+                        id: data.ID,
+                        //dados dos pneus
+                        nr_fogo: $('#nr_fogo').val(),
+                        nr_serie: $('#nr_serie').val(),
+                        nr_dot: $('#nr_dot').val(),
                     }
                 },
                 columns: [{
@@ -714,35 +738,55 @@
                         "searchable": false,
                         "data": 'null',
                         "defaultContent": '<span class="right mr-2"><i class="btn-detalhes fas fa-plus-circle"></i></span>',
-                        "width": "1%"
+                        "width": "1%",
+                        title: '#'
                     },
                     {
                         data: 'NRSEQUENCIA',
                         name: 'NRSEQUENCIA',
                         "width": "2%",
+                        title: 'Sq'
                     },
                     {
                         data: 'NRORDEM',
                         name: 'NRORDEM',
                         "width": "3%",
+                        title: 'Ordem'
                     },
                     {
                         data: 'DSSERVICO',
                         name: 'DSSERVICO',
                         "width": "20%",
+                        title: 'Serviço'
                     },
                     {
                         data: 'NRFOGO',
-                        name: 'NRFOGO',
+                        name: 'NRFOGO',   
+                        title: 'Nr Fogo',
+                        "width": "5%",                     
+                    },
+                    {
+                        data: 'NRSERIE',
+                        name: 'NRSERIE',                       
+                        title: 'Nr Série',
                         "width": "5%",
+                    },
+                    {
+                        data: 'NRDOT',
+                        name: 'NRDOT',  
+                        title: 'Nr Dot',
+                        "width": "5%",                      
                     },
                     {
                         data: 'VLUNITARIO',
                         name: 'VLUNITARIO',
                         width: "5%",
+                        title: 'Vl Unit',
+                        render: $.fn.dataTable.render.number('.', ',', 2)
                     }, {
                         data: 'STORDEM',
                         name: 'STORDEM',
+                        title: 'Status Ordem',
                         "width": "2%",
                     },
                 ]
