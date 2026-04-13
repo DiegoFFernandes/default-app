@@ -1,5 +1,5 @@
 {{-- Modal de Itens --}}
-<div class="modal modal-default fade" id="modal-table-pedido">
+<div class="modal modal-default fade" id="modal-table-pedido" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -7,7 +7,7 @@
                     <small class="form-text text-muted">Apenas o Coordenador. Edição
                         permitida.</small>
                 </blockquote>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close close-modal" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -16,20 +16,20 @@
                     <div class="row">
                         <div class="col-4 col-md-4">
                             <div class="form-group">
-                                <label for="nr_pedido">Pedido</label>
+                                <label class="small" for="nr_pedido">Pedido</label>
                                 <input class="form-control form-control-sm nr_pedido" type="text" readonly>
                             </div>
                         </div>
                         <div class="col-8 col-md-8">
                             <div class="form-group">
-                                <label for="pessoa">Pessoa</label>
+                                <label class="small" for="pessoa">Pessoa</label>
                                 <input id="" class="form-control form-control-sm pessoa" type="text"
                                     readonly>
                             </div>
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="form-group">
-                                <label for="vendedor">Vendedor</label>
+                                <label class="small" for="vendedor">Vendedor</label>
                                 <input id="" class="form-control form-control-sm vendedor" type="text"
                                     readonly>
 
@@ -37,7 +37,7 @@
                         </div>
                         <div class="col-6 col-md-6">
                             <div class="form-group">
-                                <label for="condicao">Condição</label>
+                                <label class="small" for="condicao">Condição</label>
                                 <input id="" class="form-control form-control-sm condicao" type="text"
                                     readonly>
                             </div>
@@ -57,14 +57,20 @@
                 <table class="table compact row-border" id="table-item-pedido" style="font-size:12px">
                 </table>
                 <div class="modal-footer justify-content-center">
+                    <div class="col-md-12 d-none" id="div-motivo-exis-liberacao">
+                        <div class="form-group" style="text-align: left">
+                            <label class="small" for="exis_liberacao">Defesa da Liberação:</label>
+                            <input id="exis_liberacao" class="form-control exis_liberacao" type="text" readonly>
+                        </div>
+                    </div>
                     <div class="col-md-12">
                         <div class="form-group" style="text-align: left">
-                            <label for="liberacao">Motivo Liberação:</label>
-                            <textarea id="" class="form-control liberacao" rows="3" cols="50"></textarea>
+                            <label class="small" for="liberacao">Motivo Liberação:</label>
+                            <textarea id="liberacao" class="form-control liberacao" rows="3" cols="50"></textarea>
                         </div>
                     </div>
                     <div class="d-flex">
-                        <button type="button" class="btn btn-alert" data-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-alert close-modal" data-dismiss="modal">Cancelar</button>
                         <button type="button" class="btn btn-success btn-save-confirm">Liberar</button>
                     </div>
                 </div>

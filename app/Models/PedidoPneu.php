@@ -314,4 +314,31 @@ class PedidoPneu extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+    static function getColetaPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null)
+    {
+        $query = "
+            SELECT
+                P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                SP.ID || '-' || SP.DSSERVICO DS_SERVICOPNEU,
+                COUNT(*) QTD,
+                CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO,
+                CAST(PP.DTEMISSAO AS DATE) DT_EMISSAO 
+            FROM PEDIDOPNEU PP
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = PP.ID)
+            INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
+            INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+            INNER JOIN MEDIDAPNEU MP ON (MP.ID = PNEU.IDMEDIDAPNEU)
+            WHERE
+                PP.DTEMISSAO BETWEEN '$dt_inicio' AND '$dt_fim'
+                AND PP.IDEMPRESA = $cd_empresa
+            GROUP BY P.CD_PESSOA, P.NM_PESSOA, SP.ID, SP.DSSERVICO, CAST(PP.DTEMISSAO AS DATE)
+            ORDER BY CAST(PP.DTEMISSAO AS DATE) DESC
+            ";
+
+        $dados = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($dados);
+    }
 }

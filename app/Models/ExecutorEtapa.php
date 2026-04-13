@@ -153,7 +153,7 @@ class ExecutorEtapa extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function producaoDetalhesExecutorEtapa($cd_empresa, $dt_fim, $tabela, $executor, $painel = 'painel-ativos', $etapa = 1, $subgrupo = 9)
+    public function producaoDetalhesExecutorEtapa($cd_empresa, $dt_inicio, $dt_fim, $tabela, $executor, $painel = 'painel-ativos', $etapa = 1, $subgrupo = 9, $origem = 'analitico')
     {
 
         if ($painel === 'painel-ativos') {
@@ -165,6 +165,7 @@ class ExecutorEtapa extends Model
                     OPR.ID NR_ORDEM,
                     IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
                     I.DTFIM DT_FIM,
+                    IPP.ID,
                     CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO
                 FROM $tabela I
                 LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
@@ -174,11 +175,12 @@ class ExecutorEtapa extends Model
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
-                WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'
+                WHERE 
+                    " . ($origem == 'analitico' ? "CAST(I.DTFIM AS DATE) BETWEEN '$dt_inicio' AND '$dt_fim'" : "I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'") . "
                     --AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                    AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
+                    " . ($executor != 0 ? "AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)" : "") . "
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                 ORDER BY DT_FIM
 
@@ -192,6 +194,7 @@ class ExecutorEtapa extends Model
                     OPR.ID NR_ORDEM,
                     IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
                     I.DTFIM DT_FIM,
+                    IPP.ID,
                     CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO
                 FROM $tabela I
                 LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
@@ -201,11 +204,11 @@ class ExecutorEtapa extends Model
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
-                WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'
+                WHERE " . ($origem == 'analitico' ? "CAST(I.DTFIM AS DATE) BETWEEN '$dt_inicio' AND '$dt_fim'" : "I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'") . "
                     --AND I.ST_ETAPA = 'F'
                     AND OPR.STORDEM <> 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                    AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)            
+                    " . ($executor != 0 ? "AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)" : "") . "
                     AND ITEM.CD_SUBGRUPO IN ($subgrupo)
                 ORDER BY DT_FIM";
         } elseif ($painel === 'painel-retrabalhos') {
@@ -217,6 +220,7 @@ class ExecutorEtapa extends Model
                     OPR.ID NR_ORDEM,
                     IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
                     REP.O_DTFIM DT_FIM,
+                    IPP.ID,
                     CASE WHEN OPR.STRETRABALHO = 'S' THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO                    
                 FROM ORDEMPRODUCAORECAP OPR
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
@@ -227,8 +231,9 @@ class ExecutorEtapa extends Model
                 WHERE OPR.STRETRABALHO = 'S'
                     AND PP.IDEMPRESA = $cd_empresa
                     AND COALESCE(REP.O_IDEXECUTOR, '9999') in ($executor)                     
-                    AND REP.O_IDETAPA = $etapa                    
-                    AND CAST(REP.O_DTFIM AS DATE) = '$dt_fim'
+                    AND REP.O_IDETAPA = $etapa
+                    " . ($origem == 'analitico' ? "AND CAST(REP.O_DTFIM AS DATE) BETWEEN '$dt_inicio' AND '$dt_fim'" : "REP.O_DTFIM AS DATE BETWEEN '$dt_inicio' AND '$dt_fim'") . "                    
+                    
                 ";
         } elseif ($painel === 'painel-canceladas') {
             $query = "
@@ -239,6 +244,7 @@ class ExecutorEtapa extends Model
                     OPR.ID NR_ORDEM,
                     IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM DS_ITEM,
                     I.DTFIM DT_FIM,
+                    IPP.ID,
                     CASE WHEN OPPR.IDORDEMRETRABALHO IS NOT NULL THEN 'Sim' ELSE 'Nao' END AS ST_RETRABALHO
                 FROM $tabela I
                 LEFT JOIN EXECUTORETAPA E ON (I.IDEXECUTOR = E.ID)
@@ -248,10 +254,10 @@ class ExecutorEtapa extends Model
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 INNER JOIN ITEM ON ITEM.CD_ITEM = IPP.IDSERVICOPNEU
-                WHERE CAST(I.DTFIM AS DATE) = '$dt_fim'                    
+                WHERE " . ($origem == 'analitico' ? "CAST(I.DTFIM AS DATE) BETWEEN '$dt_inicio' AND '$dt_fim'" : "I.DTFIM BETWEEN '$dt_inicio' AND '$dt_fim'") . "                    
                     AND OPR.STORDEM = 'C'
                     AND OPR.IDEMPRESA = $cd_empresa
-                    AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)             
+                    " . ($executor != 0 ? "AND COALESCE(I.IDEXECUTOR, '9999') in ($executor)" : "") . "
                     --AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                 ORDER BY DT_FIM
 
@@ -367,7 +373,8 @@ class ExecutorEtapa extends Model
                         " . ($executor != 0 ? "AND I.IDEXECUTOR IN ($executor)" : "") . "
                         AND ITEM.CD_SUBGRUPO IN ($subgrupo)
                     GROUP BY SETOR, IDETAPA";
-        } if ($subPainel == 'resumo-setor-painel-canceladas') {
+        }
+        if ($subPainel == 'resumo-setor-painel-canceladas') {
             return "
                     SELECT  
                         '{$setor}' SETOR,

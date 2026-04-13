@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\TextUI\Help;
 
 class Producao extends Model
 {

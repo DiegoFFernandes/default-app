@@ -132,6 +132,23 @@
     </style>
 @stop
 @section('js')
+    <script id="details-item-pedido" type="text/x-handlebars-template">
+        @verbatim
+            <span class="badge bg-info">{{ NR_ORDEM }} - {{DS_ITEM}}</span>
+            <table class="table row-border" id="item-pedido-{{ NR_ORDEM }}" style="width:90%">
+                <thead>
+                    <tr>
+                        <th>Etapa</th>
+                        <th>Usúario</th>
+                        <th>Entrada</th>
+                        <th>Saida</th>
+                        <th>Detalhes</th>
+                        <th>Retrabalho</th>
+                    </tr>
+                </thead>
+            </table>
+        @endverbatim
+    </script>
     <script>
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
@@ -140,12 +157,14 @@
             getResumoProducaoSetor: "{{ route('get-resumo-producao-setor') }}"
         };
 
+        var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
+
         $('#filtro-executor').select2({
             theme: 'bootstrap4',
             width: '100%'
         });
 
-        const datasSelecionadas = initDateRangePicker('#daterange');
+        const datasSelecionadas = initDateRangePicker('#daterange', '02.03.2026', '02.03.2026');
 
         let empresaNome = $('#filtro-empresa option:selected').text();
         let idEmpresa = $('#filtro-empresa').val();
@@ -161,7 +180,7 @@
             datasSelecionadas.getInicio() + ' 00:00',
             datasSelecionadas.getFim() + ' 23:59',
             estado.tabela1,
-            'EXAMEINICIAL',
+            '1',
             estado.idPainel
         );
 
@@ -172,6 +191,16 @@
             estado.idSubTab2,
             'Setor'
         );
+
+        //Aguarda Click para buscar os detalhes dos itens do pedido
+        configurarDetalhesLinha('.btn-acompanhamento-executor', {
+            idPrefixo: 'item-pedido-',
+            idCampo: 'NR_ORDEM',
+            templateFn: details_item_pedido,
+            initFn: initTableItemPedido,
+            iconeMais: 'fa-plus-circle',
+            iconeMenos: 'fa-minus-circle'
+        });
 
         // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
         $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
@@ -185,7 +214,7 @@
                 datasSelecionadas.getInicio() + ' 00:00',
                 datasSelecionadas.getFim() + ' 23:59',
                 estado.tabela1,
-                'EXAMEINICIAL',
+                '1',
                 estado.idPainel
             );
 
@@ -207,40 +236,39 @@
             const executor = $('#filtro-executor').val();
 
             const tabs = [{
-                    nomeTabela: 'EXAMEINICIAL',
+                    nomeTabela: '1',
                     tableId: 'table-exame-inicial'
                 },
                 {
-                    nomeTabela: 'RASPAGEMPNEU',
+                    nomeTabela: '2',
                     tableId: 'table-raspa'
                 },
                 {
-
-                    nomeTabela: 'PREPARACAOBANDAPNEU',
+                    nomeTabela: '3',
                     tableId: 'table-prep-banda'
                 },
                 {
-                    nomeTabela: 'ESCAREACAOPNEU',
+                    nomeTabela: '4',
                     tableId: 'table-escareacao'
                 },
                 {
-                    nomeTabela: 'LIMPEZAMANCHAO',
+                    nomeTabela: '5',
                     tableId: 'table-limpeza-manchao'
                 },
                 {
-                    nomeTabela: 'APLICACAOCOLAPNEU',
+                    nomeTabela: '6',
                     tableId: 'table-cola'
                 },
                 {
-                    nomeTabela: 'EMBORRACHAMENTO',
+                    nomeTabela: '9',
                     tableId: 'table-emborrachamento'
                 },
                 {
-                    nomeTabela: 'VULCANIZACAO',
+                    nomeTabela: '11',
                     tableId: 'table-vulcanizacao'
                 },
                 {
-                    nomeTabela: 'EXAMEFINALPNEU',
+                    nomeTabela: '12',
                     tableId: 'table-exame-final'
                 }
             ];
@@ -326,12 +354,12 @@
                     inicioData,
                     fimData,
                     'table-canceladas-painel-canceladas',
-                    'EXAMEINICIAL',
+                    '1',
                     estado.idPainel);
                 return;
             }
 
-            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', 'EXAMEINICIAL',
+            initTable(idEmpresa, inicioData, fimData, 'table-exame-inicial-painel-ativos', '1',
                 'painel-ativos');
 
             if (estado.idSubTab2 === 'resumo-setor-painel-ativos') {
@@ -350,14 +378,27 @@
         });
 
         $(document).on('click', '.btn-detalhes-executor', function() {
-            const cd_empresa = $(this).data('cd_empresa');
-            const dt_fim = $(this).data('dt_fim');
-            const idexecutor = $(this).data('idexecutor');
-            const nomeTabela = $(this).data('tabela');
-            const estado = getEstadoAtual();
+            let cd_empresa = $(this).data('cd_empresa');
+            let dt_inicio = $(this).data('dt_fim');
+            let dt_fim = $(this).data('dt_fim');
+            let idexecutor = $(this).data('idexecutor');
+            let nomeTabela = $(this).data('tabela');
+            let estado = getEstadoAtual();
+            let origem = 'analitico';
+
+            //mudo os dados para trazer os detalhes por setor
+            if ($(this).data('idetapa')) {
+                cd_empresa = $('#filtro-empresa').val();
+                dt_inicio = datasSelecionadas.getInicio() + ' 00:00';
+                dt_fim = datasSelecionadas.getFim() + ' 23:59';
+                idexecutor = $('#filtro-executor').val();
+                nomeTabela = $(this).data('idetapa');
+                origem = 'sintetico';
+            }
 
             $('#modal-details-executor').modal('show');
-            initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor, nomeTabela, estado.idPainel);
+            initTableDetailsExecutor(cd_empresa, dt_inicio, dt_fim, idexecutor, nomeTabela, estado.idPainel,
+                origem);
 
         });
 
@@ -378,6 +419,9 @@
                 pagingType: 'simple',
                 searching: false,
                 scrollY: '400px',
+                autoWidth: false,
+                deferRender: true,
+                scrollCollapse: true,
                 layout: {
                     topStart: {
                         buttons: [{
@@ -504,6 +548,10 @@
                     // $(api.column(6).footer()).html(totalProduzidos - totalRetrabalho);
                 }
             });
+
+            setTimeout(() => {
+                tabela.columns.adjust().draw();
+            }, 100)
         }
 
         function initTableCanceladas(cdempresa, dtinicio, dtfim, idTabelaDataTable, nomeTabela, painel) {
@@ -582,7 +630,7 @@
             });
         }
 
-        function initTableDetailsExecutor(cd_empresa, dt_fim, idexecutor = null, tabela, painel) {
+        function initTableDetailsExecutor(cd_empresa, dt_inicio, dt_fim, idexecutor = null, tabela, painel, origem) {
 
             if ($.fn.DataTable.isDataTable('#details-executor-table')) {
                 $('#details-executor-table').DataTable().destroy();
@@ -591,6 +639,13 @@
             const columns = [];
 
             columns.push({
+                data: 'action',
+                name: 'action',
+                title: '#',
+                className: 'text-center',
+                orderable: false,
+                searchable: false,
+            }, {
                 data: 'IDEMPRESA',
                 name: 'IDEMPRESA',
                 title: 'Emp',
@@ -617,7 +672,7 @@
                 name: 'DT_FIM',
                 title: 'Finalização',
                 className: 'text-nowrap',
-                // render: $.fn.dataTable.render.moment('DD/MM/YYYY'),                       
+                render: $.fn.dataTable.render.moment('YYYY-MM-DD HH:mm:ss', 'DD/MM/YYYY HH:mm:ss'),
             }, {
                 data: 'ST_RETRABALHO',
                 name: 'ST_RETRABALHO',
@@ -637,14 +692,43 @@
                 language: {
                     url: window.routes.languageDatatables
                 },
+                layout: {
+                    topStart: {
+                        buttons: [{
+                                extend: "excelHtml5",
+                                exportOptions: {
+                                    columns: [1, 2, 3, 5]
+                                },
+                                title: "Relatório Executor x Etapa",
+                                footer: true
+                            },
+                            {
+                                extend: "print",
+                                title: "Relatório Executor x Etapa",
+                                footer: true,
+                                exportOptions: {
+                                    columns: [1, 2, 3, 5]
+                                },
+                                customize: function(win) {
+                                    $(win.document.body)
+                                        .find("h1")
+                                        .css("font-size", "12pt")
+                                        .css("color", "#333");
+                                },
+                            },
+                        ],
+                    },
+                },
                 ajax: {
                     url: window.routes.getDetailsExecutor,
                     data: {
                         cd_empresa: cd_empresa,
+                        dt_inicio: dt_inicio,
                         dt_fim: dt_fim,
                         idexecutor: idexecutor,
                         tabela: tabela,
-                        painel: painel
+                        painel: painel,
+                        origem: origem
                     },
                     type: 'GET',
                 },
@@ -652,7 +736,7 @@
                 footerCallback: function(row, data, start, end, display) {
                     var api = this.api();
                     var total_linhas = api.data().count();
-                    $(api.column(4).footer()).html(total_linhas);
+                    $(api.column(5).footer()).html(total_linhas);
                 }
             });
         }
@@ -719,6 +803,67 @@
                     var total_linhas = api.data().count();
                     $(api.column(3).footer()).html(total_linhas);
                 }
+            });
+        }
+
+        function initTableItemPedido(tableId, data) {
+
+            console.log(tableId);
+            $('#' + tableId).DataTable({
+                language: {
+                    url: window.routes.languageDatatables,
+                },
+                "searching": false,
+                "paging": false,
+                "bInfo": false,
+                processing: false,
+                serverSide: false,
+                autoWidth: false,
+                sDom: 't',
+                ajax: data.details_item_pedido_url,
+                columns: [{
+                        data: 'O_DS_ETAPA',
+                        name: 'O_DS_ETAPA'
+                    },
+                    {
+                        data: 'O_NM_USUARIO',
+                        name: 'O_NM_USUARIO',
+                        // "width": "15%"
+                    },
+                    {
+                        data: 'DT_ENTRADA',
+                        name: 'DT_ENTRADA',
+                        render: function(data, type, row) {
+                            return moment(data).format('DD/MM/YYYY HH:mm');
+                        }
+                    },
+                    {
+                        data: 'DT_SAIDA',
+                        name: 'DT_SAIDA',
+                        render: function(data, type, row) {
+                            return moment(data).format('DD/MM/YYYY HH:mm');
+                        }
+                    },
+                    {
+                        data: 'O_DS_COMPLEMENTOETAPA',
+                        name: 'O_DS_COMPLEMENTOETAPA',
+                        visible: false
+                    },
+                    {
+                        data: 'O_ST_RETRABALHO',
+                        name: 'O_ST_RETRABALHO',
+                        visible: false
+                        // width: "2%",
+                    },
+                ],
+                columnDefs: [{
+                    targets: [1],
+                    className: 'text-truncate'
+                }],
+                order: [
+                    [3, 'asc']
+                ]
+
             });
         }
 
@@ -794,6 +939,15 @@
                     }
                 },
                 columns: [{
+                        data: 'actions',
+                        name: 'actions',
+                        title: '#',
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false,
+                        "width": '3%',
+                    },
+                    {
                         title: tipoResumo,
                         data: 'SETOR',
                         width: '70%'
@@ -834,23 +988,23 @@
 
         function retornarNomeTabela(nomeTabela) {
             switch (nomeTabela) {
-                case 'EXAMEINICIAL':
+                case '1':
                     return 'Exame Inicial';
-                case 'RASPAGEMPNEU':
+                case '2':
                     return 'Raspagem de Pneu';
-                case 'PREPARACAOBANDAPNEU':
+                case '3':
                     return 'Preparação de Banda de Pneu';
-                case 'ESCAREACAOPNEU':
+                case '4':
                     return 'Escareação de Pneu';
-                case 'LIMPEZAMANCHAO':
+                case '5':
                     return 'Limpeza de Manchão';
-                case 'APLICACAOCOLAPNEU':
+                case '6':
                     return 'Aplicação de Cola de Pneu';
-                case 'EMBORRACHAMENTO':
+                case '9':
                     return 'Emborrachamento';
-                case 'VULCANIZACAO':
+                case '11':
                     return 'Vulcanização';
-                case 'EXAMEFINALPNEU':
+                case '12':
                     return 'Exame Final de Pneu';
                 default:
                     return nomeTabela;

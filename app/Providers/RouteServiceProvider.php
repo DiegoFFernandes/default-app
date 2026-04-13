@@ -52,6 +52,7 @@ class RouteServiceProvider extends ServiceProvider
                     require base_path('routes/estoque.php');
                     require base_path('routes/pedido.php');
                     require base_path('routes/importa-junsoft.php');
+                    require base_path('routes/ia.php');
                 });
         });
     }

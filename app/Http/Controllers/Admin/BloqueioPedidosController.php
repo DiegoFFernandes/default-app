@@ -116,13 +116,13 @@ class BloqueioPedidosController extends Controller
             ->addColumn('action', function ($b) {
                 $button = "";
                 if ($b->MOTIVO === 'CADASTRO  ') {
-                    $button .= '<a href="https://api.whatsapp.com/send?phone=+5543991685071&text=
-                Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
+                    $button .= '<a href="https://api.whatsapp.com/send?phone=' . env('FONE_CADASTRO', '+5541984042323') . '
+                    &text=Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
                         . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
                 <i class="fab fa-whatsapp"></i></a>';
                 } else if ($b->MOTIVO === 'FINANCEIRO' || $b->MOTIVO === 'AMBOS     ') {
-                    $button .= '<a href="https://api.whatsapp.com/send?phone=+5543991088745&text=
-                Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
+                    $button .= '<a href="https://api.whatsapp.com/send?phone=' . env('FONE_FINANCEIRO', '+5541984042323') . '
+                    &text=Olá,%20meu%20pedido%20' . $b->PEDIDO . ',%20cliente%20' . $b->CLIENTE . '%20está%20bloqueado%20com%20motivo%20'
                         . $b->MOTIVO . '%20poderiam%20verificar?" id="ver-itens" class="btn btn-success btn-xs">
                 <i class="fab fa-whatsapp"></i></a>';
                 }

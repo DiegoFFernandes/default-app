@@ -9,14 +9,14 @@
                 </button>
             </div>
             <div class="modal-body">
-                <table class="table table-bordered table-striped compact table-font-small" id="details-executor-table">
+                <table class="table table-bordered compact table-font-small" id="details-executor-table">
                     <thead></thead>
                     <tbody></tbody>
                     <tfoot>
                         <tr>                        
-                            <th colspan="4" style="text-align:right">Total</th>
+                            <th colspan="5" style="text-align:right">Total</th>
                             <th></th>  
-                            <th></th>                            
+                            <th></th>                                                    
                         </tr>
                     </tfoot>
                 </table>

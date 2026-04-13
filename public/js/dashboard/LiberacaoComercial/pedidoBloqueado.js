@@ -61,6 +61,12 @@ var table = $('#table-ordem-block').DataTable({
     order: [2, 'asc']
 });
 
+$('.close-modal').on('click', function() {
+    $('#div-motivo-exis-liberacao').addClass('d-none');
+    $('.exis_liberacao').val('');
+    $('.liberacao').val('');
+});
+
 $('#table-ordem-block tbody').on('click', '.details-control', function() {
     var tr = $(this).closest('tr');
     var row = table.row(tr);
@@ -72,6 +78,11 @@ $('#table-ordem-block tbody').on('click', '.details-control', function() {
     $('.pessoa').val(row.data().PESSOA);
     $('.vendedor').val(row.data().VENDEDOR);
     $('.condicao').val(row.data().DS_CONDPAGTO);
+
+    if(row.data().DSLIBERACAO) {
+        $('#div-motivo-exis-liberacao').removeClass('d-none');
+        $('.exis_liberacao').val(row.data().DSLIBERACAO);
+    }   
 
     $('#btn-observacao')
         .attr('data-original-title', '') // limpa qualquer title antigo
