@@ -17,6 +17,7 @@ use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 
 class LiberaOrdemComissaoController extends Controller
@@ -308,5 +309,43 @@ class LiberaOrdemComissaoController extends Controller
             'message' => 'Comissões mantidas com sucesso!',
             'pedidos_atualizados' => array_unique($pedidosAtualizados)
         ]);
+    }
+
+    public function removerBorracheiro()
+    {
+        $pedido = $this->request->pedido;
+        $empresa = $this->request->empresa;
+
+        $rules = [
+            'pedido' => 'required|integer',
+            'empresa' => 'required|integer',
+        ];
+
+        $messages = [
+            'pedido.required' => 'O campo pedido é obrigatório.',
+            'pedido.integer' => 'O campo pedido deve ser um número inteiro.',
+            'empresa.required' => 'O campo empresa é obrigatório.',
+            'empresa.integer' => 'O campo empresa deve ser um número inteiro.',
+        ];
+
+        $validate = Validator::make($this->request->all(), $rules, $messages);
+
+        if ($validate->fails()) {
+            return Helper::formatErrorsAsHtml($validate);            
+        }
+
+        $resultado = $this->libera->removerBorracheiro($pedido, $empresa);
+
+        if ($resultado) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Borracheiro removido com sucesso do pedido ' . $pedido . '!'
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao remover borracheiro do pedido ' . $pedido . ', favor contactar TI!'
+            ]);
+        }
     }
 }

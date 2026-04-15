@@ -164,7 +164,7 @@
             width: '100%'
         });
 
-        const datasSelecionadas = initDateRangePicker('#daterange', '02.03.2026', '02.03.2026');
+        const datasSelecionadas = initDateRangePicker('#daterange');
 
         let empresaNome = $('#filtro-empresa option:selected').text();
         let idEmpresa = $('#filtro-empresa').val();
@@ -807,8 +807,6 @@
         }
 
         function initTableItemPedido(tableId, data) {
-
-            console.log(tableId);
             $('#' + tableId).DataTable({
                 language: {
                     url: window.routes.languageDatatables,

@@ -2,7 +2,7 @@ var tableId = 0;
 var table_item_pedido;
 let debounceTimer; // armazena o timer de debounce
 
-var table = $('#table-ordem-block').DataTable({
+var table = $("#table-ordem-block").DataTable({
     processing: false,
     serverSide: false,
     pagingType: "simple",
@@ -13,106 +13,123 @@ var table = $('#table-ordem-block').DataTable({
         url: window.routes.languageDatatables,
     },
     ajax: window.routes.ordensBloqueadas,
-    columns: [{
+    columns: [
+        {
             data: "actions",
             name: "actions",
-            "width": "3%",
+            width: "3%",
             title: "Emp",
         },
         {
-            data: 'EMP',
-            name: 'EMP',
-            "width": "1%",
+            data: "EMP",
+            name: "EMP",
+            width: "1%",
             visible: false,
-            title: 'Emp'
-        }, {
-            data: 'PEDIDO',
-            "width": "6%",
-            name: 'PEDIDO',
-            title: 'Pedido',
-            className: 'text-center',
+            title: "Emp",
         },
         {
-            data: 'PESSOA',
-            name: 'PESSOA',
-            title: 'Cliente'
+            data: "PEDIDO",
+            width: "6%",
+            name: "PEDIDO",
+            title: "Pedido",
+            className: "text-center",
         },
         {
-            data: 'QTDPNEUS',
-            name: 'QTDPNEUS',
-            title: 'Pneus'
+            data: "PESSOA",
+            name: "PESSOA",
+            title: "Cliente",
         },
         {
-            data: 'VENDEDOR',
-            name: 'VENDEDOR',
-            title: 'Vendedor'
+            data: "QTDPNEUS",
+            name: "QTDPNEUS",
+            title: "Pneus",
+            className: "text-center",
         },
         {
-            data: 'TABPRECO',
-            name: 'TABPRECO',
-            title: 'Tabela'
+            data: "VENDEDOR",
+            name: "VENDEDOR",
+            title: "Vendedor",
         },
         {
-            data: 'NM_SUPERVISOR',
-            name: 'NM_SUPERVISOR',
-            title: 'Supervisor'
-        }
+            data: "TABPRECO",
+            name: "TABPRECO",
+            title: "Tabela",
+            className: "text-center",
+        },
+        {
+            data: "NM_SUPERVISOR",
+            name: "NM_SUPERVISOR",
+            title: "Supervisor",
+        },
+        {
+            data: "BORRACHEIRO",
+            name: "BORRACHEIRO",
+            title: "Borracheiro",
+            className: "text-center",
+        },
     ],
-    order: [2, 'asc']
+    order: [2, "asc"],
 });
 
-$('.close-modal').on('click', function() {
-    $('#div-motivo-exis-liberacao').addClass('d-none');
-    $('.exis_liberacao').val('');
-    $('.liberacao').val('');
+$(".close-modal").on("click", function () {
+    $("#div-motivo-exis-liberacao").addClass("d-none");
+    $(".exis_liberacao").val("");
+    $(".liberacao").val("");
 });
 
-$('#table-ordem-block tbody').on('click', '.details-control', function() {
-    var tr = $(this).closest('tr');
+$("#table-ordem-block tbody").on("click", ".details-control", function () {
+    var tr = $(this).closest("tr");
     var row = table.row(tr);
-    tableId = 'pedido-' + row.data().PEDIDO;
+    tableId = "pedido-" + row.data().PEDIDO;
 
     // console.log(row.data());
 
-    $('.nr_pedido').val(row.data().PEDIDO);
-    $('.pessoa').val(row.data().PESSOA);
-    $('.vendedor').val(row.data().VENDEDOR);
-    $('.condicao').val(row.data().DS_CONDPAGTO);
+    $(".nr_pedido").val(row.data().PEDIDO);
+    $(".pessoa").val(row.data().PESSOA);
+    $(".vendedor").val(row.data().VENDEDOR);
+    $(".condicao").val(row.data().DS_CONDPAGTO);
+    $(".nm_borracheiro").val(row.data().NM_BORRACHEIRO);
+    $(".id_empresa").val(row.data().EMP);
 
-    if(row.data().DSLIBERACAO) {
-        $('#div-motivo-exis-liberacao').removeClass('d-none');
-        $('.exis_liberacao').val(row.data().DSLIBERACAO);
-    }   
+    if (row.data().DSLIBERACAO) {
+        $("#div-motivo-exis-liberacao").removeClass("d-none");
+        $(".exis_liberacao").val(row.data().DSLIBERACAO);
+    }
 
-    $('#btn-observacao')
-        .attr('data-original-title', '') // limpa qualquer title antigo
-        .tooltip('dispose') // destrói tooltip existente
-        .attr('title', row.data().DSOBSFATURAMENTO) // define novo texto
+    if (row.data().BORRACHEIRO !== "NAO") {
+        $("#div-borracheiro").removeClass("d-none");
+    } else {
+        $("#div-borracheiro").addClass("d-none");
+    }
+
+    $("#btn-observacao")
+        .attr("data-original-title", "") // limpa qualquer title antigo
+        .tooltip("dispose") // destrói tooltip existente
+        .attr("title", row.data().DSOBSFATURAMENTO) // define novo texto
         .tooltip(); // recria tooltip
 
-    $('#modal-table-pedido').modal('show');
+    $("#modal-table-pedido").modal("show");
 
-
-    initTable('table-item-pedido', row.data());
+    initTable("table-item-pedido", row.data());
 });
 
-$(document).on('click', '#table-item-pedido td:nth-child(3)', function() {
-    var tr = $(this).closest('tr');
+$(document).on("click", "#table-item-pedido td:nth-child(3)", function () {
+    var tr = $(this).closest("tr");
     var row = table_item_pedido.row(tr);
     var rowData = row.data();
-    var valorCellVenda = tr.find('td').eq(2);
+    var valorCellVenda = tr.find("td").eq(2);
     var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
 
-    if (!valorCellVenda.find('input').length) {
+    if (!valorCellVenda.find("input").length) {
         valorCellVenda.html(
-            `<input type="number" value="${valorVenda}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`
+            `<input type="number" value="${valorVenda}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`,
         );
 
-        var input = valorCellVenda.find('input');
+        var input = valorCellVenda.find("input");
         input.focus();
         input.select();
 
-        input.on('blur', function(e) {
+        input.on("blur", function (e) {
             clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
 
             // Vai esperar 500ms antes de fazer a requisição
@@ -120,39 +137,46 @@ $(document).on('click', '#table-item-pedido td:nth-child(3)', function() {
                 const venda = parseFloat($(this).val()) || 0;
                 const preco = rowData.VL_PRECO || 0;
 
-                $.get(window.routes.calculaComissao, {
-                    item_pedido: rowData.ID,
-                    venda: venda
-                }, function(data) {
-                    if (data === 0) {
-                        msgToastr(
-                            'Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!',
-                            'warning');
-                        return;
-                    }
+                $.get(
+                    window.routes.calculaComissao,
+                    {
+                        item_pedido: rowData.ID,
+                        venda: venda,
+                    },
+                    function (data) {
+                        if (data === 0) {
+                            msgToastr(
+                                "Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!",
+                                "warning",
+                            );
+                            return;
+                        }
 
-                    let desconto = 0;
-                    let commissao = 0;
+                        let desconto = 0;
+                        let commissao = 0;
 
-                    if (preco > 0) {
-                        desconto = 100 - (venda * 100) / preco;
-                    }
+                        if (preco > 0) {
+                            desconto = 100 - (venda * 100) / preco;
+                        }
 
-                    rowData.VL_VENDA = parseFloat(venda).toFixed(2);
-                    rowData.PC_DESCONTO = parseFloat(desconto).toFixed(2);
-                    rowData.VL_COMISSAO = parseFloat(data[0].VL_COMISSAO).toFixed(
-                        2);
-                    rowData.PC_COMISSAO = parseFloat(data[0].PC_COMISSAO).toFixed(
-                        2);
-                    rowData.ST_CALCULO = 'A'; // Automático
-                    row.data(rowData).draw();
-                });
+                        rowData.VL_VENDA = parseFloat(venda).toFixed(2);
+                        rowData.PC_DESCONTO = parseFloat(desconto).toFixed(2);
+                        rowData.VL_COMISSAO = parseFloat(
+                            data[0].VL_COMISSAO,
+                        ).toFixed(2);
+                        rowData.PC_COMISSAO = parseFloat(
+                            data[0].PC_COMISSAO,
+                        ).toFixed(2);
+                        rowData.ST_CALCULO = "A"; // Automático
+                        row.data(rowData).draw();
+                    },
+                );
             }, 500); // 500ms de debounce
-
         });
 
-        input.on('keydown', function(e) {
-            if (e.which === 13) { // Enter
+        input.on("keydown", function (e) {
+            if (e.which === 13) {
+                // Enter
                 e.preventDefault(); // evita quebra de linha
                 $(this).blur(); // força o blur, que chama a função de atualização
             }
@@ -160,25 +184,24 @@ $(document).on('click', '#table-item-pedido td:nth-child(3)', function() {
     }
 });
 
-$(document).on('click', '#table-item-pedido td:nth-child(7)', function() {
-    var tr = $(this).closest('tr');
+$(document).on("click", "#table-item-pedido td:nth-child(7)", function () {
+    var tr = $(this).closest("tr");
     var row = table_item_pedido.row(tr);
     var rowData = row.data();
-    var valorCellPcComissao = tr.find('td').eq(6);
+    var valorCellPcComissao = tr.find("td").eq(6);
     var valorVenda = parseFloat(rowData.VL_VENDA).toFixed(2);
     const valorPcComissao = parseFloat(rowData.PC_COMISSAO).toFixed(2);
 
-    if (!valorCellPcComissao.find('input').length) {
+    if (!valorCellPcComissao.find("input").length) {
         valorCellPcComissao.html(
-            `<input type="number" value="${valorPcComissao}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`
+            `<input type="number" value="${valorPcComissao}" class="edit-input" style="width: 100%; box-sizing: border-box;"/>`,
         );
 
-        var input = valorCellPcComissao.find('input');
+        var input = valorCellPcComissao.find("input");
         input.focus();
         input.select();
 
-        input.on('blur', function(e) {
-
+        input.on("blur", function (e) {
             const pc_comissao = parseFloat($(this).val()) || 0;
             const vl_comissao = (valorVenda * pc_comissao) / 100;
 
@@ -186,215 +209,277 @@ $(document).on('click', '#table-item-pedido td:nth-child(7)', function() {
             rowData.VL_COMISSAO = parseFloat(vl_comissao).toFixed(2);
 
             if (valorPcComissao == pc_comissao) {
-                rowData.ST_CALCULO =
-                    'A'; // compara com a pc original, se não mudou continua aumático
+                rowData.ST_CALCULO = "A"; // compara com a pc original, se não mudou continua aumático
             } else {
-                rowData.ST_CALCULO = 'M'; // Manual
+                rowData.ST_CALCULO = "M"; // Manual
             }
 
             row.data(rowData).draw();
-
         });
 
-        input.on('keydown', function(e) {
-            if (e.which === 13) { // Enter
+        input.on("keydown", function (e) {
+            if (e.which === 13) {
+                // Enter
                 e.preventDefault(); // evita quebra de linha
                 $(this).blur(); // força o blur, que chama a função de atualização
             }
         });
     }
-
 });
 
-$(document).on('click', '.btn-save-confirm', function(e) {
+$(document).on("click", ".btn-save-confirm", function (e) {
     //obtem os dados de toda a tabela, para fazer o update no banco
     var pneus = [];
 
     if (isMobile()) {
-        $('.input-venda').each(function() {
-            const card = $(this).closest('.card');
+        $(".input-venda").each(function () {
+            const card = $(this).closest(".card");
             const vl_venda = parseFloat($(this).val());
-            const vl_preco = card.find('.input-preco').val();
-            const desconto = parseFloat((100 - (vl_venda * 100) / vl_preco)).toFixed(2);
-            const pc_comissao = card.find('.percentual-comissao').val();
-            const vl_comissao = card.find('.vl-comissao').val();
-            const st_calculo = card.find('.st-calculo').val();
-            const pedido = card.find('.input-id-pedido').val();
+            const vl_preco = card.find(".input-preco").val();
+            const desconto = parseFloat(
+                100 - (vl_venda * 100) / vl_preco,
+            ).toFixed(2);
+            const pc_comissao = card.find(".percentual-comissao").val();
+            const vl_comissao = card.find(".vl-comissao").val();
+            const st_calculo = card.find(".st-calculo").val();
+            const pedido = card.find(".input-id-pedido").val();
 
             pneus.push({
-                ID: $(this).data('id'),
+                ID: $(this).data("id"),
                 PEDIDO: pedido,
                 VL_VENDA: vl_venda,
                 VL_PRECO: vl_preco,
                 VL_COMISSAO: vl_comissao,
                 PC_DESCONTO: desconto,
                 PC_COMISSAO: pc_comissao,
-                ST_CALCULO: st_calculo
+                ST_CALCULO: st_calculo,
             });
-        })
+        });
     } else {
-        //obtem os dados de toda a tabela, para fazer o update no banco            
+        //obtem os dados de toda a tabela, para fazer o update no banco
         pneus = table_item_pedido.rows().data().toArray();
     }
     $.ajax({
         url: window.routes.savePedidosLiberadas,
-        method: 'post',
+        method: "post",
         data: {
             _token: $("[name=csrf-token]").attr("content"),
-            pedido: $('.nr_pedido').val(),
-            liberacao: $('.liberacao').val(),
-            pneus: pneus
+            pedido: $(".nr_pedido").val(),
+            liberacao: $(".liberacao").val(),
+            pneus: pneus,
         },
-        beforeSend: function() {
-            $("#loading").removeClass('invisible');
+        beforeSend: function () {
+            $("#loading").removeClass("invisible");
         },
-        success: function(response) {
-            $("#loading").addClass('invisible');
+        success: function (response) {
+            $("#loading").addClass("invisible");
 
             if (response.success) {
-                msgToastr(response.success, 'success');
-                $('#table-ordem-block').DataTable().ajax.reload();
+                msgToastr(response.success, "success");
+                $("#table-ordem-block").DataTable().ajax.reload();
                 // $('#modal-pedido').modal('hide');
-                $('#modal-table-pedido').modal('hide');
-                $('#modal-pedido').modal('hide');
+                $("#modal-table-pedido").modal("hide");
+                $("#modal-pedido").modal("hide");
             } else if (response.warning) {
-                msgToastr(response.warning, 'warning');
-                $('#table-ordem-block').DataTable().ajax.reload();
+                msgToastr(response.warning, "warning");
+                $("#table-ordem-block").DataTable().ajax.reload();
                 // $('#modal-pedido').modal('hide');
-                $('#modal-table-pedido').modal('hide');
-                $('#modal-pedido').modal('hide');
+                $("#modal-table-pedido").modal("hide");
+                $("#modal-pedido").modal("hide");
             } else {
-                msgToastr(response.error, 'danger');
+                msgToastr(response.error, "danger");
             }
-        }
+        },
     });
 });
 
-$('#card-container').on('input', '.input-venda', function() {
+$("#card-container").on("input", ".input-venda", function () {
     const input = $(this);
 
     clearTimeout(debounceTimer); // Limpa o timer anterior, se houver
 
     debounceTimer = setTimeout(() => {
         const venda = parseFloat(input.val()) || 0;
-        const item_pedido = input.closest('.card-body').find('.input-id-item').val() || 0;
-        const preco = input.closest('.card-body').find('.input-preco').val() || 0;
+        const item_pedido =
+            input.closest(".card-body").find(".input-id-item").val() || 0;
+        const preco =
+            input.closest(".card-body").find(".input-preco").val() || 0;
 
-        $.get(window.routes.calculaComissao, {
-            item_pedido: item_pedido,
-            venda: venda
-        }, function(data) {
+        $.get(
+            window.routes.calculaComissao,
+            {
+                item_pedido: item_pedido,
+                venda: venda,
+            },
+            function (data) {
+                if (data === 0) {
+                    msgToastr(
+                        "Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!",
+                        "warning",
+                    );
+                    return;
+                }
 
-            if (data === 0) {
-                msgToastr(
-                    'Não foi possivel efetuar o cálculo de comissão. Somente Borracheiro no pedido!',
-                    'warning');
-                return;
-            }
+                let desconto = 0;
+                let commissao = 0;
 
-            let desconto = 0;
-            let commissao = 0;
+                if (preco > 0) {
+                    desconto = 100 - (venda * 100) / preco;
+                }
 
-            if (preco > 0) {
-                desconto = 100 - (venda * 100) / preco;
-            }
+                const percentual = input
+                    .closest(".card-body")
+                    .find(".percentual");
+                const vlComissao = input
+                    .closest(".card-body")
+                    .find(".vl-comissao");
+                const percentualComissao = input
+                    .closest(".card-body")
+                    .find(".percentual-comissao");
 
-            const percentual = input.closest('.card-body').find('.percentual');
-            const vlComissao = input.closest('.card-body').find('.vl-comissao');
-            const percentualComissao = input.closest('.card-body').find(
-                '.percentual-comissao');
+                percentual.val(desconto.toFixed(2));
+                vlComissao.val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
+                percentualComissao.val(
+                    parseFloat(data[0].PC_COMISSAO).toFixed(2),
+                );
 
-            percentual.val(desconto.toFixed(2));
-            vlComissao.val(parseFloat(data[0].VL_COMISSAO).toFixed(2));
-            percentualComissao.val(parseFloat(data[0].PC_COMISSAO).toFixed(2));
+                // Aplica destaque
+                [percentual, vlComissao, percentualComissao].forEach((el) => {
+                    el.addClass("input-destaque");
+                });
 
-            // Aplica destaque
-            [percentual, vlComissao, percentualComissao].forEach(el => {
-                el.addClass('input-destaque');
-            });
-
-            // 👉 Aplica foco visual (danger) ao input editado
-            input.addClass('is-valid');
-
-
-        });
+                // 👉 Aplica foco visual (danger) ao input editado
+                input.addClass("is-valid");
+            },
+        );
     }, 1000); // 1000ms de debounce
-
 });
 
-$('#card-container').on('input', '.percentual-comissao', function() {
+$("#card-container").on("input", ".percentual-comissao", function () {
     const input = $(this);
 
-    const venda = input.closest('.card-body').find('.input-venda').val() || 0;
-    const valorPcComissao = input.closest('.card-body').find('.percentual-comissao').val() || 0;
-    const vlComissao = input.closest('.card-body').find('.vl-comissao');
-
+    const venda = input.closest(".card-body").find(".input-venda").val() || 0;
+    const valorPcComissao =
+        input.closest(".card-body").find(".percentual-comissao").val() || 0;
+    const vlComissao = input.closest(".card-body").find(".vl-comissao");
 
     // Calcula o valor da comissão com base na venda e no percentual
     vlComissao.val(parseFloat((venda * valorPcComissao) / 100).toFixed(2));
 
     // Aplica destaque
-    [vlComissao].forEach(el => {
-        el.addClass('input-destaque');
+    [vlComissao].forEach((el) => {
+        el.addClass("input-destaque");
     });
 
     // Aplica foco visual (danger) ao input editado
-    input.addClass('is-valid');
-
-
+    input.addClass("is-valid");
 });
 
-$('#nm_supervisor').on('keyup change', function() {
+$("#nm_supervisor").on("keyup change", function () {
     let value = $(this).val();
     table.column(7).search(value).draw();
 });
 
-$('#nm_vendedor').on('keyup change', function() {
+$("#nm_vendedor").on("keyup change", function () {
     let value = $(this).val();
     table.column(5).search(value).draw();
 });
 
-$('#nm_cliente').on('keyup change', function() {
+$("#nm_cliente").on("keyup change", function () {
     let value = $(this).val();
     table.column(3).search(value).draw();
 });
 
-$('#btn-limpar').on('click', function() {
-    $('#nm_supervisor').val('');
-    $('#nm_vendedor').val('');
-    $('#nm_cliente').val('');
-    table.search('').columns().search('').draw();
+$("#btn-limpar").on("click", function () {
+    $("#nm_supervisor").val("");
+    $("#nm_vendedor").val("");
+    $("#nm_cliente").val("");
+    table.search("").columns().search("").draw();
 });
 
-$('#btn-liberar').on('click', function() {
+$("#btn-liberar").on("click", function () {
     $.ajax({
         type: "GET",
         url: window.routes.liberaAbaixoDesconto,
         data: {
-            _token: "{{ csrf_token() }}"
+            _token: "{{ csrf_token() }}",
         },
-        success: function(response) {
+        success: function (response) {
             if (response.message) {
                 Swal.fire({
-                    icon: 'success',                    
+                    icon: "success",
                     text: response.message,
-                    showConfirmButton: true,                    
-                });    
-                
-                $('#table-ordem-block').DataTable().ajax.reload();
+                    showConfirmButton: true,
+                });
+
+                $("#table-ordem-block").DataTable().ajax.reload();
             }
+        },
+    });
+});
+
+$("#remover-borracheiro").on("click", function () {
+    const pedido = $(".nr_pedido").val();
+    const idempresa = $(".id_empresa").val();
+
+    Swal.fire({
+        title: "Remover Borracheiro",
+        text: `Tem certeza que deseja remover o borracheiro deste pedido ${pedido} ?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sim, remover",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                type: "POST",
+                url: window.routes.removerBorracheiro,
+                data: {
+                    _token: $("[name=csrf-token]").attr("content"),
+                    pedido: pedido,
+                    empresa: idempresa,
+                },
+                beforeSend: function () {
+                    Swal.fire({
+                        title: "Removendo borracheiro...",
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                    });
+                },
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: "success",
+                            text: response.message,
+                            showConfirmButton: true,
+                        });
+                        $("#div-borracheiro").addClass("d-none");
+                        $("#table-ordem-block").DataTable().ajax.reload();
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            html: response.errors ?? "Ocorreu um erro ao remover o borracheiro.",
+                            showConfirmButton: true,
+                        });
+                    }
+                },
+            });
         }
     });
 });
 
 function initTable(tableId, data) {
-
     var url = window.routes.itensPneusOrdensBloqueadas;
-    url = url.replace(':pedido', data.PEDIDO);
+    url = url.replace(":pedido", data.PEDIDO);
 
-    $('#' + tableId).DataTable().clear().destroy();
+    $("#" + tableId)
+        .DataTable()
+        .clear()
+        .destroy();
 
-    table_item_pedido = $('#' + tableId).DataTable({
+    table_item_pedido = $("#" + tableId).DataTable({
         processing: false,
         serverSide: false,
         pagingType: "simple",
@@ -406,143 +491,147 @@ function initTable(tableId, data) {
         },
         ajax: {
             url: url,
-            beforeSend: function() {
-                $('#card-container').html(`
+            beforeSend: function () {
+                $("#card-container").html(`
                     <div class="card-body shadow-sm p-3 text-center">
                         <i class="fas fa-sync-alt fa-spin"></i>
                     </div>`);
             },
-            dataSrc: function(json) {
+            dataSrc: function (json) {
                 const dados = json.data || json;
                 // Renderiza os cards com os mesmos dados
-                renderizarCards(dados, 'card-container');
+                renderizarCards(dados, "card-container");
                 return dados;
-            }
+            },
         },
-        columns: [{
-                data: 'SEQ',
-                name: 'SEQ',
-                width: '1%',
-                title: 'Seq',
-                visible: false
+        columns: [
+            {
+                data: "SEQ",
+                name: "SEQ",
+                width: "1%",
+                title: "Seq",
+                visible: false,
             },
             {
-                data: 'DS_ITEM',
-                name: 'DS_ITEM',
-                className: 'text-nowrap',
-                width: '20%',
-                title: 'Item'
+                data: "DS_ITEM",
+                name: "DS_ITEM",
+                className: "text-nowrap",
+                width: "20%",
+                title: "Item",
             },
             {
-                data: 'CD_TABPRECO',
-                name: 'CD_TABPRECO',
-                title: 'Tabela'
+                data: "CD_TABPRECO",
+                name: "CD_TABPRECO",
+                title: "Tabela",
             },
             {
-                data: 'VL_VENDA',
-                name: 'VL_VENDA',
+                data: "VL_VENDA",
+                name: "VL_VENDA",
                 // width: '2%',
-                render: $.fn.dataTable.render.number('.', ',', 2),
-                title: 'Venda'
+                render: $.fn.dataTable.render.number(".", ",", 2),
+                title: "Venda",
             },
             {
-                data: 'VL_PRECO',
-                name: 'VL_PRECO',
+                data: "VL_PRECO",
+                name: "VL_PRECO",
 
-                render: $.fn.dataTable.render.number('.', ',', 2),
-                title: 'Tabela'
+                render: $.fn.dataTable.render.number(".", ",", 2),
+                title: "Tabela",
             },
             {
-                data: 'PC_DESCONTO',
-                name: 'PC_DESCONTO',
-                render: function(data, type, row) {
-                    return data + '%';
+                data: "PC_DESCONTO",
+                name: "PC_DESCONTO",
+                render: function (data, type, row) {
+                    return data + "%";
                 },
-                title: '%Desc'
+                title: "%Desc",
             },
             {
-                data: 'VL_COMISSAO',
-                name: 'VL_COMISSAO',
+                data: "VL_COMISSAO",
+                name: "VL_COMISSAO",
                 visible: true,
-                render: $.fn.dataTable.render.number('.', ',', 2),
-                title: 'Comissão'
+                render: $.fn.dataTable.render.number(".", ",", 2),
+                title: "Comissão",
             },
             {
-                data: 'PC_COMISSAO',
-                name: 'PC_COMISSAO',
+                data: "PC_COMISSAO",
+                name: "PC_COMISSAO",
                 visible: true,
-                render: function(data, type, row) {
-                    return data + '%';
+                render: function (data, type, row) {
+                    return data + "%";
                 },
-                title: '%Comis.'
+                title: "%Comis.",
             },
             {
-                data: 'ST_CALCULO',
-                name: 'ST_CALCULO',
-                title: 'Cálculo',
-                render: function(data, type, row) {
-                    if (data === 'A') {
-                        return 'Automático';
-                    } else if (data === 'M') {
-                        return 'Manual';
+                data: "ST_CALCULO",
+                name: "ST_CALCULO",
+                title: "Cálculo",
+                render: function (data, type, row) {
+                    if (data === "A") {
+                        return "Automático";
+                    } else if (data === "M") {
+                        return "Manual";
                     } else {
                         return data;
                     }
-                }
-            }, {
-                data: 'PEDIDO',
-                name: 'PEDIDO',
+                },
+            },
+            {
+                data: "PEDIDO",
+                name: "PEDIDO",
                 visible: false,
-                title: 'Pedido'
-            }
+                title: "Pedido",
+            },
         ],
-        columnDefs: [{
-            targets: [2, 3, 8],
-            className: 'dt-right'
-        }, {
-            targets: [3, 7],
-            createdCell: function(td, cellData, rowData, row, col) {
-                $(td).css('background-color', '#E2E5E8');
-                $(td).css('color', '#000');
-                $(td).css('font-weight', 'bold');
-            }
-        }],
+        columnDefs: [
+            {
+                targets: [2, 3, 8],
+                className: "dt-right",
+            },
+            {
+                targets: [3, 7],
+                createdCell: function (td, cellData, rowData, row, col) {
+                    $(td).css("background-color", "#E2E5E8");
+                    $(td).css("color", "#000");
+                    $(td).css("font-weight", "bold");
+                },
+            },
+        ],
 
-        "drawCallback": function(settings) {
+        drawCallback: function (settings) {
             // Só executa em telas menores
             if ($(window).width() <= 768) {
                 const api = this.api();
                 const headers = api.columns().header().toArray(); // Pega os cabeçalhos
 
                 api.rows({
-                    page: 'current'
-                }).every(function(index) {
+                    page: "current",
+                }).every(function (index) {
                     const rowNode = this.node();
-                    const cells = $('td', rowNode);
+                    const cells = $("td", rowNode);
 
-                    cells.each(function(i) {
-                        const label = $(headers[i])
-                            .text(); // Pega o texto do cabeçalho correspondente
-                        $(this).attr('data-label', label);
+                    cells.each(function (i) {
+                        const label = $(headers[i]).text(); // Pega o texto do cabeçalho correspondente
+                        $(this).attr("data-label", label);
                     });
                 });
             }
-        }
+        },
     });
 }
 
 function renderizarCards(data, containerId) {
-    const container = $('#' + containerId);
+    const container = $("#" + containerId);
     container.empty(); // Limpa antes
 
-    if (data[0].ST_COMERCIAL == 'G') {
-        $('.quote-danger').removeClass('d-none');
+    if (data[0].ST_COMERCIAL == "G") {
+        $(".quote-danger").removeClass("d-none");
     } else {
-        $('.quote-danger').addClass('d-none');
+        $(".quote-danger").addClass("d-none");
     }
-    data.forEach(item => {
+    data.forEach((item) => {
         const card = $(`                       
-                    <div class="card-body shadow-sm p-3 ${item.ST_CALCULO == 'M' ? 'bg-purple' : ''} ">
+                    <div class="card-body shadow-sm p-3 ${item.ST_CALCULO == "M" ? "bg-purple" : ""} ">
                         <span class="badge badge-secondary">${item.DS_TABPRECO}</span>
                         <input type="hidden" class="input-id-item" value="${item.ID}" />
                         <input type="hidden" class="st-calculo" value="${item.ST_CALCULO}" />
@@ -614,4 +703,3 @@ function renderizarCards(data, containerId) {
 function isMobile() {
     return $(window).width() <= 768;
 }
-  

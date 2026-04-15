@@ -38,6 +38,7 @@
             pedidosComissaoAutomatica: "{{ route('get-substitui-comissao-automatica') }}",
             saveSubstituiComissaoAutomatica: "{{ route('save-substitui-comissao-automatica') }}",
             saveManterComissaoAutomatica: "{{ route('save-manter-comissao-automatica') }}",
+            removerBorracheiro: "{{ route('remover-borracheiro') }}",
         };
     </script>
     <script src="{{ asset('js/dashboard/LiberacaoComercial/pedidoBloqueado.js') }}?v={{ time() }}"></script>

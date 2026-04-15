@@ -3,21 +3,128 @@
 @section('title', 'Assistente IA')
 
 @section('content')
-    <section class="content" id="conteudo-ia" style="padding-bottom: 100px;">
-        <div class="row" id="row-resposta">
+    <section class="content-fluid" id="conteudo-ia">
+        <div id="resposta-info"></div>
+        <div class="row d-none" id="row-resposta">
             <div class="col-md-12">
-                <div class="card card-primary card-outline">                    
-                    <div class="card-body">
-                        <div id="resumo-ia">                            
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title card-header-tabela"></h5>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-12">
-                <div class="card">                    
-                    <div class="card-body">
-                        <div id="resposta">                            
+                    <!-- /.card-header -->
+                    <div class="card-body pb-0">
+                        <div class="row">
+                            <div class="col-md-8" id="resposta-tabela">
+
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-md-4">
+                                <p class="text-center">
+                                    <strong>Goal Completion</strong>
+                                </p>
+
+                                <div class="progress-group">
+                                    Add Products to Cart
+                                    <span class="float-right"><b>160</b>/200</span>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-primary" style="width: 80%"></div>
+                                    </div>
+                                </div>
+                                <!-- /.progress-group -->
+
+                                <div class="progress-group">
+                                    Complete Purchase
+                                    <span class="float-right"><b>310</b>/400</span>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-danger" style="width: 75%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- /.progress-group -->
+                                <div class="progress-group">
+                                    <span class="progress-text">Visit Premium Page</span>
+                                    <span class="float-right"><b>480</b>/800</span>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-success" style="width: 60%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- /.progress-group -->
+                                <div class="progress-group">
+                                    Send Inquiries
+                                    <span class="float-right"><b>250</b>/500</span>
+                                    <div class="progress progress-sm">
+                                        <div class="progress-bar bg-warning" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                                <!-- /.progress-group -->
+                            </div>
+                            <!-- /.col -->
                         </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- ./card-body -->
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-sm-3 col-6">
+                                <div class="description-block border-right">
+                                    <span class="description-percentage text-success"><i class="fas fa-caret-up"></i>
+                                        17%</span>
+                                    <h5 class="description-header">$35,210.43</h5>
+                                    <span class="description-text">TOTAL REVENUE</span>
+                                </div>
+                                <!-- /.description-block -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-sm-3 col-6">
+                                <div class="description-block border-right">
+                                    <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i>
+                                        0%</span>
+                                    <h5 class="description-header">$10,390.90</h5>
+                                    <span class="description-text">TOTAL COST</span>
+                                </div>
+                                <!-- /.description-block -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-sm-3 col-6">
+                                <div class="description-block border-right">
+                                    <span class="description-percentage text-success"><i class="fas fa-caret-up"></i>
+                                        20%</span>
+                                    <h5 class="description-header">$24,813.53</h5>
+                                    <span class="description-text">TOTAL PROFIT</span>
+                                </div>
+                                <!-- /.description-block -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-sm-3 col-6">
+                                <div class="description-block">
+                                    <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i>
+                                        18%</span>
+                                    <h5 class="description-header">1200</h5>
+                                    <span class="description-text">GOAL COMPLETIONS</span>
+                                </div>
+                                <!-- /.description-block -->
+                            </div>
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                    <!-- /.card-footer -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <div class="row d-none" id="row-resumo-ia">
+            <div class="card">
+                <div class="card-header">Resumo IA</div>
+                <div class="card-body">
+                    <div class="col-md-12">
                     </div>
                 </div>
             </div>
@@ -46,13 +153,15 @@
             left: 0;
             width: 100%;
             z-index: 999;
-            padding: 10px 0;
+            padding: 5px 0;
+            background-color: #33393f75;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
 
         .modo-chat #input-area {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
+            transition: all .3s ease-in-out;
         }
 
         .modo-chat .title-ia {
@@ -71,6 +180,22 @@
             height: calc(3rem + 2px) !important;
             font-size: 1rem !important;
         }
+
+        .resumo-ia {
+            font-size: 0.9rem;
+
+        }
+
+        /* quando sidebar aberta */
+        body:not(.sidebar-collapse) .modo-chat #input-area {
+            margin-left: 125px;
+            /* ajuste fino */
+        }
+
+        /* quando sidebar fechada */
+        body.sidebar-collapse .modo-chat #input-area {
+            margin-left: auto;
+        }
     </style>
 @stop
 
@@ -82,10 +207,6 @@
         };
 
         function perguntarIA() {
-
-            $('.title-ia').addClass('d-none');
-            $('#row-resposta').removeClass('d-none');
-            $('#conteudo-ia').addClass('modo-chat');
 
             let pergunta = document.getElementById('pergunta').value;
 
@@ -111,7 +232,7 @@
                 .then(data => {
                     Swal.close();
 
-                    if (!data.dados || data.dados.length === 0) {
+                    if (!data.tabela || data.tabela.length === 0) {
                         Swal.fire({
                             icon: 'info',
                             title: 'Sem dados',
@@ -120,7 +241,7 @@
                         return;
                     }
 
-                    if (data.tipo === 'texto') {
+                    if (data.texto) {
                         Swal.fire({
                             title: data.titulo,
                             text: data.dados,
@@ -128,15 +249,25 @@
                         return;
                     }
 
-                    if (data.tipo === 'tabela') {
-                        inicializaTabelaIA(data);
+                    if (data.tabela) {
+                        inicializaTabelaIA(data.tabela.dados);
+                    }
+
+                    if (data.componentes) {
+                        
+                        renderInfoBox(data.componentes);
                     }
 
                     if (data.resumo_ia) {
                         document.getElementById('resumo-ia').innerHTML = `                            
-                            <p>${data.resumo_ia}</p>
+                            <p class="text-bold">${data.resumo_ia}</p>
                         `;
                     }
+
+                    $('.title-ia').addClass('d-none');
+                    $('.card-header-tabela').text(data.tabela.titulo);
+                    $('#row-resposta').removeClass('d-none');
+                    $('#conteudo-ia').addClass('modo-chat');
 
                 }).catch(error => {
                     Swal.close();
@@ -152,40 +283,60 @@
         }
 
         function formatarColunaTabela(col) {
+            if (col == 'NM_VENDEDOR') {
+                return {
+                    title: 'Vendedor',
+                    data: col,
+                    className: 'no-wrap'
+                }
+            };
             if (col === 'VALOR_MEDIO') {
                 return {
-                    title: 'Valor Médio (R$)',
+                    title: 'P.Médio',
                     data: col,
                     render: function(data) {
-                        return 'R$ ' + parseFloat(data).toFixed(2);
+                        return parseFloat(data).toFixed(2);
+                    }
+                };
+            }
+            if (col === 'VL_TOTAL') {
+                return {
+                    title: 'Total',
+                    data: col,
+                    render: function(data) {
+                        return parseFloat(data).toFixed(2);
                     }
                 };
             }
             if (col === 'QTD') {
                 return {
-                    title: 'Quantidade',
-                    data: col
+                    title: 'Qtd',
+                    data: col,
+                    className: 'text-center'
                 };
             }
             if (col === 'DS_SERVICOPNEU') {
                 return {
                     title: 'Serviço',
-                    data: col
+                    data: col,
+                    className: 'no-wrap'
                 };
             }
             if (col === 'NM_PESSOA') {
                 return {
                     title: 'Pessoa',
-                    data: col
+                    data: col,
+                    className: 'no-wrap'
                 };
             }
             if (col == 'DT_EMISSAO') {
                 return {
-                    title: 'Data Emissão',
+                    title: 'Emissão',
                     data: col,
                     render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                 };
             }
+
 
             return {
                 title: col,
@@ -193,34 +344,30 @@
             };
         }
 
-        function inicializaTabelaIA(data) {
+        function inicializaTabelaIA(dados) {
 
             const html = `
-                        <div class="col-md-8">
-                            <div class="card card-primary card-outline mb-3">
-                                <div class="card-header">${data.titulo}</div>
-                                <div class="card-body">
-                                    <table id="tabelaIA" class="table table-bordered compact table-font-small">
-                                        <thead></thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
-                            </div>   
-                        </div>                    
+                        <table id="tabelaIA" class="table table-bordered compact table-font-small">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>                    
                         `;
 
-            document.getElementById('resposta').innerHTML = html;
+            document.getElementById('resposta-tabela').innerHTML = html;
 
-            let colunas = Object.keys(data.dados[0]).map(col => {
+            let colunas = Object.keys(dados[0]).map(col => {
                 return formatarColunaTabela(col);
             });
 
             $('#tabelaIA').DataTable({
-                data: data.dados,
+                data: dados,
                 columns: colunas,
                 destroy: true,
                 pageLength: 100,
+                scrollX: true,
+                scrollCollapse: true,
                 scrollY: '300px',
+                info: false,
                 language: {
                     url: window.routes.languageDatatables
                 },
@@ -228,11 +375,11 @@
                     topStart: {
                         buttons: [{
                                 extend: "excelHtml5",
-                                title: `${data.titulo}`,
+                                title: `${dados.titulo}`,
                             },
                             {
                                 extend: "print",
-                                title: `${data.titulo}`,
+                                title: `${dados.titulo}`,
                                 customize: function(win) {
                                     $(win.document.body)
                                         .find("h1")
@@ -243,7 +390,43 @@
                         ],
                     },
                 },
+                columnDefs: [{
+                    targets: '_all',
+                    className: 'text-nowrap'
+                }],
             });
+        }
+
+        function renderInfoBox(componente) {
+
+            
+            
+            let html = '<div class="row">';
+
+            componente.forEach(comp => {
+
+                if (comp.tipo === 'info_box') {
+
+                    console.log('Renderizando info-box:', comp);
+                    html += `
+                        <div class="col-md-3 col-sm-6 col-12">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-${comp.cor}"><i class="${comp.icone}"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">${comp.titulo}</span>
+                                    <span class="info-box-number">${comp.valor}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += '</div>';
+
+            console.log(html);
+
+            document.getElementById('resposta-info').innerHTML = html;
         }
     </script>
 @stop

@@ -43,7 +43,12 @@ class LiberaOrdemComercial extends Model
                     COUNT(IPP.id) QTDPNEUS,
                     COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL,
                     SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
-                    CONDPAGTO.DS_CONDPAGTO
+                    CONDPAGTO.DS_CONDPAGTO,
+
+                    --retorna se existe borracheiro no pedido, caso exista retorna o nome do borracheiro, caso contrário retorna 'NAO'
+                    COALESCE(VB.R_BORRACHEIRO, 'NAO') BORRACHEIRO,
+                    VB.R_IDBORRACHEIRO IDBORRACHEIRO,
+                    VB.R_NM_BORRACHEIRO NM_BORRACHEIRO
                 FROM PEDIDOPNEU PP
                 INNER JOIN VENDEDOR V ON (V.CD_VENDEDOR = PP.IDVENDEDOR)
                 INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
@@ -59,6 +64,7 @@ class LiberaOrdemComercial extends Model
                     AND PP.IDEMPRESA = COALESCE(T.CD_EMPRESA, PP.IDEMPRESA))
                 LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = T.CD_TABPRECO)
                 LEFT JOIN CONDPAGTO ON (CONDPAGTO.CD_CONDPAGTO = PP.IDCONDPAGTO)
+                LEFT JOIN VERIFICA_BORRACHEIROPEDIDO(PP.IDEMPRESA, PP.ID) VB ON (1 = 1)
                 WHERE PP.STPEDIDO IN ('B')
                     AND PP.IDTIPOPEDIDO = 1
                     AND PP.TP_BLOQUEIO <> 'F'
@@ -85,7 +91,10 @@ class LiberaOrdemComercial extends Model
                     TABPRECO.DT_VALIDADE,
                     PP.ST_COMERCIAL,
                     NM_SUPERVISOR,
-                    CONDPAGTO.DS_CONDPAGTO
+                    CONDPAGTO.DS_CONDPAGTO,                    
+                    VB.R_BORRACHEIRO,
+                    VB.R_IDBORRACHEIRO,
+                    VB.R_NM_BORRACHEIRO
                     ";
         $data = DB::connection('firebird')->select($query);
 
@@ -194,7 +203,7 @@ class LiberaOrdemComercial extends Model
                 if ($pneu['ST_CALCULO'] == 'A') {
                     $ST_CALCULO = 'A';
                 } else {
-                    $ST_CALCULO = 'M';  
+                    $ST_CALCULO = 'M';
                     PedidoPneu::updateDesconto($pneu['PEDIDO'], 'G');
                 }
 
@@ -299,5 +308,26 @@ class LiberaOrdemComercial extends Model
             PedidoPneu::updateDesconto($resultado[$cargo] ?? '', $cargo);
         }
         return;
+    }
+
+    public function removerBorracheiro($idPedido, $idEmpresa)
+    {
+        return DB::transaction(function () use ($idPedido, $idEmpresa) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                    DELETE FROM ITEMPEDIDOPNEUBORRACHEIRO
+                    WHERE IDITEMPEDIDOPNEU IN (
+                        SELECT IPP.ID
+                        FROM PEDIDOPNEU PP
+                        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+                        WHERE PP.ID = $idPedido AND PP.IDEMPRESA = $idEmpresa
+                    )
+                    AND CD_TIPO = 2
+                ";
+
+            return DB::connection('firebird')->statement($query);
+        });
     }
 }

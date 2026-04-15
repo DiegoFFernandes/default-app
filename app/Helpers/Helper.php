@@ -57,6 +57,11 @@ class Helper
             $error .= '<li>' . $e . '</li>';
         }
         $error .= '</ul>';
-        return response()->json(['errors' => $error]);
+        return response()->json(
+            [
+                'success' => false,
+                'errors' => $error
+            ]
+        );
     }
 }

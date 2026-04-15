@@ -91,9 +91,9 @@ class AcompanhamentoPneu extends Model
             $grupo_item = isset($data['grupo_item']) ? implode(',', $data['grupo_item']) : 0;
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
-            $nr_fogo = $data['nr_fogo'];
-            $nr_serie = $data['nr_serie'];
-            $nr_dot = $data['nr_dot'];
+            $nr_fogo = $data['nr_fogo'] ?? '';
+            $nr_serie = $data['nr_serie'] ?? '';
+            $nr_dot = $data['nr_dot'] ?? '';
         }
 
         $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);

@@ -71,6 +71,56 @@ class IAController extends Controller
                 Pergunta: $pergunta
         ";
 
+        $dtInicio = '25.02.2026'; // Exemplo de data de início
+        $dtFim = '25.02.2026'; // Exemplo de data de fim
+
+        $dados = $this->pedidoPneu->getColetaPedidoPneu($dtInicio, $dtFim, 1);
+
+        $qtdPneus = array_sum(array_column($dados, 'QTD'));
+        $valorTotal = array_sum(array_column($dados, 'VL_TOTAL'));
+        $qtdVendedores = count(array_unique(array_column($dados, 'NM_VENDEDOR')));
+        $qtdClientes = count(array_unique(array_column($dados, 'NM_PESSOA')));
+
+
+        return response()->json([
+            'tabela' => [
+                'titulo' => "Pneus coletados de $dtInicio a $dtFim",
+                'dados' => $dados
+            ],
+            'resumo_ia' => null, //$this->resumoIA($dados),
+            'componentes' => [
+                [
+                    'tipo' => 'info_box',
+                    'titulo' => 'Total Pneus',
+                    'valor' => $qtdPneus,
+                    'icone' => 'fas fa-truck',
+                    'cor' => 'info'
+                ],
+                [
+                    'tipo' => 'info_box',
+                    'titulo' => 'Valor Total',
+                    'valor' => "R$ " . number_format($valorTotal, 2, ',', '.'),
+                    'icone' => 'fas fa-dollar-sign',
+                    'cor' => 'success'
+                ],
+                [
+                    'tipo' => 'info_box',
+                    'titulo' => 'Vendedores',
+                    'valor' => $qtdVendedores,
+                    'icone' => 'fas fa-user',
+                    'cor' => 'warning'
+                ],
+                [
+                    'tipo' => 'info_box',
+                    'titulo' => 'Clientes',
+                    'valor' => $qtdClientes,
+                    'icone' => 'fas fa-users',
+                    'cor' => 'primary'
+                ]
+            ]
+
+        ]);
+
         $response = $this->apiChat($prompt);
 
         $data = $response->json();
@@ -98,14 +148,26 @@ class IAController extends Controller
     public function resumoIA($dados)
     {
         $prompt = "
-            1. Resuma os seguintes dados em um parágrafo curto e objetivo, destacando os pontos mais importantes.
-            2. Exiba quem são os maiores compradores e as suas compras 'NM_PESSOA', 'DS_SERVICOPNEU', 'VALOR_MEDIO'.
-            3. Verifique quais foi o DS_SERVICOPNEU mais frequente e destaque isso no resumo.    
-            4. Não e necessario mencionar do que os dados se tratam, apenas resuma as informações seguindo as regras acima.    
-            5. Responda apenas com o resumo, sem introdução ou conclusão.    
-            " .
+            Resuma os dados de forma clara e organizada seguindo EXATAMENTE este formato:
 
-            "Dados" . json_encode($dados);
+            RESUMO:
+            - Escreva 1 frase curta com o panorama geral.
+
+            MAIORES COMPRADORES:
+            - Liste no máximo 3, no formato:
+            Nome - Serviço - Valor médio
+
+            SERVIÇO MAIS FREQUENTE:
+            - Informe apenas o nome do serviço.
+
+            REGRAS:
+            - Seja direto e simples.
+            - Não use parágrafos longos.
+            - Não explique nada fora do formato.
+            - Não repita informações.
+
+            Dados:
+            " . json_encode($dados);
 
         $response = $this->apiChat($prompt);
 
@@ -139,7 +201,7 @@ class IAController extends Controller
                     'tipo' => 'tabela',
                     'titulo' => "Pneus coletados de $dtInicio a $dtFim",
                     'dados' => $dados,
-                    'resumo_ia' => $this->resumoIA($dados)
+                    'resumo_ia' => null //$this->resumoIA($dados)
                 ]);
             case 'pneus_coletados':
                 $dados = $this->pedidoPneu->getColetaPedidoPneu($dtInicio, $dtFim, 1);
@@ -148,7 +210,7 @@ class IAController extends Controller
                     'tipo' => 'tabela',
                     'titulo' => "Pneus coletados de $dtInicio a $dtFim",
                     'dados' => $dados,
-                    'resumo_ia' => $this->resumoIA($dados)
+                    'resumo_ia' => null //$this->resumoIA($dados)
                 ]);
             default:
                 return response()->json([

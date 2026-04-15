@@ -14,32 +14,48 @@
             <div class="modal-body">
                 <div class="col-md-12">
                     <div class="row">
-                        <div class="col-4 col-md-4">
+                        <input class="form-control form-control-sm id_empresa" type="text" hidden>
+
+                        <div class="col-4 col-md-2">
                             <div class="form-group">
                                 <label class="small" for="nr_pedido">Pedido</label>
                                 <input class="form-control form-control-sm nr_pedido" type="text" readonly>
                             </div>
                         </div>
-                        <div class="col-8 col-md-8">
+                        <div class="col-8 col-md-4">
+                            <div class="form-group">
+                                <label class="small" for="condicao">Condição</label>
+                                <input id="" class="form-control form-control-sm condicao" type="text"
+                                    readonly>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label class="small" for="pessoa">Pessoa</label>
                                 <input id="" class="form-control form-control-sm pessoa" type="text"
                                     readonly>
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label class="small" for="vendedor">Vendedor</label>
                                 <input id="" class="form-control form-control-sm vendedor" type="text"
                                     readonly>
-
                             </div>
                         </div>
-                        <div class="col-6 col-md-6">
+                        <div class="col-12 col-md-6 d-none" id="div-borracheiro">
                             <div class="form-group">
-                                <label class="small" for="condicao">Condição</label>
-                                <input id="" class="form-control form-control-sm condicao" type="text"
-                                    readonly>
+                                <label class="small" for="borracheiro">Borracheiro</label>
+                                <div class="input-group">
+                                    <input id="" class="form-control form-control-sm nm_borracheiro"
+                                        type="text" readonly>
+                                    <div class="input-group-append">
+                                        <button id="remover-borracheiro" class="btn btn-danger btn-sm"
+                                            data-toggle="tooltip" title="Remover Borracheiro">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
