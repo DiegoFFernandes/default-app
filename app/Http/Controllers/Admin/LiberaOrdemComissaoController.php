@@ -129,11 +129,25 @@ class LiberaOrdemComissaoController extends Controller
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
                 return '<span class="btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
-            })
-            ->rawColumns(['actions'])
+            })            
             ->setRowClass(function ($d) {
                 return $d->ST_COMERCIAL == 'G' ? 'bg-warning' : '';
             })
+            ->editColumn('TABPRECO', function ($d) {
+                if ($d->TABPRECO == 'SIM') {
+                    return '<span class="badge badge-success w-50">SIM</span>';
+                } else {
+                    return '<span class="badge badge-danger w-50">NAO</span>';
+                }
+            })
+            ->addColumn('P_BORRACHEIRO', function ($d) {
+                if ($d->BORRACHEIRO == 'SIM') {
+                    return '<span class="badge badge-danger w-50">SIM</span>';
+                } else {
+                    return '<span class="badge badge-success w-50">NAO</span>';
+                }
+            })
+            ->rawColumns(['actions', 'TABPRECO', 'P_BORRACHEIRO'])
             ->make(true);
     }
 
@@ -144,6 +158,14 @@ class LiberaOrdemComissaoController extends Controller
             ->setRowClass(function ($d) {
                 return $d->ST_CALCULO == 'M' ? 'bg-purple text-white' : '';
             })
+            ->editColumn('CD_TABPRECO', function ($d) {
+                if ($d->CD_TABPRECO != 1) {
+                    return '<span class="badge badge-danger w-50"> '. $d->CD_TABPRECO .' </span>';
+                } else {
+                    return '<span class="badge badge-success w-50">'. $d->CD_TABPRECO .'</span>';
+                }
+            })
+            ->rawColumns(['CD_TABPRECO'])
             ->make(true);
     }
 

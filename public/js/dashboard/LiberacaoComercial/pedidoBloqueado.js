@@ -62,10 +62,10 @@ var table = $("#table-ordem-block").DataTable({
             title: "Supervisor",
         },
         {
-            data: "BORRACHEIRO",
-            name: "BORRACHEIRO",
+            data: "P_BORRACHEIRO",
+            name: "P_BORRACHEIRO",
             title: "Borracheiro",
-            className: "text-center",
+            className: "text-center"
         },
     ],
     order: [2, "asc"],
@@ -460,7 +460,9 @@ $("#remover-borracheiro").on("click", function () {
                     } else {
                         Swal.fire({
                             icon: "error",
-                            html: response.errors ?? "Ocorreu um erro ao remover o borracheiro.",
+                            html:
+                                response.errors ??
+                                "Ocorreu um erro ao remover o borracheiro.",
                             showConfirmButton: true,
                         });
                     }
@@ -523,6 +525,7 @@ function initTable(tableId, data) {
                 data: "CD_TABPRECO",
                 name: "CD_TABPRECO",
                 title: "Tabela",
+                className: "text-center",
             },
             {
                 data: "VL_VENDA",
