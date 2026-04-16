@@ -39,7 +39,7 @@ class PedidosAlterados extends Model
                 --DN.DSDESENHO || ' ' || BN.NRLARGURA DSDESENHO_NOVO,
                 --DA.DSDESENHO || ' ' || BA.NRLARGURA DSDESENHO_VELHO,
 
-                CAST(TD.R_VLSERVANTIGO AS NUMERIC(16,2)) VLSERVCOLETA,
+                COALESCE(IPP.VLUNITARIO_BKP, TD.R_VLSERVANTIGO) VLSERVCOLETA,
                 IPP.VLUNITARIO VLSERVALTERADO,
                 TD.R_DTREGISTRO DTALTERACAO,
                 N.NR_NOTAFISCAL,
@@ -76,7 +76,7 @@ class PedidosAlterados extends Model
             WHERE BA.IDDESENHOPNEU = BN.IDDESENHOPNEU
                 AND CAST(TD.R_DTREGISTRO AS DATE) > CURRENT_DATE - 7
                 --AND PP.ID = 234495
-                AND TD.R_VLSERVANTIGO <> IPP.VLUNITARIO
+                AND COALESCE(IPP.VLUNITARIO_BKP, TD.R_VLSERVANTIGO) <> IPP.VLUNITARIO
                 AND OPR.DTENTRADA >= '01.08.2025'
                 AND OPR.STORDEM NOT IN ('C')
                 --AND PLUG.NR_PEDIDO IS NULL
