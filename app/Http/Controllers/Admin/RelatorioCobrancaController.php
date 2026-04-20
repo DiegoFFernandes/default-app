@@ -82,6 +82,7 @@ class RelatorioCobrancaController extends Controller
             'filtro.filtro_gerente' => 'integer|nullable',
             'filtro.dtInicio' => 'string|nullable',
             'filtro.dtFim' => 'string|nullable',
+            'filtro.filtro_cartorio' => 'integer|nullable'
         ]);
 
         $tab = $this->request->input('tab');
@@ -142,6 +143,9 @@ class RelatorioCobrancaController extends Controller
 
         foreach ($data as $item) {
             foreach ($regioes_mysql as $regiao) {
+
+                $vencimento = \Carbon\Carbon::parse($item->DT_VENCIMENTO)->format('Y-m-d');
+
                 if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
                     $nomeGerente = $regiao->name;
                     // --- GERENTE ---
@@ -153,17 +157,19 @@ class RelatorioCobrancaController extends Controller
                             'saldo' => 0,
                             'supervisores' => [],
                             'atrasados' => 0,
-                            'inadimplencia' => 0
+                            'inadimplencia' => 0,
+                            'cartorio' => 0
                         ];
                     }
                     $hierarquia[$nomeGerente]['saldo'] += $item->VL_SALDO;
-                    $vencimento = \Carbon\Carbon::parse($item->DT_VENCIMENTO)->format('Y-m-d');
 
                     if ($vencimento >= $dataAtrasoHojeAte60) {
                         $hierarquia[$nomeGerente]['atrasados'] += floatval($item->VL_SALDO);
                     } else {
                         $hierarquia[$nomeGerente]['inadimplencia'] += floatval($item->VL_SALDO);
                     }
+
+                    $hierarquia[$nomeGerente]['cartorio'] += floatval($item->VL_CARTORIO ?? 0);
 
                     // --- SUPERVISOR ---
                     $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
@@ -172,10 +178,23 @@ class RelatorioCobrancaController extends Controller
                             'nome' => $nomeSupervisor,
                             'cargo' => 'Supervisor',
                             'saldo' => 0,
-                            'vendedores' => []
+                            'vendedores' => [],
+                            'atrasados' => 0,
+                            'inadimplencia' => 0,
+                            'cartorio' => 0
+
                         ];
                     }
+
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['saldo'] += $item->VL_SALDO;
+
+                    if ($vencimento >= $dataAtrasoHojeAte60) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['atrasados'] += floatval($item->VL_SALDO);
+                    } else {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['inadimplencia'] += floatval($item->VL_SALDO);
+                    }
+
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['cartorio'] += floatval($item->VL_CARTORIO ?? 0);
 
                     // --- VENDEDOR ---
                     $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem vendedor';
@@ -183,10 +202,12 @@ class RelatorioCobrancaController extends Controller
                         $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor] = [
                             'nome' => $nomeVendedor,
                             'cargo' => 'Vendedor',
-                            'saldo' => 0
+                            'saldo' => 0,
+                            'cartorio' => 0
                         ];
                     }
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['saldo'] += $item->VL_SALDO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['cartorio'] += floatval($item->VL_CARTORIO ?? 0);
 
 
                     // --- CLIENTE ---
@@ -201,7 +222,8 @@ class RelatorioCobrancaController extends Controller
                         'VL_SALDO'  => $item->VL_SALDO,
                         'VL_JUROS'  => $item->VL_JUROS,
                         'TIPOCONTA' => $item->TIPOCONTA,
-                        'VL_TOTAL'  => $item->VL_TOTAL
+                        'VL_TOTAL'  => $item->VL_TOTAL,
+                        'VL_CARTORIO' => $item->VL_CARTORIO ?? 0
                     ];
                 }
             }
@@ -411,7 +433,7 @@ class RelatorioCobrancaController extends Controller
                 ->implode(',');
         }
 
-        // Busca os dados de cobrança de carteiro que deveria ter recebido e liquidado
+        // Busca os dados de cobrança que deveriam ter recebido e liquidado
         $receber_liquidada = self::RecebimentoLiquidado($tela);
 
         // Indexa os valores de recebimento e liquidação por vendedor e supervisor
@@ -601,7 +623,9 @@ class RelatorioCobrancaController extends Controller
             'filtro.nm_supervisor' => 'string|nullable',
             'filtro.cnpj' => 'string|nullable',
             'filtro.filtro_gerente' => 'integer|nullable',
+            'filtro.filtro_cartorio' => 'integer|nullable',
         ]);
+
         $tab = $this->request->input('tab');
         $filtro = $this->request->input('filtro');
 
@@ -663,6 +687,7 @@ class RelatorioCobrancaController extends Controller
         $carteira60dias = $resultados['carteira60dias'];
         $carteiraMaior60dias = $resultados['carteiraMaior60dias'];
         $hierarquia = $resultados['hierarquia'];
+        $cartorio = $resultados['cartorio'];
 
         // Retorna os dados para o DataTables, incluindo as variáveis extras
         return response()->json([
@@ -671,7 +696,9 @@ class RelatorioCobrancaController extends Controller
             'inadimplencia' => $inadimplencia,
             'carteira60dias' => $carteira60dias,
             'carteiraMaior60dias' => $carteiraMaior60dias,
-            'hierarquia' => $hierarquia
+            'cartorio' => $cartorio,
+            'qtd_titulos_cartorio' => $resultados['qtd_titulos_cartorio'],  
+            'hierarquia' => $hierarquia,            
         ]);
     }
     static function formataArrayMeses($data, $tab, $regioes_mysql)
@@ -685,6 +712,8 @@ class RelatorioCobrancaController extends Controller
         $carteira60diasGerente = 0;
         $carteiraMaior60diasGerente = 0;
         $inadimplencia = 0;
+        $cartorio = 0;
+        $qtd_titulos_cartorio = 0;
         $dataAtrasoHojeAte60 = Carbon::parse(now()->subDays(60))->format('Y-m-d');
 
         if ($tab == 1) {
@@ -704,12 +733,15 @@ class RelatorioCobrancaController extends Controller
                     'MES_ANO' => $item->MES_ANO,
                     'VL_DOCUMENTO' => 0,
                     'VL_SALDO' => 0,
-                    'PC_INADIMPLENCIA' => 0
+                    'PC_INADIMPLENCIA' => 0,
+                    'VL_CARTORIO' => 0
                 ];
             }
             // Acumula os valores de VL_DOCUMENTO e VL_SALDO
             $meses[$item->MES_ANO]->VL_DOCUMENTO += floatval($item->VL_DOCUMENTO);
             $meses[$item->MES_ANO]->VL_SALDO += floatval($item->VL_SALDO);
+            $meses[$item->MES_ANO]->VL_CARTORIO += floatval($item->VL_CARTORIO);
+
             // Calcula a porcentagem de inadimplência
             if ($meses[$item->MES_ANO]->VL_DOCUMENTO > 0) {
                 $meses[$item->MES_ANO]->PC_INADIMPLENCIA = ($meses[$item->MES_ANO]->VL_SALDO / $meses[$item->MES_ANO]->VL_DOCUMENTO) * 100;
@@ -725,6 +757,9 @@ class RelatorioCobrancaController extends Controller
                 $carteiraMaior60dias += floatval($item->VL_DOCUMENTO);
             }
 
+            $cartorio += floatval($item->VL_CARTORIO);
+            $qtd_titulos_cartorio += $item->VL_CARTORIO > 0 ? 1 : 0;
+
             foreach ($regioes_mysql as $regiao) {
                 if ($item->CD_VENDEDORGERAL == $regiao->cd_areacomercial) {
                     $nomeGerente = $regiao->name;
@@ -736,14 +771,39 @@ class RelatorioCobrancaController extends Controller
                             'vl_documento' => 0,
                             'carteira60diasGerente' => 0,
                             'carteiraMaior60diasGerente' => 0,
+                            'cartorio' => 0,
+                            'supervisores' => []
                         ];
                     }
+
+                    $hierarquia[$nomeGerente]['vl_documento'] += $item->VL_DOCUMENTO;
+                    $hierarquia[$nomeGerente]['cartorio'] += $item->VL_CARTORIO;
+
+
+                    // --- SUPERVISOR ---
+                    $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
+                    if (!isset($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor])) {
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor] = [
+                            'nome' => $nomeSupervisor,
+                            'vl_documento' => 0,
+                            'carteira60diasSupervisor' => 0,
+                            'carteiraMaior60diasSupervisor' => 0,
+                            'cartorio' => 0,
+                            'vendedores' => []
+                        ];
+                    }
+
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vl_documento'] += $item->VL_DOCUMENTO;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['cartorio'] += $item->VL_CARTORIO;
+
+
                     if ($vencimento >= $dataAtrasoHojeAte60) {
                         $hierarquia[$nomeGerente]['carteira60diasGerente'] += $item->VL_DOCUMENTO;
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['carteira60diasSupervisor'] += $item->VL_DOCUMENTO;
                     } else {
                         $hierarquia[$nomeGerente]['carteiraMaior60diasGerente'] += $item->VL_DOCUMENTO;
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['carteiraMaior60diasSupervisor'] += $item->VL_DOCUMENTO;
                     }
-                    $hierarquia[$nomeGerente]['vl_documento'] += $item->VL_DOCUMENTO;
                 }
             }
         }
@@ -754,6 +814,8 @@ class RelatorioCobrancaController extends Controller
             'carteira60dias' => $carteira60dias,
             'carteiraMaior60dias' => $carteiraMaior60dias,
             'inadimplencia' => $inadimplencia,
+            'cartorio' => $cartorio,
+            'qtd_titulos_cartorio' => $qtd_titulos_cartorio,
             'hierarquia' => $hierarquia
         ];
     }

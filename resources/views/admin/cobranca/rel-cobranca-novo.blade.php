@@ -65,6 +65,7 @@
                                         'btn_reset' => 'btn-reset',
                                         'daterange' => 'daterange',
                                         'placeholderDatarange' => 'Filtrar por Vencimento',
+                                        'filtro_cartorio' => 'filtro-cartorio',
                                     ])
 
                                     @if (!auth()->user()->hasRole('vendedor'))
@@ -94,6 +95,7 @@
                                         'btn_reset' => 'btn-reset-ch-cartao',
                                         'daterange' => 'daterange-ch-cartao',
                                         'placeholderDatarange' => 'Filtrar por Emissão',
+                                        'filtro_cartorio' => 'filtro-cartorio-ch-cartao',
                                     ])
                                     @include('admin.cobranca.components.tab-relatorios', [
                                         'tabela_mensal' => 'tabela-inadimplencia-meses-ch-cartao',
@@ -143,6 +145,11 @@
             max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .badge-purple {
+            color: #fff;
+            background-color: #6f42c1;
         }
 
         @media (max-width: 768px) {
@@ -200,10 +207,14 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/dashboard/inadimplencia.js?v=') }}" {{ time() }}></script>
+    <script src="{{ asset('js/dashboard/inadimplencia.js?v=3') }}" {{ time() }}></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js?v=') }}" {{ time() }}></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js?v=') }}" {{ time() }}></script>
     <script src="{{ asset('js/dashboard/canhoto.js?v=') }}" {{ time() }}></script>
+    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=10') }}"></script>
+    <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
+    <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
+
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
@@ -245,6 +256,7 @@
             cnpj: $('#filtro-cnpj').val(),
             filtro_gerente: $('#filtro-gerente').val(),
             nm_supervisor: $('#filtro-supervisor').val(),
+            filtro_cartorio: $('#filtro-cartorio').val(),
             session: true,
             dtFim: dtFim,
             dtInicio: dtInicio
@@ -265,6 +277,7 @@
                 cnpj: $('#filtro-cnpj').val(),
                 filtro_gerente: $('#filtro-gerente').val(),
                 nm_supervisor: $('#filtro-supervisor').val(),
+                filtro_cartorio: $('#filtro-cartorio').val(),
                 session: true,
                 dtFim: dtFim,
                 dtInicio: dtInicio
@@ -295,10 +308,12 @@
                 cnpj: $('#filtro-cnpj_ch_cartao').val(),
                 filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
                 nm_supervisor: $('#filtro-supervisor_ch_cartao').val(),
+                filtro_cartorio: $('#filtro-cartorio-ch-cartao').val(),
                 session: true,
                 dtFim: dtFim,
                 dtInicio: dtInicio
             };
+            console.log(data);
             carregaDadosTela2(data);
 
             buscarTermo('accordion-inadimplencia-gerente-ch-cartao', '#buscarCliente-ch-cartao');
@@ -350,6 +365,7 @@
                 cnpj: $('#filtro-cnpj').val(),
                 filtro_gerente: $('#filtro-gerente').val(),
                 nm_supervisor: $('#filtro-supervisor').val(),
+                filtro_cartorio: $('#filtro-cartorio').val(),
                 session: true,
                 dtFim: dtFim,
                 dtInicio: dtInicio
@@ -370,6 +386,7 @@
                 cnpj: $('#filtro-cnpj_ch_cartao').val(),
                 filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
                 nm_supervisor: $('#filtro-supervisor_ch_cartao').val(),
+                filtro_cartorio: $('#filtro-cartorio_ch_cartao').val(),
                 session: true,
                 dtFim: dtFim,
                 dtInicio: dtInicio
@@ -399,6 +416,7 @@
                 nm_vendedor: '',
                 cnpj: '',
                 nm_supervisor: '',
+                filtro_cartorio: $('#filtro-cartorio').val(),
                 session: false,
                 dtFim: dtFim,
                 dtInicio: dtInicio
@@ -428,6 +446,7 @@
                 nm_vendedor: '',
                 cnpj: '',
                 nm_supervisor: '',
+                filtro_cartorio: $('#filtro-cartorio_ch_cartao').val(),
                 session: false,
                 dtFim: dtFim,
                 dtInicio: dtInicio
@@ -482,8 +501,6 @@
         }
     </script>
 
-    <script src="{{ asset('js/dashboard/inadimplencia-mensal.js?v=10') }}"></script>
-    <script src="{{ asset('js/dashboard/relatorioCobranca.js') }}"></script>
-    <script src="{{ asset('js/dashboard/chequesCartao.js') }}"></script>
+
 
 @stop

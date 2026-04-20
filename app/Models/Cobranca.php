@@ -20,6 +20,14 @@ class Cobranca extends Model
         } else {
             $string = 'DT_LANCAMENTO';
         }
+
+        if ($filtro['filtro_cartorio'] == 1) {
+            $filtro_cartorio = "AND CONTAS.ST_CARTORIO IN ('C', 'S')";
+        } else if ($filtro['filtro_cartorio'] == 2) {
+            $filtro_cartorio = "AND CONTAS.ST_CARTORIO NOT IN ('C', 'S')";
+        } else {
+            $filtro_cartorio = "";
+        }
         $query = "          
                 SELECT DISTINCT 
                     CONTAS.CD_FORMAPAGTO,                   
@@ -53,8 +61,7 @@ class Cobranca extends Model
                     (COALESCE(CONTAS.VL_SALDO, 0) + COALESCE(CJ.O_VL_JURO, 0)) VL_TOTAL,
                     --(COALESCE(CONTAS.VL_DOCUMENTO, 0) - COALESCE(CONTAS.VL_SALDO, 0) + COALESCE(MP.O_VL_JURO, 0) - COALESCE(MP.O_VL_DESCONTO, 0)) VL_LIQUIDO,
                     IIF(CONTAS.ST_CARTORIO = 'J' AND CONTAS.ST_INCOBRAVEL = 'N', CONTAS.VL_SALDO, 0) VL_JURIDICO,
-                    IIF(CONTAS.ST_CARTORIO = 'C' AND CONTAS.ST_INCOBRAVEL = 'N', CONTAS.VL_SALDO, 0) VL_CARTORIO,
-                    IIF(CONTAS.ST_CARTORIO = 'S' AND CONTAS.ST_INCOBRAVEL = 'N', CONTAS.VL_SALDO, 0) VL_PROTESTADO,
+                    IIF(CONTAS.ST_CARTORIO IN ('C', 'S') AND CONTAS.ST_INCOBRAVEL = 'N', CONTAS.VL_SALDO, 0) VL_CARTORIO,                    
                     IIF(CONTAS.ST_CARTORIO = 'N' AND CONTAS.DT_VENCIMENTO <= CURRENT_DATE AND CONTAS.ST_INCOBRAVEL <> 'S', CONTAS.VL_SALDO, 0) VL_VENCIDO,
                     IIF(CONTAS.ST_CARTORIO = 'N' AND CONTAS.DT_VENCIMENTO > CURRENT_DATE AND CONTAS.ST_INCOBRAVEL <> 'S', CONTAS.VL_SALDO, 0) VL_AVENCER,
                     VEND.NM_PESSOA NM_VENDEDOR,
@@ -88,8 +95,8 @@ class Cobranca extends Model
                 WHERE 
                     " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "                    
                     " . ($tela == 1 ?
-                    "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
-                    "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
+            "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
+            "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     AND COALESCE(CONTAS.CD_SERIE, 'NA') NOT IN ('S') 
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
@@ -105,12 +112,14 @@ class Cobranca extends Model
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                     " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                     " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "     
-                    " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "             
-
+                    " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "  
+                    " . $filtro_cartorio . "  
+                    --AND CONTAS.NR_LANCAMENTO in (283541, 157658, 299564, 307282)
                 ORDER BY CONTAS.$string, CONTAS.VL_SALDO;
              ";
 
         $data = DB::connection('firebird')->select($query);
+
         return Helper::ConvertFormatText($data);
     }
 
@@ -255,7 +264,9 @@ class Cobranca extends Model
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
                 " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
-                AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1";
+                AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
+                 --AND CONTAS.NR_LANCAMENTO in (283541, 157658, 299564, 307282)
+                ";
 
 
         if ($tela == 1) {
@@ -271,11 +282,21 @@ class Cobranca extends Model
     }
     public function getInadimplencia($filtro = null, $tela = 1, $cd_empresa = 0, $cd_regiao = "")
     {
+
         if ($tela == 1) {
             $string = 'DT_VENCIMENTO';
         } else {
             $string = 'DT_LANCAMENTO';
         }
+
+        if ($filtro['filtro_cartorio'] == 1) {
+            $filtro_cartorio = "AND CONTAS.ST_CARTORIO IN ('C', 'S')";
+        } else if ($filtro['filtro_cartorio'] == 2) {
+            $filtro_cartorio = "AND CONTAS.ST_CARTORIO NOT IN ('C', 'S')";
+        } else {
+            $filtro_cartorio = "";
+        }
+
         $query = "
             SELECT
                 EXTRACT(MONTH FROM CONTAS.$string) MES,
@@ -284,8 +305,9 @@ class Cobranca extends Model
                 CONTAS.$string,
                 CAST(SUM(CONTAS.VL_DOCUMENTO) AS NUMERIC(18,2)) VL_DOCUMENTO,
                 CAST(SUM(CONTAS.VL_SALDO) AS NUMERIC(18,2)) VL_SALDO,
-
-                V.CD_VENDEDORGERAL
+                IIF(CONTAS.ST_CARTORIO IN ('S', 'C') AND CONTAS.ST_CONTAS NOT IN ('L', 'A', 'C'), SUM(CONTAS.VL_SALDO), 0) VL_CARTORIO,
+                V.CD_VENDEDORGERAL,
+                SUPERVISOR.NM_PESSOA NM_SUPERVISOR
             FROM CONTAS
             INNER JOIN PESSOA P ON (P.CD_PESSOA = CONTAS.CD_PESSOA)
             LEFT JOIN MES_EXTENSO(CONTAS.$string) MES ON (1 = 1)
@@ -315,13 +337,18 @@ class Cobranca extends Model
                 " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                 " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
                 " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "
-
+                " . $filtro_cartorio . "  
+              
+                     --AND CONTAS.NR_LANCAMENTO in (283541, 157658, 299564, 307282)
                 
             GROUP BY MES_ANO,
                 CONTAS.$string,
                 MES,
                 ANO,
-                V.CD_VENDEDORGERAL
+                V.CD_VENDEDORGERAL,
+                SUPERVISOR.NM_PESSOA,
+                CONTAS.ST_CARTORIO, 
+                CONTAS.ST_CONTAS
             ORDER BY ANO DESC,
                 MES DESC";
 

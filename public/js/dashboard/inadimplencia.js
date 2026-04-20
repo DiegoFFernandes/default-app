@@ -3,41 +3,126 @@ var inadMeses = null;
 var total = 0;
 var atrasados = 0;
 var inadimplencia = 0;
+var cartorio = 0;
+var qtd_titulos_cartorio = 0;
 var hierarquia = null;
 var carteira60dias = 0;
 var carteiraMaior60dias = 0;
+
+var carteira60diasSupervisor = [];
+var carteiraMaior60diasSupervisor = [];
+var cartorioSupervisor = [];
+
+var supervisoresObj = {};
 
 function tentarProcessar() {
     if (inadGerente && inadMeses) {
         inadGerente.forEach((gerente, gIndex) => {
             var pc_atrasados_gerente = 0;
             var pc_inadimplencia_gerente = 0;
+            var pc_cartorio_gerente = 0;
+
+            var pc_atrasados_supervisor = 0;
+            var pc_inadimplencia_supervisor = 0;
+            var pc_cartorio_supervisor = 0;
+
             if (hierarquia !== null) {
                 if (hierarquia[gerente.nome].nome === gerente.nome) {
                     const carteira60diasGerente =
                         hierarquia[gerente.nome]["carteira60diasGerente"];
                     const carteiraMaior60diasGerente =
                         hierarquia[gerente.nome]["carteiraMaior60diasGerente"];
+                    const cartorioGerente =
+                        hierarquia[gerente.nome]["cartorio"];
 
-                    if (!carteira60diasGerente == 0) {
+                    if (carteira60diasGerente != 0) {
                         total = carteira60diasGerente;
                         pc_atrasados_gerente =
                             (gerente.atrasados / total) * 100;
                     }
-                    if (!carteiraMaior60diasGerente == 0) {
+                    if (carteiraMaior60diasGerente != 0) {
                         total = carteiraMaior60diasGerente;
                         pc_inadimplencia_gerente =
                             (gerente.inadimplencia / total) * 100;
                     }
+                    if (cartorioGerente != 0) {
+                        total = gerente.atrasados + gerente.inadimplencia;
+                        pc_cartorio_gerente = (gerente.cartorio / total) * 100;
+                    }
                 }
+
+                // percorre os supervisores do gerente para preencher os dados dos supervisores
+                // valor total que tinha a receber por supervisor
+                supervisoresObj = Object.values(
+                    hierarquia[gerente.nome].supervisores,
+                ).reduce((acc, sup) => {
+                    acc[sup.nome] = {
+                        nome: sup.nome,
+                        carteira60diasSupervisor: sup.carteira60diasSupervisor,
+                        carteiraMaior60diasSupervisor:
+                            sup.carteiraMaior60diasSupervisor,
+                        cartorioSupervisor: sup.cartorio,
+                    };
+                    return acc;
+                }, {});
             }
-            // $(`.pc_inadidimplencia-gerente-${gIndex}`).text(percentual.toFixed(2) + "%");
+
             $(`.pc_atrasados-gerente-${gIndex}`).html(
-                `Atrasados: ${pc_atrasados_gerente.toFixed(2)}%`
+                `Atrasados: ${pc_atrasados_gerente.toFixed(2)}%`,
             );
             $(`.pc_inadimplencia-gerente-${gIndex}`).html(
-                `Inadimplência: ${pc_inadimplencia_gerente.toFixed(2)}%`
+                `Inadimplência: ${pc_inadimplencia_gerente.toFixed(2)}%`,
             );
+            $(`.pc_cartorio-gerente-${gIndex}`).html(
+                `Cartório: ${pc_cartorio_gerente.toFixed(2)}%`,
+            );
+
+            gerente.supervisores.forEach((sup, sIndex) => {
+                if (supervisoresObj[sup.nome]) {
+                    const carteira60diasSupervisor =
+                        supervisoresObj[sup.nome].carteira60diasSupervisor;
+                    const carteiraMaior60diasSupervisor =
+                        supervisoresObj[sup.nome].carteiraMaior60diasSupervisor;
+                    const cartorioSupervisor =
+                        supervisoresObj[sup.nome].cartorioSupervisor;
+
+                    if (carteira60diasSupervisor != 0 || sup.atrasados != 0) {
+                        var pc_atrasados_supervisor = (
+                            (sup.atrasados / carteira60diasSupervisor) * 100 ??
+                            0
+                        ).toFixed(2);
+                    }
+
+                    if (
+                        carteiraMaior60diasSupervisor != 0 ||
+                        sup.inadimplencia != 0
+                    ) {
+                        var pc_inadimplencia_supervisor = (
+                            (sup.inadimplencia /
+                                carteiraMaior60diasSupervisor) *
+                                100 ?? 0
+                        ).toFixed(2);
+                    }
+
+                    if (cartorioSupervisor != 0 || sup.cartorio != 0) {
+                        var pc_cartorio_supervisor = (
+                            (cartorioSupervisor / (sup.atrasados + sup.inadimplencia)) * 100 ?? 0
+                        ).toFixed(2);
+
+                    }
+                }
+            
+
+                $(`.pc_atrasados-supervisor-${gIndex}-${sIndex}`).html(
+                    `Atrasados: ${pc_atrasados_supervisor ?? 0}%`,
+                );
+                $(`.pc_inadimplencia-supervisor-${gIndex}-${sIndex}`).html(
+                    `Inadimplência: ${pc_inadimplencia_supervisor ?? 0}%`,
+                );
+                $(`.pc_cartorio-supervisor-${gIndex}-${sIndex}`).html(
+                    `Cartório: ${pc_cartorio_supervisor ?? 0}%`,
+                );
+            });
         });
     }
 }
@@ -58,11 +143,17 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
             $(".valorTotalGerente").text(`R$ 0`);
             $("#pc_atrasados").text(`0,00%`);
             $("#pc_inadimplencia").text(`0,00%`);
+            $("#pc_cartorio").text(`0,00%`);
+
             $(".pc_atrasados-gerente").html(
-                '<i class="fas fa-sync-alt fa-spin"></i>'
+                '<i class="fas fa-sync-alt fa-spin"></i>',
             );
             $(".pc_inadimplencia-gerente").html(
-                '<i class="fas fa-sync-alt fa-spin"></i>'
+                '<i class="fas fa-sync-alt fa-spin"></i>',
+            );
+
+            $(".pc_cartorio-gerente").html(
+                '<i class="fas fa-sync-alt fa-spin"></i>',
             );
         },
         success: function (data) {
@@ -75,13 +166,11 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                             <div class="card gerente-card">
                             <div class="card-header p-1">
                                 <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
-                                    👔 ${gerente.nome} (R$ ${formatarValorBR(
-                    gerente.saldo
-                )}) 
-                                    <!--<span class="badge badge-warning pc_inadidimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>-->
+                                    👔 ${gerente.nome} (R$ ${formatarValorBR(gerente.saldo)})                                     
                                     <span class="saldo">
                                         <span class="badge badge-info pc_atrasados-gerente pc_atrasados-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
                                         <span class="badge badge-warning pc_inadimplencia-gerente pc_inadimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-purple pc_cartorio-gerente pc_cartorio-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
                                     </span>
                                 </button>
                             </div>
@@ -89,24 +178,25 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                                 <div class="card-body p-2">     `;
 
                 gerente.supervisores.forEach((sup, sIndex) => {
-                    html += `<div class="supervisor-container">`;
+                    html += `<div class="supervisor-container ml-2">`;
                     html += `
                             <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
-                                🛡️ ${sup.nome} (R$ ${formatarValorBR(
-                        sup.saldo
-                    )}) 
+                                🛡️ ${sup.nome} (R$ ${formatarValorBR(sup.saldo)}) 
+                                <span class="saldo">
+                                    <span class="badge badge-info pc_atrasados-supervisor pc_atrasados-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                    <span class="badge badge-warning pc_inadimplencia-supervisor pc_inadimplencia-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                    <span class="badge badge-purple pc_cartorio-supervisor pc_cartorio-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                </span>
                             </button>
                             <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
                             `;
 
                     sup.vendedores.forEach((vend, vIndex) => {
-                        html += `<div class="vendedor-container">`;
+                        html += `<div class="vendedor-container ml-4">`;
                         html += `
-                                <button class="btn btn-sm btn-info d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
-                                👤 ${vend.nome} 
-                                <span class="saldo">(R$ ${formatarValorBR(
-                                    vend.saldo
-                                )})</span>
+                                <button class="btn btn-sm btn-primary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                👤 ${vend.nome} (R$ ${formatarValorBR(vend.saldo)})
+                                   
                                 </button>
                                 <div id="cli-${gIndex}-${sIndex}-${vIndex}" class="collapse mt-2">
                                 <ul class="list-group">
@@ -114,10 +204,14 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
 
                         vend.clientes.forEach((detalhe) => {
                             html += `
-                                <li class="list-group-item p-1 cliente-item">
+                                <li class="list-group-item p-1 cliente-item mb-2">
                                     🏢 <span class="badge badge-secondary">${
                                         detalhe.PESSOA
-                                    }</span><br>
+                                    }</span>
+
+                                    ${detalhe.VL_CARTORIO > 0 ? `<span class="badge badge-purple">Em Cartório</span>` : ""}                                        
+                                    
+                                    <br>
                                      <table class="table table-sm mb-0">
                                         <tbody>
                                             <tr>
@@ -127,27 +221,27 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                                                 }</td>
                                                 <th class="text-muted">Total</th>
                                                 <td><span class="font-weight-bold">${formatarValorBR(
-                                                    detalhe.VL_TOTAL
+                                                    detalhe.VL_TOTAL,
                                                 )}</span></td>
                                             </tr>
                                             <tr>
                                                 <th class="text-muted">Emissão</th>
                                                 <td class="td-small-text">${formatDateCobranca(
-                                                    detalhe.DT_LANCAMENTO
+                                                    detalhe.DT_LANCAMENTO,
                                                 )}</td>
                                                 <th class="text-muted">Venc.</th>
                                                 <td>${formatDateCobranca(
-                                                    detalhe.DT_VENCIMENTO
+                                                    detalhe.DT_VENCIMENTO,
                                                 )}</td>
                                             </tr>
                                             <tr>
                                                 <th class="text-muted">Valor</th>
                                                 <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
-                                                    detalhe.VL_SALDO
+                                                    detalhe.VL_SALDO,
                                                 )}</span></td>
                                                 <th class="text-muted">Juros</th>
                                                 <td><span class="text-danger font-weight-bold">${formatarValorBR(
-                                                    detalhe.VL_JUROS
+                                                    detalhe.VL_JUROS,
                                                 )}</span></td>
                                             </tr>
                                         </tbody>
@@ -172,7 +266,7 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
             $("#" + idCard + " .loading-card").addClass("invisible");
             $(".info-loading.loading-card").addClass("invisible");
             $(".valorTotalGerente").text(
-                `R$ ${valorTotalGerente.toLocaleString()}`
+                `R$ ${valorTotalGerente.toLocaleString()}`,
             );
             tentarProcessar();
         },
@@ -268,7 +362,7 @@ $(function () {
 
             if (!anyVisible) {
                 accordionContainer.append(
-                    '<div class="no-results-message">Nenhum cliente encontrado.</div>'
+                    '<div class="no-results-message">Nenhum cliente encontrado.</div>',
                 );
             }
         }, 250); //tempo para esperar o usuario parar de digitar
@@ -282,7 +376,7 @@ function initTableInadimplenciaMeses(
     idModal,
     idAccordion,
     data,
-    route
+    route,
 ) {
     if ($.fn.DataTable.isDataTable("#" + idTable)) {
         $("#" + idTable)
@@ -306,14 +400,14 @@ function initTableInadimplenciaMeses(
             },
             beforeSend: function () {
                 $("#card-inadimplencia-meses .loading-card").removeClass(
-                    "invisible"
+                    "invisible",
                 );
                 $(".info-loading.loading-card").removeClass("invisible");
                 $(".pc_atrasados-gerente").html(
-                    '<i class="fas fa-sync-alt fa-spin"></i>'
+                    '<i class="fas fa-sync-alt fa-spin"></i>',
                 );
                 $(".pc_inadimplencia-gerente").html(
-                    '<i class="fas fa-sync-alt fa-spin"></i>'
+                    '<i class="fas fa-sync-alt fa-spin"></i>',
                 );
                 $("#pc_atrasados").text(`0,00%`);
                 $("#pc_inadimplencia").text(`0,00%`);
@@ -322,15 +416,17 @@ function initTableInadimplenciaMeses(
                 // Salva as variáveis globais com os valores do backend
                 atrasados = parseFloat(json.atrasados);
                 inadimplencia = parseFloat(json.inadimplencia);
+                cartorio = parseFloat(json.cartorio);
                 carteira60dias = parseFloat(json.carteira60dias);
                 carteiraMaior60dias = parseFloat(json.carteiraMaior60dias);
+                qtd_titulos_cartorio = parseFloat(json.qtd_titulos_cartorio);
 
                 hierarquia = json.hierarquia;
                 return json.data;
             },
             complete: function () {
                 $("#card-inadimplencia-meses .loading-card").addClass(
-                    "invisible"
+                    "invisible",
                 );
                 $(".info-loading.loading-card").addClass("invisible");
             },
@@ -391,8 +487,8 @@ function initTableInadimplenciaMeses(
                 return typeof i === "string"
                     ? i.replace(",", ".") * 1
                     : typeof i === "number"
-                    ? i
-                    : 0;
+                      ? i
+                      : 0;
             };
 
             // Total das colunas
@@ -417,15 +513,14 @@ function initTableInadimplenciaMeses(
                     return intVal(a) + intVal(b);
                 }, 0);
 
-            qtdLinhas = api.column(4).data().length;   
-                
+            qtdLinhas = api.column(4).data().length;
 
             var inadimplenciaPercentual =
                 (inadimplencia / carteiraMaior60dias) * 100;
             var atrasadosPercentual = (atrasados / carteira60dias) * 100;
 
             $("#pc_inadimplencia").html(
-                formatarValorBR(inadimplenciaPercentual) + "%"
+                formatarValorBR(inadimplenciaPercentual) + "%",
             );
             $("#pc_atrasados").html(formatarValorBR(atrasadosPercentual) + "%");
 
@@ -437,16 +532,22 @@ function initTableInadimplenciaMeses(
             $("#vl_60_atrasados").html(formatarValorBR(atrasados));
 
             $("#total_maior_60_atrasados").html(
-                formatarValorBR(carteiraMaior60dias)
+                formatarValorBR(carteiraMaior60dias),
             );
             $("#vl_maior_60_atrasados").html(formatarValorBR(inadimplencia));
+
+            $("#vl_cartorio_protesto").html(formatarValorBR(cartorio));
+            $("#pc_cartorio_protesto").html(
+                formatarValorBR((cartorio / totalVencido) * 100) + "%",
+            );
+
+            $("#qtd_cartorio_protesto").html(qtd_titulos_cartorio);
 
             // Atualiza o footer do DataTable
             $(api.column(2).footer()).html(formatarValorBR(totalTotal));
             $(api.column(3).footer()).html(formatarValorBR(totalVencido));
             $(api.column(4).footer()).html(
-                formatarValorBR(totalPercentual / qtdLinhas) +
-                    "%"
+                formatarValorBR(totalPercentual / qtdLinhas) + "%",
             );
         },
     });
@@ -456,7 +557,7 @@ function initTableInadimplenciaMeses(
         var row = $("#" + idTable)
             .DataTable()
             .row(tr);
-         
+
         $("#" + idAccordion).empty(); // Limpa antes
 
         $.ajax({
@@ -479,7 +580,7 @@ function initTableInadimplenciaMeses(
                         row.data().MES_ANO +
                         " (" +
                         formatarValorBR(row.data().VL_SALDO) +
-                        ")"
+                        ")",
                 );
                 $("#" + idAccordion).empty(); // limpa antes de popular
 
@@ -501,7 +602,7 @@ function initTableInadimplenciaMeses(
                                 </button>
                                 <span class="badge badge-warning ml-2">
                                     ${parseFloat(
-                                        item.VL_SALDO_AGRUPADO
+                                        item.VL_SALDO_AGRUPADO,
                                     ).toLocaleString("pt-BR", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2,
@@ -512,8 +613,8 @@ function initTableInadimplenciaMeses(
                         <div id="collapse${
                             item.CD_PESSOA
                         }" class="collapse" aria-labelledby="heading${
-                        item.CD_PESSOA
-                    }">
+                            item.CD_PESSOA
+                        }">
                     `;
                     item.DETALHES.forEach(function (detalhe) {
                         accordion += `
@@ -534,27 +635,27 @@ function initTableInadimplenciaMeses(
                                                 }</td>
                                                 <th class="text-muted">Total</th>
                                                 <td><span class="font-weight-bold">${formatarValorBR(
-                                                    detalhe.VL_TOTAL
+                                                    detalhe.VL_TOTAL,
                                                 )}</span></td>
                                             </tr>
                                             <tr>
                                                 <th class="text-muted">Emissão</th>
                                                 <td class="td-small-text">${formatDateCobranca(
-                                                    detalhe.DT_LANCAMENTO
+                                                    detalhe.DT_LANCAMENTO,
                                                 )}</td>
                                                 <th class="text-muted">Venc.</th>
                                                 <td>${formatDateCobranca(
-                                                    detalhe.DT_VENCIMENTO
+                                                    detalhe.DT_VENCIMENTO,
                                                 )}</td>
                                             </tr>
                                             <tr>
                                                 <th class="text-muted">Valor</th>
                                                 <td><span class="text-success font-weight-bold">R$ ${formatarValorBR(
-                                                    detalhe.VL_SALDO
+                                                    detalhe.VL_SALDO,
                                                 )}</span></td>
                                                 <th class="text-muted">Juros</th>
                                                 <td><span class="text-danger font-weight-bold">${formatarValorBR(
-                                                    detalhe.VL_JUROS
+                                                    detalhe.VL_JUROS,
                                                 )}</span></td>
                                             </tr>
                                         </tbody>
@@ -584,7 +685,7 @@ function initTableInadimplenciaMeses(
 function formatDateCobranca(value) {
     if (!value) return "";
 
-    const [ano, mes, dia] = value.split('-');
+    const [ano, mes, dia] = value.split("-");
 
     return `${dia}/${mes}/${ano}`;
 }
@@ -630,7 +731,7 @@ function buscarTermo(idAccordion, idSelector) {
             if (!anyVisible) {
                 if ($("#noResults").length === 0) {
                     $(`#${idAccordion}`).append(
-                        '<div id="noResults">Nenhum cliente encontrado.</div>'
+                        '<div id="noResults">Nenhum cliente encontrado.</div>',
                     );
                 }
             } else {

@@ -11,12 +11,14 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-4 mb-2">
-                {{-- <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Cliente"> --}}
-                <select name='pessoa' class="form-control" id="{{ $pessoa }}" style="width: 100%">
+                {{-- <input id="filtro-nome" type="text" class="form-control form-control-sm" placeholder="Filtrar por Cliente"> --}}
+                <select name='pessoa' class="form-control form-control-sm" id="{{ $pessoa }}"
+                    style="width: 100%">
                 </select>
             </div>
             <div class="col-md-4 mb-2">
-                <select name="gerente" id="{{ $filtro_gerente }}" class="form-control" style="width: 100%">
+                <select name="gerente" id="{{ $filtro_gerente }}" class="form-control form-control-sm"
+                    style="width: 100%">
                     <option value="0">Todos Gerentes</option>
                     @foreach ($gerentes as $g)
                         <option value="{{ $g->cd_usuario }}">{{ $g->name }}</option>
@@ -24,16 +26,28 @@
                 </select>
             </div>
             <div class="col-md-4 mb-2">
-                <input id="{{ $filtro_supervisor }}" type="text" class="form-control" placeholder="Filtrar por Supervisor">
+                <input id="{{ $filtro_supervisor }}" type="text" class="form-control form-control-sm"
+                    placeholder="Filtrar por Supervisor">
             </div>
             <div class="col-md-4 mb-2">
-                <input id="{{ $filtro_vendedor }}" type="text" class="form-control" placeholder="Filtrar por Vendedor">
+                <input id="{{ $filtro_vendedor }}" type="text" class="form-control form-control-sm"
+                    placeholder="Filtrar por Vendedor">
             </div>
-            <div class="col-md-4 mb-2">
-                <input id="{{ $filtro_cnpj }}" type="text" class="form-control" placeholder="Filtrar por CNPJ">
+            <div class="col-md-3 mb-2">
+                <input id="{{ $filtro_cnpj }}" type="text" class="form-control form-control-sm"
+                    placeholder="Filtrar por CNPJ">
             </div>
-            <div class="col-md-4 mb-2">
-                <input id="{{ $daterange }}" type="text" class="form-control" placeholder="{{ $placeholderDatarange }}">
+            <div class="col-md-3 mb-2">
+                <input id="{{ $daterange }}" type="text" class="form-control form-control-sm"
+                    placeholder="{{ $placeholderDatarange }}">
+            </div>
+            <div class="col-md-2 mb-2">
+                <select name="cartorio" id="{{ $filtro_cartorio }}" class="form-control form-control-sm"
+                    style="width: 100%">
+                    <option value="0">Todos</option>
+                    <option value="1">Com Cartorio</option>
+                    <option value="2">Sem Cartorio</option>
+                </select>
             </div>
 
         </div>
