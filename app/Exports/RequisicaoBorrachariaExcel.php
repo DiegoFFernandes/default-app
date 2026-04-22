@@ -34,6 +34,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
                 null,
                 null,
                 $gerente['qtd_item'],
+                $gerente['preco_medio'],
                 $gerente['vl_comissao']
             ];
             foreach ($gerente['supervisores'] as $supervisor) {
@@ -44,6 +45,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
                     null,
                     null,
                     $supervisor['qtd_item'],
+                    $supervisor['preco_medio'],
                     $supervisor['vl_comissao']
                 ];
                 foreach ($supervisor['vendedores'] as $vendedor) {
@@ -54,6 +56,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
                         null,
                         null,
                         $vendedor['qtd_item'],
+                        $vendedor['preco_medio'],
                         $vendedor['vl_comissao']
                     ];
                     foreach ($vendedor['borracheiros'] as $borracheiro) {
@@ -64,6 +67,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
                             $borracheiro['nome'],
                             null,
                             $borracheiro['qtd_item'],
+                            $borracheiro['preco_medio'],
                             $borracheiro['vl_comissao']
                         ];
                         foreach ($borracheiro['clientes'] as $cliente) {
@@ -74,6 +78,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
                                 null,
                                 $cliente['PESSOA'],
                                 $cliente['QTD_ITEM'],
+                                $cliente['PRECO_MEDIO'],
                                 $cliente['VL_COMISSAO']
                             ];
                         }
@@ -94,6 +99,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
             'Borracheiro',
             'Pessoa',
             'Qtd. Itens',
+            'Preço Médio',
             'Valor Comissão'
         ];
     }
@@ -103,7 +109,7 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
         $ultimaLinha = $sheet->getHighestRow();
 
         // HEADER
-        $sheet->getStyle('A1:G1')->applyFromArray([
+        $sheet->getStyle('A1:H1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 11,
@@ -127,25 +133,25 @@ class RequisicaoBorrachariaExcel implements FromArray, WithHeadings, WithStyles
 
             // GERENTE → coluna A
             if ($sheet->getCell("A{$row}")->getValue()) {
-                $sheet->getStyle("A{$row}:G{$row}")
+                $sheet->getStyle("A{$row}:H{$row}")
                     ->getFont()->setBold(true);
             }
 
             // SUPERVISOR → coluna B
             elseif ($sheet->getCell("B{$row}")->getValue()) {
-                $sheet->getStyle("B{$row}:G{$row}")
+                $sheet->getStyle("B{$row}:H{$row}")
                     ->getFont()->setBold(true);
             }
 
             // VENDEDOR → coluna C
             elseif ($sheet->getCell("C{$row}")->getValue()) {
-                $sheet->getStyle("C{$row}:G{$row}")
+                $sheet->getStyle("C{$row}:H{$row}")
                     ->getFont()->setBold(true);
             }
 
             // BORRACHEIRO → coluna D
             elseif ($sheet->getCell("D{$row}")->getValue()) {
-                $sheet->getStyle("D{$row}:G{$row}")
+                $sheet->getStyle("D{$row}:H{$row}")
                     ->getFont()->setBold(true);
             }
         }

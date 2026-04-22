@@ -555,7 +555,14 @@
         }
 
         .col-valor-header {
-            width: 25%;
+            width: 15%;
+            text-align: right;
+            white-space: nowrap;
+            color: #6c757d !important;
+        }
+
+        .col-preco-medio-header {
+            width: 15%;
             text-align: right;
             white-space: nowrap;
             color: #6c757d !important;
@@ -575,7 +582,16 @@
         }
 
         .col-valor {
-            width: 25%;
+            width: 15%;
+            font-size: 14px;
+            /* font-weight: 600; */
+            text-align: right;
+            white-space: nowrap;
+            color: #6c757d !important;
+        }
+
+        .col-preco-medio {
+            width: 15%;
             font-size: 14px;
             /* font-weight: 600; */
             text-align: right;
@@ -628,6 +644,12 @@
             }
 
             .col-valor-header {
+                text-align: right;
+                font-weight: 600;
+                font-size: 14px;
+            }
+
+            .col-preco-medio-header {
                 text-align: right;
                 font-weight: 600;
                 font-size: 14px;
@@ -774,6 +796,14 @@
                     $('.loading-card').addClass('invisible');
                     // window.location.href = response.url;
                     window.open(response.url, '_blank');
+                },
+                error: function() {
+                    $('.loading-card').addClass('invisible');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: 'Ocorreu um erro ao gerar o PDF. Tente novamente.'
+                    });
                 }
             });
         });
@@ -1387,6 +1417,11 @@
                                         <strong>Qtd. Itens</strong>
                                     </small>
                                 </th>
+                                 <th class="text-right p-0 col-preco-medio-header">
+                                    <small class="text-muted">
+                                        <strong>Preço Médio</strong>
+                                    </small>
+                                </th>
                                 <th class="text-right p-0 col-valor-header">
                                     <small class="text-muted">
                                         <strong>Valor</strong>
@@ -1423,6 +1458,9 @@
                                 <td class="p-0 col-qtd text-right">
                                     ${gerente.qtd_item}
                                 </td>
+                                <td class="p-0 col-preco-medio text-right">
+                                   R$ ${formatarValorBR(gerente.preco_medio)}
+                                </td>
                                 <td class="p-0 col-valor text-right">
                                     R$ ${formatarValorBR(gerente.vl_comissao)}
                                 </td>
@@ -1458,8 +1496,9 @@
                                         <i class="fas fa-chevron-down"></i>
                                         <strong class="ps-3"> ${sup.nome}</strong>                                     
                                 </td>
-                                <td class="text-right p-0 col-qtd"> ${sup.qtd_item}  </td>
-                                <td class="text-right p-0 col-valor"> R$ ${formatarValorBR(sup.vl_comissao)}  </td>
+                                <td class="text-right p-0 col-qtd">${sup.qtd_item}</td>
+                                <td class="text-right p-0 col-preco-medio"> R$ ${formatarValorBR(sup.preco_medio)}</td>
+                                <td class="text-right p-0 col-valor"> R$ ${formatarValorBR(sup.vl_comissao)} </td>
                             </tr>
                         </table>
                     </button>
@@ -1490,6 +1529,7 @@
                                     <strong class="ps-3"> ${vend.nome}</strong>                                        
                                 </td>
                                 <td class="text-right p-0 col-qtd"> ${vend.qtd_item}  </td>
+                                <td class="text-right p-0 col-preco-medio"> R$ ${formatarValorBR(vend.preco_medio)} </td>
                                 <td class="text-right p-0 col-valor">
                                     R$ ${formatarValorBR(vend.vl_comissao)}  
                                 </td>
@@ -1524,6 +1564,9 @@
                                 <td class="text-right p-0 col-qtd"> 
                                     ${borr.qtd_item}
                                 </td>
+                                <td class="text-right p-0 col-preco-medio"> 
+                                    R$ ${formatarValorBR(borr.preco_medio)}
+                                </td>
                                 <td class="text-right p-0 col-valor"> 
                                     R$ ${formatarValorBR(borr.vl_comissao)} 
                                 </td>
@@ -1553,6 +1596,9 @@
                     </td>
                     <td class="text-right p-0 col-qtd">                        
                         ${(cli.QTD_ITEM).toLocaleString('pt-BR')}                        
+                    </td>
+                    <td class="text-right p-0 col-preco-medio">                        
+                         R$ ${formatarValorBR(cli.PRECO_MEDIO)}                        
                     </td>
                     <td class="text-right p-0 col-valor">                        
                          R$ ${formatarValorBR(cli.VL_COMISSAO)}                        

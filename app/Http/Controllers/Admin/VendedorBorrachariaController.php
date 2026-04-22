@@ -166,11 +166,13 @@ class VendedorBorrachariaController extends Controller
                             'cargo' => 'Gerente',
                             'vl_comissao' => 0,
                             'qtd_item' => 0,
+                            'preco_medio' => 0,
                             'supervisores' => [],
                         ];
                     }
                     $hierarquia[$nomeGerente]['vl_comissao'] += $item->VL_COMISSAO;
                     $hierarquia[$nomeGerente]['qtd_item'] += $item->QTD_ITEM;
+                    $hierarquia[$nomeGerente]['preco_medio'] = $hierarquia[$nomeGerente]['vl_comissao'] / ($hierarquia[$nomeGerente]['qtd_item'] ?: 1); // Evita divisão por zero
 
                     // --- SUPERVISOR ---
                     $nomeSupervisor = $item->NM_SUPERVISOR ?? 'Sem supervisor';
@@ -180,12 +182,14 @@ class VendedorBorrachariaController extends Controller
                             'cargo' => 'Supervisor',
                             'vl_comissao' => 0,
                             'qtd_item' => 0,
+                            'preco_medio' => 0,
                             'vendedores' => []
                         ];
                     }
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vl_comissao'] += $item->VL_COMISSAO;
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd_item'] += $item->QTD_ITEM;
-
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['preco_medio'] =
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vl_comissao'] / ($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['qtd_item'] ?: 1); // Evita divisão por zero
 
                     // --Vendedor
                     $nomeVendedor = $item->NM_VENDEDOR ?? 'Sem Vendedor';
@@ -195,11 +199,14 @@ class VendedorBorrachariaController extends Controller
                             'cargo' => 'Vendedor',
                             'vl_comissao' => 0,
                             'qtd_item' => 0,
+                            'preco_medio' => 0,
                             'borracheiros' => []
                         ];
                     }
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['vl_comissao'] += $item->VL_COMISSAO;
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['qtd_item'] += $item->QTD_ITEM;
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['preco_medio'] =
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['vl_comissao'] / ($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['qtd_item'] ?: 1); // Evita divisão por zero
 
 
 
@@ -210,12 +217,14 @@ class VendedorBorrachariaController extends Controller
                             'nome' => $nomeBorracheiro,
                             'cargo' => 'Borracheiro',
                             'vl_comissao' => 0,
-                            'qtd_item' => 0
+                            'qtd_item' => 0,
+                            'preco_medio' => 0,
                         ];
                     }
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['vl_comissao'] += $item->VL_COMISSAO;
                     $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['qtd_item'] += $item->QTD_ITEM;
-
+                    $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['preco_medio'] =
+                        $hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['vl_comissao'] / ($hierarquia[$nomeGerente]['supervisores'][$nomeSupervisor]['vendedores'][$nomeVendedor]['borracheiros'][$nomeBorracheiro]['qtd_item'] ?: 1); // Evita divisão por zero
 
                     // --- CLIENTE ---
                     $nomeCliente = $item->NM_PESSOA ?? 'Sem cliente';
@@ -241,6 +250,7 @@ class VendedorBorrachariaController extends Controller
                         'PESSOA' => $nomeCliente,
                         'QTD_ITEM'  => $item->QTD_ITEM,
                         'VL_COMISSAO'  => intval($item->VL_COMISSAO),
+                        'PRECO_MEDIO'  => intval($item->VL_COMISSAO) / ($item->QTD_ITEM ?: 1), // Evita divisão por zero
                         'ST_BORRACHARIA'  => $item->ST_BORRACHARIA,
                         'actions'  => $btn,
                     ];
@@ -377,7 +387,6 @@ class VendedorBorrachariaController extends Controller
         }
 
         return $file = Excel::download(new RequisicaoBorrachariaExcel($datas, $hierarquia), 'requisicao_borracharia_' . time() . '.xlsx');
-        
     }
 
     public function downloadTemp($file)
@@ -463,7 +472,7 @@ class VendedorBorrachariaController extends Controller
 
         $validate = self::_validateParmBorracheiro();
 
-        $vendedor = $this->pessoa->FindPessoaJunsoftId($validate->validated()['cd_borracheiro']);       
+        $vendedor = $this->pessoa->FindPessoaJunsoftId($validate->validated()['cd_borracheiro']);
 
         if (empty($vendedor)) {
             return response()->json([
@@ -512,7 +521,7 @@ class VendedorBorrachariaController extends Controller
             'dt_fim.date_format' => 'O campo data fim deve estar no formato dd.mm.aaaa.',
         ];
 
-        $validate = Validator::make($this->request->all(), $rules, $messages);       
+        $validate = Validator::make($this->request->all(), $rules, $messages);
 
 
         return $this->vendedorComercial->recalculaComissao(

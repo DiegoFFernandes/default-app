@@ -9,7 +9,8 @@
                     <img src="{{ asset('img/atz-logo.png') }}" alt="">
                     <h4>
                         <span class="">Requisição Borracharia</span>
-                        <small class="float-right">Periodo: {{ $datas['filtro']['dtInicio'] }} - {{ $datas['filtro']['dtFim'] }}</small>
+                        <small class="float-right">Periodo: {{ $datas['filtro']['dtInicio'] }} -
+                            {{ $datas['filtro']['dtFim'] }}</small>
                     </h4>
                 </div>
                 <!-- /.col -->
@@ -24,6 +25,7 @@
                         <tr>
                             <th class="p-0">Pessoa</th>
                             <th class="p-0 text-center" width="15%">Qtd</th>
+                            <th class="p-0 text-center" width="15%">Preço Médio</th>
                             <th class="pt-0 pb-0 text-right" width="20%">Valor</th>
                         </tr>
                     </thead>
@@ -32,38 +34,61 @@
                             @php
                                 $valorTotal += $gerente['vl_comissao'];
                                 $qtdTotal += $gerente['qtd_item'];
+
                             @endphp
                             <tr class="p-0">
                                 <td class="p-0"><strong>{{ $gerente['nome'] }}</strong></td>
                                 <td class="p-0 text-center" width="15%"><strong>{{ $gerente['qtd_item'] }}</strong></td>
+                                <td class="p-0 text-center" width="15%">
+                                    <strong>{{ number_format($gerente['preco_medio'], 2, ',', '.') }}</strong>
+                                </td>
                                 <td class="pt-0 pb-0 text-right" width="20%"><strong>R$
-                                    {{ number_format($gerente['vl_comissao'], 2, ',', '.') }}</strong></td>
+                                        {{ number_format($gerente['vl_comissao'], 2, ',', '.') }}</strong></td>
                             </tr>
                             @foreach ($gerente['supervisores'] as $supervisor)
                                 <tr class="p-0">
                                     <td style="padding: 0 0 0 10px;"><strong>{{ $supervisor['nome'] }}</strong></td>
-                                    <td class="p-0 text-center" width="15%"><strong>{{ $supervisor['qtd_item'] }}</strong></td>
+                                    <td class="p-0 text-center" width="15%">
+                                        <strong>{{ $supervisor['qtd_item'] }}</strong>
+                                    </td>
+                                    <td class="p-0 text-center" width="15%">
+                                        <strong>{{ number_format($supervisor['preco_medio'], 2, ',', '.') }}</strong>
+                                    </td>
                                     <td class="pt-0 pb-0 text-right" width="20%"><strong>R$
-                                        {{ number_format($supervisor['vl_comissao'], 2, ',', '.') }}</strong></td>
+                                            {{ number_format($supervisor['vl_comissao'], 2, ',', '.') }}</strong></td>
                                 </tr>
                                 @foreach ($supervisor['vendedores'] as $vendedor)
                                     <tr class="p-0">
                                         <td style="padding: 0 0 0 20px;"><strong>{{ $vendedor['nome'] }}</strong></td>
-                                        <td class="p-0 text-center" width="15%"><strong>{{ $vendedor['qtd_item'] }}</strong></td>
+                                        <td class="p-0 text-center" width="15%">
+                                            <strong>{{ $vendedor['qtd_item'] }}</strong>
+                                        </td>
+                                        <td class="p-0 text-center" width="15%">
+                                            <strong>{{ number_format($vendedor['preco_medio'], 2, ',', '.') }}</strong>
+                                        </td>
                                         <td class="pt-0 pb-0 text-right" width="20%"><strong>R$
-                                            {{ number_format($vendedor['vl_comissao'], 2, ',', '.') }}</strong></td>
+                                                {{ number_format($vendedor['vl_comissao'], 2, ',', '.') }}</strong></td>
                                     </tr>
                                     @foreach ($vendedor['borracheiros'] as $borracheiro)
                                         <tr class="p-0">
-                                            <td style="padding: 0 0 0 30px;"><strong>{{ $borracheiro['nome'] }}</strong></td>
-                                            <td class="p-0 text-center" width="15%"><strong>{{ $borracheiro['qtd_item'] }}</strong></td>
+                                            <td style="padding: 0 0 0 30px;"><strong>{{ $borracheiro['nome'] }}</strong>
+                                            </td>
+                                            <td class="p-0 text-center" width="15%">
+                                                <strong>{{ $borracheiro['qtd_item'] }}</strong>
+                                            </td>
+                                            <td class="p-0 text-center" width="15%">
+                                                <strong>{{ number_format($borracheiro['preco_medio'], 2, ',', '.') }}</strong>
+                                            </td>
                                             <td class="pt-0 pb-0 text-right" width="20%"><strong>R$
-                                                {{ number_format($borracheiro['vl_comissao'], 2, ',', '.') }}</strong></td>
+                                                    {{ number_format($borracheiro['vl_comissao'], 2, ',', '.') }}</strong>
+                                            </td>
                                         </tr>
                                         @foreach ($borracheiro['clientes'] as $cliente)
                                             <tr class="p-0">
                                                 <td style="padding: 0 0 0 40px;">{{ $cliente['PESSOA'] }}</td>
-                                                <td class="p-0 text-center" width="15%">{{ $cliente['QTD_ITEM'] }}
+                                                <td class="p-0 text-center" width="15%">{{ $cliente['QTD_ITEM'] }}</td>
+                                                <td class="p-0 text-center" width="15%">
+                                                    <strong>{{ number_format($cliente['PRECO_MEDIO'], 2, ',', '.') }}</strong>
                                                 </td>
                                                 <td class="pt-0 pb-0 text-right" width="20%">R$
                                                     {{ number_format($cliente['VL_COMISSAO'], 2, ',', '.') }}</td>
@@ -80,15 +105,20 @@
                         <tr>
                             <th class="p-0"></th>
                             <th class="p-0 text-center" width="15%">Quantidade Total</th>
+                            <th class="p-0 text-center" width="15%">Preço Médio Total</th>
                             <th class="pt-0 pb-0 text-right" width="20%">Valor Total</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr class="p-0">
                             <td class="p-0"></td>
-                            <td class="p-0 text-center" width="15%">{{ $qtdTotal }}</td>
-                            <td class="pt-0 pb-0 text-right" width="20%">R$
-                                {{ number_format($valorTotal, 2, ',', '.') }}</td>
+                            <td class="p-0 text-center" width="15%"><strong>{{ $qtdTotal }}</strong></td>
+                            <td class="p-0 text-center" width="15%">
+                                <strong>{{ number_format($valorTotal / $qtdTotal, 2, ',', '.') }}</strong>
+                            </td>
+                            <td class="pt-0 pb-0 text-right" width="20%">
+                                <strong>R$ {{ number_format($valorTotal, 2, ',', '.') }}</strong>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -105,14 +135,7 @@
             page-break-inside: auto;
         }
 
-        /* thead {
-                    display: table-header-group;
-                    /* força header correto
-                }
 
-                tfoot {
-                    display: table-footer-group;
-                } */
 
         tr {
             page-break-inside: avoid;
