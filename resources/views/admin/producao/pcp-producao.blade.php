@@ -324,6 +324,12 @@
                             }
                         });
 
+                        //busca a quantidade de lotes
+                        let totalLotes = api.column(0).data().unique().length;
+
+                        //atualiza o card de quantidade de lotes
+                        $('#lotes').text(totalLotes);
+
                         // atualiza os cards
                         $('#card-pneus-lote').text(totalPneusLote);
                         $('#card-pneus-atraso').text(totalAtraso);
