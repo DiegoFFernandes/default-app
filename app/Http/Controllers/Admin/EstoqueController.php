@@ -407,7 +407,11 @@ class EstoqueController extends Controller
 
     public function getCarcacaCasaProntas()
     {
-        $data = $this->estoque->getCarcacaCasaProntas();
+        $empresa = $this->empresa->empresa(0); 
+
+        $cd_pessoa_empresa = implode(',', array_column($empresa, 'CD_PESSOA'));
+
+        $data = $this->estoque->getCarcacaCasaProntas($cd_pessoa_empresa);
 
         $arrayCarcacaProntasLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DSMEDIDAPNEU', 'DESENHOPNEU', 'DSMODELO');
 

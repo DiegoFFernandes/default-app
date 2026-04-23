@@ -27,7 +27,8 @@ class Empresa extends Model
                         WHEN EMPRESA.CD_EMPRESA = 5 THEN 'Ponta Grossa'
                         WHEN EMPRESA.CD_EMPRESA = 6 THEN 'Catanduva'
                         ELSE 'OUTROS'
-                    END NM_EMPRESA
+                    END NM_EMPRESA,
+                    EMPRESA.CD_PESSOA
                 FROM EMPRESA
                 WHERE EMPRESA.CD_EMPRESA IN ($empresa)";
 

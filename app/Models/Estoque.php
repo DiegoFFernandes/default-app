@@ -305,7 +305,7 @@ class Estoque extends Model
         ]);
     }
 
-    public function getCarcacaCasaProntas()
+    public function getCarcacaCasaProntas($cd_empresa)
     {
         $query = "                
             SELECT DISTINCT
@@ -370,7 +370,7 @@ class Estoque extends Model
                 AND RCH.O_NR_LANCAMENTO IS NULL
                 AND PP.STGERAPEDIDO = 'S'
                 AND ITEM.CD_GRUPO = 132
-                AND PP.IDPESSOA IN (27322, 1)
+                AND PP.IDPESSOA IN ($cd_empresa)
                 AND EF.DTFIM IS NOT NULL
                 --AND PP.ID IN (228552)
        
