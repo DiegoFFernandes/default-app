@@ -89,10 +89,34 @@
                                 </div>
                             @endforeach
                             <div class="tab-pane fade" id="painel-lotesPCP" role="tabpanel" aria-labelledby="tab-lotesPCP">
-                                <table id="lote-pcp"
-                                    class="table compact table-font-small table-striped table-bordered table-responsive"
-                                    style="width:100%; font-size: 11px;">
-                                </table>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h3 class="card-title">Lotes em Aberto</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <table id="lote-pcp"
+                                                    class="table compact table-font-small table-striped table-bordered table-responsive"
+                                                    style="width:100%; font-size: 11px;">
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h3 class="card-title">Bandas a consumir</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <table id="bandas-consumir"
+                                                    class="table compact table-font-small table-striped table-bordered table-responsive"
+                                                    style="width:100%; font-size: 11px;">
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -147,6 +171,7 @@
                     pageLength: 100,
                     processing: false,
                     serverSide: false,
+                    pagingType: "simple",
                     language: {
                         url: "{{ asset('vendor/datatables/pt-br.json') }}",
                     },
@@ -161,40 +186,44 @@
                             data: 'CD_EMPRESA',
                             name: 'CD_EMPRESA',
                             'title': 'Emp',
-                            width: '5%'
+
                         },
                         {
                             data: 'NR_LOTE',
                             name: 'NR_LOTE',
-                            'title': 'Nr Lote',
-                            width: '5%'
+                            'title': 'Lote',
+
                         },
                         {
                             data: 'DSCONTROLELOTEPCP',
                             name: 'DSCONTROLELOTEPCP',
-                            'title': 'Ds Lote',
-                            width: '20%'
+                            'title': 'Descrição',                           
                         },
                         {
                             data: 'DTPRODUCAO',
                             name: 'DTPRODUCAO',
                             'title': 'Produção',
-                            width: '10%'
+                            className: 'no-wrap text-center',
+
                         }, {
                             data: 'QTDE_TOT_LOTE',
                             name: 'QTDE_TOT_LOTE',
-                            'title': 'Qtde Lote',
-                            width: '5%'
+                            'title': 'Qtde',
+                            className: 'no-wrap text-center',
+
                         }, {
                             data: 'QTDE_EM_PROD',
                             name: 'QTDE_EM_PROD',
-                            'title': 'Em producao',
-                            width: '5%'
+                            'title': 'Em produção',
+                            className: 'no-wrap text-center',
+                            className: 'no-wrap text-center',
+
                         }, {
                             data: 'QTDE_SEMEXAME',
                             name: 'QTDE_SEMEXAME',
                             'title': 'Sem Exame',
-                            width: '5%'
+                            className: 'no-wrap text-center',
+
                         }
                     ],
                     drawCallback: function(settings) {
@@ -217,9 +246,11 @@
                     $('#' + idTabela).DataTable().destroy();
                 }
 
-                $('#' + idTabela).DataTable({                    
+                $('#' + idTabela).DataTable({
                     pageLength: 100,
+                    pagingType: "simple",
                     processing: false,
+                    scrollY: '400px',
                     serverSide: false,
                     language: {
                         url: "{{ asset('vendor/datatables/pt-br.json') }}",
