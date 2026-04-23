@@ -4,8 +4,74 @@
 
 @section('content')
     <section class="content">
-        <!-- Small boxes (Stat box) -->
         <div class="content-fluid">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-primary">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">Total Bloqueadas</span>
+
+                            <span class="info-box-number">
+                                <span id="qtd-bloqueadas">0</span>
+                                <small class="text-muted"> itens</small>
+                            </span>
+
+                            <div>
+                                <small class="text-muted">Total:</small>
+                                <strong id="valor-bloqueadas">R$ 0,00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">Aguardando Análise</span>
+
+                            <span class="info-box-number">
+                                <span id="qtd-aguardando-analise">0</span>
+                                <small class="text-muted"> itens</small>
+                            </span>
+
+                            <div>
+                                <small class="text-muted">Total:</small>
+                                <strong id="valor-aguardando-analise">R$ 0,00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-warning">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">Pendentes Bloqueadas</span>
+
+
+                            <span class="info-box-number">
+                                <span id="qtd-pendentes-bloqueadas">0</span>
+                                <small class="text-muted"> itens</small>
+                            </span>
+
+                            <div>
+                                <small class="text-muted">Total:</small>
+                                <strong id="valor-pendentes-bloqueadas">R$ 0,00</strong>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card collapsed-card">
                 <div class="card-header">
                     <h3 class="card-title">Filtros</h3>
@@ -83,7 +149,7 @@
                                         <th>Parcelas</th>
                                         <th>Total</th>
                                         <th>Emissão</th>
-                                        <th>Ds Liberacao</th>
+                                        <th>Vencimento</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -111,13 +177,7 @@
     </section>
 @stop
 @section('css')
-    {{-- Add here extra stylesheets --}}
-    {{-- <style>
-        div.dt-container div.dt-layout-row div.dt-layout-cell.dt-layout-end {
 
-            display: none;
-        }
-    </style> --}}
 @stop
 @section('js')
     <script id="details-item-historico" type="text/x-handlebars-template">
@@ -201,16 +261,16 @@
         tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
 
 
-        // //Cliques nas tabs
-        // $('.nav-tabs a[href="#pendentes"]').on('click', function() {
-        //     $('#table-contas-bloqueadas-pendentes').DataTable().destroy();
-        //     tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
-        // });
+        //Cliques nas tabs
+        $('.nav-tabs a[href="#pendentes"]').on('click', function() {
+            $('#table-contas-bloqueadas-pendentes').DataTable().destroy();
+            tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
+        });
 
-        // $('.nav-tabs a[href="#vistos"]').on('click', function() {
-        //     $('#table-contas-bloqueadas-vistos').DataTable().destroy();
-        //     tableContas = initableContas('table-contas-bloqueadas-vistos', 'S');
-        // });
+        $('.nav-tabs a[href="#vistos"]').on('click', function() {
+            $('#table-contas-bloqueadas-vistos').DataTable().destroy();
+            tableContas = initableContas('table-contas-bloqueadas-vistos', 'S');
+        });
 
 
         $('tbody').on('click', '.details-control', function() {
@@ -296,7 +356,12 @@
             var dsLiberacao = $('#liberacao').val(); // Captura o valor do textarea       
 
             if (dsLiberacao == "") {
-                alert("Motivo da liberação/Bloqueio e obrigatorio!");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Motivo da liberação/Bloqueio é obrigatório!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
                 return false;
             }
             // libera a conta para pagamento
@@ -306,7 +371,12 @@
         $('.btn-blocker').click(function() {
             var dsLiberacao = $('#liberacao').val(); // Captura o valor do textarea     
             if (dsLiberacao == "") {
-                alert("Motivo da liberação/Bloqueio e obrigatorio!");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Motivo da liberação/Bloqueio é obrigatório!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
                 return false;
             }
             // Mantem a conta bloqueada, mas muda a conta a aba bloqueadas pendentes.
@@ -353,22 +423,52 @@
                         ds_liberacao: dsLiberacao
                     },
                     beforeSend: function() {
-                        $("#loading").removeClass('hidden');
+                        Swal.fire({
+                            title: 'Processando...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            }
+                        });
                     },
                     success: function(response) {
-                        $("#loading").addClass('hidden');
+                        Swal.close();
                         if (response.success) {
-                            msgToastr(response.success, 'success');
+                            Swal.fire({
+                                icon: 'success',
+                                title: response.success,
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
                         } else {
-                            msgToastr(response.warning, 'warning');
+                            Swal.fire({
+                                icon: 'warning',
+                                title: response.warning,
+                                showConfirmButton: false,
+                                timer: 2000
+                            });
                         }
                         $('#table-contas-bloqueadas-pendentes').DataTable().ajax.reload();
                         $('#table-contas-bloqueadas-vistos').DataTable().ajax.reload();
+                    },
+                    error: function() {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Ocorreu um erro ao processar a solicitação.',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
                     }
                 });
 
             } else {
-                alert('Nenhuma conta foi selecionada!');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecione ao menos uma conta para aprovar ou manter bloqueada!',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             }
         };
 
@@ -432,6 +532,19 @@
                     url: '{{ route('contas-bloqueadas.list') }}',
                     data: {
                         st_visto: status,
+                    },
+                    dataSrc: function(json) {
+                        $('#qtd-bloqueadas').text(json.qtd_bloqueadas);
+                        $('#valor-bloqueadas').text(json.vlr_bloqueadas);
+
+                        $('#qtd-aguardando-analise').text(json.qtd_aguardando_analise);
+                        $('#valor-aguardando-analise').text(json.vlr_aguardando_analise);
+
+                        $('#qtd-pendentes-bloqueadas').text(json.qtd_pendentes_bloqueadas);
+                        $('#valor-pendentes-bloqueadas').text(json.vlr_pendentes_bloqueadas);
+
+
+                        return json.datatables.data.filter(item => item.ST_VISTO === status);
                     }
                 },
                 columns: [{

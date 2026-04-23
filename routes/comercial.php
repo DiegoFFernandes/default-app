@@ -119,7 +119,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     });
 });
 
-Route::middleware(['permission:ver-pedidos-coletados-acompanhamento|ver-pedidos-coletados-acompanhamento-cliente'])->group(function () {
+Route::middleware(['permission:ver-pedidos-coletados-acompanhamento|ver-pedidos-coletados-acompanhamento-cliente|ver-producao'])->group(function () {
     // Bloqueio de Pedidos
     Route::get('movimento/acompanha-pedidos', [BloqueioPedidosController::class, 'index'])->name('bloqueio-pedidos');
     Route::get('movimento/get-bloqueio-pedidos', [BloqueioPedidosController::class, 'getBloqueioPedido'])->name('get-bloqueio-pedidos');

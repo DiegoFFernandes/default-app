@@ -45,16 +45,52 @@ class FinanceiroController extends Controller
         $status = $this->request->st_visto;
         $data = $this->financeiro->ContasBloqueadas($status);
 
-        return DataTables::of($data)
+        $datatables = DataTables::of($data)
             ->addColumn('actions', function ($d) {
-                return '<button class="details-control fas fa-plus-circle btn-table" aria-hidden="true"></button>
-                        <button class="details-centrocusto fas fa-align-justify btn-open btn-table" aria-hidden="true"></button>
-                        <button class="details-motivo far fa-comment-alt btn-open btn-table" aria-hidden="true"></button>
+                return '<button class="btn-detalhes details-control fas fa-plus-circle btn-table" aria-hidden="true"></button>
+                        <button class="btn-detalhes details-centrocusto fas fa-align-justify btn-open btn-table" aria-hidden="true"></button>
+                        <button class="btn-detalhes details-motivo far fa-comment-alt btn-open btn-table" aria-hidden="true"></button>
                                                 
                         ';
             })
             ->rawColumns(['actions'])
-            ->make(true);
+            ->make(true)
+            ->getData();
+
+        $qtd_bloqueadas = count($data);
+        $vlr_bloqueadas = array_sum(array_map(function ($item) {
+            return $item->VL_DOCUMENTO;
+        }, $data));
+
+        $qtd_aguardando_analise = count(array_filter($data, function ($item) {
+            return $item->ST_VISTO === 'N';
+        }));
+        $qtd_pendentes_bloqueadas = count(array_filter($data, function ($item) {
+            return $item->ST_VISTO === 'S';
+        }));
+
+
+        $vlr_aguardando_analise = array_sum(array_map(function ($item) {
+            return $item->ST_VISTO === 'N' ? $item->VL_DOCUMENTO : 0;
+        }, $data));
+
+        $vlr_pendentes_bloqueadas = array_sum(array_map(function ($item) {
+            return $item->ST_VISTO === 'S' ? $item->VL_DOCUMENTO : 0;
+        }, $data));
+
+        return response()->json(
+            [
+                'datatables' => $datatables,
+                'qtd_bloqueadas' => number_format($qtd_bloqueadas),
+                'vlr_bloqueadas' => number_format($vlr_bloqueadas, 2, ',', '.'),
+
+                'qtd_aguardando_analise' => number_format($qtd_aguardando_analise),
+                'qtd_pendentes_bloqueadas' => number_format($qtd_pendentes_bloqueadas),
+
+                'vlr_aguardando_analise' => number_format($vlr_aguardando_analise, 2, ',', '.'),
+                'vlr_pendentes_bloqueadas' => number_format($vlr_pendentes_bloqueadas, 2, ',', '.')
+            ]
+        );
     }
     public function listHistoricoContasBloqueadas()
     {

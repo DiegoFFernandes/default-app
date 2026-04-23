@@ -34,7 +34,7 @@ class Financeiro extends Model
                 INNER JOIN TIPOCONTA TC ON (TC.CD_TIPOCONTA = CONTAS.CD_TIPOCONTA)
                 WHERE CONTAS.ST_BLOQUEADA = 'S'
                     AND CONTAS.ST_CONTAS NOT IN ('C', 'L', 'A')                   
-                    AND COALESCE(CONTAS.ST_VISTO, 'N') = '$status'
+                    --AND COALESCE(CONTAS.ST_VISTO, 'N') = '$status'
                 GROUP BY
                     CONTAS.CD_EMPRESA,
                     CONTAS.NR_LANCAMENTO,
