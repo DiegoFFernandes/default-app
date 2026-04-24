@@ -151,6 +151,7 @@
 
             $('#tab-painelPCP-' + empresa[0].CD_EMPRESA).addClass('active');
             $('#painel-pcp-' + empresa[0].CD_EMPRESA).addClass('show active');
+
             $('#tab-pcp').on('click', 'a.nav-link', function() {
                 let empresa = $(this).data('empresa');
 
@@ -266,67 +267,67 @@
                     columns: [{
                             data: 'NR_LOTE',
                             name: 'NR_LOTE',
-                            'title': 'Lote',
+                            title: 'Lote',
                             width: '5%'
                         },
                         {
                             data: 'NR_COLETA',
                             name: 'NR_COLETA',
-                            'title': 'Pedido',
+                            title: 'Pedido',
                             width: '5%'
                         },
                         {
                             data: 'NR_OP',
                             name: 'NR_OP',
-                            'title': 'OP',
+                            title: 'OP',
                             width: '5%'
                         },
                         {
                             data: 'NM_PESSOA',
                             name: 'NM_PESSOA',
-                            'title': 'Cliente',
+                            title: 'Cliente',
                             width: '10%'
                         },
                         {
                             data: 'DSSERVICO',
                             name: 'DSSERVICO',
-                            'title': 'Serviço',
+                            title: 'Serviço',
                             width: '10%'
                         }, {
                             data: 'DT_EXAME',
                             name: 'DT_EXAME',
-                            'title': 'Exame Inicial',
+                            title: 'Exame Inicial',
                             width: '10%'
                         }, {
                             data: 'DT_MANCHAO',
                             name: 'DT_MANCHAO',
-                            'title': 'Manchão',
+                            title: 'Manchão',
                             width: '10%'
                         }, {
                             data: 'DT_COBER',
                             name: 'DT_COBER',
-                            'title': 'Cobertura',
+                            title: 'Cobertura',
                             width: '10%'
                         }, {
                             data: 'DT_VULC',
                             name: 'DT_VULC',
-                            'title': 'Vulcanização',
+                            title: 'Vulcanização',
                             width: '10%'
                         }, {
                             data: 'DT_FINAL',
                             name: 'DT_FINAL',
-                            'title': 'Exame Final',
+                            title: 'Exame Final',
                             width: '10%'
                         }, {
                             data: 'DS_ETAPA',
                             name: 'DS_ETAPA',
-                            'title': 'Etapa',
+                            title: 'Etapa',
                             width: '10%',
                         },
                         {
                             data: 'DSOBSERVACAO',
                             name: 'DSOBSERVACAO',
-                            'title': 'Observação',
+                            title: 'Observação',
                             width: '20%',
                         }
                     ],
