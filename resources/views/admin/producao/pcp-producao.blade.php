@@ -80,12 +80,10 @@
                             @foreach ($empresa as $emp)
                                 <div class="tab-pane fade" id="painel-pcp-{{ $emp->CD_EMPRESA }}" role="tabpanel"
                                     aria-labelledby="tab-painelPCP-{{ $emp->CD_EMPRESA }}">
-                                    <div class="table-responsive">
-                                        <table id="pneus-lote-pcp-{{ $emp->CD_EMPRESA }}"
-                                            class="table compact table-font-small table-striped table-bordered table-responsive"
-                                            style="width:100%; font-size: 11px;">
-                                        </table>
-                                    </div>
+                                    <table id="pneus-lote-pcp-{{ $emp->CD_EMPRESA }}"
+                                        class="table compact table-font-small table-striped table-bordered table-responsive"
+                                        style="width:100%; font-size: 11px;">
+                                    </table>
                                 </div>
                             @endforeach
                             <div class="tab-pane fade" id="painel-lotesPCP" role="tabpanel" aria-labelledby="tab-lotesPCP">
@@ -153,12 +151,8 @@
             $('#painel-pcp-' + empresa[0].CD_EMPRESA).addClass('show active');
 
             $('#tab-pcp').on('click', 'a.nav-link', function() {
-                let empresa = $(this).data('empresa');
-
+                let empresa = $(this).data('empresa');                
                 if (empresa) {
-                    if ('pneus-lote-pcp-' + empresa) {
-                        $('#pneus-lote-pcp-' + empresa).DataTable().destroy();
-                    }
                     initTable('pneus-lote-pcp-' + empresa, empresa);
                 }
             });
@@ -198,7 +192,7 @@
                         {
                             data: 'DSCONTROLELOTEPCP',
                             name: 'DSCONTROLELOTEPCP',
-                            'title': 'Descrição',                           
+                            'title': 'Descrição',
                         },
                         {
                             data: 'DTPRODUCAO',
