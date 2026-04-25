@@ -265,7 +265,7 @@ class Producao extends Model
                     EI.DTFIM DT_EXAME, NULL DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN EI.ID IS NULL THEN 'SEM EXAME'
-                        WHEN EI.ST_ETAPA = 'A' THEN 'EXAME'
+                        WHEN EI.ST_ETAPA = 'A' THEN 'EXAME INICIAL'
                     END DS_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
@@ -290,14 +290,14 @@ class Producao extends Model
                     
                     UNION ALL
 
-                    --APLICAÇÃO COLA
+                    --lIMPEZA MANCHÃO
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
-                        WHEN RP.ID IS NULL THEN 'EXAME'
+                        WHEN RP.ID IS NULL THEN 'EXAME INICIAL'
                         WHEN ES.ID IS NULL THEN 'RASPA'
-                        WHEN LM.ID IS NULL THEN 'ESCAREACAO'
+                        WHEN LM.ID IS NULL THEN 'LIMPEZA MANCHÃO'
                         WHEN LM.ST_ETAPA = 'A' THEN 'COLA'
                     END DS_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
@@ -316,7 +316,7 @@ class Producao extends Model
                                                 AND EI.ST_ETAPA = 'F')
                     LEFT JOIN RASPAGEMPNEU RP ON (RP.IDORDEMPRODUCAORECAP = OPR.ID)
                     LEFT JOIN ESCAREACAOPNEU ES ON (ES.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN APLICACAOCOLAPNEU LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
+                    LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                         AND PP.IDEMPRESA IN ($cd_empresa)
@@ -338,7 +338,7 @@ class Producao extends Model
                         WHEN CS.ID IS NULL THEN 'COLA'
                         WHEN EX.ID IS NULL THEN 'AP. CONS'
                         WHEN EB.ID IS NULL THEN 'EXTRUS'
-                        WHEN EB.ST_ETAPA = 'A' THEN 'COBERT'
+                        WHEN EB.ST_ETAPA = 'A' THEN 'COBERTURA'
                     END DS_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
@@ -376,7 +376,7 @@ class Producao extends Model
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
-                        WHEN EN.ID IS NULL THEN 'COBERT'
+                        WHEN EN.ID IS NULL THEN 'COBERTURA'
                         WHEN MO.ID IS NULL THEN 'ENVELOPA'
                         WHEN VP.ID IS NULL THEN 'MONTAGEM'
                         WHEN VP.ST_ETAPA = 'A' THEN 'VULCANIZ'

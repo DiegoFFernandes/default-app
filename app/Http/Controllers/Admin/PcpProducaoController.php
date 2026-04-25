@@ -57,7 +57,7 @@ class PcpProducaoController extends Controller
         } else {
             $empresa = $this->empresa->empresa($this->user->empresa);
         }
-        return view('admin.producao.pcp-producao', compact(
+        return view('admin.producao.pcp.pcp-producao', compact(
             'title_page',
             'uri',
             'empresa'
@@ -70,9 +70,20 @@ class PcpProducaoController extends Controller
         $cd_empresa = $this->request->validate([
             'cd_empresa' => 'required|integer',
         ])['cd_empresa'];
+
+        $lote = $this->getLotePCP()->getData(true)['data'];
+
         $data = $this->producao->getPneusLotePCP($cd_empresa);
-        return DataTables::of($data)
-            ->make(true);
+
+        $datatables = DataTables::of($data)
+            ->make(true)
+            ->getData();
+
+
+        return response()->json([
+            'lote' => $lote,
+            'datatables' => $datatables,
+        ]);
     }
 
     public function getLotePCP()
@@ -89,6 +100,10 @@ class PcpProducaoController extends Controller
         }
         $data = $this->producao->getLotePCP($empresa);
         return DataTables::of($data)
+            ->addColumn('actions', function ($row) {
+                return '<button class="btn btn-xs btn-success view-pneus" data-lote="' . $row->NR_LOTE . '"><i class="fa fa-eye" style="color: white;"></i></button>';
+            })
+            ->rawColumns(['actions'])
             ->make(true);
     }
 }
