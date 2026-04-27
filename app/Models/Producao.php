@@ -249,7 +249,7 @@ class Producao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    public function getPneusLotePCP($cd_empresa)
+    public function getPneusAtrasoLotePCP($cd_empresa)
     {
         $query = "
                 SELECT
@@ -587,6 +587,51 @@ class Producao extends Model
             ";
 
         $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
+    }
+
+    public function getDetalhesPneusLotePCP($cd_empresa, $lote)
+    {
+        $query = "
+                SELECT
+                    PP.IDEMPRESA,
+                    M.ID NR_LOTE,
+                    C.DSCONTROLELOTEPCP,
+                    --M.NRLOTESEQDIA,
+                    M.DTPRODUCAO,
+                    PESSOA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+                    PP.ID NR_PEDIDO,
+                    OPR.ID || '-' || IPP.NRSEQUENCIA NR_ORDEM,
+                    ITEM.CD_ITEM || '-' || ITEM.DS_ITEM DS_ITEM,
+                    OPR.STORDEM,
+                    CASE
+                        WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
+                        WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
+                        ELSE OPR.STORDEM
+                    END STATUS
+                FROM ORDEMPRODUCAORECAP OPR
+                INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+                INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+                    AND M.IDEMPRESA = PCP.IDEMPRESA)
+                INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+                    AND C.IDEMPRESA = M.IDEMPRESA)
+                INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+                INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
+                WHERE IPP.STCANCELADO = 'N'
+                    AND IPP.STGARANTIA = 'N'
+                    AND PP.IDEMPRESA IN (:cd_empresa)
+                    AND M.ID = :lote
+                ORDER BY M.DTPRODUCAO DESC, OPR.ID
+         ";
+
+        $data = DB::connection('firebird')->select($query, [
+            'cd_empresa' => $cd_empresa,
+            'lote' => $lote
+        ]);
 
         return Helper::ConvertFormatText($data);
     }

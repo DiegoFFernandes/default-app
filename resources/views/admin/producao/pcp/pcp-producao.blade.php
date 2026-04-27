@@ -35,6 +35,15 @@
             </div>
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
                 <div class="info-box">
+                    <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-circle"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Sem exame</span>
+                        <span class="info-box-number" id="card-pneus-sem-exame">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
+                <div class="info-box">
                     <span class="info-box-icon bg-warning"><i class="fas fa-hourglass-start"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Iniciando</span>
@@ -122,10 +131,10 @@
             </div>
         </div>
     </section>
+    @include('admin.producao.pcp.modals.modal-pneus-lote')
 @stop
 
 @section('css')
-
     <style>
         .info-box-text {
             font-size: 14px;
@@ -136,7 +145,6 @@
             font-size: 18px;
         }
     </style>
-
 @stop
 
 @section('js')
@@ -145,8 +153,9 @@
         window.routes = {
             token: "{{ csrf_token() }}",
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
-            getPneusLotePcp: "{{ route('get-pneus-lote-pcp') }}",
-            getLotePcp: "{{ route('get-lote-pcp') }}"
+            getPneusAtrasoLotePcp: "{{ route('get-pneus-atraso-lote-pcp') }}",
+            getLotePcp: "{{ route('get-lote-pcp') }}",
+            detalhesPneusLotePcp: "{{ route('detalhes-pneus-lote-pcp') }}"
         }
 
         const empresa = @json($empresa);
@@ -167,8 +176,6 @@
         });
 
 
-
-
         function initTable(idTabela, cdEmpresa) {
             if ($.fn.DataTable.isDataTable('#' + idTabela)) {
                 $('#' + idTabela).DataTable().destroy();
@@ -185,7 +192,7 @@
                     url: window.routes.languageDatatables,
                 },
                 ajax: {
-                    url: window.routes.getPneusLotePcp,
+                    url: window.routes.getPneusAtrasoLotePcp,
                     type: 'POST',
                     data: {
                         _token: window.routes.token,
@@ -198,7 +205,7 @@
                         lotePcpTable.forEach(function(lote) {
                             totalPneusLote += parseInt(lote.QTDE_TOT_LOTE);
                             totalEmProducao += parseInt(lote.QTDE_EM_PROD);
-                        });    
+                        });
 
                         return json.datatables.data || [];
                     }
@@ -291,10 +298,11 @@
                     var data = api.rows().data();
 
                     // variáveis de contagem
-                    
+
                     let totalAtraso = data.length;
                     let totalIniciando = 0;
                     let totalFinalizados = 0;
+                    let totalSemExame = 0;
 
                     // console.log(lotePcpTable);
 
@@ -308,6 +316,10 @@
                         if (etapa === 'EXAME INICIAL') {
                             totalIniciando++;
                         }
+
+                        if (etapa === 'SEM EXAME') {
+                            totalSemExame++;
+                        }
                     });
 
                     //busca a quantidade de lotes
@@ -320,7 +332,8 @@
                     $('#card-pneus-lote').text(totalPneusLote);
                     $('#card-pneus-atraso').text(totalAtraso);
                     $('#card-pneus-iniciando').text(totalIniciando);
-                    $('#card-pneus-finalizados').text(totalPneusLote-totalEmProducao);
+                    $('#card-pneus-sem-exame').text(totalSemExame);
+                    $('#card-pneus-finalizados').text(totalPneusLote - totalEmProducao);
                 }
             });
         }

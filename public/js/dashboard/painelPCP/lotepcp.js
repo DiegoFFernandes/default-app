@@ -83,7 +83,7 @@ $(document).on("click", "#tab-lotesPCP", function () {
                 title: "Sem.Exame",
                 className: "no-wrap text-center",
                 width: "10%",
-                visible: false
+                visible: false,
             },
         ],
         drawCallback: function (settings) {
@@ -97,4 +97,65 @@ $(document).on("click", "#tab-lotesPCP", function () {
             $("#lotes").text(totalLotes);
         },
     });
+});
+
+$(document).on("click", ".btn-pneus-lote", function () {
+    let lote = $(this).data("lote");
+    let empresa = $(this).data("empresa");
+
+    $(".modal-title-lote").text(`Pneus do Lote ${lote}`);
+
+    $("#table-pneus-lote-pcp").DataTable({
+        pageLength: 100,
+        processing: false,
+        serverSide: false,
+        destroy: true,
+        pagingType: "simple",
+        language: {
+            url: window.routes.languageDatatables,
+        },
+        ajax: {
+            url: window.routes.detalhesPneusLotePcp,
+            type: "POST",
+            data: {
+                _token: window.routes.token,
+                lote: lote,
+                empresa: empresa,
+            },
+        },
+        columns: [
+            {
+                data: "IDEMPRESA",
+                name: "IDEMPRESA",
+                title: "Emp.",
+                className: "no-wrap text-center",
+            },
+            {
+                data: "NM_PESSOA",
+                name: "NM_PESSOA",
+                title: "Cliente",
+                className: "no-wrap text-center",
+            },
+            {
+                data: "NR_ORDEM",
+                name: "NR_ORDEM",
+                title: "Ordem",
+                className: "no-wrap text-center",
+            },
+            {
+                data: "DS_ITEM",
+                name: "DS_ITEM",
+                title: "Serviço",
+                className: "no-wrap text-center",
+            },
+            {
+                data: "STORDEM",
+                name: "STORDEM",
+                title: "Status Ordem",
+                className: "no-wrap text-center",
+            }
+        ],
+    });
+
+    $("#modal-pneus-lote-pcp").modal("show");
 });

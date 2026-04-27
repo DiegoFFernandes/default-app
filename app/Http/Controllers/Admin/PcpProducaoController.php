@@ -64,8 +64,8 @@ class PcpProducaoController extends Controller
         ));
     }
 
-    //tras as informaçõs dos pneus do lote de PCP
-    public function getPneusLotePCP()
+    //tras as informaçõs dos pneus do lote de PCP em atraso
+    public function getPneusAtrasoLotePCP()
     {
         $cd_empresa = $this->request->validate([
             'cd_empresa' => 'required|integer',
@@ -73,7 +73,7 @@ class PcpProducaoController extends Controller
 
         $lote = $this->getLotePCP()->getData(true)['data'];
 
-        $data = $this->producao->getPneusLotePCP($cd_empresa);
+        $data = $this->producao->getPneusAtrasoLotePCP($cd_empresa);
 
         $datatables = DataTables::of($data)
             ->make(true)
@@ -101,9 +101,33 @@ class PcpProducaoController extends Controller
         $data = $this->producao->getLotePCP($empresa);
         return DataTables::of($data)
             ->addColumn('actions', function ($row) {
-                return '<button class="btn btn-xs btn-success view-pneus" data-lote="' . $row->NR_LOTE . '"><i class="fa fa-eye" style="color: white;"></i></button>';
+                return '<button class="btn btn-xs btn-secondary btn-pneus-lote" 
+                            data-empresa="' . $row->CD_EMPRESA . '" 
+                            data-lote="' . $row->NR_LOTE . '">
+                        <i class="fa fa-eye" style="color: white;"></i></button>';
             })
             ->rawColumns(['actions'])
+            ->make(true);
+    }
+
+    public function detalhesPneusLotePCP()
+    {
+        $validated = $this->request->validate([
+            'empresa' => 'required|integer',
+            'lote' => 'required|integer',
+        ]);
+
+        $cd_empresa = $validated['empresa'];
+        $lote = $validated['lote'];
+
+        $data = $this->producao->getDetalhesPneusLotePCP($cd_empresa, $lote);
+
+        return DataTables::of($data)
+            ->editColumn('STORDEM', function ($row) {
+                return "<span class='badge 
+                    badge-" . ($row->STORDEM === 'A' ? 'warning' : ($row->STORDEM === 'F' ? 'success' : 'secondary')) . "'>" . $row->STATUS . "</span>";
+            })
+            ->rawColumns(['STORDEM'])
             ->make(true);
     }
 }
