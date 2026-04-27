@@ -162,6 +162,10 @@
         var lotePcpTable;
         var totalPneusLote = 0;
         var totalEmProducao = 0;
+        var totalAtraso = 0;
+        var totalIniciando = 0;
+        var totalFinalizados = 0;
+        var totalSemExame = 0;
 
         initTable('pneus-lote-pcp-' + empresa[0].CD_EMPRESA, empresa[0].CD_EMPRESA);
 
@@ -201,6 +205,8 @@
                     dataSrc: function(json) {
                         lotePcpTable = json.lote;
 
+                        totalPneusLote = 0;
+                        totalEmProducao = 0;
 
                         lotePcpTable.forEach(function(lote) {
                             totalPneusLote += parseInt(lote.QTDE_TOT_LOTE);
@@ -211,6 +217,12 @@
                     }
                 },
                 columns: [{
+                        data: 'actions',
+                        name: 'actions',
+                        title: '#',
+                        orderable: false,
+                    },
+                    {
                         data: 'NR_LOTE',
                         name: 'NR_LOTE',
                         title: 'Lote',
@@ -285,7 +297,7 @@
                     }
                 ],
                 columnDefs: [{
-                    targets: [5, 6, 7, 8, 9],
+                    targets: [6, 7, 8, 9, 10],
                     render: function(data, type, row) {
                         if (type === "display" || type === "filter") {
                             return data ? moment(data).format("DD/MM/YYYY HH:mm:ss") : '';
@@ -299,10 +311,10 @@
 
                     // variáveis de contagem
 
-                    let totalAtraso = data.length;
-                    let totalIniciando = 0;
-                    let totalFinalizados = 0;
-                    let totalSemExame = 0;
+                    totalAtraso = data.length;
+                    totalIniciando = 0;
+                    totalFinalizados = 0;
+                    totalSemExame = 0;
 
                     // console.log(lotePcpTable);
 
@@ -337,5 +349,37 @@
                 }
             });
         }
+
+        $(document).on('click', '.btn-remover-pneus-lote', function() {
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Tem certeza que deseja remover os pneus deste lote?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, remover',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Lógica para remover os pneus do lote
+                    Swal.fire('Aviso!', 'Essa funcionalidade ainda não está implementada.', 'warning');
+                }
+            });
+        });
+
+        $(document).on('click', '.btn-transferir-pneus-lote', function() {
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Tem certeza que deseja transferir os pneus deste lote?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, transferir',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Lógica para transferir os pneus do lote
+                    Swal.fire('Aviso!', 'Essa funcionalidade ainda não está implementada.', 'warning');
+                }
+            });
+        });
     </script>
 @stop

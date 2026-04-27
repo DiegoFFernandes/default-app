@@ -602,7 +602,10 @@ class Producao extends Model
                     M.DTPRODUCAO,
                     PESSOA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
                     PP.ID NR_PEDIDO,
-                    OPR.ID || '-' || IPP.NRSEQUENCIA NR_ORDEM,
+                        OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                     MAX(IPP2.NRSEQUENCIA)
+                                                 FROM ITEMPEDIDOPNEU IPP2
+                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
                     ITEM.CD_ITEM || '-' || ITEM.DS_ITEM DS_ITEM,
                     OPR.STORDEM,
                     CASE

@@ -129,30 +129,35 @@ $(document).on("click", ".btn-pneus-lote", function () {
                 name: "IDEMPRESA",
                 title: "Emp.",
                 className: "no-wrap text-center",
+                width: "5%",
             },
             {
                 data: "NM_PESSOA",
                 name: "NM_PESSOA",
                 title: "Cliente",
                 className: "no-wrap text-center",
+                width: "20%",
             },
             {
                 data: "NR_ORDEM",
                 name: "NR_ORDEM",
                 title: "Ordem",
                 className: "no-wrap text-center",
+                width: "10%",   
             },
             {
                 data: "DS_ITEM",
                 name: "DS_ITEM",
                 title: "Serviço",
                 className: "no-wrap text-center",
+                width: "20%",
             },
             {
                 data: "STORDEM",
                 name: "STORDEM",
                 title: "Status Ordem",
                 className: "no-wrap text-center",
+                width: "10%",
             }
         ],
     });

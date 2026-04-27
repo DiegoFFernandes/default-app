@@ -75,7 +75,22 @@ class PcpProducaoController extends Controller
 
         $data = $this->producao->getPneusAtrasoLotePCP($cd_empresa);
 
-        $datatables = DataTables::of($data)
+        $datatables = DataTables::of($data)            
+            ->addColumn('actions', function ($row) {
+                return "<button class='btn btn-xs btn-danger btn-remover-pneus-lote' 
+                            data-empresa='" . $row->IDEMPRESA . "' 
+                            data-lote='" . $row->NR_LOTE . "'>
+                             <i class='fa fa-trash'></i>
+                        </button>
+                        <button class='btn btn-xs btn-primary btn-transferir-pneus-lote' 
+                            data-empresa='" . $row->IDEMPRESA . "' 
+                            data-lote='" . $row->NR_LOTE . "'>
+                             <i class='fa fa-exchange-alt'></i>
+                        </button>
+                        
+                        ";
+            })
+            ->rawColumns(['actions'])
             ->make(true)
             ->getData();
 
