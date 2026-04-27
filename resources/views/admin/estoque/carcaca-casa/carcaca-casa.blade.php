@@ -61,7 +61,7 @@
             getCarcacaCasaProntasTerceiros: "{{ route('get-carcaca-casa-prontas-terceiros') }}",
             reservarCarcacaCasaPronta: "{{ route('reservar-carcaca-casa-pronta') }}",
         }
-        window.canEdit = @json($canEdit);
+        window.canEdit = @json(!$canEdit);
     </script>
 
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/entradasCarcacaEstoque.js?v=' . time()) }}"></script>

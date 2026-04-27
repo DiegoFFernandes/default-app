@@ -6,7 +6,7 @@
         Transferir Local
     </button>
 @endif
-@if (!auth()->user()->hasRole('vendedor|supervisor'))
+@if (auth()->user()->hasPermissionTo('ver-adicionar-pedido-carcaca'))
     <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;" id="btn-criar-pedido">
         Criar Pedido
     </button>
