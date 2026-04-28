@@ -638,4 +638,55 @@ class Producao extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+    public function consumoEstoqueLoteMateriaPrima($subgrupo, $localestoque, $tipolocalestoque)
+    {
+        $query = "
+                SELECT
+                    PP.IDEMPRESA,
+                    BP.IDITEM || '-' || MATPRIMA.DS_ITEM DS_BANDA,
+                    MATPRIMA.SG_UNIDMED,
+                    CAST(SUM(IIF(MATPRIMA.SG_UNIDMED = 'KG', PRE.QTITEMCONVERSAO * MEDIDAPNEU.NRPERIMETROMAX, PRE.QTITEMFIXA)) AS NUMERIC(15,2)) QT_CONSUMO,
+                    CAST(S.O_QT_SALDO AS NUMERIC(15,2)) QT_ESTOQUE,
+
+                    CASE
+                    WHEN BP.IDITEM IS NOT NULL THEN 'OK'
+                    ELSE 'NÃO'
+                    END ST_BANDA
+
+                FROM ORDEMPRODUCAORECAP OPR
+                INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+                INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+                    AND M.IDEMPRESA = PCP.IDEMPRESA)
+                INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+                    AND C.IDEMPRESA = M.IDEMPRESA)
+                INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+                INNER JOIN SERVICOPNEU ON (SERVICOPNEU.ID = IPP.IDSERVICOPNEU)
+                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+                INNER JOIN MEDIDAPNEU ON (MEDIDAPNEU.ID = PNEU.IDMEDIDAPNEU)
+
+                INNER JOIN BANDAPNEU BP ON (BP.ID = SERVICOPNEU.IDBANDAPNEU)
+
+                LEFT JOIN PREPARACAOBANDAPNEU PBP ON (PBP.IDORDEMPRODUCAORECAP = OPR.ID)
+
+                LEFT JOIN PRODUTORECAPETAPA PRE ON (PRE.IDEMPRESA = PP.IDEMPRESA
+                    AND PRE.IDETAPA = 3
+                    AND PRE.IDITEM = BP.IDITEM)
+                LEFT JOIN ITEM MATPRIMA ON (MATPRIMA.CD_ITEM = PRE.IDITEM)
+
+                LEFT JOIN RETORNA_SALDOESTOQUE(PP.IDEMPRESA, PRE.IDITEM, $tipolocalestoque, $localestoque, CURRENT_DATE, NULL) S ON (1 = 1)
+
+                WHERE IPP.STCANCELADO = 'N'
+                    AND IPP.STGARANTIA = 'N'
+                    AND OPR.STORDEM = 'A'
+                    AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                    AND PBP.ST_ETAPA IS NULL
+                GROUP BY PP.IDEMPRESA, MATPRIMA.DS_ITEM, ST_BANDA, MATPRIMA.SG_UNIDMED, BP.IDITEM, S.O_QT_SALDO        
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
 }

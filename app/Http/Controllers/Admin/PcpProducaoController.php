@@ -8,15 +8,16 @@ use App\Models\GerenteUnidade;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
+use App\Services\ServiceFiltroGrupoSubgrupo;
 use App\Services\SupervisorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Contracts\Role;
+
 use Yajra\DataTables\Facades\DataTables;
 
 class PcpProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade;
+    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo;
 
     public function __construct(
         Request $request,
@@ -25,7 +26,8 @@ class PcpProducaoController extends Controller
         User $user,
         Producao $producao,
         SupervisorAuthService $supervisorComercial,
-        GerenteUnidade $gerenteUnidade
+        GerenteUnidade $gerenteUnidade,
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
 
     ) {
         $this->request = $request;
@@ -35,6 +37,7 @@ class PcpProducaoController extends Controller
         $this->producao = $producao;
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
+        $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -75,7 +78,7 @@ class PcpProducaoController extends Controller
 
         $data = $this->producao->getPneusAtrasoLotePCP($cd_empresa);
 
-        $datatables = DataTables::of($data)            
+        $datatables = DataTables::of($data)
             ->addColumn('actions', function ($row) {
                 return "<button class='btn btn-xs btn-danger btn-remover-pneus-lote' 
                             data-empresa='" . $row->IDEMPRESA . "' 
@@ -144,5 +147,17 @@ class PcpProducaoController extends Controller
             })
             ->rawColumns(['STORDEM'])
             ->make(true);
+    }
+
+    public function consumoEstoqueLoteMateriaPrima()
+    {
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7')['data'];
+        
+        $localestoque = 1;
+        $tipolocalestoque = 1;
+
+        $data = $this->producao->consumoEstoqueLoteMateriaPrima($subgrupo, $localestoque, $tipolocalestoque);
+
+        return DataTables::of($data)->make(true);
     }
 }

@@ -155,7 +155,8 @@
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             getPneusAtrasoLotePcp: "{{ route('get-pneus-atraso-lote-pcp') }}",
             getLotePcp: "{{ route('get-lote-pcp') }}",
-            detalhesPneusLotePcp: "{{ route('detalhes-pneus-lote-pcp') }}"
+            detalhesPneusLotePcp: "{{ route('detalhes-pneus-lote-pcp') }}",
+            consumoEstoqueLoteMateriaPrima: "{{ route('consumo-estoque-lote-materia-prima') }}"
         }
 
         const empresa = @json($empresa);

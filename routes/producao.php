@@ -13,6 +13,7 @@ Route::middleware('auth')->group(function () {
         Route::post('get-pneus-lote-pcp', [PcpProducaoController::class, 'getPneusAtrasoLotePCP'])->name('get-pneus-atraso-lote-pcp');
         Route::post('get-lote-pcp', [PcpProducaoController::class, 'getLotePCP'])->name('get-lote-pcp');
         Route::post('detalhes-pneus-lote-pcp', [PcpProducaoController::class, 'detalhesPneusLotePCP'])->name('detalhes-pneus-lote-pcp');
+        Route::get('consumo-estoque-lote-materia-prima', [PcpProducaoController::class, 'consumoEstoqueLoteMateriaPrima'])->name('consumo-estoque-lote-materia-prima');
 
 
         Route::get('detalhes-executor', [ExecutorEtapaController::class, 'detalhesExecutor'])->name('get-details-executor');

@@ -97,6 +97,59 @@ $(document).on("click", "#tab-lotesPCP", function () {
             $("#lotes").text(totalLotes);
         },
     });
+
+    if ($.fn.DataTable.isDataTable("#bandas-consumir")) {
+        $("#bandas-consumir").DataTable().destroy();
+    }
+
+    $("#bandas-consumir").DataTable({
+        pageLength: 100,
+        processing: false,
+        serverSide: false,
+        pagingType: "simple",
+        language: {
+            url: window.routes.languageDatatables,
+        },
+        ajax: {
+            url: window.routes.consumoEstoqueLoteMateriaPrima,
+            type: "GET",
+            data: {
+                _token: window.routes.token,
+            },
+        },
+        columns: [
+            {
+                data: "IDEMPRESA",
+                name: "IDEMPRESA",
+                title: "Emp.",
+                width: "1%",
+            },
+            {
+                data: "DS_BANDA",
+                name: "DS_BANDA",
+                title: "Banda",
+                width: "30%",
+            },
+            {
+                data: "SG_UNIDMED",
+                name: "SG_UNIDMED",
+                title: "Unid.Med.",
+                width: "5%",
+            },
+            {
+                data: "QT_CONSUMO",
+                name: "QT_CONSUMO",
+                title: "Consumo",
+                width: "10%",
+            },
+            {
+                data: "QT_ESTOQUE",
+                name: "QT_ESTOQUE",
+                title: "Estoque",
+                width: "10%",
+            },
+        ],
+    });
 });
 
 $(document).on("click", ".btn-pneus-lote", function () {
@@ -143,7 +196,7 @@ $(document).on("click", ".btn-pneus-lote", function () {
                 name: "NR_ORDEM",
                 title: "Ordem",
                 className: "no-wrap text-center",
-                width: "10%",   
+                width: "10%",
             },
             {
                 data: "DS_ITEM",
@@ -158,7 +211,7 @@ $(document).on("click", ".btn-pneus-lote", function () {
                 title: "Status",
                 className: "no-wrap text-center",
                 width: "5%",
-            }
+            },
         ],
     });
 
