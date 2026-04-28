@@ -297,7 +297,7 @@ class Producao extends Model
                     CASE
                         WHEN RP.ID IS NULL THEN 'EXAME INICIAL'
                         WHEN ES.ID IS NULL THEN 'RASPA'
-                        WHEN LM.ID IS NULL THEN 'LIMPEZA MANCHÃO'
+                        WHEN LM.ID IS NULL THEN 'LIMPEZA MANCHAO'
                         WHEN LM.ST_ETAPA = 'A' THEN 'COLA'
                     END DS_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA

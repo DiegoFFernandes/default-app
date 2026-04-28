@@ -166,6 +166,7 @@
         var totalIniciando = 0;
         var totalFinalizados = 0;
         var totalSemExame = 0;
+        var totalLotes = 0;
 
         initTable('pneus-lote-pcp-' + empresa[0].CD_EMPRESA, empresa[0].CD_EMPRESA);
 
@@ -207,10 +208,13 @@
 
                         totalPneusLote = 0;
                         totalEmProducao = 0;
+                        //busca a quantidade de lotes
+                        totalLotes = lotePcpTable.length;
 
                         lotePcpTable.forEach(function(lote) {
                             totalPneusLote += parseInt(lote.QTDE_TOT_LOTE);
                             totalEmProducao += parseInt(lote.QTDE_EM_PROD);
+
                         });
 
                         return json.datatables.data || [];
@@ -334,8 +338,7 @@
                         }
                     });
 
-                    //busca a quantidade de lotes
-                    let totalLotes = api.column(0).data().unique().length;
+
 
                     //atualiza o card de quantidade de lotes
                     $('#lotes').text(totalLotes);

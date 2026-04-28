@@ -103,7 +103,7 @@ $(document).on("click", ".btn-pneus-lote", function () {
     let lote = $(this).data("lote");
     let empresa = $(this).data("empresa");
 
-    $(".modal-title-lote").text(`Pneus do Lote ${lote}`);
+    $(".modal-title-lote").text(`Pneus do Lote: ${lote} - Empresa: ${empresa}`);
 
     $("#table-pneus-lote-pcp").DataTable({
         pageLength: 100,
@@ -155,9 +155,9 @@ $(document).on("click", ".btn-pneus-lote", function () {
             {
                 data: "STORDEM",
                 name: "STORDEM",
-                title: "Status Ordem",
+                title: "Status",
                 className: "no-wrap text-center",
-                width: "10%",
+                width: "5%",
             }
         ],
     });
