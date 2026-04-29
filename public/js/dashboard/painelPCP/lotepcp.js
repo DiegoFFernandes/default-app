@@ -1,12 +1,9 @@
-$(document).on("click", "#tab-lotesPCP", function () {
-    if ($.fn.DataTable.isDataTable("#lote-pcp")) {
-        $("#lote-pcp").DataTable().destroy();
-    }
-
+$(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
     $("#lote-pcp").DataTable({
         pageLength: 100,
         processing: false,
         serverSide: false,
+        destroy: true,
         pagingType: "simple",
         language: {
             url: window.routes.languageDatatables,
@@ -52,7 +49,7 @@ $(document).on("click", "#tab-lotesPCP", function () {
             {
                 data: "DTPRODUCAO",
                 name: "DTPRODUCAO",
-                title: "Produção",
+                title: "Data",
                 className: "no-wrap text-center",
                 render: function (data, type, row) {
                     if (data) {
@@ -72,15 +69,14 @@ $(document).on("click", "#tab-lotesPCP", function () {
             {
                 data: "QTDE_EM_PROD",
                 name: "QTDE_EM_PROD",
-                title: "Em.produção",
-                className: "no-wrap text-center",
+                title: "Em Produção",
                 className: "no-wrap text-center",
                 width: "10%",
             },
             {
                 data: "QTDE_SEMEXAME",
                 name: "QTDE_SEMEXAME",
-                title: "Sem.Exame",
+                title: "Sem Exame",
                 className: "no-wrap text-center",
                 width: "10%",
                 visible: false,
@@ -98,14 +94,11 @@ $(document).on("click", "#tab-lotesPCP", function () {
         },
     });
 
-    if ($.fn.DataTable.isDataTable("#bandas-consumir")) {
-        $("#bandas-consumir").DataTable().destroy();
-    }
-
     $("#bandas-consumir").DataTable({
         pageLength: 100,
         processing: false,
         serverSide: false,
+        destroy: true,
         pagingType: "simple",
         language: {
             url: window.routes.languageDatatables,
@@ -119,10 +112,20 @@ $(document).on("click", "#tab-lotesPCP", function () {
         },
         columns: [
             {
+                data: "actions",
+                name: "actions",
+                title: "#",
+                orderable: false,
+                searchable: false,
+                className: "text-center no-wrap",
+                width: "5%",
+            },
+            {
                 data: "IDEMPRESA",
                 name: "IDEMPRESA",
                 title: "Emp.",
                 width: "1%",
+                className: "no-wrap text-center",
             },
             {
                 data: "DS_BANDA",
@@ -133,22 +136,26 @@ $(document).on("click", "#tab-lotesPCP", function () {
             {
                 data: "SG_UNIDMED",
                 name: "SG_UNIDMED",
-                title: "Unid.Med.",
-                width: "5%",
+                title: "Unid.",
+                width: "1%",
+                className: "no-wrap text-center",
             },
             {
                 data: "QT_CONSUMO",
                 name: "QT_CONSUMO",
                 title: "Consumo",
                 width: "10%",
+                className: "no-wrap text-center",
             },
             {
                 data: "QT_ESTOQUE",
                 name: "QT_ESTOQUE",
                 title: "Estoque",
                 width: "10%",
+                className: "no-wrap text-center",
             },
         ],
+        order: [[1, "asc"]]
     });
 });
 

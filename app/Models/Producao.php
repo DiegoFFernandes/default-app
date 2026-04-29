@@ -644,14 +644,14 @@ class Producao extends Model
         $query = "
                 SELECT
                     PP.IDEMPRESA,
-                    BP.IDITEM || '-' || MATPRIMA.DS_ITEM DS_BANDA,
+                    COALESCE(BP.IDITEM || '-' || MATPRIMA.DS_ITEM, '1-BANDAS SEM ASSOCIACAO-TRC002') DS_BANDA,
                     MATPRIMA.SG_UNIDMED,
                     CAST(SUM(IIF(MATPRIMA.SG_UNIDMED = 'KG', PRE.QTITEMCONVERSAO * MEDIDAPNEU.NRPERIMETROMAX, PRE.QTITEMFIXA)) AS NUMERIC(15,2)) QT_CONSUMO,
                     CAST(S.O_QT_SALDO AS NUMERIC(15,2)) QT_ESTOQUE,
 
                     CASE
                     WHEN BP.IDITEM IS NOT NULL THEN 'OK'
-                    ELSE 'NÃO'
+                    ELSE 'NAO'
                     END ST_BANDA
 
                 FROM ORDEMPRODUCAORECAP OPR
@@ -676,7 +676,7 @@ class Producao extends Model
                     AND PRE.IDITEM = BP.IDITEM)
                 LEFT JOIN ITEM MATPRIMA ON (MATPRIMA.CD_ITEM = PRE.IDITEM)
 
-                LEFT JOIN RETORNA_SALDOESTOQUE(PP.IDEMPRESA, PRE.IDITEM, $tipolocalestoque, $localestoque, CURRENT_DATE, NULL) S ON (1 = 1)
+                LEFT JOIN RETORNA_SALDOESTOQUE(PP.IDEMPRESA, COALESCE(PRE.IDITEM, 1), 1, 1, CURRENT_DATE, NULL) S ON (1 = 1)
 
                 WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'

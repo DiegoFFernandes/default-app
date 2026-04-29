@@ -97,29 +97,33 @@
                             @endforeach
                             <div class="tab-pane fade" id="painel-lotesPCP" role="tabpanel" aria-labelledby="tab-lotesPCP">
                                 <div class="row">
-                                    <div class="col-md-7">
+                                    <div class="col-md-6">
                                         <div class="card">
                                             <div class="card-header">
                                                 <h3 class="card-title">Lotes em Aberto</h3>
                                             </div>
                                             <div class="card-body">
-                                                <table id="lote-pcp"
-                                                    class="table compact table-font-small table-striped table-bordered table-responsive"
-                                                    style="width:100%; font-size: 11px;">
-                                                </table>
+                                                <div class="table-responsive">
+                                                    <table id="lote-pcp"
+                                                        class="table compact table-font-small table-striped table-bordered"
+                                                        style="width:100%; font-size: 11px;">
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-5">
+                                    <div class="col-md-6">
                                         <div class="card">
                                             <div class="card-header">
                                                 <h3 class="card-title">Bandas a consumir</h3>
                                             </div>
                                             <div class="card-body">
-                                                <table id="bandas-consumir"
-                                                    class="table compact table-font-small table-striped table-bordered table-responsive"
-                                                    style="width:100%; font-size: 11px;">
-                                                </table>
+                                                <div class="table-responsive">
+                                                    <table id="bandas-consumir"
+                                                        class="table compact table-font-small table-striped table-bordered"
+                                                        style="width:100%">
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

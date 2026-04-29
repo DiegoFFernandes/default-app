@@ -152,12 +152,38 @@ class PcpProducaoController extends Controller
     public function consumoEstoqueLoteMateriaPrima()
     {
         $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7')['data'];
-        
+
         $localestoque = 1;
         $tipolocalestoque = 1;
 
         $data = $this->producao->consumoEstoqueLoteMateriaPrima($subgrupo, $localestoque, $tipolocalestoque);
 
-        return DataTables::of($data)->make(true);
+        return DataTables::of($data)
+            ->addColumn('actions', function ($row) {
+
+                if ($row->ST_BANDA === 'NAO') {
+                    return '<button class="btn btn-xs btn-outline-warning btn-banda-sem-associacao">
+                        <i class="fa fa-exclamation-circle"></i> VER</button>';
+                } else {
+                    return '<button class="btn btn-xs btn-outline-success btn-banda-com-associacao">
+                        <i class="fa fa-check"></i></button>';
+                }
+            })
+            ->editColumn('QT_CONSUMO', function ($row) {
+                if ($row->QT_CONSUMO > $row->QT_ESTOQUE) {
+                    return '<span class="badge badge-danger text-xs">' . $row->QT_CONSUMO . '</span>';
+                } else {
+                    return '<span class="badge badge-success text-xs">' . $row->QT_CONSUMO . '</span>';
+                }
+            })
+            ->editColumn('QT_ESTOQUE', function ($row) {
+                if ($row->QT_CONSUMO < $row->QT_ESTOQUE) {
+                    return '<span class="badge badge-success text-xs">' . $row->QT_ESTOQUE . '</span>';
+                } else {
+                    return '<span class="badge badge-danger text-xs">' . $row->QT_ESTOQUE . '</span>';
+                }
+            })
+            ->rawColumns(['QT_CONSUMO', 'QT_ESTOQUE', 'actions'])
+            ->make(true);
     }
 }
