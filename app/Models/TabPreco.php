@@ -256,8 +256,8 @@ class TabPreco extends Model
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
-                WHERE ITEM.CD_GRUPO = $isValidGrupoEnchimento
-                    AND ITEM.CD_SUBGRUPO = $isValidSubgrupoEnchimento
+                WHERE ITEM.CD_GRUPO in ($isValidGrupoEnchimento)
+                    AND ITEM.CD_SUBGRUPO in ($isValidSubgrupoEnchimento)
                     AND COALESCE(ITEM.CD_SECAO, 99) = 99
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 99 THEN $input[vlr_enchimento]
@@ -275,8 +275,8 @@ class TabPreco extends Model
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
-                WHERE ITEM.CD_GRUPO = $isValidGrupoEnchimento
-                    AND ITEM.CD_SUBGRUPO = $isValidSubgrupoEnchimento
+                WHERE ITEM.CD_GRUPO in ($isValidGrupoEnchimento)
+                    AND ITEM.CD_SUBGRUPO in ($isValidSubgrupoEnchimento)
                     AND COALESCE(ITEM.CD_SECAO, 99) = 55 
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 55 THEN $input[vlr_enchimento_ombro_1]
@@ -294,8 +294,8 @@ class TabPreco extends Model
                     SG.DS_SUBGRUPO AS SUBGRUPO
                 FROM ITEM
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = ITEM.CD_SUBGRUPO)
-                WHERE ITEM.CD_GRUPO = $isValidGrupoEnchimento
-                    AND ITEM.CD_SUBGRUPO = $isValidSubgrupoEnchimento
+                WHERE ITEM.CD_GRUPO in ($isValidGrupoEnchimento)
+                    AND ITEM.CD_SUBGRUPO in ($isValidSubgrupoEnchimento)
                     AND COALESCE(ITEM.CD_SECAO, 99) = 56 
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 56 THEN $input[vlr_enchimento_ombro_2]

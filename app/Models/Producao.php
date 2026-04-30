@@ -261,7 +261,15 @@ class Producao extends Model
                 FROM (
                     --EXAME INICIAL
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
+                    
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                    MAX(IPP2.NRSEQUENCIA)
+                                                FROM ITEMPEDIDOPNEU IPP2
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+
+
+
                     EI.DTFIM DT_EXAME, NULL DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN EI.ID IS NULL THEN 'SEM EXAME'
@@ -292,7 +300,10 @@ class Producao extends Model
 
                     --lIMPEZA MANCHÃO
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                    MAX(IPP2.NRSEQUENCIA)
+                                                FROM ITEMPEDIDOPNEU IPP2
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN RP.ID IS NULL THEN 'EXAME INICIAL'
@@ -330,7 +341,10 @@ class Producao extends Model
 
                     --COBERTURA
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                    MAX(IPP2.NRSEQUENCIA)
+                                                FROM ITEMPEDIDOPNEU IPP2
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN PB.ID IS NULL THEN 'ESCAREACAO'
@@ -373,7 +387,10 @@ class Producao extends Model
 
                     --VULCANIZAÇÃO
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                    MAX(IPP2.NRSEQUENCIA)
+                                                FROM ITEMPEDIDOPNEU IPP2
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN EN.ID IS NULL THEN 'COBERTURA'
@@ -413,7 +430,10 @@ class Producao extends Model
 
                     --EXAME FINAL
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID,
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                    MAX(IPP2.NRSEQUENCIA)
+                                                FROM ITEMPEDIDOPNEU IPP2
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, EF.DTFIM DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN DE.ID IS NULL THEN 'VULC'
@@ -602,15 +622,16 @@ class Producao extends Model
                     M.DTPRODUCAO,
                     PESSOA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
                     PP.ID NR_PEDIDO,
-                        OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                     MAX(IPP2.NRSEQUENCIA)
-                                                 FROM ITEMPEDIDOPNEU IPP2
-                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                    MAX(IPP2.NRSEQUENCIA)
+                                                FROM ITEMPEDIDOPNEU IPP2
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
                     ITEM.CD_ITEM || '-' || ITEM.DS_ITEM DS_ITEM,
                     OPR.STORDEM,
                     CASE
                         WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
                         WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
+                        WHEN OPR.STORDEM = 'C' THEN 'CANCELADA'
                         ELSE OPR.STORDEM
                     END STATUS
                 FROM ORDEMPRODUCAORECAP OPR
@@ -644,6 +665,7 @@ class Producao extends Model
         $query = "
                 SELECT
                     PP.IDEMPRESA,
+                    COUNT(OPR.ID) QTD_PNEUS,
                     COALESCE(BP.IDITEM || '-' || MATPRIMA.DS_ITEM, '1-BANDAS SEM ASSOCIACAO-TRC002') DS_BANDA,
                     MATPRIMA.SG_UNIDMED,
                     CAST(SUM(IIF(MATPRIMA.SG_UNIDMED = 'KG', PRE.QTITEMCONVERSAO * MEDIDAPNEU.NRPERIMETROMAX, PRE.QTITEMFIXA)) AS NUMERIC(15,2)) QT_CONSUMO,
@@ -685,6 +707,63 @@ class Producao extends Model
                     AND PBP.ST_ETAPA IS NULL
                 GROUP BY PP.IDEMPRESA, MATPRIMA.DS_ITEM, ST_BANDA, MATPRIMA.SG_UNIDMED, BP.IDITEM, S.O_QT_SALDO        
         ";
+
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
+    }
+
+    public function bandasSemAssociacao($subgrupo)
+    {
+        $query = "
+            SELECT
+                PP.IDEMPRESA,
+                M.ID NR_LOTE,
+                C.DSCONTROLELOTEPCP,
+                --M.NRLOTESEQDIA,
+                M.DTPRODUCAO,
+                PP.ID NR_PEDIDO,
+                OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                                MAX(IPP2.NRSEQUENCIA)
+                                                            FROM ITEMPEDIDOPNEU IPP2
+                                                            WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
+                SERVICOPNEU.ID || '-' || SERVICOPNEU.DSSERVICO DS_ITEM,
+                --MEDIDAPNEU.ID CD_MEDIDA,
+
+                MEDIDAPNEU.NRPERIMETROMAX,
+
+                CASE
+                WHEN BP.IDITEM IS NOT NULL THEN 'OK'
+                ELSE 'NÃO'
+                END ST_BANDA,
+                MATPRIMA.SG_UNIDMED,
+                IIF(MATPRIMA.SG_UNIDMED = 'KG', PRE.QTITEMCONVERSAO * MEDIDAPNEU.NRPERIMETROMAX, PRE.QTITEMFIXA) QT_CONSUMO
+
+            FROM ORDEMPRODUCAORECAP OPR
+            INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+            INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+                AND M.IDEMPRESA = PCP.IDEMPRESA)
+            INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+                AND C.IDEMPRESA = M.IDEMPRESA)
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            INNER JOIN SERVICOPNEU ON (SERVICOPNEU.ID = IPP.IDSERVICOPNEU)
+            INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+            INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+            INNER JOIN MEDIDAPNEU ON (MEDIDAPNEU.ID = PNEU.IDMEDIDAPNEU)
+
+            INNER JOIN BANDAPNEU BP ON (BP.ID = SERVICOPNEU.IDBANDAPNEU)
+
+            LEFT JOIN PRODUTORECAPETAPA PRE ON (PRE.IDEMPRESA = PP.IDEMPRESA
+                AND PRE.IDETAPA = 3
+                AND PRE.IDITEM = BP.IDITEM)
+            LEFT JOIN ITEM MATPRIMA ON (MATPRIMA.CD_ITEM = PRE.IDITEM)
+
+            WHERE IPP.STCANCELADO = 'N'
+                AND IPP.STGARANTIA = 'N'
+                AND OPR.STORDEM = 'A'
+                AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
+                and BP.IDITEM IS NULL
+                ";
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);

@@ -117,8 +117,9 @@ class TabelaPrecoController extends Controller
             return redirect()->back()->withErrors($isValidGrupoEnchimento['message']);
         }
 
+        return  $isValidSubgrupoReformaCarga['data'];
         //Busca os desenhos do grupo de retorma de carga para montar a tabela de preço.
-        $desenho = $this->tabela->getSelectTabPreco(null, null, null, null, null, $isValidSubgrupoReformaCarga['data']);
+        return $desenho = $this->tabela->getSelectTabPreco(null, null, null, null, null, $isValidSubgrupoReformaCarga['data']);
 
 
         return view('admin.comercial.tabela-preco', compact(

@@ -136,6 +136,7 @@
         </div>
     </section>
     @include('admin.producao.pcp.modals.modal-pneus-lote')
+    @include('admin.producao.pcp.modals.modal-bandas-sem-associacao')
 @stop
 
 @section('css')
@@ -160,7 +161,8 @@
             getPneusAtrasoLotePcp: "{{ route('get-pneus-atraso-lote-pcp') }}",
             getLotePcp: "{{ route('get-lote-pcp') }}",
             detalhesPneusLotePcp: "{{ route('detalhes-pneus-lote-pcp') }}",
-            consumoEstoqueLoteMateriaPrima: "{{ route('consumo-estoque-lote-materia-prima') }}"
+            consumoEstoqueLoteMateriaPrima: "{{ route('consumo-estoque-lote-materia-prima') }}",
+            bandasSemAssociacao: "{{ route('bandas-sem-associacao') }}",
         }
 
         const empresa = @json($empresa);
@@ -246,7 +248,7 @@
                     {
                         data: 'NR_OP',
                         name: 'NR_OP',
-                        title: 'OP',
+                        title: 'Ordem',
                         className: 'text-center'
                     },
                     {

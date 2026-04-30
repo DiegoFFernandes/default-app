@@ -143,7 +143,10 @@ class PcpProducaoController extends Controller
         return DataTables::of($data)
             ->editColumn('STORDEM', function ($row) {
                 return "<span class='badge 
-                    badge-" . ($row->STORDEM === 'A' ? 'warning' : ($row->STORDEM === 'F' ? 'success' : 'secondary')) . "'>" . $row->STATUS . "</span>";
+                    badge-" . ($row->STORDEM === 'A' ? 'warning' : 
+                                ($row->STORDEM === 'F' ? 'success' : 'danger')) . "'>" . $row->STATUS . 
+                                
+                                "</span>";
             })
             ->rawColumns(['STORDEM'])
             ->make(true);
@@ -170,20 +173,30 @@ class PcpProducaoController extends Controller
                 }
             })
             ->editColumn('QT_CONSUMO', function ($row) {
-                if ($row->QT_CONSUMO > $row->QT_ESTOQUE) {
+                if (($row->QT_CONSUMO >= $row->QT_ESTOQUE)) {
                     return '<span class="badge badge-danger text-xs">' . $row->QT_CONSUMO . '</span>';
                 } else {
                     return '<span class="badge badge-success text-xs">' . $row->QT_CONSUMO . '</span>';
                 }
             })
             ->editColumn('QT_ESTOQUE', function ($row) {
-                if ($row->QT_CONSUMO < $row->QT_ESTOQUE) {
-                    return '<span class="badge badge-success text-xs">' . $row->QT_ESTOQUE . '</span>';
-                } else {
+                if (($row->QT_CONSUMO >= $row->QT_ESTOQUE)) {
                     return '<span class="badge badge-danger text-xs">' . $row->QT_ESTOQUE . '</span>';
+                } else {
+                    return '<span class="badge badge-success text-xs">' . $row->QT_ESTOQUE . '</span>';
                 }
             })
             ->rawColumns(['QT_CONSUMO', 'QT_ESTOQUE', 'actions'])
+            ->make(true);
+    }
+
+    public function bandasSemAssociacao()
+    {
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7')['data'];
+        
+        $data = $this->producao->bandasSemAssociacao($subgrupo);
+
+        return DataTables::of($data)
             ->make(true);
     }
 }

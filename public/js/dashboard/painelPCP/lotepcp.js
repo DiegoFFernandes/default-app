@@ -105,7 +105,7 @@ $(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
         },
         ajax: {
             url: window.routes.consumoEstoqueLoteMateriaPrima,
-            type: "GET",
+            type: "POST",
             data: {
                 _token: window.routes.token,
             },
@@ -126,6 +126,13 @@ $(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
                 title: "Emp.",
                 width: "1%",
                 className: "no-wrap text-center",
+            },
+            {
+                data: "QTD_PNEUS",
+                name: "QTD_PNEUS",
+                title: "Pneus",
+                className: "no-wrap text-center",
+                width: "1%",
             },
             {
                 data: "DS_BANDA",
@@ -155,7 +162,7 @@ $(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
                 className: "no-wrap text-center",
             },
         ],
-        order: [[1, "asc"]]
+        order: [[1, "asc"]],
     });
 });
 
@@ -223,4 +230,50 @@ $(document).on("click", ".btn-pneus-lote", function () {
     });
 
     $("#modal-pneus-lote-pcp").modal("show");
+});
+
+$(document).on("click", ".btn-banda-sem-associacao", function () {
+    $("#modal-bandas-sem-associacao").modal("show");
+
+    $("#table-bandas-sem-associacao").DataTable({
+        pageLength: 100,
+        processing: false,
+        serverSide: false,
+        destroy: true,
+        pagingType: "simple",
+        language: {
+            url: window.routes.languageDatatables,
+        },
+        ajax: {
+            url: window.routes.bandasSemAssociacao,
+            type: "POST",
+            data: {
+                _token: window.routes.token,
+                empresa: empresa,
+            },
+        },
+        columns: [
+            {
+                data: "DS_ITEM",
+                name: "DS_ITEM",
+                title: "Serviço",
+                className: "no-wrap",
+            },
+            {
+                data: "NRPERIMETROMAX",
+                name: "NRPERIMETROMAX",
+                title: "Perímetro",
+                className: "no-wrap text-center",
+            },
+        ],
+    });
+});
+
+$(document).on("click", ".btn-banda-com-associacao", function () {
+    Swal.fire({
+        title: "Banda Associada",
+        text: "Tudo ok. Esse item está associado a uma banda!",
+        icon: "success",
+        confirmButtonText: "Fechar",
+    });
 });
