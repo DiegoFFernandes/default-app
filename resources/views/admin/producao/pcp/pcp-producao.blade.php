@@ -7,7 +7,7 @@
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box">
+                <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Qtde Lotes</span>
@@ -16,16 +16,18 @@
                 </div>
             </div>
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box">
+                <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
                     <div class="info-box-content">
-                        <span class="info-box-text">Total Pneus</span>
-                        <span class="info-box-number" id="card-pneus-lote">0</span>
+                        <span class="info-box-text">Total Em Produção</span>
+                        <span class="info-box-number" id="card-pneus-em-producao">0
+                            <small>% Atraso</small>
+                        </span>
                     </div>
                 </div>
             </div>
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box">
+                <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-danger"><i class="fas fa-clock"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Atrasados</span>
@@ -34,7 +36,7 @@
                 </div>
             </div>
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box">
+                <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Sem exame</span>
@@ -43,7 +45,7 @@
                 </div>
             </div>
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box">
+                <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-warning"><i class="fas fa-hourglass-start"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Iniciando</span>
@@ -52,7 +54,7 @@
                 </div>
             </div>
             <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box">
+                <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-success"><i class="fas fa-check-circle"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Finalizados</span>
@@ -141,13 +143,49 @@
 
 @section('css')
     <style>
-        .info-box-text {
-            font-size: 14px;
+        .info-box-custom {
+            border-radius: 12px;
+            padding: 6px;
+            transition: all 0.2s ease;
         }
 
-        .info-box-number {
-            font-weight: bold;
-            font-size: 18px;
+        /* Hover suave */
+        .info-box-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Ícone mais proporcional */
+        .info-box-custom .info-box-icon {  
+            font-size: 20px;
+            border-radius: 10px;
+
+            display: flex !important;
+            align-items: center !important;
+            /* centraliza vertical */
+            justify-content: center !important;
+            /* centraliza horizontal */
+  
+        }
+
+        /* Texto */
+        .info-box-custom .info-box-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        /* Número principal */
+        .info-box-custom .info-box-number {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* Percentual */
+        .info-box-custom .percentual {
+            font-size: 12px;
+            color: #6c757d;
+            margin-left: 4px;
         }
 
         @keyframes piscarAlerta {
@@ -192,6 +230,7 @@
         var totalFinalizados = 0;
         var totalSemExame = 0;
         var totalLotes = 0;
+        var pcAtrasado = 0;
 
         initTable('pneus-lote-pcp-' + empresa[0].CD_EMPRESA, empresa[0].CD_EMPRESA);
 
@@ -337,8 +376,8 @@
                     },
                 }],
                 createdRow: function(row, data, dataIndex) {
-                    
-                    if ( parseInt(data.CD_ETAPA) === 0) {
+
+                    if (parseInt(data.CD_ETAPA) === 0) {
                         console.log(data.CD_ETAPA);
                         $(row).addClass('badge-atrasado');
                     }
@@ -353,21 +392,21 @@
                     totalIniciando = 0;
                     totalFinalizados = 0;
                     totalSemExame = 0;
+                    pcAtrasado = totalEmProducao > 0 ? ((totalAtraso / totalEmProducao) * 100).toFixed(2) : 0;
+
 
                     // console.log(lotePcpTable);
 
 
                     data.each(function(rowData) {
                         // formata a sting para nao dar erros
-                        let etapa = rowData.DS_ETAPA ? rowData.DS_ETAPA.trim()
-                            .toUpperCase() :
-                            '';
+                        let cd_etapa = parseInt(rowData.CD_ETAPA);
 
-                        if (etapa === 'EXAME INICIAL') {
+                        if (cd_etapa === 1) {
                             totalIniciando++;
                         }
 
-                        if (etapa === 'SEM EXAME') {
+                        if (cd_etapa === 0) {
                             totalSemExame++;
                         }
                     });
@@ -378,8 +417,10 @@
                     $('#lotes').text(totalLotes);
 
                     // atualiza os cards
-                    $('#card-pneus-lote').text(totalPneusLote);
-                    $('#card-pneus-atraso').text(totalAtraso);
+                    $('#card-pneus-em-producao').html(totalEmProducao);
+                    $('#card-pneus-atraso').html(totalAtraso + ' <small class="percentual text-muted">' +
+                        pcAtrasado +
+                        '%</small>');
                     $('#card-pneus-iniciando').text(totalIniciando);
                     $('#card-pneus-sem-exame').text(totalSemExame);
                     $('#card-pneus-finalizados').text(totalPneusLote - totalEmProducao);
