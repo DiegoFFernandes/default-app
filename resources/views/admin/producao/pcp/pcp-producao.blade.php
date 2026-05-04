@@ -149,6 +149,24 @@
             font-weight: bold;
             font-size: 18px;
         }
+
+        @keyframes piscarAlerta {
+            0% {
+                background-color: #fff;
+            }
+
+            50% {
+                background-color: #f8d7da;
+            }
+
+            100% {
+                background-color: #fff;
+            }
+        }
+
+        .badge-atrasado {
+            animation: piscarAlerta 1s infinite;
+        }
     </style>
 @stop
 
@@ -231,6 +249,7 @@
                         data: 'actions',
                         name: 'actions',
                         title: '#',
+                        width: '5%',
                         orderable: false,
                     },
                     {
@@ -298,6 +317,7 @@
                         data: 'DS_ETAPA',
                         name: 'DS_ETAPA',
                         title: 'Última.Etapa',
+                        className: 'text-center no-wrap',
                         width: '10%',
                     },
                     {
@@ -316,6 +336,13 @@
                         return data;
                     },
                 }],
+                createdRow: function(row, data, dataIndex) {
+                    
+                    if ( parseInt(data.CD_ETAPA) === 0) {
+                        console.log(data.CD_ETAPA);
+                        $(row).addClass('badge-atrasado');
+                    }
+                },
                 drawCallback: function(settings) {
                     var api = this.api();
                     var data = api.rows().data();
@@ -356,7 +383,10 @@
                     $('#card-pneus-iniciando').text(totalIniciando);
                     $('#card-pneus-sem-exame').text(totalSemExame);
                     $('#card-pneus-finalizados').text(totalPneusLote - totalEmProducao);
-                }
+                },
+                order: [
+                    [1, 'asc']
+                ]
             });
         }
 

@@ -257,7 +257,7 @@ class Producao extends Model
                     P.NM_PESSOA, COALESCE(RC.DS_REGIAOCOMERCIAL,'SEM REGIAO') DS_REGIAOCOMERCIAL, SP.DSSERVICO,
                     X.DSCONTROLELOTEPCP, X.NR_LOTE, X.NRLOTESEQDIA, X.DTFIM, X.HRFIM, X.ID NR_OP,
                     X.DT_EXAME, X.DT_MANCHAO, X.DT_COBER, X.DT_VULC, X.DT_FINAL,
-                    X.DS_ETAPA, X.DSOBSERVACAO, MP.DSMOTIVO
+                    X.CD_ETAPA, X.DS_ETAPA, X.DSOBSERVACAO, MP.DSMOTIVO
                 FROM (
                     --EXAME INICIAL
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
@@ -275,6 +275,10 @@ class Producao extends Model
                         WHEN EI.ID IS NULL THEN 'SEM EXAME'
                         WHEN EI.ST_ETAPA = 'A' THEN 'EXAME INICIAL'
                     END DS_ETAPA,
+                    CASE
+                        WHEN EI.ID IS NULL THEN 0
+                        WHEN EI.ST_ETAPA = 'A' THEN 1
+                    END CD_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
                     INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
@@ -311,6 +315,13 @@ class Producao extends Model
                         WHEN LM.ID IS NULL THEN 'LIMPEZA MANCHAO'
                         WHEN LM.ST_ETAPA = 'A' THEN 'COLA'
                     END DS_ETAPA,
+                    CASE
+                        WHEN RP.ID IS NULL THEN 1
+                        WHEN ES.ID IS NULL THEN 2
+                        WHEN LM.ID IS NULL THEN 5
+                        WHEN LM.ST_ETAPA = 'A' THEN 6
+                    END CD_ETAPA,
+
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
                     INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
@@ -348,12 +359,20 @@ class Producao extends Model
                     EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
                     CASE
                         WHEN PB.ID IS NULL THEN 'ESCAREACAO'
-                        WHEN CP.ID IS NULL THEN 'BANDA'
+                        WHEN CP.ID IS NULL THEN 'PREPARACAO BANDA'
                         WHEN CS.ID IS NULL THEN 'COLA'
                         WHEN EX.ID IS NULL THEN 'AP. CONS'
                         WHEN EB.ID IS NULL THEN 'EXTRUS'
                         WHEN EB.ST_ETAPA = 'A' THEN 'COBERTURA'
                     END DS_ETAPA,
+                    CASE
+                        WHEN PB.ID IS NULL THEN 4
+                        WHEN CP.ID IS NULL THEN 3
+                        WHEN CS.ID IS NULL THEN 6
+                        WHEN EX.ID IS NULL THEN 7
+                        WHEN EB.ID IS NULL THEN 8
+                        WHEN EB.ST_ETAPA = 'A' THEN 9
+                    END CD_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
                     INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
@@ -398,6 +417,12 @@ class Producao extends Model
                         WHEN VP.ID IS NULL THEN 'MONTAGEM'
                         WHEN VP.ST_ETAPA = 'A' THEN 'VULCANIZ'
                     END DS_ETAPA,
+                    CASE
+                        WHEN EN.ID IS NULL THEN 9
+                        WHEN MO.ID IS NULL THEN 15
+                        WHEN VP.ID IS NULL THEN 14
+                        WHEN VP.ST_ETAPA = 'A' THEN 11
+                    END CD_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
                     INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
@@ -440,6 +465,11 @@ class Producao extends Model
                         WHEN EF.ID IS NULL THEN 'DESENVEL'
                         WHEN EF.ST_ETAPA = 'A' THEN 'DESENVEL'
                     END DS_ETAPA,
+                    CASE
+                        WHEN DE.ID IS NULL THEN 11
+                        WHEN EF.ID IS NULL THEN 16
+                        WHEN EF.ST_ETAPA = 'A' THEN 16
+                    END CD_ETAPA,
                     OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
                     FROM ORDEMPRODUCAORECAP OPR
                     INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)

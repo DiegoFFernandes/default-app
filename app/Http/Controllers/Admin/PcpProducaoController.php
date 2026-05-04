@@ -93,7 +93,30 @@ class PcpProducaoController extends Controller
                         
                         ";
             })
-            ->rawColumns(['actions'])
+            ->editColumn('DS_ETAPA', function ($row) {
+                $badgeClass = 'secondary';
+                switch ($row->CD_ETAPA) {
+                    case 0:
+                        $badgeClass = 'danger';
+                        break;
+                    case 1:
+                        $badgeClass = 'warning';
+                        break;
+                    case 3:
+                        $badgeClass = 'info';
+                        break;
+                    case 4:
+                        $badgeClass = 'primary';
+                        break;
+                    case 5:
+                        $badgeClass = 'dark';
+                        break;                    
+                    default:
+                        $badgeClass = 'secondary';
+                }
+                return "<span class='badge badge-{$badgeClass} w-100'>{$row->DS_ETAPA}</span>";
+            })
+            ->rawColumns(['actions', 'DS_ETAPA'])
             ->make(true)
             ->getData();
 
@@ -143,10 +166,9 @@ class PcpProducaoController extends Controller
         return DataTables::of($data)
             ->editColumn('STORDEM', function ($row) {
                 return "<span class='badge 
-                    badge-" . ($row->STORDEM === 'A' ? 'warning' : 
-                                ($row->STORDEM === 'F' ? 'success' : 'danger')) . "'>" . $row->STATUS . 
-                                
-                                "</span>";
+                    badge-" . ($row->STORDEM === 'A' ? 'warning' : ($row->STORDEM === 'F' ? 'success' : 'danger')) . "'>" . $row->STATUS .
+
+                    "</span>";
             })
             ->rawColumns(['STORDEM'])
             ->make(true);
@@ -193,7 +215,7 @@ class PcpProducaoController extends Controller
     public function bandasSemAssociacao()
     {
         $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7')['data'];
-        
+
         $data = $this->producao->bandasSemAssociacao($subgrupo);
 
         return DataTables::of($data)

@@ -157,7 +157,7 @@ class ExecutorEtapaController extends Controller
         $painel = $this->request->painel;
         $subPainel = $this->request->subPainel;
 
-        // 9 - CANCELADAS
+        // 9 - RECUSADAS
         $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
 
         $data = $this->executorEtapa->resumoExecutorSetor(
