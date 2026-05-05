@@ -33,10 +33,12 @@
                             </ul>
                         </div>
 
-                        <div class="card-tools" >
-                            <div class="custom-control custom-checkbox">
-                                <input class="custom-control-input" type="checkbox" id="atualizarTela" checked="">
-                                <label for="atualizarTela" class="custom-control-label">Atualizar 5 minutos</label>
+                        <div class="card-tools d-flex align-items-center">
+                            <span id="minutosParaAtualizacao" class="badge badge-primary"><i class="fa fa-clock"
+                                    aria-hidden="true"></i> 05:00</span>
+                            <div class="custom-control custom-checkbox ml-2">
+                                <input class="custom-control-input" type="checkbox" id="atualizarTela">
+                                <label for="atualizarTela" class="custom-control-label">Atualizar</label>
                             </div>
                         </div>
                     </div>
@@ -340,6 +342,7 @@
                 }],
                 createdRow: function(row, data, dataIndex) {
 
+                    // adiciona a classe de atraso dependendo da etapa e fica piscando  
                     if (parseInt(data.CD_ETAPA) === 0) {
                         $(row).addClass('badge-atrasado badge-atrasado-danger');
                     } else if (parseInt(data.CD_ETAPA) === 1) {
@@ -359,11 +362,8 @@
                     pcAtrasado = totalEmProducao > 0 ? ((totalAtraso / totalEmProducao) * 100).toFixed(2) : 0;
 
 
-                    // console.log(lotePcpTable);
-
-
                     data.each(function(rowData) {
-                        // formata a sting para nao dar erros
+                        // formata a string para nao dar erros
                         let cd_etapa = parseInt(rowData.CD_ETAPA);
 
                         if (cd_etapa === 1) {
@@ -387,6 +387,16 @@
                         '%</small>');
                     $('#card-pneus-iniciando').text(totalIniciando);
                     $('#card-pneus-sem-exame').text(totalSemExame);
+
+                    if (totalSemExame > 0) {
+                        $('.bg-pneu-sem-exame').addClass('badge-atrasado badge-atrasado-danger').removeClass(
+                            'bg-success');
+                        $('.bg-pneu-sem-exame').find('i').css('color', 'red');
+                    } else {
+                        $('.bg-pneu-sem-exame').removeClass('badge-atrasado badge-atrasado-danger').addClass(
+                            'bg-success');
+                        $('.bg-pneu-sem-exame').find('i').css('color', 'white');
+                    }
                     $('#card-pneus-finalizados').text(totalPneusLote - totalEmProducao);
                 },
                 order: [
@@ -425,6 +435,65 @@
                     Swal.fire('Aviso!', 'Essa funcionalidade ainda não está implementada.', 'warning');
                 }
             });
+        });
+
+        let intervaloAtualizacao = null;
+        let intervaloRelogio = null;
+        let tempoRestante = 300; // 5 minutos em segundos
+
+        $('#atualizarTela').change(function() {
+            if ($(this).is(':checked')) {
+
+                Swal.fire({
+                    title: 'Atualização Automática',
+                    text: 'A tela será atualizada a cada 5 minutos.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Habilitar atualização automática
+                intervaloAtualizacao = setInterval(function() {
+                    let activeTab = $('#tab-pcp .nav-link.active');
+                    let empresa = activeTab.data('empresa');
+                    if (empresa) {
+                        initTable('pneus-lote-pcp-' + empresa, empresa);
+                    }
+
+                    tempoRestante = 300; // reseta o contador
+                    
+                }, 300000); // Atualiza a cada 5 minutos (300.000 milissegundos)
+
+                intervaloRelogio = setInterval(function() {
+                    tempoRestante--;
+                    let minutos = Math.floor(tempoRestante / 60);
+                    let segundos = tempoRestante % 60;
+
+                    let tempoFormatado =
+                        `${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+
+                    $('#minutosParaAtualizacao').text(tempoFormatado);
+
+                    if (tempoRestante <= 0) {
+                        tempoRestante = 300; // Reinicia o contador
+                    }
+                }, 1000); // Atualiza o relógio a cada segundo
+
+            } else {
+                Swal.fire({
+                    title: 'Atualização Automática Desativada',
+                    text: 'A tela não será mais atualizada automaticamente.',
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Desabilitar atualização automática
+                clearInterval(intervaloAtualizacao);
+                clearInterval(intervaloRelogio);
+                $('#minutosParaAtualizacao').text('05:00');
+                tempoRestante = 300; // Reinicia o contador
+            }
         });
     </script>
 @stop
