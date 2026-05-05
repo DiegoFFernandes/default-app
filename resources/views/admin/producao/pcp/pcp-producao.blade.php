@@ -4,87 +4,41 @@
 
 @section('content')
     <section class="content">
-        <!-- Small boxes (Stat box) -->
-        <div class="row">
-            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box info-box-custom">
-                    <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Qtde Lotes</span>
-                        <span class="info-box-number" id="lotes">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box info-box-custom">
-                    <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Total Em Produção</span>
-                        <span class="info-box-number" id="card-pneus-em-producao">0
-                            <small>% Atraso</small>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box info-box-custom">
-                    <span class="info-box-icon bg-danger"><i class="fas fa-clock"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Atrasados</span>
-                        <span class="info-box-number" id="card-pneus-atraso">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box info-box-custom">
-                    <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-circle"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Sem exame</span>
-                        <span class="info-box-number" id="card-pneus-sem-exame">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box info-box-custom">
-                    <span class="info-box-icon bg-warning"><i class="fas fa-hourglass-start"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Iniciando</span>
-                        <span class="info-box-number" id="card-pneus-iniciando">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-sm-6 col-md-4 col-lg-2">
-                <div class="info-box info-box-custom">
-                    <span class="info-box-icon bg-success"><i class="fas fa-check-circle"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Finalizados</span>
-                        <span class="info-box-number" id="card-pneus-finalizados">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+        @include('admin.producao.pcp.cards.cards')
         <div class="row">
             <div class="col-md-12 col-12">
                 <div class="card card-dark card-outline card-outline-tabs">
-                    <div class="card-header p-0 border-bottom-0">
-                        <ul class="nav nav-tabs" id="tab-pcp" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link" id="tab-lotesPCP" data-toggle="pill" href="#painel-lotesPCP"
-                                    role="tab" aria-controls="painel-lotesPCP" aria-selected="false">
-                                    Lotes PCP
-                                </a>
-                            </li>
-                            @foreach ($empresa as $emp)
+                    <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1">
+
+
+                            <ul class="nav nav-tabs border-bottom-0" id="tab-pcp" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-painelPCP-{{ $emp->CD_EMPRESA }}" data-toggle="pill"
-                                        href="#painel-pcp-{{ $emp->CD_EMPRESA }}" role="tab"
-                                        aria-controls="painel-pcp-{{ $emp->CD_EMPRESA }}" aria-selected="false"
-                                        data-empresa="{{ $emp->CD_EMPRESA }}">
-                                        {{ $emp->NM_EMPRESA }}
+                                    <a class="nav-link" id="tab-lotesPCP" data-toggle="pill" href="#painel-lotesPCP"
+                                        role="tab" aria-controls="painel-lotesPCP" aria-selected="false">
+                                        Lotes PCP
                                     </a>
                                 </li>
-                            @endforeach
-                        </ul>
+                                @foreach ($empresa as $emp)
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="tab-painelPCP-{{ $emp->CD_EMPRESA }}" data-toggle="pill"
+                                            href="#painel-pcp-{{ $emp->CD_EMPRESA }}" role="tab"
+                                            aria-controls="painel-pcp-{{ $emp->CD_EMPRESA }}" aria-selected="false"
+                                            data-empresa="{{ $emp->CD_EMPRESA }}">
+                                            {{ $emp->NM_EMPRESA }}
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <div class="card-tools" >
+                            <div class="custom-control custom-checkbox">
+                                <input class="custom-control-input" type="checkbox" id="atualizarTela" checked="">
+                                <label for="atualizarTela" class="custom-control-label">Atualizar 5 minutos</label>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="tab-content" id="tabContentColetas">
@@ -156,7 +110,7 @@
         }
 
         /* Ícone mais proporcional */
-        .info-box-custom .info-box-icon {  
+        .info-box-custom .info-box-icon {
             font-size: 20px;
             border-radius: 10px;
 
@@ -165,7 +119,7 @@
             /* centraliza vertical */
             justify-content: center !important;
             /* centraliza horizontal */
-  
+
         }
 
         /* Texto */
@@ -188,22 +142,31 @@
             margin-left: 4px;
         }
 
-        @keyframes piscarAlerta {
-            0% {
-                background-color: #fff;
+        @keyframes piscar {
+
+            0%,
+            100% {
+                background-color: transparent;
             }
 
             50% {
-                background-color: #f8d7da;
-            }
-
-            100% {
-                background-color: #fff;
+                background-color: var(--blink-color);
             }
         }
 
         .badge-atrasado {
-            animation: piscarAlerta 1s infinite;
+            animation: piscar 1.5s infinite;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Danger */
+        .badge-atrasado-danger {
+            --blink-color: #f8d7da;
+        }
+
+        /* Warning */
+        .badge-atrasado-warning {
+            --blink-color: #fff3cd;
         }
     </style>
 @stop
@@ -378,8 +341,9 @@
                 createdRow: function(row, data, dataIndex) {
 
                     if (parseInt(data.CD_ETAPA) === 0) {
-                        console.log(data.CD_ETAPA);
-                        $(row).addClass('badge-atrasado');
+                        $(row).addClass('badge-atrasado badge-atrasado-danger');
+                    } else if (parseInt(data.CD_ETAPA) === 1) {
+                        $(row).addClass('badge-atrasado badge-atrasado-warning');
                     }
                 },
                 drawCallback: function(settings) {
@@ -417,7 +381,7 @@
                     $('#lotes').text(totalLotes);
 
                     // atualiza os cards
-                    $('#card-pneus-em-producao').html(totalEmProducao);
+                    $('#card-pneus-em-producao').html(totalPneusLote + ' / ' + totalEmProducao);
                     $('#card-pneus-atraso').html(totalAtraso + ' <small class="percentual text-muted">' +
                         pcAtrasado +
                         '%</small>');

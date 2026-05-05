@@ -100,6 +100,7 @@ class EstoqueController extends Controller
                 $btn = '<button class="btn btn-xs btn-editar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Editar"><i class="fas fa-edit"></i></button>';
                 $btn .= '<button class="btn btn-xs btn-baixar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Baixar"><i class="fas fa-sign-out-alt"></i></button>';
                 $btn .= '<button class="btn btn-xs btn-deletar btn-secondary mr-1 btn-sm-phone" data-id="' . $row->ID . '" title="Deletar"><i class="fas fa-trash-alt"></i></button>';
+                
                 return $btn;
             })
             ->rawColumns(['action'])

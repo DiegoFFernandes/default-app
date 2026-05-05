@@ -81,7 +81,7 @@ function initTableCarcaca() {
         },
     ];
 
-    if (!window.canEdit) {
+    if (window.canEdit) {
         columns.push({
             data: "action",
             name: "action",
