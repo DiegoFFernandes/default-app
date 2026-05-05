@@ -110,7 +110,7 @@ class PcpProducaoController extends Controller
                         break;
                     case 5:
                         $badgeClass = 'dark';
-                        break;                    
+                        break;
                     default:
                         $badgeClass = 'secondary';
                 }
@@ -176,7 +176,12 @@ class PcpProducaoController extends Controller
 
     public function consumoEstoqueLoteMateriaPrima()
     {
-        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7')['data'];
+        //esses subgrupo não serão utilizados na consulta.
+        // 5 - ENCHIMENTO
+        // 6 - VULCANIZAÇÃO
+        // 7 - VULCANIZACAO OTR
+        // 10 - DUPLAGEM
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7,10')['data'];
 
         $localestoque = 1;
         $tipolocalestoque = 1;
