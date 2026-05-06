@@ -33,6 +33,14 @@ class UserRoleFilterService
             ];
         }
 
+        if ($this->user->hasRole('diretoria')) {
+            return [
+                'cd_regiao' => '',
+                'cd_empresa' => 0,
+                'cd_pessoa' => 0,
+            ];
+        }
+
         if ($this->user->hasRole('gerente comercial')) {
             $cd_regiao = $this->area->findGerenteSupervisor($this->user->id)
                 ->pluck('CD_AREACOMERCIAL')

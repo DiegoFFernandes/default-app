@@ -177,11 +177,12 @@ class PcpProducaoController extends Controller
     public function consumoEstoqueLoteMateriaPrima()
     {
         //esses subgrupo não serão utilizados na consulta.
+        // 2 - REFORMA AGRICOLA
         // 5 - ENCHIMENTO
         // 6 - VULCANIZAÇÃO
         // 7 - VULCANIZACAO OTR
         // 10 - DUPLAGEM
-        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('5,6,7,10')['data'];
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos('2,5,6,7,10')['data'];
 
         $localestoque = 1;
         $tipolocalestoque = 1;
