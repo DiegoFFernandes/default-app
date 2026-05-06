@@ -28,9 +28,7 @@
                                 <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Coleta Geral</a>
                             @endhaspermission
-                            @role('admin')
-                                <a href="{{ route('analise-faturamento.index') }}" class="btn btn-sm btn-dark mb-1"
-                                    style="width: 150px">Faturamento</a>
+                            @role('admin')                                
                                 <a href="{{ route('analise-garantia.index') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Garantia</a>
                             @endrole
