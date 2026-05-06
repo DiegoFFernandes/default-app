@@ -63,7 +63,7 @@ Route::middleware(['auth', 'permission:ver-tabela-preco'])->group(function () {
     });
 });
 
-Route::middleware(['auth', 'role:admin|gerente comercial'])->group(function () {
+Route::middleware(['auth', 'role:admin|diretoria|gerente comercial'])->group(function () {
     Route::prefix('tabela')->group(function () {
         Route::post('get-importar-tabela-preco', [TabelaPrecoController::class, 'importarTabelaPreco'])->name('importar-tabela-preco');
         Route::post('vincular-tabela-preco', [TabelaPrecoController::class, 'vincularTabelaPreco'])->name('vincular-tabela-preco');

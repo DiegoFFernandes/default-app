@@ -75,11 +75,15 @@
 @section('js')
     <script>
         initProjetosTarefas();
-        $(document).on('click', '.card-projeto', function() {
-            var projetoId = $(this).find('.projeto-id').val();
+        $(document).on('click', '.btn-ir-tarefas', function() {
+            var projetoId = $(this).data('id');
 
             const route = '{{ route('tarefas-quadro', ':id') }}';
             window.location.href = route.replace(':id', projetoId);
+        });
+
+        $('.btn-add-projeto').on('click', function() {
+            $('#modal-adicionar-projeto-tarefa').modal('show');
         });
 
         $(document).on('click', '.btn-salvar-projeto-tarefa', function() {
@@ -107,9 +111,45 @@
             });
         });
 
+        $(document).on('click', '.btn-remover-projeto', function() {
+            var projetoId = $(this).data('id');
+
+            Swal.fire({
+                title: 'Tem certeza?',
+                text: "Essa ação não pode ser desfeita!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, remover!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '{{ route('remover-projeto') }}',
+                        method: 'POST',
+                        data: {
+                            id: projetoId,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            location.reload();
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro',
+                                text: 'Ocorreu um erro ao remover o projeto de tarefa.',
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
         function initProjetosTarefas() {
             $.ajax({
-                type: "POST",
+                type: "GET",
                 url: "{{ route('listar-projetos') }}",
                 data: {
                     _token: '{{ csrf_token() }}'
@@ -123,11 +163,12 @@
                                 <div class="card-header">
                                     <h3 class="card-title">${ projeto.nome }</h3>
                                     <div class="card-tools">
-                                        <button type="button" class="btn btn-tool btn-ir-tarefas">
-                                            <i class="fas fa-arrow-right"></i>
+                                        <button type="button" class="btn btn-danger btn-xs btn-remover-projeto" data-id="${ projeto.encrypted_id }">
+                                            <i class="fas fa-trash"></i>
                                         </button>
-                                        <input type="text" class="d-none projeto-id"
-                                            value="${ projeto.encrypted_id }">
+                                        <button type="button" class="btn btn-primary btn-xs btn-ir-tarefas" data-id="${ projeto.encrypted_id }">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>                                      
                                     </div>
                                 </div>
                                 <div class="card-body">

@@ -36,14 +36,14 @@ class ProjetosTarefasController extends Controller
 
     public function index()
     {
-        return view('admin.tarefas.projetos-tarefas', );
+        return view('admin.tarefas.projetos-tarefas',);
     }
 
     public function listarProjeto()
     {
         $idUser = $this->user->hasRole('admin') ? [] : [auth()->user()->id];
 
-        $projeto = $this->projeto->listProjetos($idUser)->makeHidden(['id']);        
+        $projeto = $this->projeto->listProjetos($idUser)->makeHidden(['id']);
 
         return response()->json($projeto);
     }
@@ -77,6 +77,27 @@ class ProjetosTarefasController extends Controller
             return response()->json(['success' => 'Título do projeto atualizado com sucesso!']);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar o título do projeto: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function removerProjeto()
+    {
+        $data = $this->request->validate([
+            'id' => 'required|string',
+        ]);
+
+        $projeto = $this->projeto->getProjetoById($data['id']);
+
+        if (!$projeto) {
+            return response()->json(['error' => 'Projeto não encontrado.'], 404);
+        }
+
+        try {
+            $projeto->delete();
+
+            return response()->json(['success' => 'Projeto removido com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erro ao remover o projeto: ' . $e->getMessage()], 500);
         }
     }
 }
