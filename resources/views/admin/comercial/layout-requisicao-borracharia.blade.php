@@ -6,7 +6,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-12 mb-4">
-                    <img src="{{ asset('img/atz-logo.png') }}" alt="">
+                    <img src="{{ asset('img/logo.png') }}" alt="">
                     <h4>
                         <span class="">Requisição Borracharia</span>
                         <small class="float-right">Periodo: {{ $datas['filtro']['dtInicio'] }} -

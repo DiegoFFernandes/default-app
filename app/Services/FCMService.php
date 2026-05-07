@@ -39,8 +39,8 @@ class FCMService
                 "data" => [
                     "title" => $title,
                     "body" => $body,
-                    "url" => "https://atz.dbytech.com.br/estoque/estoque-negativo",
-                    "icon" => "https://atz.dbytech.com.br/apple-touch-icon.png"
+                    "url" => env("APP_URL") . "/estoque/estoque-negativo",
+                    "icon" => env("APP_URL") . "/apple-touch-icon.png"
                 ]
             ]
         ];

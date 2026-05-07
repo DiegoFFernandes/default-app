@@ -77,7 +77,7 @@
             </div>
             <div class="row align-items-center mt-1">
                 <div class="col-2 d-flex justify-content-center mb-1">
-                    <img src="{{ asset('img/atz-logo.png') }}" alt="Logo ATZ" class="logo-atz  img-fluid">
+                    <img src="{{ asset('img/logo.png') }}" alt="Logo ATZ" class="logo-atz  img-fluid">
                 </div>
                 <div class="col-10 align-items-center mb-1 mt-1">
                     <div class="row">

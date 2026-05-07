@@ -284,9 +284,23 @@
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
 
-        $('#tab-associadas').on('show.bs.tab', function() {
-            tabelaPreco = initTabelaPreco(routes);
+
+        $(document).on("click", "#tab-associadas", function() {
+           initTabelaPreco(routes);
         });
+
+        // Tab para ver as tabelas cadastradas para importar
+        $(document).on("click", "#tab-cadastradas", function() {
+            initTableTabelaPrecoCadastradasPreview(routes);
+        });
+
+        // Tab para ver as tabelas cadastradas para importar
+        $(document).on("click", "#tab-divergencia", function() {
+            initTableDivergenciaTabelaPreco(routes);
+        });
+
+
+
 
         $('#tabela-preco').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
@@ -625,11 +639,7 @@
 
         formularioDinamico(routes); // chama a função para deixar a pagina dinamica
 
-        // Tab para ver as tabelas cadastradas para importar
-        $('#tab-cadastradas').on('show.bs.tab', function() {
 
-            initTableTabelaPrecoCadastradasPreview(routes);
-        });
 
         $('#tabela-preco-cadastradas').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
@@ -725,10 +735,7 @@
             deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco', 'tabela-preco', csrf);
         });
 
-        $('#tab-divergencia').on('show.bs.tab', function() {
-            $('#tabela-divergencia').DataTable().destroy();
-            initTableDivergenciaTabelaPreco(routes);
-        });
+
 
         $('#tabela-divergencia').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
