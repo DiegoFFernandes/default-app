@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\DesenhoPneu;
 use App\Models\Estoque;
 use App\Models\Item;
 use App\Models\LiberaOrdemComercial;
@@ -26,6 +27,7 @@ class PedidoPneuController extends Controller
     protected Pneu $pneu;
     protected Estoque $estoque;
     protected LiberaOrdemComercial $liberaOrdemComercial;
+    protected DesenhoPneu $desenhoPneu;
 
     public function __construct(
         Request $request,
@@ -35,7 +37,8 @@ class PedidoPneuController extends Controller
         Item $item,
         Pneu $pneu,
         Estoque $estoque,
-        LiberaOrdemComercial $liberaOrdemComercial
+        LiberaOrdemComercial $liberaOrdemComercial,
+        DesenhoPneu $desenhoPneu
     ) {
         $this->request = $request;
         $this->pedidoPneu = $pedidoPneu;
@@ -45,11 +48,14 @@ class PedidoPneuController extends Controller
         $this->pneu = $pneu;
         $this->estoque = $estoque;
         $this->liberaOrdemComercial = $liberaOrdemComercial;
+        $this->desenhoPneu = $desenhoPneu;
     }
 
     public function index()
     {
-        return view('admin.pedido.index');
+        $desenhos = $this->desenhoPneu->getDesenhoPneu();
+
+        return view('admin.pedido.index', compact('desenhos'));
     }
 
     public function searchPedidoPneu()
@@ -83,7 +89,7 @@ class PedidoPneuController extends Controller
 
         return DataTables::of($pedidos)
             ->addColumn('action', function ($pedido) {
-                return '<button class="btn btn-xs btn-secondary btn-editar-pneu" data-id="' . $pedido->ID_PNEU . '"><i class="fas fa-edit"></i></button>';
+                return '<button class="btn btn-xs btn-secondary btn-editar-pneu" data-id="' . $pedido->IDPNEU . '"><i class="fas fa-edit"></i></button>';
             })
             ->rawColumns(['action'])
             ->make(true);
@@ -288,5 +294,68 @@ class PedidoPneuController extends Controller
             'message' => 'Processamento concluído.',
             'details' => $ordens
         ]);
+    }
+
+    public function updatePedidoPneu()
+    {
+
+        $rules = [
+            'idPneu' => 'required|integer',
+            'nrSerie' => 'required|string',
+            'fogo' => 'integer|nullable',
+            'dot' => 'integer|nullable',
+            'idDesenho' => 'required|integer',
+            'idItemPedidoPneu' => 'required|integer'
+        ];
+
+        $messages = [
+            'idPneu.required' => 'ID do pneu é obrigatório.',
+            'idPneu.integer' => 'ID do pneu deve ser um número inteiro.',
+            'idItemPedidoPneu.required' => 'ID do item do pedido de pneu é obrigatório.',
+            'idItemPedidoPneu.integer' => 'ID do item do pedido de pneu deve ser um número inteiro.',
+            'nrSerie.required' => 'Número de série é obrigatório.',
+            'nrSerie.string' => 'Número de série deve ser uma string.',
+            'fogo.integer' => 'Número de fogo deve ser um número inteiro.',
+            'dot.integer' => 'Número DOT deve ser um número inteiro.',
+            'idDesenho.required' => 'ID do desenho é obrigatório.',
+            'idDesenho.integer' => 'ID do desenho deve ser um número inteiro.',
+        ];
+
+
+        $validate = Validator::make($this->request->all(), $rules, $messages);
+
+        if ($validate->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validate->errors()
+            ]);
+        }
+
+        $data = $validate->validated();
+
+        try {
+            //Atualiza os dados do pneu
+            $updatePneu = $this->pneu->updatePneu($data);
+
+            //Atualiza os dados do itempedidopneu (somente desenho)
+            $updateItemPedidoPneu = $this->pedidoPneu->updateItemPedidoPneu($data['idItemPedidoPneu'], $data['idDesenho']);
+
+            if ($updatePneu && $updateItemPedidoPneu) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pneu atualizado com sucesso.'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Falha ao atualizar o pneu.'
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -146,6 +146,7 @@ class Producao extends Model
                 PP.IDEMPRESA CD_EMPRESA,
                 IPP.IDSERVICOPNEU || '-' || ITEM.DS_ITEM AS DS_ITEM,
                 PP.IDPESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+                IPP.ID IDITEMPEDIDOPNEU,
                 IPP.VLUNITARIO VALOR,
                 OPR.DTFECHAMENTO,
                 PP.DTENTREGA,

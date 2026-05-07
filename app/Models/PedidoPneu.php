@@ -287,22 +287,33 @@ class PedidoPneu extends Model
         $query = "
             SELECT
                 PP.IDEMPRESA CD_EMPRESA,
-                PP.ID ID_PEDIDO,
+                PP.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID_PEDIDO,
                 PP.IDPESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
+
+                IPP.ID IDITEMPEDIDOPNEU,
                 IPP.IDSERVICOPNEU,
-                ITEM.DS_ITEM,
-                OPR.id NR_ORDEM,
+                SP.DSSERVICO DS_ITEM,
+                OPR.ID NR_ORDEM,
                 --DADOS DOS PNEUS
-                PNEU.ID ID_PNEU,
+                PNEU.ID IDPNEU,
                 PNEU.NRSERIE,
                 PNEU.NRFOGO,
-                PNEU.NRDOT
+                PNEU.NRDOT,
+                IPP.IDDESENHOPNEU,
+                DP.ID ID_DESENHO,
+                DP.DSDESENHO
             FROM PEDIDOPNEU PP
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+            INNER JOIN BANDAPNEU BP ON (BP.ID = SP.IDBANDAPNEU)
+            INNER JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
             INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
-            LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)            
+            LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)           
         ";
 
         $query .= ' WHERE ' . implode(' AND ', $where);
@@ -352,5 +363,25 @@ class PedidoPneu extends Model
         $dados = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($dados);
+    }
+
+    public function updateItemPedidoPneu(int $iditemPedidoPneu, int $idDesenho)
+    {
+        return DB::transaction(function () use ($iditemPedidoPneu, $idDesenho) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                        UPDATE ITEMPEDIDOPNEU
+                        SET
+                            IDDESENHOPNEU = :idDesenho
+                        WHERE (ID = :idItemPedidoPneu);
+                    ";
+
+            return DB::connection('firebird')->statement($query, [
+                'idItemPedidoPneu' => (int) $iditemPedidoPneu,
+                'idDesenho' => (int) $idDesenho
+            ]);
+        });
     }
 }

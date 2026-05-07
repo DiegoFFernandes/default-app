@@ -140,7 +140,7 @@ function initTableItemTabelaPreco(
     idTabela,
     tela,
     idTabelaItem,
-    idModal
+    idModal,
 ) {
     const title = $("#" + idModal + " .title-nm-tabela").text();
 
@@ -400,6 +400,60 @@ function initTableTabelaPrecoPrevia() {
     });
 }
 
+$(document).on("click", "#item-tabela-preco td:nth-child(3)", function () {
+    var tr = $(this).closest("tr");
+    var row = tabela_preview.row(tr);
+    var rowData = row.data();
+    var valorCell = tr.find("td").eq(2);
+    var valorTabela = parseFloat(rowData.VALOR).toFixed(2);
+
+    if (!valorCell.find("input").length) {
+        valorCell.html(
+            '<input type="text" inputmode="decimal" class="input-venda valor-edit" value="' +
+                valorTabela +
+                '" style="width: 100%; box-sizing: border-box;" />',
+        );
+
+        var input = valorCell.find("input");
+        input.focus();
+        input.select();
+
+        input.on("blur", function (e) {
+            var novoValor = parseFloat($(this).val().replace(",", "."));
+
+            if (isNaN(novoValor)) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Valor inválido",
+                    text: "Por favor, insira um número válido para o valor.",
+                    customClass: {
+                        confirmButton: "btn btn-danger",
+                    },
+                });
+                row.data(rowData).draw(false);
+                return;
+            }
+
+            rowData.VALOR = novoValor;
+            row.data(rowData).draw(false);
+        });
+
+        input.on("keydown", function (e) {
+            if (e.which === 13) {
+                // Enter
+                e.preventDefault(); // evita quebra de linha
+                $(this).blur(); // força o blur, que chama a função de atualização
+            }
+            if (e.which === 27) {
+                // Esc
+                e.preventDefault();                
+                rowData.VALOR = valorTabela; 
+                row.data(rowData).draw(false); // reverte para o valor original
+            }
+        });
+    }
+});
+
 function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
     let selected = $(selectOrigem).val();
 
@@ -420,7 +474,7 @@ function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
                         item.DESCRICAO,
                         item.ID,
                         false,
-                        false
+                        false,
                     );
                     $(selectDestino).append(newOption);
                 });
@@ -446,7 +500,7 @@ function salvarVinculoTabelaPessoa(
     idModal,
     idTabela,
     inputCdPessoaMulti,
-    csrf
+    csrf,
 ) {
     if (!cd_pessoa || cd_pessoa.length === 0) {
         Swal.fire({
@@ -520,7 +574,7 @@ function deleteTabelaPreco(
     nm_tabela,
     tipo_tabela,
     idTabela,
-    csrf
+    csrf,
 ) {
     Swal.fire({
         icon: "warning",
@@ -598,10 +652,10 @@ function initTableDivergenciaTabelaPreco(routes) {
             url: routes.divergenciaTabelaPreco,
             type: "get",
             data: {
-                _token: '{{ csrf_token() }}',
+                _token: "{{ csrf_token() }}",
             },
         },
-        columns: [            
+        columns: [
             {
                 data: "action",
                 name: "action",
@@ -611,11 +665,12 @@ function initTableDivergenciaTabelaPreco(routes) {
                 data: "NM_PESSOA",
                 name: "NM_PESSOA",
                 title: "Cliente",
-            },{
+            },
+            {
                 data: "DS_TABPRECO",
                 name: "DS_TABPRECO",
                 title: "Tabela de Preço",
-            }
+            },
         ],
     });
 }

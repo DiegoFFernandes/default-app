@@ -51,7 +51,7 @@ class PcpProducaoController extends Controller
         $user_auth    = $this->user;
         $exploder     = explode('/', $this->request->route()->uri());
         $uri = ucfirst($exploder[1]);
-        if ($this->user->hasRole('admin')) {
+        if ($this->user->hasRole('admin|diretoria')) {
             $empresa = $this->empresa->empresa();
         } else if ($this->user->hasRole('gerente unidade')) {
             $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)

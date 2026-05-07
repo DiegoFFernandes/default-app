@@ -16,14 +16,14 @@
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label class="small" for="pedido">Pedido:</label>
-                                    <input type="text" class="form-control form-control-sm" id="pedido" name="pedido"
+                                    <input type="number" class="form-control form-control-sm" id="pedido" name="pedido"
                                         placeholder="Digite o número do pedido">
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
                                     <label class="small" for="ordem">Ordem:</label>
-                                    <input type="text" class="form-control form-control-sm" id="ordem" name="ordem"
+                                    <input type="number" class="form-control form-control-sm" id="ordem" name="ordem"
                                         placeholder="Digite o número da ordem">
                                 </div>
                             </div>
@@ -47,8 +47,7 @@
                         <h3 class="card-title">Resultados da Pesquisa</h3>
                     </div>
                     <div class="card-body">
-                        <table id="table-pedido-pneus"
-                            class="table table-bordered table-striped compact table-font-small table-responsive">
+                        <table id="table-pedido-pneus" class="table table-bordered table-striped compact table-font-small">
                         </table>
                     </div>
                 </div>
@@ -69,21 +68,39 @@
                 </div>
                 <div class="modal-body">
                     <div id="detalhes-pneu-content">
-                        <div class="col-12 col-md-12">
-                            <div class="form-group">
-                                <label for="nrSerie">Série:</label>
-                                <input type="text" class="form-control form-control-sm" id="nrSerie" name="nrSerie">
+                        <div class="row">
+                            <input type="hidden" id="idItemPedidoPneu" name="idItemPedidoPneu">
+                            <input type="hidden" id="idPneu" name="idPneu">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="nrSerie">Série:</label>
+                                    <input type="text" class="form-control form-control-sm" id="nrSerie"
+                                        name="nrSerie">
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-12 col-md-12">
-                            <div class="form-group">
-                                <label for="fogo">Fogo:</label>
-                                <input type="number" class="form-control form-control-sm" id="fogo" name="fogo">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="fogo">Fogo:</label>
+                                    <input type="number" class="form-control form-control-sm" id="fogo"
+                                        name="fogo">
+                                </div>
                             </div>
-                        </div><div class="col-12 col-md-12">
-                            <div class="form-group">
-                                <label for="dot">Dot:</label>
-                                <input type="number" class="form-control form-control-sm" id="dot" name="dot">
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="dot">Dot:</label>
+                                    <input type="number" class="form-control form-control-sm" id="dot"
+                                        name="dot">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-group">
+                                    <label for="desenho">Desenho:</label>
+                                    <select name="desenho" id="desenho" class="form-control form-control-sm">
+                                        @foreach ($desenhos as $desenho)
+                                            <option value="{{ $desenho->ID_DESENHO }}">{{ $desenho->DSDESENHO }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -91,7 +108,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-xs" id="btn-atualizar-pneu"
                         data-dismiss="modal">Atualizar</button>
-                    <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal">Fechar</button>    
+                    <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal">Fechar</button>
                 </div>
             </div>
         </div>
@@ -101,26 +118,48 @@
     <script>
         var tablePedidoPneus;
 
+        $('#desenho').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Selecione um desenho',
+            allowClear: true,
+            dropdownParent: $('#modal-detalhes-pneu')
+        });
+
         $(document).on('click', '#btn-pesquisar', function() {
             let pedido = $('#pedido').val();
             let ordem = $('#ordem').val();
 
             if (tablePedidoPneus) {
-                tablePedidoPneus.destroy();
+                tablePedidoPneus.ajax.reload();
+                return;
             }
+
             tablePedidoPneus = $('#table-pedido-pneus').DataTable({
                 processing: false,
                 serverSide: false,
+                pagingType: "simple",
+                pageLength: 50,
+                scrollY: "400px",
+                destroy: true,
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
                 },
                 ajax: {
                     url: '{{ route('search-pedido-pneu') }}',
                     type: 'GET',
-                    paginType: "simple",
                     data: {
                         pedido: pedido,
                         ordem: ordem
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Pesquisando...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
                     },
                     error: function(xhr) {
                         if (xhr.status === 422) {
@@ -141,6 +180,9 @@
                                 html: mensagens
                             });
                         }
+                    },
+                    complete: function() {
+                        Swal.close();
                     }
                 },
                 columns: [{
@@ -155,6 +197,7 @@
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',
                         title: 'Emp.',
+                        className: 'text-center',
                         width: '1%',
                     },
                     {
@@ -197,6 +240,12 @@
                         className: 'text-center',
                         title: 'Dot'
                     },
+                    {
+                        data: 'DSDESENHO',
+                        name: 'DSDESENHO',
+                        className: 'text-center',
+                        title: 'Desenho'
+                    },
 
                 ],
                 footerCallback: function(row, data, start, end, display) {
@@ -205,19 +254,83 @@
 
             });
         });
+
         $(document).on('click', '.btn-editar-pneu', function() {
             let idPneu = $(this).data('id');
             let rowData = tablePedidoPneus.row($(this).parents('tr')).data();
             let nrSerie = rowData.NRSERIE;
             let fogo = rowData.NRFOGO;
             let dot = rowData.NRDOT;
+            let idDesenho = rowData.ID_DESENHO;
+            let idItemPedidoPneu = rowData.IDITEMPEDIDOPNEU;
+
 
             $('#nrSerie').val(nrSerie);
             $('#fogo').val(fogo);
             $('#dot').val(dot);
+            $('#desenho').val(idDesenho).trigger('change');
+            $('#idItemPedidoPneu').val(idItemPedidoPneu);
+            $('#idPneu').val(idPneu);
 
             $('#modal-detalhes-pneu').modal('show');
 
+        });
+
+        $(document).on('click', '#btn-atualizar-pneu', function() {
+            let idPneu = $('#idPneu').val();
+            let idItemPedidoPneu = $('#idItemPedidoPneu').val();
+            let nrSerie = $('#nrSerie').val();
+            let fogo = $('#fogo').val();
+            let dot = $('#dot').val();
+            let idDesenho = $('#desenho').val();
+
+
+            $.ajax({
+                url: "{{ route('update-pedido-pneu') }}",
+                method: 'POST',
+                data: {
+                    idPneu: idPneu,
+                    nrSerie: nrSerie,
+                    fogo: fogo,
+                    dot: dot,
+                    idDesenho: idDesenho,
+                    idItemPedidoPneu: idItemPedidoPneu,
+                    _token: "{{ csrf_token() }}"
+                },
+                beforeSend: function() {
+                    $('#btn-atualizar-pneu').prop('disabled', true).text('Atualizando...');
+
+                    Swal.fire({
+                        title: 'Atualizando pneu...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.message || 'Pneu atualizado com sucesso',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        tablePedidoPneus.ajax.reload();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao atualizar o pneu',
+                            text: response.message ||
+                                'Ocorreu um erro inesperado. Tente novamente mais tarde.'
+                        });
+                    }
+                },
+                complete: function() {
+                    $('#btn-atualizar-pneu').prop('disabled', false).text('Atualizar');
+                    Swal.close();
+                }
+            });
         });
     </script>
 @stop

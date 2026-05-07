@@ -10,6 +10,7 @@ class Pneu extends Model
 {
     use HasFactory;
 
+
     public function createPneu($input, $pessoa)
     {
         return DB::transaction(function () use ($pessoa, $input) {
@@ -52,10 +53,39 @@ class Pneu extends Model
                 'dtAnoPneu'    => (int) $input->NR_DOT
             ]);
 
-             if (empty($result)) {
+            if (empty($result)) {
                 throw new \Exception('Falha ao gerar o Código do pedido.');
             }
             return $result[0]->ID;
+        });
+    }
+
+    public function updatePneu(array $data)
+    {
+        return DB::transaction(function () use ($data) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                    UPDATE PNEU
+                    SET
+                        NRSERIE = :serie,
+                        NRFOGO = :fogo,
+                        NRDOT = :dot
+                    WHERE (ID = :idPneu);
+                ";
+
+            DB::connection('firebird')->statement($query, [
+                'serie' => $data['nrSerie'],
+                'fogo' => $data['fogo'],
+                'dot' => $data['dot'],
+                'idPneu' => $data['idPneu']
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pneu atualizado com sucesso.'
+            ], 200);
         });
     }
 }

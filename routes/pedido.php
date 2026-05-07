@@ -10,9 +10,11 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('pedido-pneu')->group(function () {
+        
         Route::get('pedido', [PedidoPneuController::class, 'index'])->name('pedido-pneus.index');
 
         Route::get('search-pedido-pneu', [PedidoPneuController::class, 'searchPedidoPneu'])->name('search-pedido-pneu');
+        Route::post('update-pedido-pneu', [PedidoPneuController::class, 'updatePedidoPneu'])->name('update-pedido-pneu');
     });
 
     Route::prefix('pedido-pneu')->group(function () {
