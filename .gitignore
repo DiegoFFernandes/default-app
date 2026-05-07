@@ -19,5 +19,5 @@ yarn-error.log
 .composer.lock
 /public/vendor/adminlte/dist/img
 
-/public/*.png
-/public/*.ico
+/public/img
+
