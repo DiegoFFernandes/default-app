@@ -243,7 +243,7 @@
     </style>
 @stop
 @section('js')
-    <script src="{{ asset('js/dashboard/TabelaPreco.js?v=') }}{{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/tabelaPreco.js') }}?v={{ time() }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
@@ -284,7 +284,7 @@
 
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
 
-        $('#tab-associadas').click(function() {
+        $('#tab-associadas').on('show.bs.tab', function() {
             tabelaPreco = initTabelaPreco(routes);
         });
 
@@ -626,7 +626,7 @@
         formularioDinamico(routes); // chama a função para deixar a pagina dinamica
 
         // Tab para ver as tabelas cadastradas para importar
-        $('#tab-cadastradas').on('click', function() {           
+        $('#tab-cadastradas').on('show.bs.tab', function() {
 
             initTableTabelaPrecoCadastradasPreview(routes);
         });
@@ -725,7 +725,7 @@
             deleteTabelaPreco(routes, cd_tabela, nm_tabela, 'tabela_preco', 'tabela-preco', csrf);
         });
 
-        $('#tab-divergencia').click(function() {
+        $('#tab-divergencia').on('show.bs.tab', function() {
             $('#tabela-divergencia').DataTable().destroy();
             initTableDivergenciaTabelaPreco(routes);
         });

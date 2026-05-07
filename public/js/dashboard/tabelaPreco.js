@@ -1,5 +1,3 @@
-const { before } = require("lodash");
-
 const chkNaoAssociados = document.getElementById("checkNaoAssociadas");
 const chkAssociados = document.getElementById("checkAssociadas");
 
