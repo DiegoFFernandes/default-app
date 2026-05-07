@@ -626,8 +626,8 @@
         formularioDinamico(routes); // chama a função para deixar a pagina dinamica
 
         // Tab para ver as tabelas cadastradas para importar
-        $('#tab-cadastradas').on('click', function() {
-            $('#tabela-preco-cadastradas').DataTable().destroy();
+        $('#tab-cadastradas').on('click', function() {           
+
             initTableTabelaPrecoCadastradasPreview(routes);
         });
 

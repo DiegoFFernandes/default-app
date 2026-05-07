@@ -33,15 +33,13 @@ if (chkAssociados) {
     });
 }
 
-function initTabelaPreco(route) {
-    if ($.fn.DataTable.isDataTable("#tabela-preco")) {
-        $("#tabela-preco").DataTable().clear().destroy();
-    }
+function initTabelaPreco(route) {   
     tabelaPreco = $("#tabela-preco").DataTable({
         processing: false,
         serverSide: false,
         pagingType: "simple",
         pageLength: 50,
+        destroy: true,
         scrollY: "400px",
         scrollCollapse: true,
         language: {
@@ -215,10 +213,12 @@ function initTableItemTabelaPreco(
     });
 }
 
-function initTableTabelaPrecoCadastradasPreview(route) {
+function initTableTabelaPrecoCadastradasPreview(route) {    
+    
     $("#tabela-preco-cadastradas").DataTable({
         paging: false,
         searching: true,
+        destroy: true,
         scrollY: "300px",
         scrollCollapse: true,
         language: {
