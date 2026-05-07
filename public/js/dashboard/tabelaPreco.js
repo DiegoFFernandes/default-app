@@ -1,3 +1,5 @@
+const { before } = require("lodash");
+
 const chkNaoAssociados = document.getElementById("checkNaoAssociadas");
 const chkAssociados = document.getElementById("checkAssociadas");
 
@@ -33,7 +35,7 @@ if (chkAssociados) {
     });
 }
 
-function initTabelaPreco(route) {   
+function initTabelaPreco(route) {
     tabelaPreco = $("#tabela-preco").DataTable({
         processing: false,
         serverSide: false,
@@ -49,10 +51,16 @@ function initTabelaPreco(route) {
             url: route.tabelaPreco,
             type: "GET",
             beforeSend: function () {
-                $("#loading").removeClass("invisible");
+                Swal.fire({
+                    title: "Carregando...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
             },
             complete: function () {
-                $("#loading").addClass("invisible");
+                Swal.close();
             },
         },
         columns: [
@@ -185,10 +193,16 @@ function initTableItemTabelaPreco(
                 tela: tela,
             },
             beforeSend: function () {
-                $("#loading").removeClass("invisible");
+                Swal.fire({
+                    title: "Carregando...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
             },
             complete: function () {
-                $("#loading").addClass("invisible");
+                Swal.close();
             },
         },
         columns: [
@@ -213,8 +227,7 @@ function initTableItemTabelaPreco(
     });
 }
 
-function initTableTabelaPrecoCadastradasPreview(route) {    
-    
+function initTableTabelaPrecoCadastradasPreview(route) {
     $("#tabela-preco-cadastradas").DataTable({
         paging: false,
         searching: true,
@@ -228,10 +241,16 @@ function initTableTabelaPrecoCadastradasPreview(route) {
             url: route.tabelaPrecoCadastradasPreview,
             type: "GET",
             beforeSend: function () {
-                $("#loading").removeClass("invisible");
+                Swal.fire({
+                    title: "Carregando...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
             },
             complete: function () {
-                $("#loading").addClass("invisible");
+                Swal.close();
             },
         },
         columns: [
@@ -359,6 +378,7 @@ function initTableTabelaPrecoPrevia() {
     tabela_preview = $("#item-tabela-preco").DataTable({
         paging: false,
         searching: true,
+        destroy: true,
         scrollY: "300px",
         scrollCollapse: true,
         language: {
@@ -446,8 +466,8 @@ $(document).on("click", "#item-tabela-preco td:nth-child(3)", function () {
             }
             if (e.which === 27) {
                 // Esc
-                e.preventDefault();                
-                rowData.VALOR = valorTabela; 
+                e.preventDefault();
+                rowData.VALOR = valorTabela;
                 row.data(rowData).draw(false); // reverte para o valor original
             }
         });
@@ -642,8 +662,9 @@ function deleteTabelaPreco(
 
 function initTableDivergenciaTabelaPreco(routes) {
     $("#tabela-divergencia").DataTable({
-        processing: true,
-        serverSide: true,
+        processing: false,
+        serverSide: false,
+        destroy: true,
         pagingType: "simple",
         language: {
             url: routes.language_datatables,
@@ -653,6 +674,18 @@ function initTableDivergenciaTabelaPreco(routes) {
             type: "get",
             data: {
                 _token: "{{ csrf_token() }}",
+            },
+            beforeSend: function () {
+                Swal.fire({
+                    title: "Carregando...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
+            },
+            complete: function () {
+                Swal.close();
             },
         },
         columns: [
