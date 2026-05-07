@@ -47,8 +47,12 @@ class TabPreco extends Model
             FROM ITEMTABPRECO_PREVIEW I
             INNER JOIN ITEM ON (ITEM.CD_ITEM = I.CD_ITEM)
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = I.CD_TABPRECO)
-            INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PESSOA.CD_PESSOA
-                AND EP.CD_ENDERECO = 1)
+            LEFT JOIN ENDERECOPESSOA EP ON EP.CD_PESSOA = PESSOA.CD_PESSOA
+                        AND EP.CD_ENDERECO = (SELECT FIRST 1
+                                                    EPP.CD_ENDERECO
+                                                FROM ENDERECOPESSOA EPP
+                                                WHERE EPP.CD_PESSOA = PESSOA.CD_PESSOA
+                                                ORDER BY EPP.CD_ENDERECO)
             LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = EP.CD_VENDEDOR)
             LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
             WHERE I.ST_IMPORTA IN ('N', 'V')                
