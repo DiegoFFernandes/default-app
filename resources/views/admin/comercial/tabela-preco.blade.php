@@ -34,11 +34,11 @@
                         <div class="tab-content">
                             <div class="tab-pane fade show active" id="painel-inserir" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-md-12">
+                                    <div class="col-12 col-md-6">
                                         <div class="card">
                                             <div class="card-body">
                                                 <div class="row">
-                                                    <div class="col-md-6">
+                                                    <div class="col-12 col-md-12">
                                                         <div class="form-group form-group-sm">
                                                             <label class="small">Nome da Tabela</label>
                                                             <select name='pessoa' class="form-control" id="pessoa"
@@ -46,10 +46,10 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col-12 col-md-12">
                                                         <div class="form-group form-group-sm">
                                                             <label class="small">Selecione o Desenho</label>
-                                                            <select class="form-control form-control-sm select2 select2-sm"
+                                                            <select class="form-control form-control-sm select2"
                                                                 id="desenho" name="desenho[]" style="width: 100%;"
                                                                 multiple>
                                                                 @foreach ($desenho as $item)
@@ -59,50 +59,56 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col-12 col-md-12">
                                                         <div class="form-group form-group-sm">
                                                             <label class="small">Selecione a Medida</label>
                                                             <select class="form-control form-control-sm select2"
-                                                                id="medida" name="medida[]" style="width: 100%; "
+                                                                id="medida" name="medida[]" style="width: 100%"
                                                                 multiple="multiple">
                                                             </select>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col-12 col-md-12">
                                                         <div class="form-group form-group-sm">
-                                                            <label class="small">Digite o Valor</label>
+                                                            <label class="small">Valor</label>
                                                             <input type="number" id="valor" class="form-control"
-                                                                placeholder="Digite o Valor...">
+                                                                placeholder="Digite o Valor" min="0" step="0.01">
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <!-- /.card-body -->
                                             </div>
                                             <div class="card-footer">
-                                                <div class="col-md-12">
-                                                    <div class="form-group">
-                                                        <button id="btn-associar" class="btn btn-danger btn-sm">
-                                                            Incluir na Previa
-                                                        </button>
-                                                    </div>
+                                                <div class="form-group">
+                                                    <button id="btn-associar" class="btn btn-danger btn-sm float-right">
+                                                        Incluir na Prévia
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-md-6">
                                         <div class="card">
                                             <x-loading-card />
                                             <div class="card-header">
-                                                <h3 class="card-title">
-                                                    <span class="badge badge-secondary">Prévia Tabela</span>
+                                                <h3 class="card-title card-title-previa">
+                                                    <i class="fas fa-table"></i>
+                                                    Prévia Tabela
                                                 </h3>
-                                                <div class="card-tools d-flex w-100 justify-content-end">
-                                                    <!-- Botão com ajuste responsivo -->
-                                                    <button type="button" class="btn btn-secondary btn-sm btn-adicional"
+                                                <div class="card-tools m-0">
+
+                                                    <button type="button" id="btn-recomecar"
+                                                        class="btn btn-secondary btn-xs btn-tools">
+                                                        Recomecar
+                                                    </button>
+                                                    <button type="button" id="btn-deletar-itens"
+                                                        class="btn btn-secondary btn-xs btn-tools">
+                                                        Deletar Itens
+                                                    </button>
+
+                                                    <button type="button" class="btn btn-primary btn-xs btn-tools"
                                                         id="btn-adicional">
-                                                        Itens Adicionais
+                                                        Adicionais
                                                     </button>
                                                 </div>
                                             </div>
@@ -116,16 +122,8 @@
                                                 </div>
                                             </div>
                                             <div class="card-footer">
-                                                <button type="button" id="btn-recomecar" class="btn btn-secondary btn-xs"
-                                                    style="width: 80px;">
-                                                    Recomecar
-                                                </button>
-                                                <button type="button" id="btn-deletar-itens"
-                                                    class="btn btn-secondary btn-xs" style="width: 80px;">
-                                                    Deletar Itens
-                                                </button>
-                                                <button type="button" class="btn btn-danger btn-xs float-right"
-                                                    style="width: 80px;" id="btn-enviar-importar">
+                                                <button type="button" class="btn btn-danger btn-sm float-right"
+                                                    id="btn-enviar-importar">
                                                     Salvar
                                                 </button>
                                             </div>
@@ -139,6 +137,7 @@
                                         <div class="card card-primary">
                                             <x-loading-card />
                                             <div class="card-body">
+                                                <div id="card-container"></div>
                                                 <table
                                                     class="table table-bordered compact table-responsive table-font-small"
                                                     id="tabela-preco-cadastradas">
@@ -161,26 +160,28 @@
                             </div>
                             <div class="tab-pane fade" id="painel-associadas" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-12 col-md-8">
                                         <div class="card card-primary">
                                             <div class="card-body">
-                                                <div
-                                                    class="d-flex flex-wrap gap-4 align-items-center mb-3 border-bottom pb-2">
-                                                    <div class="form-check form-switch m-0">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            id="checkNaoAssociadas" name="checkNaoAssociadas">
-                                                        <label class="form-check-label" for="checkNaoAssociadas">
-                                                            Tabelas não Associadas
-                                                        </label>
+                                                <div class="row align-items-center mb-3 border-bottom pb-2 g-2">
+                                                    <div class="col-12 col-sm-auto">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="checkNaoAssociadas" name="checkNaoAssociadas">
+                                                            <label class="form-check-label" for="checkNaoAssociadas">
+                                                                Tabelas não Associadas
+                                                            </label>
+                                                        </div>
                                                     </div>
 
-                                                    <!-- Margem somente em telas maiores que sm -->
-                                                    <div class="form-check form-switch m-0 ml-sm-3">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            id="checkAssociadas" name="checkAssociadas">
-                                                        <label class="form-check-label" for="checkAssociadas">
-                                                            Tabelas Associadas
-                                                        </label>
+                                                    <div class="col-12 col-sm-auto">
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                id="checkAssociadas" name="checkAssociadas">
+                                                            <label class="form-check-label" for="checkAssociadas">
+                                                                Tabelas Associadas
+                                                            </label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <table
@@ -196,11 +197,11 @@
                                         'idTabelaPreco' => 'cd_tabela_preco2',
                                         'dsTabelaPreco' => 'ds_tabela_preco2',
                                         'idBtnSalvarVinculo' => 'btn-salvar-vinculo2',
-                                    ]);
+                                    ])
                                     @include('admin.comercial.components.modal-item-tabela-preco', [
                                         'idModal' => 'modal-item-tab-preco',
                                         'idTabelaItem' => 'table-item-tab-preco',
-                                    ]);
+                                    ])
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="painel-divergencia" role="tabpanel">
@@ -236,9 +237,94 @@
 
 @section('css')
     <style>
-        /* Altura do Select2 small */
-        .select2-container--bootstrap4 .select2-selection--multiple {
-            padding: 0;
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: calc(1.6em + .75rem + 2px) !important;
+            font-size: 14px !important;
+        }
+
+        .form-group {
+            margin-bottom: .6rem;
+        }
+
+        .btn-tools {
+            min-width: 80px;
+            padding: .25rem .5rem;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+
+            .card-title-previa {
+                margin-bottom: 15px;
+            }
+
+            .card-body {
+                padding: .8rem;
+            }
+
+            .card-footer {
+                padding: .8rem;
+            }
+
+            .form-group {
+                margin-bottom: .7rem;
+            }
+
+            /* IMPORTANTE PARA IOS */
+            .form-control,
+            input,
+            select,
+            textarea {
+                height: 38px;
+                font-size: 16px !important;
+            }
+
+            label.small {
+                margin-bottom: .2rem;
+                font-size: 12px;
+            }
+
+            .select2-container--bootstrap4 .select2-selection--single {
+                height: 38px !important;
+                font-size: 16px !important;
+            }
+
+            .select2-container--bootstrap4 .select2-selection--multiple {
+                min-height: 38px !important;
+                font-size: 16px !important;
+            }
+
+            .select2-container--bootstrap4 .select2-results__option {
+                padding: 0 .76rem;
+                font-size: 20px;
+            }
+
+            .select2-selection__rendered {
+                line-height: 36px !important;
+                font-size: 16px !important;
+            }
+
+            .select2-selection__choice {
+                font-size: 14px !important;
+            }
+
+            #btn-associar {
+                width: 100%;
+                min-height: 40px;
+                font-size: 16px;
+            }
+
+            #btn-enviar-importar {
+                width: 100%;
+                min-height: 40px;
+                font-size: 16px;
+            }
+
+            .btn-tools {
+                min-width: 40px;
+                padding: .25rem .5rem;
+                font-size: 14px;
+            }
         }
     </style>
 @stop
@@ -282,11 +368,13 @@
             divergenciaTabelaPreco: "{{ route('divergencia-tabela-preco') }}"
         };
 
+        formularioDinamico(routes); // chama a função para deixar a pagina dinamica
+
         initSelect2Pessoa('#pessoa', routes.searchPessoa);
 
 
         $(document).on("click", "#tab-associadas", function() {
-           initTabelaPreco(routes);
+            initTabelaPreco(routes);
         });
 
         // Tab para ver as tabelas cadastradas para importar
@@ -300,9 +388,7 @@
         });
 
 
-
-
-        $('#tabela-preco').on('click', '.btn-ver-itens', function() {
+        $(document).on('click', '.btn-ver-itens-associadas', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('.title-nm-tabela').html($(this).data('nm_tabela'));
             initTableItemTabelaPreco(
@@ -313,7 +399,7 @@
             );
         });
 
-        $('#tabela-preco').on('click', '.btn-vincular-tabela', function() {
+        $('#tabela-preco').on('click', '.btn-vincular-tabela-associadas', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('#cd_tabela_preco2').val(cd_tabela);
             var ds_tabela = $(this).closest('tr').find('td:eq(1)').text();
@@ -380,6 +466,8 @@
             theme: 'bootstrap4',
             width: '100%',
             multiple: true,
+            placeholder: 'Selecione uma opção',
+            allowClear: true,
         });
 
         $('#desenho').on('change', function() {
@@ -393,9 +481,9 @@
 
             const valor = $('#valor').val();
             const nomeTabela = $("#pessoa option:selected").text();
-            $(".card-title").html(
-                "<span class='badge bg-gray-dark'>" + formatarNome(nomeTabela) + "</span>"
-            );
+            // $(".card-title").html(
+            //     "<span class='badge bg-gray-dark'>" + formatarNome(nomeTabela) + "</span>"
+            // );
 
             if (valor === '') {
                 Swal.fire({
@@ -608,10 +696,23 @@
                     dadosTabela: dadosTabela,
                 },
                 beforeSend: function() {
-                    $(".loading-card").removeClass('invisible');
+                    Swal.fire({
+                        title: 'Salvando itens...',
+                        text: 'Por favor, aguarde.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                        customClass: {
+                            popup: 'swal2-border-radius-none'
+                        }
+                    });
                 },
                 success: function(response) {
                     if (response.success) {
+
+                        Swal.close();
+
                         Swal.fire({
                             title: 'Atenção',
                             text: response.message,
@@ -622,6 +723,9 @@
                         });
                         recomecar();
                     } else {
+
+                        Swal.close();
+
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro ao salvar',
@@ -632,23 +736,20 @@
                             }
                         });
                     }
-                    $(".loading-card").addClass('invisible');
                 }
             });
         });
 
-        formularioDinamico(routes); // chama a função para deixar a pagina dinamica
 
+        $(document).on('click', '.btn-ver-itens-cadastradas', function() {
 
-
-        $('#tabela-preco-cadastradas').on('click', '.btn-ver-itens', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('.title-nm-tabela').html($(this).data('nm_tabela'));
             initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco_preview',
                 'table-item-tab-preco-cadastradas', 'modal-item-tab-preco-cadastradas');
         });
 
-        $('#tabela-preco-cadastradas').on('click', '.btn-importar', function() {
+        $(document).on('click', '.btn-importar', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $.ajax({
                 type: "POST",
@@ -659,11 +760,21 @@
                 },
                 dataType: "json",
                 beforeSend: function() {
-                    $(".loading-card").removeClass('invisible');
+                    Swal.fire({
+                        title: 'Importando tabela...',
+                        text: 'Por favor, aguarde.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                        customClass: {
+                            popup: 'swal2-border-radius-none'
+                        }
+                    });
                 },
                 success: function(response) {
                     if (response.error) {
-                        $(".loading-card").addClass('invisible');
+                        Swal.close();
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro ao importar',
@@ -675,7 +786,7 @@
                         });
                         return;
                     } else {
-                        $(".loading-card").addClass('invisible');
+                        Swal.close();
                         $('#tabela-preco-cadastradas').DataTable().destroy();
                         initTableTabelaPrecoCadastradasPreview(routes);
                         Swal.fire({
@@ -692,10 +803,11 @@
             });
         });
 
-        $('#tabela-preco-cadastradas').on('click', '.btn-vincular-tabela', function() {
+        $(document).on('click', '.btn-vincular-tabela-cadastradas', function() {
             var cd_tabela = $(this).data('cd_tabela');
+            var ds_tabela = $(this).data('ds_tabela');
+
             $('#cd_tabela_preco').val(cd_tabela);
-            var ds_tabela = $(this).closest('tr').find('td:eq(1)').text();
             $('#ds_tabela_preco').val(ds_tabela);
             $('#modal-vincular-tab-preco-pessoas').modal('show');
             initSelect2Pessoa('#cd_pessoa_multi', routes.searchPessoa, '#modal-vincular-tab-preco-pessoas');
@@ -719,7 +831,7 @@
         });
 
         // Deletar tabela de preço na tab cadastradas
-        $('#tabela-preco-cadastradas').on('click', '.btn-delete-tabela', function() {
+        $(document).on('click', '.btn-delete-tabela-cadastradas', function() {
             var cd_tabela = $(this).data('cd_tabela');
             var nm_tabela = $(this).data('nm_tabela');
             const csrf = '{{ csrf_token() }}';
@@ -728,7 +840,7 @@
         });
 
         // Deletar tabela de preço na tab associadas
-        $('#tabela-preco').on('click', '.btn-delete-tabela', function() {
+        $(document).on('click', '.btn-delete-tabela-associadas', function() {
             var cd_tabela = $(this).data('cd_tabela');
             var nm_tabela = $(this).data('nm_tabela');
             const csrf = '{{ csrf_token() }}';
@@ -737,7 +849,7 @@
 
 
 
-        $('#tabela-divergencia').on('click', '.btn-ver-itens', function() {
+        $(document).on('click', '.btn-ver-itens-divergencia', function() {
             var cd_tabela = $(this).data('cd_tabela');
             $('.title-nm-tabela').html($(this).data('nm_tabela'));
             initTableItemTabelaPreco(routes, cd_tabela, 'tabela_preco', 'table-item-tab-preco-divergencia',

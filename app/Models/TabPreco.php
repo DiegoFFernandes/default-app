@@ -152,6 +152,7 @@ class TabPreco extends Model
             INNER JOIN ITEM SERVICO ON (SERVICO.CD_ITEM = SP.ID)
             INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = SERVICO.CD_SUBGRUPO)
             WHERE BP.STATIVO = 'S'
+                AND DP.STATIVO = 'S'
                 AND SERVICO.ST_ATIVO = 'S'
                 " . ($id_desenho ? " AND BP.IDDESENHOPNEU IN ($id_desenho) " : "") . "
                 " . ($id_medida ? " AND SP.IDMEDIDAPNEU IN ($id_medida) " : "") . "
@@ -447,42 +448,43 @@ class TabPreco extends Model
     public function destroyTabelaPreco($cd_tabela, $tipo_tabela)
     {
         $result = DB::transaction(function () use ($cd_tabela, $tipo_tabela) {
-            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            DB::connection('firebird')
+                ->select("EXECUTE PROCEDURE GERA_SESSAO");
 
             if ($tipo_tabela === 'tabela_preco_preview') {
+
                 DB::connection('firebird')->delete(
                     "DELETE FROM ITEMTABPRECO_PREVIEW WHERE CD_TABPRECO = ?",
                     [$cd_tabela]
                 );
 
-                return ['success' => true, 'message' => 'Tabela de preço preview deletada com sucesso!'];
-            } else {
-                $existsUso = DB::connection('firebird')->select(
-                    "SELECT FIRST 1 IPP.ID
+                return;
+            }
+
+            $existsUso = DB::connection('firebird')->select(
+                "SELECT FIRST 1 IPP.ID
                  FROM ITEMPEDIDOPNEU IPP
                  WHERE IPP.IDTABPRECO = ?",
-                    [$cd_tabela]
+                [$cd_tabela]
+            );
+
+            if (!Helper::is_empty_object($existsUso)) {
+                throw new \DomainException(
+                    'Não é possível excluir esta tabela de preço, pois a mesma já foi utilizada!'
                 );
-
-                if (Helper::is_empty_object($existsUso)) {
-                    DB::connection('firebird')->delete(
-                        "DELETE FROM ITEMTABPRECO WHERE CD_TABPRECO = ?",
-                        [$cd_tabela]
-                    );
-                    DB::connection('firebird')->delete(
-                        "DELETE FROM TABPRECO WHERE CD_TABPRECO = ?",
-                        [$cd_tabela]
-                    );
-
-                    return ['success' => true, 'message' => 'Tabela de preço deletada com sucesso!'];
-                } else {
-                    return ['success' => false, 'message' => 'Não é possível excluir esta tabela de preço, pois a mesma já foi utilizada!'];
-                }
             }
-        });
 
-        // Agora sim, responde corretamente com base no resultado da transação
-        return response()->json($result);
+            DB::connection('firebird')->delete(
+                "DELETE FROM ITEMTABPRECO WHERE CD_TABPRECO = ?",
+                [$cd_tabela]
+            );
+
+            DB::connection('firebird')->delete(
+                "DELETE FROM TABPRECO WHERE CD_TABPRECO = ?",
+                [$cd_tabela]
+            );
+        });
     }
 
     public function cancelarVinculo($cd_tabela, $cd_pessoa)

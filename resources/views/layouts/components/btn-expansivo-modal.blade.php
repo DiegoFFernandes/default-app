@@ -41,7 +41,7 @@
                     top: 0,
                     behavior: "smooth"
                 });
-                
+
                 // fecha o menu
                 aberto = false;
                 opcoesFlutuantes.classList.remove("aberto");
@@ -49,7 +49,14 @@
             });
 
             // recarrega a pagina
-            botaoRecarregar.addEventListener("click", function() {
+            botaoRecarregar.addEventListener("click", function() {                
+                Swal.fire({
+                    title: 'Recarregando...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 location.reload();
             });
         });

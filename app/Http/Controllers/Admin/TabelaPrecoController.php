@@ -126,7 +126,7 @@ class TabelaPrecoController extends Controller
             'user_auth',
             'empresas',
             'uri',
-            'desenho'  
+            'desenho'
         ));
     }
 
@@ -142,12 +142,16 @@ class TabelaPrecoController extends Controller
             })
             ->addColumn('clientes_associados', function ($row) {
                 $btn = '
-                    <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
-                    <button class="btn btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
-                    <button class="btn btn-xs btn-warning btn-block btn-vincular-tabela mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>';
+                    <button class="btn btn-tools btn-xs btn-secondary btn-block btn-ver-itens-associadas mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>                    
+                    <button class="btn btn-tools btn-xs btn-secondary btn-block details-control mr-2 mb-1" data-cd_tabela="' . $row->CD_TABPRECO . '">Clientes</button>
+                    <button class="btn btn-tools btn-xs btn-warning btn-block btn-vincular-tabela-associadas mb-1" 
+                        data-cd_tabela="' . $row->CD_TABPRECO . '" 
+                        data-ds_tabela="' . $row->DS_TABPRECO . '">
+                            Vincular
+                    </button>';
                 if (!in_array($row->CD_TABPRECO, [1, 2, 3, 4, 5, 6, 7, 8]) && $row->ASSOCIADOS == 0) {
                     $btn .= '
-                    <button class="btn btn-xs btn-danger btn-block btn-delete-tabela mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>
+                    <button class="btn btn-xs btn-danger btn-block btn-delete-tabela-associadas mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>
                     ';
                 }
                 return $btn;
@@ -176,14 +180,18 @@ class TabelaPrecoController extends Controller
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
                 $btn = '
-                    <button class="btn mb-1 btn-xs btn-secondary btn-ver-itens" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Ver Itens</button> 
+                    <button class="btn btn-tools mb-1 btn-xs btn-secondary btn-ver-itens-cadastradas" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Ver Itens</button> 
                   ';
                 if ($this->user->hasRole('admin|diretoria|gerente comercial|usuario comercial')) {
                     if ($row->ST_IMPORTA === 'N') {
-                        $btn .= '<button class="btn mb-1 btn-xs btn-secondary btn-importar" data-cd_tabela="' . $row->CD_TABPRECO . '">Importar</button>';
-                        $btn .= '<button class="btn mb-1 ml-1 btn-xs btn-danger btn-delete-tabela" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>';
+                        $btn .= '<button class="btn btn-tools mb-1 btn-xs btn-secondary btn-importar" data-cd_tabela="' . $row->CD_TABPRECO . '">Importar</button>';
+                        $btn .= '<button class="btn btn-tools mb-1 ml-1 btn-xs btn-danger btn-delete-tabela-cadastradas" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . encrypt($row->CD_TABPRECO) . '">Excluir</button>';
                     } else if ($row->ST_IMPORTA === 'V') {
-                        $btn .= '<button class="btn mb-1 btn-xs btn-warning btn-vincular-tabela" data-cd_tabela="' . $row->CD_TABPRECO . '">Vincular</button>';
+                        $btn .= '<button class="btn btn-tools mb-1 btn-xs btn-warning btn-vincular-tabela-cadastradas" 
+                                    data-cd_tabela="' . $row->CD_TABPRECO . '" 
+                                    data-ds_tabela="' . $row->DS_TABPRECO . '">
+                                        Vincular
+                                </button>';
                     }
                 }
                 return $btn;
@@ -485,7 +493,28 @@ class TabelaPrecoController extends Controller
         $tipo_tabela = $this->request->input('tipo_tabela');
 
         if ($tipo_tabela === 'tabela_preco') {
-            return $this->tabela->destroyTabelaPreco($cd_tabela, $tipo_tabela);
+
+            try {
+
+                $this->tabela->destroyTabelaPreco($cd_tabela, $tipo_tabela);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tabela removida com sucesso!'
+                ]);
+            } catch (\DomainException $e) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            } catch (\Throwable $e) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erro interno ao remover tabela.'
+                ]);
+            }
         } else {
 
             $tabela = $this->tabela->getTabprecoPreview('N', '', $cd_tabela);
@@ -497,7 +526,28 @@ class TabelaPrecoController extends Controller
                 ]);
             }
 
-            return $this->tabela->destroyTabelaPreco($cd_tabela, $tipo_tabela);
+
+            try {
+
+                $this->tabela->destroyTabelaPreco($cd_tabela, $tipo_tabela);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tabela removida com sucesso!'
+                ]);
+            } catch (\DomainException $e) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            } catch (\Throwable $e) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erro interno ao remover tabela.'
+                ]);
+            }
         }
     }
     public function cancelarVinculo()
@@ -516,7 +566,7 @@ class TabelaPrecoController extends Controller
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
                 return '
-                <button class="btn btn-xs btn-secondary btn-block btn-ver-itens mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button> 
+                <button class="btn btn-xs btn-secondary btn-block btn-ver-itens-divergencia mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button> 
                 <button class="btn btn-xs btn-secondary btn-cancelar-vinculo" data-cd_pessoa="' . $row->CD_PESSOA . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Cancelar Vinculo</button>';
             })
             ->make(true);

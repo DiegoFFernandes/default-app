@@ -226,8 +226,34 @@ function initTableItemTabelaPreco(
 }
 
 function initTableTabelaPrecoCadastradasPreview(route) {
+    if (isMobile()) {
+        $.ajax({
+            url: route.tabelaPrecoCadastradasPreview,
+            type: "GET",
+            beforeSend: function () {
+                Swal.fire({
+                    title: "Carregando...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
+            },
+            success: function (json) {
+                const dados = json.data || json;
+
+                renderizarCards(dados, "card-container");
+            },
+            complete: function () {
+                Swal.close();
+            },
+        });
+
+        return;
+    }
+
     $("#tabela-preco-cadastradas").DataTable({
-        paging: false,
+        paging: true,
         searching: true,
         destroy: true,
         scrollY: "300px",
@@ -255,8 +281,10 @@ function initTableTabelaPrecoCadastradasPreview(route) {
             {
                 title: "Ações",
                 data: "action",
+                width: "10%",
                 orderable: false,
                 searchable: false,
+                className: "text-center no-wrap",
             },
             {
                 title: "ID",
@@ -274,6 +302,7 @@ function initTableTabelaPrecoCadastradasPreview(route) {
             {
                 title: "Itens",
                 data: "QTD_ITENS",
+                className: "text-center",
             },
         ],
     });
@@ -368,17 +397,37 @@ function formularioDinamico(route) {
 
     // limpa e esconde
     $("#btn-recomecar").on("click", function () {
-        recomecar();
+        Swal.fire({
+            icon: "warning",
+            title: "Atenção",
+            text: "Deseja realmente reiniciar?",
+            showCancelButton: true,
+            confirmButtonText: "Sim",
+            cancelButtonText: "Não",
+            customClass: {
+                confirmButton: "btn btn-danger mr-2",
+                cancelButton: "btn btn-secondary",
+            },
+            buttonsStyling: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                recomecar();
+            }
+        });
     });
 }
 
 function initTableTabelaPrecoPrevia() {
     tabela_preview = $("#item-tabela-preco").DataTable({
-        paging: false,
+        paging: true,
         searching: true,
         destroy: true,
-        scrollY: "300px",
-        scrollCollapse: true,
+        scrollY: isMobile() ? false : "300px",
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "Todos"],
+        ],
+        pageLength: isMobile() ? 10 : -1,
         language: {
             url: routes.language_datatables,
         },
@@ -400,18 +449,20 @@ function initTableTabelaPrecoPrevia() {
             {
                 title: "Descrição",
                 data: "DESCRICAO",
-                width: "60%",
+                width: isMobile() ? "80%" : "60%",
             },
             {
                 title: "Valor",
                 data: "VALOR",
-                width: "20%",
+                width: isMobile() ? "20%" : "20%",
                 render: $.fn.dataTable.render.number(".", ",", 2),
+                className: "text-center",
             },
             {
                 title: "Subgrupo",
                 data: "SUBGRUPO",
-                width: "19%",
+                width: "20%",
+                visible: isMobile() ? false : true, // Esconde em mobile
             },
         ],
         orderBy: [[0, "asc"]],
@@ -622,6 +673,7 @@ function deleteTabelaPreco(
                     $("#loading").removeClass("invisible");
                 },
                 success: function (response) {
+                    console.log(response);
                     if (response.success) {
                         $("#" + idTabela)
                             .DataTable()
@@ -703,5 +755,47 @@ function initTableDivergenciaTabelaPreco(routes) {
                 title: "Tabela de Preço",
             },
         ],
+    });
+}
+
+function isMobile() {
+    return window.innerWidth < 768; // Exemplo de breakpoint para mobile
+}
+
+function renderizarCards(dados, containerId) {
+    const container = $("#" + containerId);
+    container.empty();
+
+    dados.forEach(function (item) {
+        const card = `
+                    <div class="card mb-3">
+                        <div class="card-body shadow-sm p-3">
+                            <div class="col-12 col-md-12">
+                                <div class="form-group mb-0">                                  
+                                    <label class="small">Tabela:
+                                        <badge class="badge badge bg-primary">${item.QTD_ITENS} Itens</badge>
+                                    </label> 
+                                    <input type="text" 
+                                        class="form-control form-control-sm"
+                                        value="${item.DS_TABPRECO}" readonly />                                    
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-12">
+                                <div class="form-group mb-0">                                  
+                                    <label class="small">Supervisor:</label> 
+                                    <input type="text" 
+                                        class="form-control form-control-sm"
+                                        value="${item.SUPERVISOR}" readonly />                                    
+                                </div>
+                            </div>                  
+                        </div>
+                        <div class="card-footer p-2">
+                            <div class="text-center">
+                                ${item.action}
+                            </div>
+                        </div>
+                    </div>
+                `;
+        container.append(card);
     });
 }
