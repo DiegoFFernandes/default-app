@@ -28,4 +28,20 @@ class ModeloPneu extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+    public function getModeloPneuAll()
+    {
+        $query = "
+            SELECT
+                MP.ID IDMODELO,
+                M.DSMARCA || ' - ' || MP.DSMODELO DSMODELO
+            FROM MODELOPNEU MP
+            INNER JOIN MARCAPNEU M ON (M.ID = MP.IDMARCAPNEU)
+            --WHERE MP.ST_ATIVO = 'S'
+            ORDER BY MP.DSMODELO";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
+    }
 }

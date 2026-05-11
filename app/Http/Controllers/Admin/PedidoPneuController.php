@@ -7,6 +7,7 @@ use App\Models\DesenhoPneu;
 use App\Models\Estoque;
 use App\Models\Item;
 use App\Models\LiberaOrdemComercial;
+use App\Models\ModeloPneu;
 use App\Models\PedidoPneu;
 use App\Models\PedidosAlterados;
 use App\Models\Pessoa;
@@ -28,6 +29,7 @@ class PedidoPneuController extends Controller
     protected Estoque $estoque;
     protected LiberaOrdemComercial $liberaOrdemComercial;
     protected DesenhoPneu $desenhoPneu;
+    protected ModeloPneu $modeloPneu;
 
     public function __construct(
         Request $request,
@@ -38,7 +40,8 @@ class PedidoPneuController extends Controller
         Pneu $pneu,
         Estoque $estoque,
         LiberaOrdemComercial $liberaOrdemComercial,
-        DesenhoPneu $desenhoPneu
+        DesenhoPneu $desenhoPneu,
+        ModeloPneu $modeloPneu
     ) {
         $this->request = $request;
         $this->pedidoPneu = $pedidoPneu;
@@ -49,13 +52,15 @@ class PedidoPneuController extends Controller
         $this->estoque = $estoque;
         $this->liberaOrdemComercial = $liberaOrdemComercial;
         $this->desenhoPneu = $desenhoPneu;
+        $this->modeloPneu = $modeloPneu;
     }
 
     public function index()
     {
         $desenhos = $this->desenhoPneu->getDesenhoPneu();
+        $modelos = $this->modeloPneu->getModeloPneuAll();
 
-        return view('admin.pedido.index', compact('desenhos'));
+        return view('admin.pedido.index', compact('desenhos', 'modelos'));
     }
 
     public function searchPedidoPneu()
@@ -305,6 +310,7 @@ class PedidoPneuController extends Controller
             'fogo' => 'integer|nullable',
             'dot' => 'integer|nullable',
             'idDesenho' => 'required|integer',
+            'idModeloPneu' => 'required|integer',
             'idItemPedidoPneu' => 'required|integer'
         ];
 
@@ -319,6 +325,8 @@ class PedidoPneuController extends Controller
             'dot.integer' => 'Número DOT deve ser um número inteiro.',
             'idDesenho.required' => 'ID do desenho é obrigatório.',
             'idDesenho.integer' => 'ID do desenho deve ser um número inteiro.',
+            'idModeloPneu.required' => 'ID do modelo é obrigatório.',
+            'idModeloPneu.integer' => 'ID do modelo deve ser um número inteiro.',
         ];
 
 

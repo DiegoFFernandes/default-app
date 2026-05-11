@@ -71,7 +71,8 @@ class Pneu extends Model
                     SET
                         NRSERIE = :serie,
                         NRFOGO = :fogo,
-                        NRDOT = :dot
+                        NRDOT = :dot,
+                        IDMODELOPNEU = :modelopneu
                     WHERE (ID = :idPneu);
                 ";
 
@@ -79,6 +80,7 @@ class Pneu extends Model
                 'serie' => $data['nrSerie'],
                 'fogo' => $data['fogo'],
                 'dot' => $data['dot'],
+                'modelopneu' => $data['idModeloPneu'],
                 'idPneu' => $data['idPneu']
             ]);
 

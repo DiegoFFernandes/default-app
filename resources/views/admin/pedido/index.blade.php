@@ -4,56 +4,59 @@
 
 @section('content')
     <section class="content">
-        <!-- row -->
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Buscar Pedido</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-12 col-md-6">
-                                <div class="form-group">
-                                    <label class="small" for="pedido">Pedido:</label>
-                                    <input type="number" class="form-control form-control-sm" id="pedido" name="pedido"
-                                        placeholder="Digite o número do pedido">
-                                </div>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <div class="form-group">
-                                    <label class="small" for="ordem">Ordem:</label>
-                                    <input type="number" class="form-control form-control-sm" id="ordem" name="ordem"
-                                        placeholder="Digite o número da ordem">
-                                </div>
-                            </div>
+        <div class="container-fluid">
+            <!-- row -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Buscar Pedido</h3>
                         </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group">
+                                        <label class="small" class="small" for="pedido">Pedido:</label>
+                                        <input type="number" class="form-control form-control-sm" id="pedido"
+                                            name="pedido" placeholder="Digite o número do pedido">
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="form-group">
+                                        <label class="small" class="small" for="ordem">Ordem:</label>
+                                        <input type="number" class="form-control form-control-sm" id="ordem"
+                                            name="ordem" placeholder="Digite o número da ordem">
+                                    </div>
+                                </div>
+                            </div>
 
-                    </div>
-                    <div class="card-footer">
-                        <div class="float-right">
-                            <button type="button" class="btn btn-primary btn-xs" id="btn-pesquisar">Pesquisar</button>
+                        </div>
+                        <div class="card-footer">
+                            <div class="float-right">
+                                <button type="button" class="btn btn-primary btn-xs" id="btn-pesquisar">Pesquisar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- /.row -->
+            <!-- /.row -->
 
-        <div class="row d-none" id="resultado-pesquisa">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Resultados da Pesquisa</h3>
-                    </div>
-                    <div class="card-body">
-                        <table id="table-pedido-pneus" class="table table-bordered table-striped compact table-font-small">
-                        </table>
+            <div class="row d-none" id="resultado-pesquisa">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Resultados da Pesquisa</h3>
+                        </div>
+                        <div class="card-body">
+                            <table id="table-pedido-pneus"
+                                class="table table-bordered table-striped compact table-font-small">
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
+            <!-- /.row -->
         </div>
-        <!-- /.row -->
     </section>
 
     <div class="modal" id="modal-detalhes-pneu" tabindex="-1" role="dialog" aria-labelledby="modal-detalhes-pneu-label"
@@ -73,31 +76,43 @@
                             <input type="hidden" id="idPneu" name="idPneu">
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label for="nrSerie">Série:</label>
+                                    <label class="small" for="nrSerie">Série:</label>
                                     <input type="text" class="form-control form-control-sm" id="nrSerie"
                                         name="nrSerie">
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label for="fogo">Fogo:</label>
+                                    <label class="small" for="fogo">Fogo:</label>
                                     <input type="number" class="form-control form-control-sm" id="fogo"
                                         name="fogo">
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label for="dot">Dot:</label>
+                                    <label class="small" for="dot">Dot:</label>
                                     <input type="number" class="form-control form-control-sm" id="dot"
                                         name="dot">
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label for="desenho">Desenho:</label>
+                                    <label class="small" for="desenho">Desenho:</label>
                                     <select name="desenho" id="desenho" class="form-control form-control-sm">
                                         @foreach ($desenhos as $desenho)
                                             <option value="{{ $desenho->ID_DESENHO }}">{{ $desenho->DSDESENHO }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="col-12 col-md-8">
+                                <div class="form-group">
+                                    <label class="small" for="modelo">Marca/Modelo:</label>
+                                    <select name="modelo" id="modelo" class="form-control form-control-sm">
+                                        @foreach ($modelos as $modelo)
+                                            <option value="{{ $modelo->IDMODELO }}">{{ $modelo->DSMODELO }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -106,7 +121,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-xs" id="btn-atualizar-pneu"
+                    <button type="button" class="btn btn-warning btn-xs" id="btn-atualizar-pneu"
                         data-dismiss="modal">Atualizar</button>
                     <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal">Fechar</button>
                 </div>
@@ -114,6 +129,19 @@
         </div>
     </div>
 @stop
+@section('css')
+    <style>
+        @media (max-width: 768px) {
+
+            .form-control,
+            input,
+            select,
+            textarea {
+                height: 38px;
+                font-size: 16px !important;
+            }
+        }
+    </style>
 @section('js')
     <script>
         var tablePedidoPneus;
@@ -122,6 +150,14 @@
             theme: 'bootstrap4',
             width: '100%',
             placeholder: 'Selecione um desenho',
+            allowClear: true,
+            dropdownParent: $('#modal-detalhes-pneu')
+        });
+
+        $('#modelo').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Selecione um modelo',
             allowClear: true,
             dropdownParent: $('#modal-detalhes-pneu')
         });
@@ -246,6 +282,13 @@
                         className: 'text-center',
                         title: 'Desenho'
                     },
+                    {
+                        data: 'DSMODELO',
+                        name: 'DSMODELO',
+                        className: 'text-center',
+                        title: 'Marca/Modelo'
+                    },
+
 
                 ],
                 footerCallback: function(row, data, start, end, display) {
@@ -263,12 +306,14 @@
             let dot = rowData.NRDOT;
             let idDesenho = rowData.ID_DESENHO;
             let idItemPedidoPneu = rowData.IDITEMPEDIDOPNEU;
+            let idModeloPneu = rowData.IDMODELO;
 
 
             $('#nrSerie').val(nrSerie);
             $('#fogo').val(fogo);
             $('#dot').val(dot);
             $('#desenho').val(idDesenho).trigger('change');
+            $('#modelo').val(idModeloPneu).trigger('change');
             $('#idItemPedidoPneu').val(idItemPedidoPneu);
             $('#idPneu').val(idPneu);
 
@@ -283,6 +328,7 @@
             let fogo = $('#fogo').val();
             let dot = $('#dot').val();
             let idDesenho = $('#desenho').val();
+            let idModeloPneu = $('#modelo').val();
 
 
             $.ajax({
@@ -295,6 +341,7 @@
                     dot: dot,
                     idDesenho: idDesenho,
                     idItemPedidoPneu: idItemPedidoPneu,
+                    idModeloPneu: idModeloPneu,
                     _token: "{{ csrf_token() }}"
                 },
                 beforeSend: function() {

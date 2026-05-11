@@ -298,14 +298,18 @@ class PedidoPneu extends Model
                 IPP.IDSERVICOPNEU,
                 SP.DSSERVICO DS_ITEM,
                 OPR.ID NR_ORDEM,
+
                 --DADOS DOS PNEUS
                 PNEU.ID IDPNEU,
                 PNEU.NRSERIE,
                 PNEU.NRFOGO,
                 PNEU.NRDOT,
-                IPP.IDDESENHOPNEU,
+
                 DP.ID ID_DESENHO,
-                DP.DSDESENHO
+                DP.DSDESENHO,
+
+                MP.ID IDMODELO,
+                MARCAPNEU.DSMARCA||' - '||MP.DSMODELO  DSMODELO
             FROM PEDIDOPNEU PP
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
@@ -313,6 +317,8 @@ class PedidoPneu extends Model
             INNER JOIN BANDAPNEU BP ON (BP.ID = SP.IDBANDAPNEU)
             INNER JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
             INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
+            INNER JOIN MODELOPNEU MP ON (MP.ID = PNEU.IDMODELOPNEU)
+            INNER JOIN MARCAPNEU ON (MARCAPNEU.ID = MP.IDMARCAPNEU)
             LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)           
         ";
 
