@@ -63,7 +63,7 @@ class LiberaOrdemComissaoController extends Controller
 
     public function index()
     {  
-        
+
         $title   = 'Liberação Comercial';
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
@@ -160,7 +160,7 @@ class LiberaOrdemComissaoController extends Controller
                 return $d->ST_CALCULO == 'M' ? 'bg-purple text-white' : '';
             })
             ->editColumn('CD_TABPRECO', function ($d) {
-                if ($d->CD_TABPRECO != 9) {
+                if ($d->ST_TABELA == 'N') {
                     return '<span class="badge badge-danger w-50"> '. $d->CD_TABPRECO .' </span>';
                 } else {
                     return '<span class="badge badge-success w-50">'. $d->CD_TABPRECO .'</span>';

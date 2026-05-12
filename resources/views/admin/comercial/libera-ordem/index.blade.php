@@ -23,7 +23,7 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('css/pedidoBloqueado.css?v=' . time()) }}">
+    <link rel="stylesheet" href="{{ asset('css/pedidoBloqueado.css') }}?v={{ time() }}">
 @stop
 
 @section('js')
@@ -31,7 +31,7 @@
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             calculaComissao: "{{ route('get-calcula-comissao') }}",
-            ordensBloqueadas: "{{ route('get-ordens-bloqueadas-comercial') }}",            
+            ordensBloqueadas: "{{ route('get-ordens-bloqueadas-comercial') }}",
             savePedidosLiberadas: "{{ route('save-libera-pedido') }}",
             liberaAbaixoDesconto: "{{ route('libera-abaixo-desconto') }}",
             itensPneusOrdensBloqueadas: "{{ route('get-pneus-ordens-bloqueadas-comercial', ':pedido') }}",

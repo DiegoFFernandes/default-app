@@ -65,7 +65,7 @@ var table = $("#table-ordem-block").DataTable({
             data: "P_BORRACHEIRO",
             name: "P_BORRACHEIRO",
             title: "Borracheiro",
-            className: "text-center"
+            className: "text-center",
         },
     ],
     order: [2, "asc"],
@@ -530,6 +530,7 @@ function initTable(tableId, data) {
             {
                 data: "VL_VENDA",
                 name: "VL_VENDA",
+                className: "text-center",
                 // width: '2%',
                 render: $.fn.dataTable.render.number(".", ",", 2),
                 title: "Venda",
@@ -537,13 +538,14 @@ function initTable(tableId, data) {
             {
                 data: "VL_PRECO",
                 name: "VL_PRECO",
-
+                className: "text-center",
                 render: $.fn.dataTable.render.number(".", ",", 2),
                 title: "Tabela",
             },
             {
                 data: "PC_DESCONTO",
                 name: "PC_DESCONTO",
+                className: "text-center",
                 render: function (data, type, row) {
                     return data + "%";
                 },
@@ -552,6 +554,7 @@ function initTable(tableId, data) {
             {
                 data: "VL_COMISSAO",
                 name: "VL_COMISSAO",
+                className: "text-center",
                 visible: true,
                 render: $.fn.dataTable.render.number(".", ",", 2),
                 title: "Comissão",
@@ -559,6 +562,7 @@ function initTable(tableId, data) {
             {
                 data: "PC_COMISSAO",
                 name: "PC_COMISSAO",
+                className: "text-center",
                 visible: true,
                 render: function (data, type, row) {
                     return data + "%";
@@ -566,14 +570,23 @@ function initTable(tableId, data) {
                 title: "%Comis.",
             },
             {
+                data: "VL_BORRACHEIRO",
+                name: "VL_BORRACHEIRO",
+                className: "text-center",
+                visible: true,
+                render: $.fn.dataTable.render.number(".", ",", 2),
+                title: "Borrac.",
+            },
+            {
                 data: "ST_CALCULO",
                 name: "ST_CALCULO",
                 title: "Cálculo",
+                className: "text-center",
                 render: function (data, type, row) {
                     if (data === "A") {
-                        return "Automático";
+                        return "<span class='badge badge-success'>AUTOMATICO</span>";
                     } else if (data === "M") {
-                        return "Manual";
+                        return "<span class='badge badge-warning'>MANUAL</span>";
                     } else {
                         return data;
                     }
@@ -595,6 +608,14 @@ function initTable(tableId, data) {
                 targets: [3, 7],
                 createdCell: function (td, cellData, rowData, row, col) {
                     $(td).css("background-color", "#E2E5E8");
+                    $(td).css("color", "#000");
+                    $(td).css("font-weight", "bold");
+                },
+            },
+            {
+                targets: 8,
+                createdCell: function (td, cellData, rowData, row, col) {
+                    $(td).css("background-color", "#ebe489");
                     $(td).css("color", "#000");
                     $(td).css("font-weight", "bold");
                 },

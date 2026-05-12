@@ -104,48 +104,69 @@ class LiberaOrdemComercial extends Model
     {
         $query = "
                 SELECT
-                IPP.ID,                
-                PP.STPEDIDO,
-                PP.TP_BLOQUEIO,
-                PP.ID PEDIDO,
-                PP.IDEMPRESA EMP,
-                PP.DTEMISSAO,
-                PP.IDPESSOA IDPESSOA,
-                PP.DTEMISSAO,
-                pp.IDCONDPAGTO,
-                CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) PESSOA,
-                I.CD_SUBGRUPO,
-                PP.IDVENDEDOR CD_VENDEDOR,
-                CAST(PV.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) VENDEDOR,
-                IPP.NRSEQCRIACAO SEQ,
-                PP.IDPEDIDOMOVEL,
-                I.CD_ITEM,
-                I.DS_ITEM,
-                IPP.VLUNITARIO VL_VENDA,
-                CAST(ITP.VL_PRECO AS NUMERIC(15,2)) VL_PRECO,
-                CAST(100 * (1 - (IPP.VLUNITARIO /
-                CASE
-                WHEN ITP.VL_PRECO = 0 THEN 1
-                ELSE ITP.VL_PRECO
-                END)) AS NUMERIC(15,2)) PC_DESCONTO,
-                ITP.CD_TABPRECO,
+                    IPP.ID,
+                    PP.STPEDIDO,
+                    PP.TP_BLOQUEIO,
+                    PP.ID PEDIDO,
+                    PP.IDEMPRESA EMP,
+                    PP.DTEMISSAO,
+                    PP.IDPESSOA IDPESSOA,
+                    PP.DTEMISSAO,
+                    PP.IDCONDPAGTO,
+                    P.NM_PESSOA PESSOA,
+                    I.CD_SUBGRUPO,
+                    PP.IDVENDEDOR CD_VENDEDOR,
+                    PV.NM_PESSOA VENDEDOR,
+                    IPP.NRSEQCRIACAO SEQ,
+                    PP.IDPEDIDOMOVEL,
+                    I.CD_ITEM,
+                    I.DS_ITEM,
+                    IPP.VLUNITARIO VL_VENDA,
+                    CAST(COALESCE(ITPC.VL_PRECO, ITPP.VL_PRECO) AS NUMERIC(15,2)) VL_PRECO,
 
-                IPB.PC_COMISSAO,
-                IPB.VL_COMISSAO,
-                TABPRECO.DS_TABPRECO,
-                COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL,
-                COALESCE(IPB.ST_CALCULO, 'A') ST_CALCULO
-            FROM
-                PEDIDOPNEU PP
-            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
-            LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
-                                                            AND IPB.CD_TIPO = 1)
-            INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
-            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = COALESCE(IPP.IDTABPRECO, 1)
-                                            AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
-            LEFT JOIN TABPRECO ON (TABPRECO.CD_TABPRECO = ITP.CD_TABPRECO)
-            INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
-            INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
+                    CAST(100 * (1 - (IPP.VLUNITARIO /
+                    CASE
+                    WHEN COALESCE(ITPC.VL_PRECO, ITPP.VL_PRECO) = 0 THEN 1
+                    ELSE COALESCE(ITPC.VL_PRECO, ITPP.VL_PRECO)
+                    END)) AS NUMERIC(15,2)) PC_DESCONTO,
+
+                    COALESCE(ITPC.CD_TABPRECO, ITPP.CD_TABPRECO) CD_TABPRECO,
+
+                    IPB.PC_COMISSAO,
+                    IPB.VL_COMISSAO,
+                    COALESCE(TPC.DS_TABPRECO, TPP.DS_TABPRECO, 'SEM TABELA DE PRECO') DS_TABPRECO,
+
+                    COALESCE(PP.ST_COMERCIAL, 'S') ST_COMERCIAL,
+                    COALESCE(IPB.ST_CALCULO, 'A') ST_CALCULO,
+
+                    CASE
+                        WHEN IPP.IDTABPRECO = PF.CD_TABPRECO THEN 'N'
+                        ELSE 'S'
+                    END ST_TABELA,
+                    --BORRACHEIRO
+                    COALESCE(IPBB.VL_COMISSAO, 0) VL_BORRACHEIRO
+                FROM PEDIDOPNEU PP
+                INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+                LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
+                    AND IPB.CD_TIPO = 1)
+                LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPBB ON (IPBB.IDITEMPEDIDOPNEU = IPP.ID
+                    AND IPBB.CD_TIPO = 2)
+                INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
+
+                INNER JOIN PARMFATUR PF ON (PF.CD_EMPRESA = PP.IDEMPRESA)
+
+                LEFT JOIN ITEMTABPRECO ITPC ON (ITPC.CD_TABPRECO = COALESCE(IPP.IDTABPRECO, PF.CD_TABPRECO)
+                    AND ITPC.CD_ITEM = IPP.IDSERVICOPNEU)
+
+                LEFT JOIN ITEMTABPRECO ITPP ON (ITPP.CD_TABPRECO = PF.CD_TABPRECO
+                    AND ITPP.CD_ITEM = IPP.IDSERVICOPNEU)
+
+                LEFT JOIN TABPRECO TPC ON (TPC.CD_TABPRECO = ITPC.CD_TABPRECO)
+
+                LEFT JOIN TABPRECO TPP ON (TPP.CD_TABPRECO = ITPP.CD_TABPRECO)
+
+                INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
+                INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
             WHERE
                 PP.STPEDIDO IN ('B')
                 AND PP.IDTIPOPEDIDO = 1
