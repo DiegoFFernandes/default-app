@@ -27,15 +27,32 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::prefix('formas-pagamento')->group(function () {
-        Route::get('get-cond-pagamento', [FormaPagmentoController::class, 'condicaoPagamento'])->name('get-cond-pagamento');  
-        Route::get('get-form-pagamento', [FormaPagmentoController::class, 'formaPagamento'])->name('get-form-pagamento');       
+        Route::get('get-cond-pagamento', [FormaPagmentoController::class, 'condicaoPagamento'])->name('get-cond-pagamento');
+        Route::get('get-form-pagamento', [FormaPagmentoController::class, 'formaPagamento'])->name('get-form-pagamento');
     });
 
     Route::prefix('produto')->group(function () {
         Route::get('get-servico-pneu-medida', [ItemController::class, 'servicoPneu'])->name('get-servico-pneu-medida');
-        Route::get('search-produto', [ItemController::class, 'searchProduto'])->name('search-product');      
-    });    
+        Route::get('search-produto', [ItemController::class, 'searchProduto'])->name('search-product');
+    });
+});
 
-    
-
+Route::get('/manifest.json', function () {
+    return response()->json([
+        'name' => env('APP_NAME', 'App'),
+        'short_name' => env('APP_SHORT_NAME', 'App'),
+        'start_url' => '/',
+        'background_color' => '#FFFFFF',
+        'description' => 'Aplicativo para gerenciamento de pneus',
+        'display' => 'standalone',
+        'theme_color' => '#FFFFFF',
+        'icons' => [
+            [
+                'src' => 'img/android-chrome-512x512.png',
+                'sizes' => '512x512',
+                'type' => 'image/png',
+                'purpose' => 'any maskable'
+            ]
+        ]
+    ]);
 });

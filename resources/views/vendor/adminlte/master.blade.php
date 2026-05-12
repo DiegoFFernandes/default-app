@@ -92,7 +92,7 @@
         <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('img/favicon-96x96.png') }}">
         <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/android-icon-192x192.png') }}">
         
-        <link rel="manifest" crossorigin="use-credentials" href="{{ asset('manifest.json') }}">
+        <link rel="manifest" crossorigin="use-credentials" href="/manifest.json">
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="{{ asset('img/ms-icon-144x144.png') }}">
     @endif
