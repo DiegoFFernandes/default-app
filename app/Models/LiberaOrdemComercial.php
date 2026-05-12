@@ -276,16 +276,25 @@ class LiberaOrdemComercial extends Model
         $resultado = [];
 
         foreach ($percentual as $p) {
+
+
             $pedidos = collect($pneus)
                 ->groupBy('PEDIDO')
                 ->filter(function ($grupo) use ($p) {
+
+                    // Obtem o codigo da empresa do primeiro item do grupo (todos os itens do grupo tem a mesma empresa)
+                    $parmFaturData = ParmFatur::getParmFatur(intval($grupo->first()->EMP));
+
+                    $cd_tabpreco = $parmFaturData[0]->CD_TABPRECO ?? 1;
+
                     // Automático precisa que TODOS estejam dentro da faixa
                     if ($p->tp_cargo === 'A') {
+
                         return $grupo->every(
                             fn($pneu) =>
                             $pneu->PC_DESCONTO >= $p->perc_desconto_min &&
                                 $pneu->PC_DESCONTO <= $p->perc_desconto_max &&
-                                $pneu->CD_TABPRECO == 1
+                                $pneu->CD_TABPRECO == $cd_tabpreco
                         );
                     }
 
@@ -294,7 +303,7 @@ class LiberaOrdemComercial extends Model
                         fn($pneu) =>
                         $pneu->PC_DESCONTO >= $p->perc_desconto_min &&
                             $pneu->PC_DESCONTO <= $p->perc_desconto_max &&
-                            $pneu->CD_TABPRECO == 1
+                            $pneu->CD_TABPRECO == $cd_tabpreco
                     );
                 })
                 ->keys()
@@ -303,6 +312,7 @@ class LiberaOrdemComercial extends Model
             $resultado[$p->tp_cargo] = $pedidos;
         }
 
+        // G = GERENTE COMERCIAL, S = SUPERVISOR, A = AUTOMATICO
         // Atualiza em lote
         foreach (['G', 'S', 'A'] as $cargo) {
             PedidoPneu::updateDesconto($resultado[$cargo] ?? '', $cargo);

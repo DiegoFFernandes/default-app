@@ -62,7 +62,8 @@ class LiberaOrdemComissaoController extends Controller
     }
 
     public function index()
-    {
+    {  
+        
         $title   = 'Liberação Comercial';
         $user_auth    = $this->user;
         $uri          = $this->request->route()->uri();
