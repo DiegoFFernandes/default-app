@@ -12,7 +12,7 @@
                         <h6 class="text-muted">Olá seja bem vindo(a), {{ $user_auth->name }}!</h6>
                     </div>
                 </div>
-            </div>
+            </div>           
 
             <div class="col-md-12">
                 <div class="card">
@@ -21,14 +21,15 @@
                     </div>
                     <div class="card-body row">
                         <div class="col-md-12">
-                            @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento', 'ver-pedidos-coletados-acompanhamento-cliente'])
+                            @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento',
+                                'ver-pedidos-coletados-acompanhamento-cliente'])
                                 <p>Comercial</p>
                             @endcanany
                             @haspermission('ver-coleta-empresa')
                                 <a href="{{ route('coleta-empresa-geral') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Coleta Geral</a>
                             @endhaspermission
-                            @role('admin')                                
+                            @role('admin')
                                 <a href="{{ route('analise-garantia.index') }}" class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Garantia</a>
                             @endrole
@@ -37,7 +38,8 @@
                                     style="width: 150px">Produzidos P/ Faturar</a>
                             @endhaspermission
 
-                            @canany(['ver-pedidos-coletados-acompanhamento', 'ver-pedidos-coletados-acompanhamento-cliente'])
+                            @canany(['ver-pedidos-coletados-acompanhamento',
+                                'ver-pedidos-coletados-acompanhamento-cliente'])
                                 <a href={{ route('bloqueio-pedidos') }} class="btn btn-sm btn-dark mb-1"
                                     style="width: 150px">Acompanha Pedidos</a>
                             @endcanany
@@ -87,15 +89,15 @@
                             @endhaspermission
                         @endhasrole
                         @haspermission('ver-quadro-tarefa')
-                            <div class="col-md-12 mt-2">
-                                <p>Tarefas</p>
-                                <a href={{ route('area-trabalho-tarefas') }} class="btn btn-sm btn-dark mb-1"
-                                    style="width: 150px">Quadro de tarefas</a>
-                            </div>
-                        @endhasrole
-                    </div>
+                        <div class="col-md-12 mt-2">
+                            <p>Tarefas</p>
+                            <a href={{ route('area-trabalho-tarefas') }} class="btn btn-sm btn-dark mb-1"
+                                style="width: 150px">Quadro de tarefas</a>
+                        </div>
+                    @endhasrole
                 </div>
             </div>
-            <!-- /.row -->
-    </section>
+        </div>
+        <!-- /.row -->
+</section>
 @stop

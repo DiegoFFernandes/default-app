@@ -1,37 +1,3 @@
-const chkNaoAssociados = document.getElementById("checkNaoAssociadas");
-const chkAssociados = document.getElementById("checkAssociadas");
-
-$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-    const valor = parseInt(data[3]) || 0; // Use data for the "Associados" column
-
-    const naoAssociados = chkNaoAssociados && chkNaoAssociados.checked;
-    const associados = chkAssociados && chkAssociados.checked;
-
-    // Ambos marcados mostra tudo
-    if (naoAssociados && associados) {
-        return true;
-    }
-    // Só não associados
-    if (naoAssociados) {
-        return valor === 0;
-    }
-    // Só associados
-    if (associados) {
-        return valor > 0;
-    }
-    return true;
-});
-
-if (chkNaoAssociados) {
-    chkNaoAssociados.addEventListener("change", function () {
-        tabelaPreco.draw();
-    });
-}
-if (chkAssociados) {
-    chkAssociados.addEventListener("change", function () {
-        tabelaPreco.draw();
-    });
-}
 
 function initTabelaPreco(route) {
     tabelaPreco = $("#tabela-preco").DataTable({
@@ -225,195 +191,9 @@ function initTableItemTabelaPreco(
     });
 }
 
-function initTableTabelaPrecoCadastradasPreview(route) {
-    if (isMobile()) {
-        $.ajax({
-            url: route.tabelaPrecoCadastradasPreview,
-            type: "GET",
-            beforeSend: function () {
-                Swal.fire({
-                    title: "Carregando...",
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
-            },
-            success: function (json) {
-                const dados = json.data || json;
-
-                renderizarCards(dados, "card-container");
-            },
-            complete: function () {
-                Swal.close();
-            },
-        });
-
-        return;
-    }
-
-    $("#tabela-preco-cadastradas").DataTable({
-        paging: true,
-        searching: true,
-        destroy: true,
-        scrollY: "300px",
-        scrollCollapse: true,
-        language: {
-            url: route.language_datatables,
-        },
-        ajax: {
-            url: route.tabelaPrecoCadastradasPreview,
-            type: "GET",
-            beforeSend: function () {
-                Swal.fire({
-                    title: "Carregando...",
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
-            },
-            complete: function () {
-                Swal.close();
-            },
-        },
-        columns: [
-            {
-                title: "Ações",
-                data: "action",
-                width: "10%",
-                orderable: false,
-                searchable: false,
-                className: "text-center no-wrap",
-            },
-            {
-                title: "ID",
-                data: "CD_TABPRECO",
-                visible: false,
-            },
-            {
-                title: "Tabela",
-                data: "DS_TABPRECO",
-            },
-            {
-                title: "Supervisor",
-                data: "SUPERVISOR",
-            },
-            {
-                title: "Itens",
-                data: "QTD_ITENS",
-                className: "text-center",
-            },
-        ],
-    });
-}
-
 function formatarNome(str) {
     return str.toLowerCase().replace(/\b\w/g, function (letra) {
         return letra.toUpperCase();
-    });
-}
-
-function formularioDinamico(route) {
-    const cardTabela = $("#item-tabela-preco").closest(".card");
-
-    $("#desenho, #medida, #valor, #btn-associar").closest(".form-group").hide(); // esconde os select
-    cardTabela.hide(); // esconde o card da tabela
-
-    // exibe desenho quando pessoa for selecionado
-    $("#pessoa").on("change", function () {
-        if ($(this).val() === null || $(this).val().length === 0) {
-            // Impede a requisição caso esteja vazio
-            return false;
-        }
-        $.ajax({
-            type: "GET",
-            url: route.verificaTabelaCadastrada,
-            data: {
-                idTabela: $(this).val(),
-            },
-            success: function (response) {
-                if (response.data.length > 0) {
-                    Swal.fire({
-                        icon: "warning",
-                        title: "Atenção",
-                        text: "Já existe uma tabela de preço cadastrada para este cliente, deseja atualiza-la?",
-                        showCancelButton: true,
-                        confirmButtonText: "Sim",
-                        cancelButtonText: "Não",
-                        customClass: {
-                            confirmButton: "btn btn-danger mr-2",
-                            cancelButton: "btn btn-secondary",
-                        },
-                        buttonsStyling: false,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $("#desenho").closest(".form-group").show();
-                            cardTabela.show();
-                            initTableTabelaPrecoPrevia();
-
-                            // Adiciona os dados existentes na tabela
-                            response.data.forEach(function (item) {
-                                itens_preview.set(item.ID, item); // Adiciona no Map
-                            });
-
-                            tabela_preview
-                                .clear()
-                                .rows.add(Array.from(itens_preview.values()))
-                                .draw(); // Atualiza a tabela com os dados existentes
-                        } else {
-                            $("#pessoa").val("").trigger("change");
-                            $("#desenho, #medida, #valor, #btn-associar")
-                                .closest(".form-group")
-                                .hide();
-                        }
-                    });
-                } else {
-                    $("#desenho").closest(".form-group").show();
-                }
-            },
-        });
-    });
-
-    // exibe medida quando desenho for selecionado
-    $("#desenho").on("change", function () {
-        if ($(this).val() && $(this).val().length > 0) {
-            $("#medida").closest(".form-group").show();
-        } else {
-            $("#medida, #valor").closest(".form-group").hide();
-        }
-    });
-
-    // exibe valor quando medida for selecionado
-    $("#medida").on("change", function () {
-        if ($(this).val() && $(this).val().length > 0) {
-            $("#valor").closest(".form-group").show();
-            $("#btn-associar").closest(".form-group").show();
-        } else {
-            $("#valor").closest(".form-group").hide();
-            $("#btn-associar").closest(".form-group").hide();
-        }
-    });
-
-    // limpa e esconde
-    $("#btn-recomecar").on("click", function () {
-        Swal.fire({
-            icon: "warning",
-            title: "Atenção",
-            text: "Deseja realmente reiniciar?",
-            showCancelButton: true,
-            confirmButtonText: "Sim",
-            cancelButtonText: "Não",
-            customClass: {
-                confirmButton: "btn btn-danger mr-2",
-                cancelButton: "btn btn-secondary",
-            },
-            buttonsStyling: false,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                recomecar();
-            }
-        });
     });
 }
 
@@ -429,7 +209,7 @@ function initTableTabelaPrecoPrevia() {
         ],
         pageLength: isMobile() ? 10 : -1,
         language: {
-            url: routes.language_datatables,
+            url: window.routes.language_datatables,
         },
         select: {
             style: "multi",
@@ -469,99 +249,6 @@ function initTableTabelaPrecoPrevia() {
     });
 }
 
-$(document).on("click", "#item-tabela-preco td:nth-child(3)", function () {
-    var tr = $(this).closest("tr");
-    var row = tabela_preview.row(tr);
-    var rowData = row.data();
-    var valorCell = tr.find("td").eq(2);
-    var valorTabela = parseFloat(rowData.VALOR).toFixed(2);
-
-    if (!valorCell.find("input").length) {
-        valorCell.html(
-            '<input type="text" inputmode="decimal" class="input-venda valor-edit" value="' +
-                valorTabela +
-                '" style="width: 100%; box-sizing: border-box;" />',
-        );
-
-        var input = valorCell.find("input");
-        input.focus();
-        input.select();
-
-        input.on("blur", function (e) {
-            var novoValor = parseFloat($(this).val().replace(",", "."));
-
-            if (isNaN(novoValor)) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Valor inválido",
-                    text: "Por favor, insira um número válido para o valor.",
-                    customClass: {
-                        confirmButton: "btn btn-danger",
-                    },
-                });
-                row.data(rowData).draw(false);
-                return;
-            }
-
-            rowData.VALOR = novoValor;
-            row.data(rowData).draw(false);
-        });
-
-        input.on("keydown", function (e) {
-            if (e.which === 13) {
-                // Enter
-                e.preventDefault(); // evita quebra de linha
-                $(this).blur(); // força o blur, que chama a função de atualização
-            }
-            if (e.which === 27) {
-                // Esc
-                e.preventDefault();
-                rowData.VALOR = valorTabela;
-                row.data(rowData).draw(false); // reverte para o valor original
-            }
-        });
-    }
-});
-
-function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
-    let selected = $(selectOrigem).val();
-
-    $(selectDestino).empty().trigger("change");
-
-    if (selected && selected.length > 0) {
-        $.ajax({
-            url: url,
-            type: "GET",
-            data: {
-                _csrf: "{{ csrf_token() }}",
-                [paramName]: selected,
-                select: paramName,
-            },
-            success: function (data) {
-                data.forEach(function (item) {
-                    let newOption = new Option(
-                        item.DESCRICAO,
-                        item.ID,
-                        false,
-                        false,
-                    );
-                    $(selectDestino).append(newOption);
-                });
-                $(selectDestino).trigger("change");
-            },
-        });
-    }
-}
-
-function recomecar() {
-    $("#item-tabela-preco").DataTable().clear().destroy();
-    dados_atualizados = [];
-    itens_preview = new Map();
-    $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
-    $("#desenho").closest(".form-group").hide(); // esconde os selects
-    $("#item-tabela-preco").closest(".card").hide();
-}
-
 function salvarVinculoTabelaPessoa(
     cd_tabela,
     cd_pessoa,
@@ -585,7 +272,7 @@ function salvarVinculoTabelaPessoa(
 
     $.ajax({
         type: "POST",
-        url: routes.vincularTabelaPreco,
+        url: window.routes.vincularTabelaPreco,
         data: {
             _token: csrf,
             cd_tabela: cd_tabela,
@@ -662,7 +349,7 @@ function deleteTabelaPreco(
         if (result.isConfirmed) {
             $.ajax({
                 type: "POST",
-                url: routes.deleteTabelaPreco,
+                url: window.routes.deleteTabelaPreco,
                 data: {
                     _token: csrf,
                     cd_tabela: cd_tabela,
@@ -670,16 +357,21 @@ function deleteTabelaPreco(
                 },
                 dataType: "json",
                 beforeSend: function () {
-                    $("#loading").removeClass("invisible");
+                    Swal.fire({
+                        title: "Deletando tabela...",
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
+                    });
                 },
                 success: function (response) {
-                    console.log(response);
                     if (response.success) {
                         $("#" + idTabela)
                             .DataTable()
                             .ajax.reload();
 
-                        $("#loading").addClass("invisible");
+                        Swal.close();
 
                         Swal.fire({
                             icon: "success",
@@ -690,6 +382,7 @@ function deleteTabelaPreco(
                             },
                         });
                     } else {
+                        Swal.close();
                         Swal.fire({
                             icon: "warning",
                             title: "Atenção",
@@ -700,7 +393,7 @@ function deleteTabelaPreco(
                                 confirmButton: "btn btn-warning",
                             },
                         });
-                        $("#loading").addClass("invisible");
+
                         return;
                     }
                 },
@@ -717,10 +410,10 @@ function initTableDivergenciaTabelaPreco(routes) {
         destroy: true,
         pagingType: "simple",
         language: {
-            url: routes.language_datatables,
+            url: window.routes.language_datatables,
         },
         ajax: {
-            url: routes.divergenciaTabelaPreco,
+            url: window.routes.divergenciaTabelaPreco,
             type: "get",
             data: {
                 _token: "{{ csrf_token() }}",

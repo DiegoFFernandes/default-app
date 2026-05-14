@@ -29,7 +29,9 @@ class TabelaPrecoController extends Controller
         $user_auth,
         $tipo,
         $pessoa,
-        $empresa, $user, $tabela, $itemTabPreco, $area, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo;
+        $empresa,
+        $user,
+        $tabela, $itemTabPreco, $area, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo;
 
     public function __construct(
         Empresa $empresa,
@@ -79,49 +81,58 @@ class TabelaPrecoController extends Controller
         $isValidSubgrupoReformaCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(1);
 
         if (!$isValidSubgrupoReformaCarga['success']) {
-            return redirect()->back()->withErrors($isValidSubgrupoReformaCarga['message']);
+            return redirect()->back()->with('error', $isValidSubgrupoReformaCarga['message']);
         }
 
         $isValidSubgrupoManchaoCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(3);
 
         if (!$isValidSubgrupoManchaoCarga['success']) {
-            return redirect()->back()->withErrors($isValidSubgrupoManchaoCarga['message']);
+            return redirect()->back()->with('error', $isValidSubgrupoManchaoCarga['message']);
         }
 
         $isValidSubgrupoVulcanizacaoCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(6);
 
         if (!$isValidSubgrupoVulcanizacaoCarga['success']) {
-            return redirect()->back()->withErrors($isValidSubgrupoVulcanizacaoCarga['message']);
+            return redirect()->back()->with('error', $isValidSubgrupoVulcanizacaoCarga['message']);
+        }
+
+        $isValidSubgrupoReformaAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(2);
+
+        if (!$isValidSubgrupoReformaAgricola['success']) {
+            return redirect()->back()->with('error', $isValidSubgrupoReformaAgricola['message']);
         }
 
         $isValidSubgrupoManchaoAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(4);
 
         if (!$isValidSubgrupoManchaoAgricola['success']) {
-            return redirect()->back()->withErrors($isValidSubgrupoManchaoAgricola['message']);
+            return redirect()->back()->with('error', $isValidSubgrupoManchaoAgricola['message']);
         }
         $isValidSubgrupoVulcanizacaoAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(7);
 
         if (!$isValidSubgrupoVulcanizacaoAgricola['success']) {
-            return redirect()->back()->withErrors($isValidSubgrupoVulcanizacaoAgricola['message']);
+            return redirect()->back()->with('error', $isValidSubgrupoVulcanizacaoAgricola['message']);
         }
 
         $isValidSubgrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(5);
 
         if (!$isValidSubgrupoEnchimento['success']) {
-            return redirect()->back()->withErrors($isValidSubgrupoEnchimento['message']);
+            return redirect()->back()->with('error', $isValidSubgrupoEnchimento['message']);
         }
 
         $isValidGrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterGruposValidos(5);
 
         if (!$isValidGrupoEnchimento['success']) {
-            return redirect()->back()->withErrors($isValidGrupoEnchimento['message']);
+            return redirect()->back()->with('error', $isValidGrupoEnchimento['message']);
         }
 
+        // Agrupa os subgrupos de reforma carga e reforma agrícola para buscar os desenhos relacionados a esses subgrupos
+        $agruparSubGrupo = $isValidSubgrupoReformaCarga['data'] . ',' . $isValidSubgrupoReformaAgricola['data'];
+
         //Busca os desenhos do grupo de retorma de carga para montar a tabela de preço.
-        $desenho = $this->tabela->getSelectTabPreco(null, null, null, null, null, $isValidSubgrupoReformaCarga['data']);
+        $desenho = $this->tabela->getSelectTabPreco(null, null, null, null, null, $agruparSubGrupo);
 
 
-        return view('admin.comercial.tabela-preco', compact(
+        return view('admin.comercial.tabela-preco.tabela-preco', compact(
             'title_page',
             'user_auth',
             'empresas',
@@ -236,8 +247,11 @@ class TabelaPrecoController extends Controller
         // 7 = VULCANIZAÇÃO AGRICOLA
 
         $isValidSubgrupoReformaCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(1);
+        $isValidSubgrupoReformaAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(2);
 
-        $data = $this->tabela->getSelectTabPreco($select, $idDesenho, null, null, null, $isValidSubgrupoReformaCarga['data']);
+        $agruparSubGrupo = $isValidSubgrupoReformaCarga['data'] . ',' . $isValidSubgrupoReformaAgricola['data'];
+
+        $data = $this->tabela->getSelectTabPreco($select, $idDesenho, null, null, null, $agruparSubGrupo);
 
         return response()->json($data);
     }
@@ -260,6 +274,9 @@ class TabelaPrecoController extends Controller
         $idMedida = is_array($idMedida) ? implode(',', $idMedida) : $idMedida;
 
         $isValidSubgrupoReformaCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(1);
+        $isValidSubgrupoReformaAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(2);
+
+        $agruparSubGrupo = $isValidSubgrupoReformaCarga['data'] . ',' . $isValidSubgrupoReformaAgricola['data'];
 
         $data = $this->tabela->getSelectTabPreco(
             $select,
@@ -267,7 +284,7 @@ class TabelaPrecoController extends Controller
             $idDesenho,
             $idMedida,
             $valor,
-            $isValidSubgrupoReformaCarga['data']
+            $agruparSubGrupo
         );
 
         // Número total de registros após filtros

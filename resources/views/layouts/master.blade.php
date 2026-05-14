@@ -92,6 +92,8 @@
 
 
     <script>
+
+        
         $.extend(true, $.fn.dataTable.defaults, {
             ajax: {
                 error: function(xhr, status, error) {
@@ -135,6 +137,7 @@
             @endif
 
             @if (session('error'))
+                console.log('Erro:', "{{ session('error') }}");
                 toastr.error("{{ session('error') }}");
             @endif
 
