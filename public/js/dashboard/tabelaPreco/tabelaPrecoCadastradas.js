@@ -136,7 +136,7 @@ $(document).on("click", ".btn-delete-tabela-cadastradas", function () {
 function initTableTabelaPrecoCadastradasPreview(route) {
     if (isMobile()) {
         $.ajax({
-            url: route.tabelaPrecoCadastradasPreview,
+            url: window.routes.tabelaPrecoCadastradasPreview,
             type: "GET",
             beforeSend: function () {
                 Swal.fire({
