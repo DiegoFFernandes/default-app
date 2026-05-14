@@ -340,8 +340,10 @@ function deleteTabelaPreco(
         confirmButtonText: "Sim",
         cancelButtonText: "Não",
         showCancelButton: true,
+        buttonsStyling: false,
         customClass: {
-            confirmButton: "btn btn-delete",
+            confirmButton: "btn btn-danger mr-2 btn-delete",
+            cancelButton: "btn btn-secondary",
         },
     }).then((result) => {
         if (result.isConfirmed) {
