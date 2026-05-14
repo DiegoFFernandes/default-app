@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Models\GerenteUnidade;
+use App\Models\LotePcpRecap;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
@@ -17,7 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class PcpProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo;
+    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo, $lotePcpRecap;
 
     public function __construct(
         Request $request,
@@ -27,7 +28,8 @@ class PcpProducaoController extends Controller
         Producao $producao,
         SupervisorAuthService $supervisorComercial,
         GerenteUnidade $gerenteUnidade,
-        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo,
+        LotePcpRecap $lotePcpRecap
 
     ) {
         $this->request = $request;
@@ -38,7 +40,7 @@ class PcpProducaoController extends Controller
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
         $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
-
+        $this->lotePcpRecap = $lotePcpRecap;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -51,6 +53,9 @@ class PcpProducaoController extends Controller
         $user_auth    = $this->user;
         $exploder     = explode('/', $this->request->route()->uri());
         $uri = ucfirst($exploder[1]);
+
+        $canEditPCP = $this->user->hasPermissionTo('editar-pneus-lote-pcp');
+
         if ($this->user->hasRole('admin|diretoria')) {
             $empresa = $this->empresa->empresa();
         } else if ($this->user->hasRole('gerente unidade')) {
@@ -63,7 +68,8 @@ class PcpProducaoController extends Controller
         return view('admin.producao.pcp.pcp-producao', compact(
             'title_page',
             'uri',
-            'empresa'
+            'empresa',
+            'canEditPCP'
         ));
     }
 
@@ -80,18 +86,32 @@ class PcpProducaoController extends Controller
 
         $datatables = DataTables::of($data)
             ->addColumn('actions', function ($row) {
-                return "<button class='btn btn-xs btn-danger btn-remover-pneus-lote' 
+
+                if ($this->user->hasPermissionTo('editar-pneus-lote-pcp')) {
+
+                    return "<button class='btn btn-xs btn-danger btn-remover-pneus-lote' 
                             data-empresa='" . $row->IDEMPRESA . "' 
-                            data-lote='" . $row->NR_LOTE . "'>
+                            data-lote='" . $row->NR_LOTE . "'
+                            data-ordem='" . $row->NR_ORDEM . "'
+                            data-etapa='" . $row->CD_ETAPA . "'
+                            
+                            >
                              <i class='fa fa-trash'></i>
                         </button>
                         <button class='btn btn-xs btn-primary btn-transferir-pneus-lote' 
                             data-empresa='" . $row->IDEMPRESA . "' 
-                            data-lote='" . $row->NR_LOTE . "'>
+                            data-lote='" . $row->NR_LOTE . "'
+                            data-ordem='" . $row->NR_ORDEM . "'
+                            >
                              <i class='fa fa-exchange-alt'></i>
-                        </button>
-                        
+                        </button>                        
                         ";
+                } else {
+                    return "<button class='btn btn-xs btn-secondary' disabled>
+                                <i class='fa fa-truck'></i>
+                            </button>                                                
+                         ";
+                }
             })
             ->editColumn('DS_ETAPA', function ($row) {
                 $badgeClass = 'secondary';
@@ -226,5 +246,44 @@ class PcpProducaoController extends Controller
 
         return DataTables::of($data)
             ->make(true);
+    }
+
+    public function removerOrdemProducaoLotePCP()
+    {
+        $validated = $this->request->validate([
+            'cd_empresa' => 'required|integer',
+            'nr_lote' => 'required|integer',
+            'ordem_producao' => 'required|integer',
+        ]);
+
+        $cdEmpresa = $validated['cd_empresa'];
+        $nrLote = $validated['nr_lote'];
+        $nrOrdemProducao = $validated['ordem_producao'];
+
+        //verifica se a ordem de produção já passou no exame inicial
+        $exists = $this->producao->existExameInicial($nrOrdemProducao);
+
+        if (!$exists) {
+            try {
+                //remove a ordem de produção do lote de PCP caso ainda não passou no exame inicial
+                $this->producao->removerOrdemProducaoLotePCP($nrOrdemProducao);
+
+                // 1 = EXISTE PNEUS EM ABERTO
+                // 0 = NÃO EXISTE PNEUS EM ABERTO
+                $verificaPneusLotePcpRecapAberto = $this->lotePcpRecap->verificaPneusLotePcpRecapAberto($nrLote);
+
+                if ($verificaPneusLotePcpRecapAberto === 0) {
+                    //muda o status do lote de PCP para FECHADO, pois não tem pneus em aberto
+                    $this->lotePcpRecap->fecharLotePcpRecap($nrLote, $cdEmpresa);
+                }
+
+                return response()->json(['success' => true, 'message' => 'Ordem de produção ' . $nrOrdemProducao . ' removida do lote de PCP.']);
+            } catch (\Exception $e) {
+
+                return response()->json(['success' => false, 'message' => 'Erro ao remover a ordem de produção do lote de PCP: ' . $e->getMessage()]);
+            }
+        } else {
+            return response()->json(['success' => false, 'message' => 'Não é possível remover a ordem de produção, Já passou no exame inicial.']);
+        }
     }
 }

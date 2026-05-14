@@ -369,6 +369,14 @@ function deleteTabelaPreco(
                     Swal.close();
 
                     if (response.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Atenção",
+                            text: response.message,
+                            showConfirmButton: false,
+                            timer: 3000,
+                        });
+
                         // se for mobile, reinicia a tabela para ajustar o layout, se não, apenas recarrega os dados
                         if (isMobile()) {
                             initTableTabelaPrecoCadastradasPreview(
@@ -379,18 +387,6 @@ function deleteTabelaPreco(
                                 .DataTable()
                                 .ajax.reload();
                         }
-
-                        Swal.fire({
-                            icon: "success",
-                            title: "Atenção",
-                            text: response.message,
-                            buttonsStyling: false,
-                            confirmButtonText: "OK",
-                            customClass: {
-                                confirmButton: "btn btn-success",
-                            },
-                        });
-                        
                     } else {
                         Swal.fire({
                             icon: "warning",

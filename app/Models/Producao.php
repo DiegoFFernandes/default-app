@@ -155,7 +155,7 @@ class Producao extends Model
                 ELSE 'SIM'
                 END AS EXPEDICIONADO,
                 OPRX.IDEXPEDICAOLOTEPNEU AS NR_LOTEEXP,
-                OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                             MAX(IPP2.NRSEQUENCIA)
                                                         FROM ITEMPEDIDOPNEU IPP2
                                                         WHERE
@@ -204,12 +204,8 @@ class Producao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
-    /**
-     * Verifica se a ordem de produção está finalizada no exame final.
-     *
-     * @param int $idOrdem
-     * @return array
-     */
+
+    //  Verifica se a ordem de produção está finalizada no exame final.    
     public function OrdemFinalizadaExameFinal($idOrdem)
     {
         $query = "
@@ -223,6 +219,7 @@ class Producao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+
     public function getOrdemProducaoById($input)
     {
         $query = "
@@ -250,13 +247,14 @@ class Producao extends Model
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
     }
+
     public function getPneusAtrasoLotePCP($cd_empresa)
     {
         $query = "
                 SELECT
                     X.IDEMPRESA, X.NR_COLETA, X.IDPEDIDOMOVEL, X.DTENTRADA, X.DTENTREGA, X.IDPESSOA, X.IDSERVICOPNEU,
                     P.NM_PESSOA, COALESCE(RC.DS_REGIAOCOMERCIAL,'SEM REGIAO') DS_REGIAOCOMERCIAL, SP.DSSERVICO,
-                    X.DSCONTROLELOTEPCP, X.NR_LOTE, X.NRLOTESEQDIA, X.DTFIM, X.HRFIM, X.ID NR_OP,
+                    X.DSCONTROLELOTEPCP, X.NR_LOTE, X.NRLOTESEQDIA, X.DTFIM, X.HRFIM, X.NR_ORDEM, X.ID NR_OP,
                     X.DT_EXAME, X.DT_MANCHAO, X.DT_COBER, X.DT_VULC, X.DT_FINAL,
                     X.CD_ETAPA, X.DS_ETAPA, X.DSOBSERVACAO, MP.DSMOTIVO
                 FROM (
@@ -264,7 +262,7 @@ class Producao extends Model
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
                     C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
                     
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
@@ -305,7 +303,9 @@ class Producao extends Model
 
                     --lIMPEZA MANCHÃO
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
+                    OPR.ID NR_ORDEM, 
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
@@ -353,7 +353,9 @@ class Producao extends Model
 
                     --COBERTURA
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
+                    OPR.ID NR_ORDEM, 
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
@@ -407,7 +409,9 @@ class Producao extends Model
 
                     --VULCANIZAÇÃO
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
+                    OPR.ID NR_ORDEM, 
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
@@ -456,7 +460,9 @@ class Producao extends Model
 
                     --EXAME FINAL
                     SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
+                    OPR.ID NR_ORDEM, 
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
@@ -512,6 +518,7 @@ class Producao extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
     public function getLotePCP($cd_empresa)
     {
         $query = "
@@ -653,7 +660,7 @@ class Producao extends Model
                     M.DTPRODUCAO,
                     PESSOA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
                     PP.ID NR_PEDIDO,
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
                                                 WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
@@ -752,7 +759,7 @@ class Producao extends Model
                 --M.NRLOTESEQDIA,
                 M.DTPRODUCAO,
                 PP.ID NR_PEDIDO,
-                OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                                 MAX(IPP2.NRSEQUENCIA)
                                                             FROM ITEMPEDIDOPNEU IPP2
                                                             WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
@@ -797,5 +804,28 @@ class Producao extends Model
 
         $data = DB::connection('firebird')->select($query);
         return Helper::ConvertFormatText($data);
+    }
+
+    public function existExameInicial(int $idOrdemProducao)
+    {
+        return DB::connection('firebird')
+            ->table('EXAMEINICIAL')
+            ->where('IDORDEMPRODUCAORECAP', $idOrdemProducao)
+            ->exists();
+    }
+
+    public function removerOrdemProducaoLotePCP($idOrdemProducao)
+    {
+        return DB::transaction(function () use ($idOrdemProducao) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                DELETE FROM LOTEPCPORDEMPRODUCAORECAP LPP
+                WHERE LPP.IDORDEMPRODUCAO = :idOrdemProducao
+                ";
+
+            return DB::connection('firebird')->statement($query, ['idOrdemProducao' => $idOrdemProducao]);
+        });
     }
 }

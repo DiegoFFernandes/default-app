@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\ExecutorEtapaController;
 use App\Http\Controllers\Admin\PcpProducaoController;
-use App\Http\Controllers\Admin\ProducaoController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -16,6 +16,9 @@ Route::middleware('auth')->group(function () {
         Route::post('consumo-estoque-lote-materia-prima', [PcpProducaoController::class, 'consumoEstoqueLoteMateriaPrima'])->name('consumo-estoque-lote-materia-prima');
 
         Route::post('bandas-sem-associacao', [PcpProducaoController::class, 'bandasSemAssociacao'])->name('bandas-sem-associacao');
+
+
+        Route::get('removerOrdemProducaoLotePCP', [PcpProducaoController::class, 'removerOrdemProducaoLotePCP'])->name('remover-ordem-producao-lote-pcp');
 
         Route::get('detalhes-executor', [ExecutorEtapaController::class, 'detalhesExecutor'])->name('get-details-executor');
         Route::get('get-resumo-producao-setor', [ExecutorEtapaController::class, 'resumoProducaoSetor'])->name('get-resumo-producao-setor');

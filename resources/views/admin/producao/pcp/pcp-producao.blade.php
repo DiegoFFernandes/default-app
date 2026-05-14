@@ -196,6 +196,7 @@
         var totalSemExame = 0;
         var totalLotes = 0;
         var pcAtrasado = 0;
+        var canLotePcp = @json($canEditPCP);
 
         initTable('pneus-lote-pcp-' + empresa[0].CD_EMPRESA, empresa[0].CD_EMPRESA);
 
@@ -210,10 +211,98 @@
         });
 
 
+
         function initTable(idTabela, cdEmpresa) {
             if ($.fn.DataTable.isDataTable('#' + idTabela)) {
                 $('#' + idTabela).DataTable().destroy();
             }
+
+                    
+
+            let columns = [{
+                    data: 'actions',
+                    name: 'actions',
+                    title: '#',
+                    width: '5%',
+                    className: 'text-center',
+                    orderable: false,
+                },
+                {
+                    data: 'NR_LOTE',
+                    name: 'NR_LOTE',
+                    title: 'Lote',
+                    className: 'text-center'
+                },
+                {
+                    data: 'NR_COLETA',
+                    name: 'NR_COLETA',
+                    title: 'Pedido',
+                    className: 'text-center'
+                },
+                {
+                    data: 'NR_OP',
+                    name: 'NR_OP',
+                    title: 'Ordem',
+                    className: 'text-center'
+                },
+                {
+                    data: 'NM_PESSOA',
+                    name: 'NM_PESSOA',
+                    title: 'Cliente',
+                    width: '20%'
+                },
+                {
+                    data: 'DSSERVICO',
+                    name: 'DSSERVICO',
+                    title: 'Serviço',
+                    className: 'no-wrap',
+                    width: '20%'
+                }, {
+                    data: 'DT_EXAME',
+                    name: 'DT_EXAME',
+                    title: 'Exame Inicial',
+                    className: 'text-center no-wrap',
+                    width: '15%'
+                }, {
+                    data: 'DT_MANCHAO',
+                    name: 'DT_MANCHAO',
+                    title: 'Manchão',
+                    className: 'text-center no-wrap',
+                    width: '10%'
+                }, {
+                    data: 'DT_COBER',
+                    name: 'DT_COBER',
+                    title: 'Cobertura',
+                    className: 'text-center no-wrap',
+                    width: '10%'
+                }, {
+                    data: 'DT_VULC',
+                    name: 'DT_VULC',
+                    title: 'Vulcanização',
+                    className: 'text-center no-wrap',
+                    width: '10%'
+                }, {
+                    data: 'DT_FINAL',
+                    name: 'DT_FINAL',
+                    title: 'Exame Final',
+                    className: 'text-center no-wrap',
+                    width: '10%',
+                    visible: false,
+                }, {
+                    data: 'DS_ETAPA',
+                    name: 'DS_ETAPA',
+                    title: 'Última.Etapa',
+                    className: 'text-center no-wrap',
+                    width: '10%',
+                },
+                {
+                    data: 'DSOBSERVACAO',
+                    name: 'DSOBSERVACAO',
+                    title: 'Observação',
+                    width: '20%',
+                }
+            ];
+
 
             $('#' + idTabela).DataTable({
                 pageLength: 100,
@@ -249,88 +338,7 @@
                         return json.datatables.data || [];
                     }
                 },
-                columns: [{
-                        data: 'actions',
-                        name: 'actions',
-                        title: '#',
-                        width: '5%',
-                        orderable: false,
-                    },
-                    {
-                        data: 'NR_LOTE',
-                        name: 'NR_LOTE',
-                        title: 'Lote',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'NR_COLETA',
-                        name: 'NR_COLETA',
-                        title: 'Pedido',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'NR_OP',
-                        name: 'NR_OP',
-                        title: 'Ordem',
-                        className: 'text-center'
-                    },
-                    {
-                        data: 'NM_PESSOA',
-                        name: 'NM_PESSOA',
-                        title: 'Cliente',
-                        width: '20%'
-                    },
-                    {
-                        data: 'DSSERVICO',
-                        name: 'DSSERVICO',
-                        title: 'Serviço',
-                        className: 'no-wrap',
-                        width: '20%'
-                    }, {
-                        data: 'DT_EXAME',
-                        name: 'DT_EXAME',
-                        title: 'Exame Inicial',
-                        className: 'text-center no-wrap',
-                        width: '15%'
-                    }, {
-                        data: 'DT_MANCHAO',
-                        name: 'DT_MANCHAO',
-                        title: 'Manchão',
-                        className: 'text-center no-wrap',
-                        width: '10%'
-                    }, {
-                        data: 'DT_COBER',
-                        name: 'DT_COBER',
-                        title: 'Cobertura',
-                        className: 'text-center no-wrap',
-                        width: '10%'
-                    }, {
-                        data: 'DT_VULC',
-                        name: 'DT_VULC',
-                        title: 'Vulcanização',
-                        className: 'text-center no-wrap',
-                        width: '10%'
-                    }, {
-                        data: 'DT_FINAL',
-                        name: 'DT_FINAL',
-                        title: 'Exame Final',
-                        className: 'text-center no-wrap',
-                        width: '10%',
-                        visible: false,
-                    }, {
-                        data: 'DS_ETAPA',
-                        name: 'DS_ETAPA',
-                        title: 'Última.Etapa',
-                        className: 'text-center no-wrap',
-                        width: '10%',
-                    },
-                    {
-                        data: 'DSOBSERVACAO',
-                        name: 'DSOBSERVACAO',
-                        title: 'Observação',
-                        width: '20%',
-                    }
-                ],
+                columns: columns,
                 columnDefs: [{
                     targets: [6, 7, 8, 9, 10],
                     render: function(data, type, row) {
@@ -406,6 +414,23 @@
         }
 
         $(document).on('click', '.btn-remover-pneus-lote', function() {
+            let cd_empresa = $(this).data('empresa');
+            let nr_lote = $(this).data('lote');
+            let ordem_producao = $(this).data('ordem');
+            let cd_etapa = $(this).data('etapa');
+
+            // 0 = SEM EXAME INICIAL
+            if (cd_etapa > 0) {
+                Swal.fire({
+                    title: 'Atenção',
+                    text: 'Não é possível remover os pneus deste lote, pois já passaram do exame inicial.',
+                    icon: 'warning',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
             Swal.fire({
                 title: 'Confirmação',
                 text: 'Tem certeza que deseja remover os pneus deste lote?',
@@ -415,8 +440,47 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Lógica para remover os pneus do lote
-                    Swal.fire('Aviso!', 'Essa funcionalidade ainda não está implementada.', 'warning');
+
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ route('remover-ordem-producao-lote-pcp') }}",
+                        data: {
+                            cd_empresa: cd_empresa,
+                            nr_lote: nr_lote,
+                            ordem_producao: ordem_producao
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'Sucesso!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+
+                                $('#pneus-lote-pcp-' + cd_empresa).DataTable().ajax.reload();
+                            } else {
+                                Swal.fire({
+                                    title: 'Erro!',
+                                    text: response.message,
+                                    icon: 'error',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: 'Erro!',
+                                text: 'Ocorreu um erro ao remover os pneus do lote.',
+                                icon: 'error',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+
                 }
             });
         });
@@ -461,7 +525,7 @@
                     }
 
                     tempoRestante = 300; // reseta o contador
-                    
+
                 }, 300000); // Atualiza a cada 5 minutos (300.000 milissegundos)
 
                 intervaloRelogio = setInterval(function() {
