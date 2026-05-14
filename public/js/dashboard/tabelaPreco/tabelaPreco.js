@@ -124,8 +124,7 @@ function initTableItemTabelaPreco(
     $("#" + idTabelaItem).DataTable({
         paging: false,
         searching: true,
-        scrollY: "300px",
-        scrollCollapse: true,
+        scrollY: "300px",        
         layout: {
             topStart: {
                 buttons: [

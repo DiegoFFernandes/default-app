@@ -166,6 +166,7 @@
     <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoInserir.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoCadastradas.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoAssociadas.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoDivergencias.js') }}?v={{ time() }}"></script>
 
     <script>
         //Aguarda Click para buscar os detalhes da tabela de preço

@@ -9,7 +9,7 @@
                 </div>
                 <div class="card-body">
                     <table class="table table-bordered compact table-responsive table-font-small"
-                        id="tabela-divergencia">
+                        id="tabela-divergencia" >
                     </table>
                 </div>
             </div>
