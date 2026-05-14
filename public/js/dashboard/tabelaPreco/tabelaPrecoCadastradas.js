@@ -1,7 +1,26 @@
+let tabelaPrecoCadastradas = null;
+
 // Tab para ver as tabelas cadastradas para importar
-$(document).on("click", "#tab-cadastradas", function () {
-    initTableTabelaPrecoCadastradasPreview(window.routes);
+$('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
+    const target = $(e.target).attr("href");
+
+    if (target === "#painel-cadastradas") {
+        carregarTabelasCadastradas();
+    }
 });
+
+$(document).ready("click", "#tab-cadastradas", function () {
+    carregarTabelasCadastradas();
+});
+
+function carregarTabelasCadastradas() {
+    if (tabelaPrecoCadastradas === null) {
+        tabelaPrecoCadastradas = initTableTabelaPrecoCadastradasPreview();
+    } else {
+        tabelaPrecoCadastradas.columns.adjust().draw();
+        tabelaPrecoCadastradas.ajax.reload(null, false);
+    }
+}
 
 $(document).on("click", ".btn-ver-itens-cadastradas", function () {
     var cd_tabela = $(this).data("cd_tabela");
@@ -141,11 +160,12 @@ function initTableTabelaPrecoCadastradasPreview(route) {
         return;
     }
 
-    $("#tabela-preco-cadastradas").DataTable({
+    return $("#tabela-preco-cadastradas").DataTable({
         paging: true,
         searching: true,
         destroy: true,
         scrollY: "300px",
+        pagingType: "simple",
         language: {
             url: window.routes.language_datatables,
         },
