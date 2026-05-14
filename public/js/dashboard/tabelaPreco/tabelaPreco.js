@@ -366,8 +366,9 @@ function deleteTabelaPreco(
                     });
                 },
                 success: function (response) {
-                    if (response.success) {
+                    Swal.close();
 
+                    if (response.success) {
                         // se for mobile, reinicia a tabela para ajustar o layout, se não, apenas recarrega os dados
                         if (isMobile()) {
                             initTableTabelaPrecoCadastradasPreview(
@@ -379,18 +380,18 @@ function deleteTabelaPreco(
                                 .ajax.reload();
                         }
 
-                        Swal.close();
-
                         Swal.fire({
                             icon: "success",
                             title: "Atenção",
                             text: response.message,
+                            buttonsStyling: false,
+                            confirmButtonText: "OK",
                             customClass: {
                                 confirmButton: "btn btn-success",
                             },
                         });
+                        
                     } else {
-                        Swal.close();
                         Swal.fire({
                             icon: "warning",
                             title: "Atenção",

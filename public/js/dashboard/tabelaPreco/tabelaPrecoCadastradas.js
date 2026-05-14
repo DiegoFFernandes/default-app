@@ -142,7 +142,7 @@ function initTableTabelaPrecoCadastradasPreview(route) {
                 renderizarCards(dados, "card-container");
             },
             complete: function () {
-                Swal.close();
+                Swal.close();               
             },
         });
 
@@ -178,10 +178,10 @@ function initTableTabelaPrecoCadastradasPreview(route) {
                     },
                 });
             },
-        },
-        initComplete: function () {            
-            Swal.close();
-        },
+            complete: function () {
+                Swal.close();
+            }
+        },        
         columns: [
             {
                 title: "Ações",
