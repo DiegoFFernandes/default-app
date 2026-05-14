@@ -157,6 +157,7 @@
 
         var tabelaClientesTabela = Handlebars.compile($("#details-template").html());
         var tabelaPreco = null;
+        var tabelaPrecoCadastradas = null;       
         var itemTabelaCliente = null;
         var dados_atualizados = [];
         var itens_preview = new Map();

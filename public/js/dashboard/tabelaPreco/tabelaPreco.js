@@ -1,4 +1,3 @@
-
 function initTabelaPreco(route) {
     tabelaPreco = $("#tabela-preco").DataTable({
         processing: false,
@@ -124,7 +123,7 @@ function initTableItemTabelaPreco(
     $("#" + idTabelaItem).DataTable({
         paging: false,
         searching: true,
-        scrollY: "300px",        
+        scrollY: "300px",
         layout: {
             topStart: {
                 buttons: [
@@ -366,9 +365,17 @@ function deleteTabelaPreco(
                 },
                 success: function (response) {
                     if (response.success) {
-                        $("#" + idTabela)
-                            .DataTable()
-                            .ajax.reload();
+
+                        // se for mobile, reinicia a tabela para ajustar o layout, se não, apenas recarrega os dados
+                        if (isMobile()) {
+                            initTableTabelaPrecoCadastradasPreview(
+                                window.routes,
+                            );
+                        } else {
+                            $("#" + idTabela)
+                                .DataTable()
+                                .ajax.reload();
+                        }
 
                         Swal.close();
 

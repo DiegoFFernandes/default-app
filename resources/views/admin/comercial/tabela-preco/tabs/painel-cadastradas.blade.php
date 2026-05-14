@@ -5,7 +5,7 @@
                 <x-loading-card />
                 <div class="card-body">
                     <div id="card-container"></div>
-                    <table class="table table-bordered compact table-responsive table-font-small"
+                    <table class="table table-bordered compact table-font-small"
                         id="tabela-preco-cadastradas">
                     </table>
                 </div>

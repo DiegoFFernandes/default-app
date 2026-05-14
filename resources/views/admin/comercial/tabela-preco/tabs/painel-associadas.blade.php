@@ -1,30 +1,34 @@
 <div class="tab-pane fade" id="painel-associadas" role="tabpanel">
     <div class="row">
         <div class="col-12 col-md-8">
-            <div class="card card-primary">
-                <div class="card-body">
-                    <div class="row align-items-center mb-3 border-bottom pb-2 g-2">
-                        <div class="col-12 col-sm-auto">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="checkNaoAssociadas"
-                                    name="checkNaoAssociadas">
-                                <label class="form-check-label" for="checkNaoAssociadas">
-                                    Tabelas não Associadas
-                                </label>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-tools">
+                        <div class="row align-items-center">
+                            <div class="col-12 col-sm-auto">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="checkNaoAssociadas"
+                                        name="checkNaoAssociadas">
+                                    <label class="form-check-label" for="checkNaoAssociadas">
+                                        Tabelas não Associadas
+                                    </label>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="col-12 col-sm-auto">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" id="checkAssociadas"
-                                    name="checkAssociadas">
-                                <label class="form-check-label" for="checkAssociadas">
-                                    Tabelas Associadas
-                                </label>
+                            <div class="col-12 col-sm-auto">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="checkAssociadas"
+                                        name="checkAssociadas">
+                                    <label class="form-check-label" for="checkAssociadas">
+                                        Tabelas Associadas
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <table class="table table-bordered compact table-responsive table-font-small" id="tabela-preco">
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered compact table-font-small" id="tabela-preco">
                     </table>
                 </div>
             </div>

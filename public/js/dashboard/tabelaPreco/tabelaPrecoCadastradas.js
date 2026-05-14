@@ -1,26 +1,15 @@
-let tabelaPrecoCadastradas = null;
-
 // Tab para ver as tabelas cadastradas para importar
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
     const target = $(e.target).attr("href");
 
     if (target === "#painel-cadastradas") {
-        carregarTabelasCadastradas();
+        initTableTabelaPrecoCadastradasPreview();
     }
 });
 
-$(document).ready("click", "#tab-cadastradas", function () {
-    carregarTabelasCadastradas();
+$(document).on("click", "#tab-cadastradas", function () {
+    initTableTabelaPrecoCadastradasPreview();
 });
-
-function carregarTabelasCadastradas() {
-    if (tabelaPrecoCadastradas === null) {
-        tabelaPrecoCadastradas = initTableTabelaPrecoCadastradasPreview();
-    } else {
-        tabelaPrecoCadastradas.columns.adjust().draw();
-        tabelaPrecoCadastradas.ajax.reload(null, false);
-    }
-}
 
 $(document).on("click", ".btn-ver-itens-cadastradas", function () {
     var cd_tabela = $(this).data("cd_tabela");
@@ -160,12 +149,20 @@ function initTableTabelaPrecoCadastradasPreview(route) {
         return;
     }
 
-    return $("#tabela-preco-cadastradas").DataTable({
+    // if (tabelaPrecoCadastradas) {
+    //     tabelaPrecoCadastradas.columns.adjust().draw();
+    //     tabelaPrecoCadastradas.ajax.reload(null, false);
+    //     return;
+    // }
+
+    tabelaPrecoCadastradas = $("#tabela-preco-cadastradas").DataTable({
         paging: true,
         searching: true,
         destroy: true,
         scrollY: "300px",
         pagingType: "simple",
+        autoWidth: false,
+        deferRender: true,
         language: {
             url: window.routes.language_datatables,
         },
@@ -181,9 +178,9 @@ function initTableTabelaPrecoCadastradasPreview(route) {
                     },
                 });
             },
-            complete: function () {
-                Swal.close();
-            },
+        },
+        initComplete: function () {            
+            Swal.close();
         },
         columns: [
             {

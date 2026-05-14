@@ -135,10 +135,9 @@ if (chkNaoAssociados) {
         tabelaPreco.draw();
     });
 }
+
 if (chkAssociados) {
     chkAssociados.addEventListener("change", function () {
         tabelaPreco.draw();
     });
 }
-
-
