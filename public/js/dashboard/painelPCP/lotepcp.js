@@ -166,7 +166,7 @@ $(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
     });
 });
 
-$(document).on("click", ".btn-pneus-lote", function () {
+$(document).on("click", ".btn-ver-pneus-lote", function () {
     let lote = $(this).data("lote");
     let empresa = $(this).data("empresa");
 

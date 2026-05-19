@@ -279,6 +279,7 @@ function inicializaSelect2Lista(config) {
         url: config.route,
         type: "GET",
         dataType: "json",
+        data: config.additionalData || {},
         success: function (data) {
             let select = $(config.selectId);
 

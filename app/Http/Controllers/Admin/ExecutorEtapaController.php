@@ -181,4 +181,13 @@ class ExecutorEtapaController extends Controller
             ->rawColumns(['actions'])
             ->make(true);
     }
+
+    public function getExecutorEtapa()
+    {
+        $cd_empresa = $this->request->cd_empresa;       
+
+        $executores = $this->executorEtapa->getExecutores($cd_empresa);
+
+        return response()->json($executores);
+    }
 }

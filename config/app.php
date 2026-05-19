@@ -224,4 +224,12 @@ return [
         'SnappyImage' => Barryvdh\Snappy\Facades\SnappyImage::class,
     ])->toArray(),
 
+
+    /** Numeros de contato para disparo no WhatsApp */
+    'contact_numbers' => [
+        'comercial' =>  env('FONE_COMERCIAL', '+5541984042323'),
+        'cadastro' => env('FONE_CADASTRO', '+5541984042323'),
+        'financeiro' => env('FONE_FINANCEIRO', '+5541984042323'),
+    ],
+
 ];

@@ -64,7 +64,8 @@
         window.canEdit = @json(!$canEdit);
     </script>
 
-    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/entradasCarcacaEstoque.js?v=' . time()) }}"></script>
-    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaPronta.js?v=' . time()) }}"></script>
-    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaProntaTerceiros.js?v=' . time()) }}"></script>
+    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/entradasCarcacaEstoque.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaPronta.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaProntaTerceiros.js') }}?v={{ time() }}">
+    </script>
 @endsection

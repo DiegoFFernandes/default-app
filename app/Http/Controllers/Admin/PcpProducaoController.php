@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
+use App\Models\ExecutorEtapa;
 use App\Models\GerenteUnidade;
 use App\Models\LotePcpRecap;
 use App\Models\Producao;
@@ -11,14 +12,18 @@ use App\Models\RegiaoComercial;
 use App\Models\User;
 use App\Services\ServiceFiltroGrupoSubgrupo;
 use App\Services\SupervisorAuthService;
+use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 
 class PcpProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo, $lotePcpRecap;
+    public $request,
+        $regiao,
+        $empresa,
+        $user, $producao, $supervisorComercial, $gerenteUnidade, $serviceFiltroGrupoSubgrupo, $lotePcpRecap, $executorEtapa;
 
     public function __construct(
         Request $request,
@@ -29,8 +34,8 @@ class PcpProducaoController extends Controller
         SupervisorAuthService $supervisorComercial,
         GerenteUnidade $gerenteUnidade,
         ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo,
-        LotePcpRecap $lotePcpRecap
-
+        LotePcpRecap $lotePcpRecap,
+        ExecutorEtapa $executorEtapa
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -41,6 +46,8 @@ class PcpProducaoController extends Controller
         $this->gerenteUnidade = $gerenteUnidade;
         $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
         $this->lotePcpRecap = $lotePcpRecap;
+        $this->executorEtapa = $executorEtapa;
+
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -89,7 +96,7 @@ class PcpProducaoController extends Controller
 
                 if ($this->user->hasPermissionTo('editar-pneus-lote-pcp')) {
 
-                    return "<button class='btn btn-xs btn-danger btn-remover-pneus-lote' 
+                    return "<button class='btn btn-xs btn-danger btn-remover-pneus-lote mb-1' 
                             data-empresa='" . $row->IDEMPRESA . "' 
                             data-lote='" . $row->NR_LOTE . "'
                             data-ordem='" . $row->NR_ORDEM . "'
@@ -98,7 +105,7 @@ class PcpProducaoController extends Controller
                             >
                              <i class='fa fa-trash'></i>
                         </button>
-                        <button class='btn btn-xs btn-primary btn-transferir-pneus-lote' 
+                        <button class='btn btn-xs btn-primary btn-transferir-pneus-lote mb-1' 
                             data-empresa='" . $row->IDEMPRESA . "' 
                             data-lote='" . $row->NR_LOTE . "'
                             data-ordem='" . $row->NR_ORDEM . "'
@@ -162,10 +169,18 @@ class PcpProducaoController extends Controller
         $data = $this->producao->getLotePCP($empresa);
         return DataTables::of($data)
             ->addColumn('actions', function ($row) {
-                return '<button class="btn btn-xs btn-secondary btn-pneus-lote" 
+                return '<button class="btn btn-xs btn-primary btn-ver-pneus-lote" 
                             data-empresa="' . $row->CD_EMPRESA . '" 
-                            data-lote="' . $row->NR_LOTE . '">
-                        <i class="fa fa-eye" style="color: white;"></i></button>';
+                            data-lote="' . $row->NR_LOTE . '" title="Ver pneus do lote">
+                        <i class="fa fa-eye" style="color: #fff; !important;"></i></button>
+                        
+                        <button class="btn btn-xs btn-warning btn-adicionar-pneus-lote" 
+                            data-empresa="' . $row->CD_EMPRESA . '" 
+                            data-lote="' . $row->NR_LOTE . '" title="Adicionar pneus ao lote">
+                        <i class="fa fa-plus"></i></button>
+                        
+                        
+                        ';
             })
             ->rawColumns(['actions'])
             ->make(true);
@@ -248,42 +263,160 @@ class PcpProducaoController extends Controller
             ->make(true);
     }
 
+    public function getControleLotePCP()
+    {
+        if ($this->user->hasRole('admin|diretoria')) {
+            $empresa = $this->empresa->empresa();
+        } else if ($this->user->hasRole('gerente unidade')) {
+            $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')
+                ->implode(',');
+        } else {
+            $empresa = $this->empresa->empresa($this->user->empresa);
+        }
+
+        $cd_empresa = implode(',', collect($empresa)->pluck('CD_EMPRESA')->toArray());
+
+        return $data = $this->lotePcpRecap->getControleLotePcpRecap($cd_empresa);
+
+        return response()->json($data);
+    }
+
+    public function salvarLotePCP()
+    {
+        $rules = [
+            'empresa' => 'required|integer',
+            'lote_pcp' => 'required|integer',
+            'responsavel' => 'required|integer',
+            'data_producao' => 'required|date',
+        ];
+
+        $messages = [
+            'empresa.required' => 'O campo empresa é obrigatório.',
+            'empresa.integer' => 'O campo empresa deve ser um número inteiro.',
+            'lote_pcp.required' => 'O campo número do lote é obrigatório.',
+            'lote_pcp.integer' => 'O campo número do lote deve ser um número inteiro.',
+            'responsavel.required' => 'O campo responsável é obrigatório.',
+            'responsavel.integer' => 'O campo responsável deve ser um número inteiro.',
+            'data_producao.required' => 'O campo data de produção é obrigatório.',
+            'data_producao.date' => 'O campo data de produção deve ser uma data válida.',
+        ];
+
+        $input = Validator::make($this->request->all(), $rules, $messages);
+
+        if ($input->fails()) {
+            return Helper::formatErrorsAsHtml($input);
+        }
+
+        // return $input->validated();
+
+        // return $this->lotePcpRecap->salvarLotePcpRecap($input->validated());
+
+        try {
+
+            $result = $this->lotePcpRecap->salvarLotePcpRecap($input->validated());
+
+            return response()->json(['success' => true, 'message' => 'Lote de PCP <b>' . $result['nr_lote'] . '</b> salvo com sucesso.']);
+        } catch (\Exception $e) {
+
+            return response()->json(['success' => false, 'message' => 'Erro ao salvar o lote de PCP: ' . $e->getMessage()]);
+        }
+    }
+
     public function removerOrdemProducaoLotePCP()
     {
         $validated = $this->request->validate([
-            'cd_empresa' => 'required|integer',
-            'nr_lote' => 'required|integer',
-            'ordem_producao' => 'required|integer',
+            'ordem_producao' => 'required|array',
         ]);
 
-        $cdEmpresa = $validated['cd_empresa'];
-        $nrLote = $validated['nr_lote'];
-        $nrOrdemProducao = $validated['ordem_producao'];
+        $ordensRemovidas = [];
 
-        //verifica se a ordem de produção já passou no exame inicial
-        $exists = $this->producao->existExameInicial($nrOrdemProducao);
+        foreach ($validated['ordem_producao'] as $ordem) {
 
-        if (!$exists) {
+            $nrOrdemProducao = $ordem['NR_ORDEM'];
+            $cdEmpresa = $ordem['IDEMPRESA'];
+            $nrLote = $ordem['NR_LOTE'];
+
+            $exists = $this->producao->existExameInicial($nrOrdemProducao);
+
+            if (!$exists) {
+                try {
+                    //remove a ordem de produção do lote de PCP caso ainda não passou no exame inicial
+                    $this->producao->removerOrdemProducaoLotePCP($nrOrdemProducao);
+
+                    // 1 = EXISTE PNEUS EM ABERTO
+                    // 0 = NÃO EXISTE PNEUS EM ABERTO
+                    $verificaPneusLotePcpRecapAberto = $this->lotePcpRecap->verificaPneusLotePcpRecapAberto($nrLote);
+
+                    if ($verificaPneusLotePcpRecapAberto === 0) {
+                        //muda o status do lote de PCP para FECHADO, pois não tem pneus em aberto
+                        $this->lotePcpRecap->fecharLotePcpRecap($nrLote, $cdEmpresa);
+                    }
+
+                    $ordensRemovidas[] = $nrOrdemProducao;
+                } catch (\Exception $e) {
+
+                    return response()->json(['success' => false, 'message' => 'Erro ao remover a ordem de produção ' . $nrOrdemProducao . ' do lote de PCP: ' . $e->getMessage()]);
+                }
+            } else {
+                return response()->json(['success' => false, 'message' => 'Não é possível remover a ordem de produção ' . $nrOrdemProducao . ', Já passou no exame inicial.']);
+            }
+        }
+
+        return response()->json(['success' => true, 'message' => 'Ordens de produção ' . implode(', ', $ordensRemovidas) . ' removidas do lote de PCP.']);
+    }
+
+    public function getListLotePCPEmProducao()
+    {
+        $validated = $this->request->validate([
+            'cd_empresa' => 'required|integer',
+        ]);
+
+        $cd_empresa = $validated['cd_empresa'];
+
+        $data = $this->lotePcpRecap->getListLotePcpRecapEmProducao($cd_empresa);
+
+        return response()->json($data);
+    }
+
+    public function atualizaLotePneusLotePCP()
+    {
+        $validated = $this->request->validate([
+            'ordens_producao' => 'required|array',
+            'lote_novo' => 'required|integer'
+        ]);
+
+        $ordensTransferidas = [];
+
+        $nrLoteNovo = $validated['lote_novo'];
+
+        foreach ($validated['ordens_producao'] as $ordem) {
+
+            $nrOrdemProducao = $ordem['NR_ORDEM'];
+            $cdEmpresa = $ordem['IDEMPRESA'];
+            $nrLoteAntigo = $ordem['NR_LOTE'];
+
+
             try {
-                //remove a ordem de produção do lote de PCP caso ainda não passou no exame inicial
-                $this->producao->removerOrdemProducaoLotePCP($nrOrdemProducao);
+                //transfere a ordem de produção para um novo lote de PCP
+                $this->lotePcpRecap->atualizaOrdensLotePneusLotePCP($cdEmpresa, $nrLoteNovo, $nrLoteAntigo, $nrOrdemProducao);
+
+                $ordensTransferidas[] = $nrOrdemProducao;
 
                 // 1 = EXISTE PNEUS EM ABERTO
                 // 0 = NÃO EXISTE PNEUS EM ABERTO
-                $verificaPneusLotePcpRecapAberto = $this->lotePcpRecap->verificaPneusLotePcpRecapAberto($nrLote);
+                $verificaPneusLotePcpRecapAberto = $this->lotePcpRecap->verificaPneusLotePcpRecapAberto($nrLoteAntigo);
 
                 if ($verificaPneusLotePcpRecapAberto === 0) {
                     //muda o status do lote de PCP para FECHADO, pois não tem pneus em aberto
-                    $this->lotePcpRecap->fecharLotePcpRecap($nrLote, $cdEmpresa);
+                    $this->lotePcpRecap->fecharLotePcpRecap($nrLoteAntigo, $cdEmpresa);
                 }
-
-                return response()->json(['success' => true, 'message' => 'Ordem de produção ' . $nrOrdemProducao . ' removida do lote de PCP.']);
             } catch (\Exception $e) {
 
-                return response()->json(['success' => false, 'message' => 'Erro ao remover a ordem de produção do lote de PCP: ' . $e->getMessage()]);
+                return response()->json(['success' => false, 'message' => 'Erro ao transferir a ordem de produção ' . $nrOrdemProducao . ' para o lote de PCP: ' . $e->getMessage()]);
             }
-        } else {
-            return response()->json(['success' => false, 'message' => 'Não é possível remover a ordem de produção, Já passou no exame inicial.']);
         }
+
+        return response()->json(['success' => true, 'message' => 'Ordens de produção ' . implode(', ', $ordensTransferidas) . ' transferidas para o lote de PCP.']);
     }
 }

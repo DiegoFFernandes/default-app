@@ -294,7 +294,7 @@ class Producao extends Model
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                         AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
+                        AND M.STLOTE IN ('P', 'L', 'A')
                         AND OPR.STORDEM = 'A'
                         AND (EI.ID IS NULL OR EI.ST_ETAPA = 'A')
                         AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
@@ -343,7 +343,7 @@ class Producao extends Model
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                         AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
+                        AND M.STLOTE IN ('P', 'L', 'A')
                         AND OPR.STORDEM = 'A'
                         AND (LM.ID IS NULL OR LM.ST_ETAPA = 'A')
                         AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
@@ -399,7 +399,7 @@ class Producao extends Model
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                         AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
+                        AND M.STLOTE IN ('P', 'L', 'A')
                         AND OPR.STORDEM = 'A'
                         AND (EB.ID IS NULL OR EB.ST_ETAPA = 'A')
                         AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
@@ -450,7 +450,7 @@ class Producao extends Model
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                         AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
+                        AND M.STLOTE IN ('P', 'L', 'A')
                         AND OPR.STORDEM = 'A'
                         AND (VP.ID IS NULL OR VP.ST_ETAPA = 'A')
                         AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
@@ -499,7 +499,7 @@ class Producao extends Model
                     WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                         AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
+                        AND M.STLOTE IN ('P', 'L', 'A')
                         AND OPR.STORDEM = 'A'
                         AND (EF.ID IS NULL OR EF.ST_ETAPA = 'A')
                         AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
@@ -531,117 +531,96 @@ class Producao extends Model
                     SUM(X.QTDE_TOT) QTDE_TOT_LOTE,
                     SUM(X.QTDE_PROD) QTDE_EM_PROD,
                     SUM(X.QTDE_SEMEXAME) QTDE_SEMEXAME,
+                    X.STLOTE ST_LOTE,
                     CASE
-                        WHEN X.STLOTE = 'P' THEN 'EM PRODUCAO'
-                        WHEN X.STLOTE = 'L' THEN 'AGUARDANDO INICIO'
+                    WHEN X.STLOTE = 'P' THEN 'EM PRODUCAO'
+                    WHEN X.STLOTE = 'L' THEN 'AGUARDANDO INICIO'
+                    WHEN X.STLOTE = 'A' THEN 'ABERTO'
                     END STLOTE
                 FROM (
-                    --QTDE TOTAL DO LOTE
-                    SELECT
-                        PP.IDEMPRESA,
-                        C.DSCONTROLELOTEPCP,
-                        M.ID,
-                        M.NRLOTESEQDIA,
-                        M.DTPRODUCAO,
-                        COUNT(OPR.ID) QTDE_TOT,
-                        NULL QTDE_PROD,
-                        NULL QTDE_SEMEXAME,
-                        M.STLOTE
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                        AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    WHERE IPP.STCANCELADO = 'N'
-                        AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
-                        -- AND OPR.ID = 905
-                    GROUP BY C.DSCONTROLELOTEPCP,
-                        M.ID,
-                        M.NRLOTESEQDIA,
-                        M.DTPRODUCAO,
-                        PP.IDEMPRESA,
-                        M.STLOTE
+                --QTDE TOTAL DO LOTE
+                SELECT
+                    M.IDEMPRESA,
+                    C.DSCONTROLELOTEPCP,
+                    M.ID,
+                    M.NRLOTESEQDIA,
+                    M.DTPRODUCAO,
+                    COUNT(OPR.ID) QTDE_TOT,
+                    0 QTDE_PROD,
+                    0 QTDE_SEMEXAME,
+                    M.STLOTE
+                FROM MONTAGEMLOTEPCPRECAP M
+                INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+                    AND C.IDEMPRESA = M.IDEMPRESA)
+                LEFT JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+                    AND M.IDEMPRESA = PCP.IDEMPRESA)
 
-                    UNION ALL
+                LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = PCP.IDORDEMPRODUCAO)
+                LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU
+                    AND IPP.STCANCELADO = 'N'
+                    AND IPP.STGARANTIA = 'N')
+                LEFT JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU
+                    AND PP.IDEMPRESA IN ($cd_empresa))
 
-                    --PNEUS AINDA EM PRODUÇÃO
-                    SELECT
-                        PP.IDEMPRESA,
-                        C.DSCONTROLELOTEPCP,
-                        M.ID,
-                        M.NRLOTESEQDIA,
-                        M.DTPRODUCAO,
-                        NULL QTDE_TOT,
-                        COUNT(OPR.ID) QTDE_PROD,
-                        NULL QTDE_SEMEXAME,
-                        M.STLOTE
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                        AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    WHERE IPP.STCANCELADO = 'N'
-                        AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
-                        AND OPR.STORDEM = 'A'
-                    GROUP BY C.DSCONTROLELOTEPCP,
-                        M.ID,
-                        M.NRLOTESEQDIA,
-                        M.DTPRODUCAO,
-                        PP.IDEMPRESA,
-                        M.STLOTE 
+                WHERE M.STLOTE IN ('P', 'L', 'A')
+                GROUP BY C.DSCONTROLELOTEPCP, M.ID, M.NRLOTESEQDIA, M.DTPRODUCAO, M.IDEMPRESA, M.STLOTE
 
-                    UNION ALL
-
-                    --PNEUS SEM EXAME INICIAL
-                    SELECT
-                        PP.IDEMPRESA,
-                        C.DSCONTROLELOTEPCP,
-                        M.ID,
-                        M.NRLOTESEQDIA,
-                        M.DTPRODUCAO,
-                        NULL QTDE_TOT,
-                        NULL QTDE_PROD,
-                        COUNT(OPR.ID) QTDE_SEMEXAME,
-                        M.STLOTE
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                        AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
-                    WHERE IPP.STCANCELADO = 'N'
-                        AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L')
-                        AND OPR.STORDEM = 'A'
-                        AND EI.ID IS NULL
-                    GROUP BY C.DSCONTROLELOTEPCP,
-                        M.ID,
-                        M.NRLOTESEQDIA,
-                        M.DTPRODUCAO,
-                        PP.IDEMPRESA,
-                        M.STLOTE) X
-                GROUP BY X.DSCONTROLELOTEPCP,
-                    X.ID,
-                    X.NRLOTESEQDIA,
-                    X.DTPRODUCAO,
-                    X.IDEMPRESA,
-                    X.STLOTE
-                ORDER BY X.DTPRODUCAO DESC,
-                    X.ID  
+                UNION ALL
+                --PNEUS AINDA EM PRODUÇÃO
+                SELECT
+                    PP.IDEMPRESA,
+                    C.DSCONTROLELOTEPCP,
+                    M.ID,
+                    M.NRLOTESEQDIA,
+                    M.DTPRODUCAO,
+                    NULL QTDE_TOT,
+                    COUNT(OPR.ID) QTDE_PROD,
+                    NULL QTDE_SEMEXAME,
+                    M.STLOTE
+                FROM ORDEMPRODUCAORECAP OPR
+                INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+                INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+                    AND M.IDEMPRESA = PCP.IDEMPRESA)
+                INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+                    AND C.IDEMPRESA = M.IDEMPRESA)
+                INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                WHERE IPP.STCANCELADO = 'N'
+                    AND IPP.STGARANTIA = 'N'
+                    AND PP.IDEMPRESA IN ($cd_empresa)
+                    AND M.STLOTE IN ('P', 'L')
+                    AND OPR.STORDEM = 'A'
+                GROUP BY C.DSCONTROLELOTEPCP, M.ID, M.NRLOTESEQDIA, M.DTPRODUCAO, PP.IDEMPRESA, M.STLOTE
+                UNION ALL
+                --PNEUS SEM EXAME INICIAL
+                SELECT
+                    PP.IDEMPRESA,
+                    C.DSCONTROLELOTEPCP,
+                    M.ID,
+                    M.NRLOTESEQDIA,
+                    M.DTPRODUCAO,
+                    NULL QTDE_TOT,
+                    NULL QTDE_PROD,
+                    COUNT(OPR.ID) QTDE_SEMEXAME,
+                    M.STLOTE
+                FROM ORDEMPRODUCAORECAP OPR
+                INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+                INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+                    AND M.IDEMPRESA = PCP.IDEMPRESA)
+                INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+                    AND C.IDEMPRESA = M.IDEMPRESA)
+                INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+                INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
+                WHERE IPP.STCANCELADO = 'N'
+                    AND IPP.STGARANTIA = 'N'
+                    AND PP.IDEMPRESA IN ($cd_empresa)
+                    AND M.STLOTE IN ('P', 'L')
+                    AND OPR.STORDEM = 'A'
+                    AND EI.ID IS NULL
+                GROUP BY C.DSCONTROLELOTEPCP, M.ID, M.NRLOTESEQDIA, M.DTPRODUCAO, PP.IDEMPRESA, M.STLOTE) X
+                GROUP BY X.DSCONTROLELOTEPCP, X.ID, X.NRLOTESEQDIA, X.DTPRODUCAO, X.IDEMPRESA, X.STLOTE
+                ORDER BY X.DTPRODUCAO, X.ID DESC 
             ";
 
         $data = DB::connection('firebird')->select($query);
@@ -822,7 +801,7 @@ class Producao extends Model
 
             $query = "
                 DELETE FROM LOTEPCPORDEMPRODUCAORECAP LPP
-                WHERE LPP.IDORDEMPRODUCAO = :idOrdemProducao
+                WHERE LPP.IDORDEMPRODUCAO in (:idOrdemProducao)
                 ";
 
             return DB::connection('firebird')->statement($query, ['idOrdemProducao' => $idOrdemProducao]);

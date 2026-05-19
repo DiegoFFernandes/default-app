@@ -30,7 +30,9 @@
     </div>
     <div class="col-6 col-sm-6 col-md-4 col-lg-2">
         <div class="info-box info-box-custom">
-            <span class="info-box-icon bg-pneu-sem-exame"><i class="fas fa-exclamation-circle"></i></span>
+            <span class="info-box-icon bg-pneu-sem-exame">
+                <i class="fas fa-exclamation-circle"></i>
+            </span>
             <div class="info-box-content">
                 <span class="info-box-text">Sem exame</span>
                 <span class="info-box-number" id="card-pneus-sem-exame">0</span>

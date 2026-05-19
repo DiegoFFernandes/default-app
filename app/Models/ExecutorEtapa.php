@@ -11,9 +11,15 @@ class ExecutorEtapa extends Model
 {
     use HasFactory;
 
-    public function getExecutores()
+    public function getExecutores($cd_empresa = null)
     {
-        $query = "SELECT ID, NMEXECUTOR FROM EXECUTORETAPA";
+
+        $query = "
+            SELECT ID, NMEXECUTOR 
+            FROM EXECUTORETAPA
+            " . ($cd_empresa ? "WHERE IDEMPRESA in ($cd_empresa)" : "") . "           
+            
+            ";
 
         $data = DB::connection('firebird')->select($query);
 

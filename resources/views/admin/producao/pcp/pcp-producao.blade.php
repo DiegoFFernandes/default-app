@@ -9,84 +9,12 @@
         <div class="row">
             <div class="col-md-12 col-12">
                 <div class="card card-dark card-outline card-outline-tabs">
-                    <div class="card-header p-0 d-flex justify-content-between align-items-center">
-                        <div class="flex-grow-1">
-
-
-                            <ul class="nav nav-tabs border-bottom-0" id="tab-pcp" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link" id="tab-lotesPCP" data-toggle="pill" href="#painel-lotesPCP"
-                                        role="tab" aria-controls="painel-lotesPCP" aria-selected="false">
-                                        Lotes PCP
-                                    </a>
-                                </li>
-                                @foreach ($empresa as $emp)
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="tab-painelPCP-{{ $emp->CD_EMPRESA }}" data-toggle="pill"
-                                            href="#painel-pcp-{{ $emp->CD_EMPRESA }}" role="tab"
-                                            aria-controls="painel-pcp-{{ $emp->CD_EMPRESA }}" aria-selected="false"
-                                            data-empresa="{{ $emp->CD_EMPRESA }}">
-                                            {{ $emp->NM_EMPRESA }}
-                                        </a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-
-                        <div class="card-tools d-flex align-items-center">
-                            <span id="minutosParaAtualizacao" class="badge badge-primary"><i class="fa fa-clock"
-                                    aria-hidden="true"></i> 05:00</span>
-                            <div class="custom-control custom-checkbox ml-2">
-                                <input class="custom-control-input" type="checkbox" id="atualizarTela">
-                                <label for="atualizarTela" class="custom-control-label">Atualizar</label>
-                            </div>
-                        </div>
-                    </div>
+                    @include('admin.producao.pcp.tabs.nav-tabs')
                     <div class="card-body">
                         <div class="tab-content" id="tabContentColetas">
-                            @foreach ($empresa as $emp)
-                                <div class="tab-pane fade" id="painel-pcp-{{ $emp->CD_EMPRESA }}" role="tabpanel"
-                                    aria-labelledby="tab-painelPCP-{{ $emp->CD_EMPRESA }}">
-                                    <table id="pneus-lote-pcp-{{ $emp->CD_EMPRESA }}"
-                                        class="table compact table-font-small table-striped table-bordered"
-                                        style="font-size: 11px;">
-                                    </table>
-                                </div>
-                            @endforeach
-                            <div class="tab-pane fade" id="painel-lotesPCP" role="tabpanel" aria-labelledby="tab-lotesPCP">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h3 class="card-title">Lotes em Aberto</h3>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="table-responsive">
-                                                    <table id="lote-pcp"
-                                                        class="table compact table-font-small table-striped table-bordered"
-                                                        style="width:100%; font-size: 11px;">
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h3 class="card-title">Bandas a consumir</h3>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="table-responsive">
-                                                    <table id="bandas-consumir"
-                                                        class="table compact table-font-small table-striped table-bordered"
-                                                        style="width:100%">
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('admin.producao.pcp.tabs.painel-pneus-atraso')
+
+                            @include('admin.producao.pcp.tabs.painel-lotes')
                         </div>
                     </div>
                 </div>
@@ -95,6 +23,8 @@
     </section>
     @include('admin.producao.pcp.modals.modal-pneus-lote')
     @include('admin.producao.pcp.modals.modal-bandas-sem-associacao')
+    @include('admin.producao.pcp.modals.modal-adicionar-lote-pcp')
+    @include('admin.producao.pcp.modals.modal-transferir-lote-pcp')
 @stop
 
 @section('css')
@@ -103,6 +33,12 @@
             border-radius: 12px;
             padding: 6px;
             transition: all 0.2s ease;
+            min-height: 60px !important;
+            display: flex;
+            justify-content: center;
+            /* centraliza horizontalmente */
+            align-items: center;
+            /* centraliza verticalmente */
         }
 
         /* Hover suave */
@@ -115,7 +51,9 @@
         .info-box-custom .info-box-icon {
             font-size: 20px;
             border-radius: 10px;
-
+            width: 40px;
+            height: 40px;
+            margin: 0 10px 0 10px;
             display: flex !important;
             align-items: center !important;
             /* centraliza vertical */
@@ -134,6 +72,7 @@
         /* Número principal */
         .info-box-custom .info-box-number {
             font-size: 20px;
+            margin-top: -4px !important;
             font-weight: 600;
         }
 
@@ -175,6 +114,9 @@
 
 @section('js')
     <script src="{{ asset('js/dashboard/painelPCP/lotepcp.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/painelPCP/adicionar-lotepcp.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/painelPCP/remover-lotepcp.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/painelPCP/transferir-pneu-lote-pcp.js') }}?v={{ time() }}"></script>    
     <script>
         window.routes = {
             token: "{{ csrf_token() }}",
@@ -184,6 +126,12 @@
             detalhesPneusLotePcp: "{{ route('detalhes-pneus-lote-pcp') }}",
             consumoEstoqueLoteMateriaPrima: "{{ route('consumo-estoque-lote-materia-prima') }}",
             bandasSemAssociacao: "{{ route('bandas-sem-associacao') }}",
+            getControleLotePCP: "{{ route('get-controle-lote-pcp') }}",
+            getExecutorEtapa: "{{ route('get-executor-etapa') }}",
+            removerOrdemProducaoLotePcp: "{{ route('remover-ordem-producao-lote-pcp') }}",
+            salvarLotePcp: "{{ route('salvar-lote-pcp') }}",
+            getListLotePCPEmProducao: "{{ route('get-lote-pcp-em-producao') }}",
+            transferirPneusLotePcp: "{{ route('atualiza-lote-pneus-lote-pcp') }}",
         }
 
         const empresa = @json($empresa);
@@ -210,96 +158,98 @@
             }
         });
 
-
-
         function initTable(idTabela, cdEmpresa) {
             if ($.fn.DataTable.isDataTable('#' + idTabela)) {
                 $('#' + idTabela).DataTable().destroy();
             }
 
-                    
-
             let columns = [{
+                    data: null,
+                    width: "1%",
+                    className: 'pl-3 pr-3 text-center',
+                    render: DataTable.render.select(),
+                    orderable: false
+                },
+                {
                     data: 'actions',
                     name: 'actions',
-                    title: '#',
-                    width: '5%',
-                    className: 'text-center',
+                    title: 'Ações',
+                    width: "1%",
+                    className: 'text-center no-wrap',
+                    visible: false,
                     orderable: false,
                 },
                 {
                     data: 'NR_LOTE',
                     name: 'NR_LOTE',
                     title: 'Lote',
+                    width: '5%',
                     className: 'text-center'
                 },
                 {
                     data: 'NR_COLETA',
                     name: 'NR_COLETA',
                     title: 'Pedido',
+                    width: '5%',
                     className: 'text-center'
                 },
                 {
                     data: 'NR_OP',
                     name: 'NR_OP',
                     title: 'Ordem',
+                    width: '5%',
                     className: 'text-center'
                 },
                 {
                     data: 'NM_PESSOA',
                     name: 'NM_PESSOA',
                     title: 'Cliente',
-                    width: '20%'
                 },
                 {
                     data: 'DSSERVICO',
                     name: 'DSSERVICO',
                     title: 'Serviço',
                     className: 'no-wrap',
-                    width: '20%'
                 }, {
                     data: 'DT_EXAME',
                     name: 'DT_EXAME',
                     title: 'Exame Inicial',
                     className: 'text-center no-wrap',
-                    width: '15%'
                 }, {
                     data: 'DT_MANCHAO',
                     name: 'DT_MANCHAO',
                     title: 'Manchão',
                     className: 'text-center no-wrap',
-                    width: '10%'
                 }, {
                     data: 'DT_COBER',
                     name: 'DT_COBER',
                     title: 'Cobertura',
                     className: 'text-center no-wrap',
-                    width: '10%'
                 }, {
                     data: 'DT_VULC',
                     name: 'DT_VULC',
                     title: 'Vulcanização',
                     className: 'text-center no-wrap',
-                    width: '10%'
                 }, {
                     data: 'DT_FINAL',
                     name: 'DT_FINAL',
                     title: 'Exame Final',
                     className: 'text-center no-wrap',
-                    width: '10%',
+
                     visible: false,
                 }, {
                     data: 'DS_ETAPA',
                     name: 'DS_ETAPA',
                     title: 'Última.Etapa',
                     className: 'text-center no-wrap',
-                    width: '10%',
+
                 },
                 {
                     data: 'DSOBSERVACAO',
                     name: 'DSOBSERVACAO',
                     title: 'Observação',
-                    width: '20%',
+
+                    visible: false,
                 }
             ];
 
@@ -311,6 +261,10 @@
                 processing: false,
                 serverSide: false,
                 scrollY: '400px',
+                select: {
+                    style: 'multi',
+                    selector: 'td:first-child'
+                },
                 language: {
                     url: window.routes.languageDatatables,
                 },
@@ -340,7 +294,7 @@
                 },
                 columns: columns,
                 columnDefs: [{
-                    targets: [6, 7, 8, 9, 10],
+                    targets: [7, 8, 9, 10, 11],
                     render: function(data, type, row) {
                         if (type === "display" || type === "filter") {
                             return data ? moment(data).format("DD/MM/YYYY HH:mm:ss") : '';
@@ -408,98 +362,10 @@
                     $('#card-pneus-finalizados').text(totalPneusLote - totalEmProducao);
                 },
                 order: [
-                    [1, 'asc']
+                    [2, 'asc']
                 ]
             });
-        }
-
-        $(document).on('click', '.btn-remover-pneus-lote', function() {
-            let cd_empresa = $(this).data('empresa');
-            let nr_lote = $(this).data('lote');
-            let ordem_producao = $(this).data('ordem');
-            let cd_etapa = $(this).data('etapa');
-
-            // 0 = SEM EXAME INICIAL
-            if (cd_etapa > 0) {
-                Swal.fire({
-                    title: 'Atenção',
-                    text: 'Não é possível remover os pneus deste lote, pois já passaram do exame inicial.',
-                    icon: 'warning',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-                return;
-            }
-
-            Swal.fire({
-                title: 'Confirmação',
-                text: 'Tem certeza que deseja remover os pneus deste lote?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sim, remover',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-
-                    $.ajax({
-                        type: "GET",
-                        url: "{{ route('remover-ordem-producao-lote-pcp') }}",
-                        data: {
-                            cd_empresa: cd_empresa,
-                            nr_lote: nr_lote,
-                            ordem_producao: ordem_producao
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    title: 'Sucesso!',
-                                    text: response.message,
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-
-                                $('#pneus-lote-pcp-' + cd_empresa).DataTable().ajax.reload();
-                            } else {
-                                Swal.fire({
-                                    title: 'Erro!',
-                                    text: response.message,
-                                    icon: 'error',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            Swal.fire({
-                                title: 'Erro!',
-                                text: 'Ocorreu um erro ao remover os pneus do lote.',
-                                icon: 'error',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        }
-                    });
-
-                }
-            });
-        });
-
-        $(document).on('click', '.btn-transferir-pneus-lote', function() {
-            Swal.fire({
-                title: 'Confirmação',
-                text: 'Tem certeza que deseja transferir os pneus deste lote?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sim, transferir',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Lógica para transferir os pneus do lote
-                    Swal.fire('Aviso!', 'Essa funcionalidade ainda não está implementada.', 'warning');
-                }
-            });
-        });
+        }        
 
         let intervaloAtualizacao = null;
         let intervaloRelogio = null;

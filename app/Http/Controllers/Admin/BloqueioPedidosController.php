@@ -112,8 +112,8 @@ class BloqueioPedidosController extends Controller
         }
         $bloqueio = $this->bloqueio->BloqueioPedido($empresa, $supervisor, $cd_pessoa, $cd_vendedor ?? 0);
 
-        $fone_cadastro = env('FONE_CADASTRO', '+5541984042323');
-        $fone_financeiro = env('FONE_FINANCEIRO', '+5541984042323');
+        $fone_cadastro = config('app.contact_numbers.cadastro');
+        $fone_financeiro = config('app.contact_numbers.financeiro');
 
         return DataTables::of($bloqueio)
             ->addColumn('action', function ($b) use ($fone_cadastro, $fone_financeiro) {

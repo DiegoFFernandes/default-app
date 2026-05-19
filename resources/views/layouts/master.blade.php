@@ -87,13 +87,11 @@
     <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>   
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 
 
 
     <script>
-
-        
         $.extend(true, $.fn.dataTable.defaults, {
             ajax: {
                 error: function(xhr, status, error) {
@@ -116,7 +114,16 @@
             }
         });
 
-        document.addEventListener("DOMContentLoaded", function() {            
+        document.addEventListener("DOMContentLoaded", function() {
+
+            // Ajusta as colunas dos DataTables quando o menu lateral é expandido ou recolhido
+            $(document).on('collapsed.lte.pushmenu shown.lte.pushmenu', function() {
+                setTimeout(function() {
+                    $($.fn.dataTable.tables(true))
+                        .DataTable()
+                        .columns.adjust();
+                }, 300);
+            });
 
             $('.input-venda').inputmask({
                 mask: ['99,99', '999,99', '9.999,99'],
@@ -167,7 +174,7 @@
 
             if (!checkbox.checked) {
                 await sendTokenToServer(null, "N");
-                return showAlert("Notificações", "Você desativou as notificações.", "info");                
+                return showAlert("Notificações", "Você desativou as notificações.", "info");
             }
 
             initializeFirebase();
@@ -221,8 +228,5 @@
                 vapidKey: "{{ env('FCM_VAPID_PUBLIC_KEY') }}"
             });
         }
-
-       
-        
     </script>
 @endpush

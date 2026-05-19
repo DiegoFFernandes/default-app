@@ -1,5 +1,5 @@
 <div class="modal fade" id="modal-pneus-lote-pcp" tabindex="-1" role="dialog" aria-labelledby="modal-pneus-lote-pcp-label"
-    aria-hidden="true">
+    aria-hidden="true" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
