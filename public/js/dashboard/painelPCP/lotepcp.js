@@ -82,6 +82,7 @@ $(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
                 visible: false,
             },
         ],
+        order: [[2, "asc"]],
         drawCallback: function (settings) {
             var api = this.api();
             var data = api.rows().data();

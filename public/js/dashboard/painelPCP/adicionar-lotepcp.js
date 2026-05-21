@@ -69,6 +69,10 @@ $(document).on("submit", "#form-adicionar-lote-pcp", function (e) {
                     html: response.message,
                     confirmButtonText: "OK",
                     showConfirmButton: true,
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: "btn btn-success btn-sm",
+                    },
                 });
                 $("#lote-pcp").DataTable().ajax.reload();
                 
@@ -80,6 +84,10 @@ $(document).on("submit", "#form-adicionar-lote-pcp", function (e) {
                     icon: "error",
                     title: "Erro",
                     html: response.message,
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: "btn btn-danger btn-sm",
+                    },
                 });
                 
                 $("#btn-adicionar-lote-pcp")
@@ -90,6 +98,4 @@ $(document).on("submit", "#form-adicionar-lote-pcp", function (e) {
     });
 });
 
-$(document).on("click", ".btn-adicionar-pneus-lote", function () {
-    $("#modal-adicionar-pneus-lote-pcp").modal("show");
-});
+

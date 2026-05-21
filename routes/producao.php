@@ -32,6 +32,12 @@ Route::middleware('auth')->group(function () {
             Route::post('salvar-lote-pcp', [PcpProducaoController::class, 'salvarLotePCP'])->name('salvar-lote-pcp');
             Route::get('get-lote-pcp-em-producao', [PcpProducaoController::class, 'getListLotePCPEmProducao'])->name('get-lote-pcp-em-producao');
             Route::post('atualiza-lote-pneus-lote-pcp', [PcpProducaoController::class, 'atualizaLotePneusLotePCP'])->name('atualiza-lote-pneus-lote-pcp');
+            
+            Route::get('get-list-pneus-lote-sem-pcp', [PcpProducaoController::class, 'getListPneusLoteSemPCP'])->name('get-list-pneus-lote-sem-pcp');
+            Route::get('get-list-pedidos-sem-pcp', [PcpProducaoController::class, 'getListPedidosSemPCP'])->name('get-list-pedidos-sem-pcp');
+            Route::get('get-list-ordens-producao-sem-pcp', [PcpProducaoController::class, 'getListOrdensProducaoSemPCP'])->name('get-list-ordens-producao-sem-pcp');
+
+            Route::post('salvar-pneus-lote-pcp', [PcpProducaoController::class, 'salvarPneusLotePCP'])->name('salvar-pneus-lote-pcp');
             });
     });
 });

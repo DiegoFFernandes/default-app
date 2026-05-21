@@ -5,7 +5,7 @@
         <div class="modal-content">
             <form id="form-adicionar-lote-pcp">
                 <div class="modal-header">
-                    <h6 class="modal-title modal-title-lote">Adicionar Lote PCP</h6>
+                    <h6 class="modal-title">Adicionar Lote PCP</h6>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>

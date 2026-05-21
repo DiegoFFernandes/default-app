@@ -12,6 +12,7 @@ use App\Models\RegiaoComercial;
 use App\Models\User;
 use App\Services\ServiceFiltroGrupoSubgrupo;
 use App\Services\SupervisorAuthService;
+use Dflydev\DotAccessData\Data;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -56,6 +57,7 @@ class PcpProducaoController extends Controller
 
     public function pneusLotePCP()
     {
+
         $title_page   = 'Painel de PCP';
         $user_auth    = $this->user;
         $exploder     = explode('/', $this->request->route()->uri());
@@ -418,5 +420,104 @@ class PcpProducaoController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Ordens de produção ' . implode(', ', $ordensTransferidas) . ' transferidas para o lote de PCP.']);
+    }
+
+    public function getListPneusLoteSemPCP()
+    {
+
+        parse_str($this->request->input('dados'), $dados);
+
+        $validated = Validator::make($dados, [
+            'empresa' => 'required|integer',
+            'select-ordens-producao' => 'nullable|array',
+            'select-pedidopneu' => 'nullable|array',
+        ], [
+            'empresa.required' => 'O campo empresa é obrigatório.',
+            'empresa.integer' => 'O campo empresa deve ser um número inteiro.',
+        ]);
+
+        $cd_empresa = $validated->validated()['empresa'];
+        $nr_ordem = $validated->validated()['select-ordens-producao'] ?? null;
+        $nr_pedido = $validated->validated()['select-pedidopneu'] ?? null;
+
+        $data = $this->lotePcpRecap->listaPneusLoteSemPCP($cd_empresa, $nr_pedido, $nr_ordem);
+
+        return DataTables::of($data)
+            ->make(true);
+    }
+
+    public function getListPedidosSemPCP()
+    {
+        $validated = $this->request->validate([
+            'cd_empresa' => 'required|integer',
+        ]);
+
+        $cd_empresa = $validated['cd_empresa'];
+
+        $data = $this->lotePcpRecap->listaPneusLoteSemPCP($cd_empresa);
+
+        $pedidos = collect($data)
+            ->pluck('NR_PEDIDO')
+            ->unique()
+            ->values()
+            ->map(function ($pedido) {
+                return [
+                    'NR_PEDIDO' => $pedido
+                ];
+            });
+
+        return response()->json($pedidos);
+    }
+
+    public function getListOrdensProducaoSemPCP()
+    {
+        $validated = $this->request->validate([
+            'cd_empresa' => 'required|integer',
+        ]);
+
+        $cd_empresa = $validated['cd_empresa'];
+
+        $data = $this->lotePcpRecap->listaPneusLoteSemPCP($cd_empresa);
+
+        $ordens = collect($data)
+            ->pluck('NR_ORDEM')
+            ->unique()
+            ->values()
+            ->map(function ($ordem) {
+                return [
+                    'NR_ORDEM' => $ordem
+                ];
+            });
+
+        return response()->json($ordens);
+    }
+
+    public function salvarPneusLotePCP()
+    {
+        $validated = $this->request->validate([
+            'cd_empresa' => 'required|integer',
+            'nr_lote' => 'required|integer',
+            'id_ordens' => 'required|array',
+        ]);
+
+        try {
+
+            $this->lotePcpRecap->salvarPneusLotePCP(
+                $validated['cd_empresa'],
+                $validated['nr_lote'],
+                $validated['id_ordens']
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pneus adicionados ao lote com sucesso'
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro: ' . $e->getMessage()
+            ]);
+        }
     }
 }

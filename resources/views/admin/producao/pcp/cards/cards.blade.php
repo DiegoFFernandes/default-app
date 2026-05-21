@@ -12,7 +12,7 @@
         <div class="info-box info-box-custom">
             <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
             <div class="info-box-content">
-                <span class="info-box-text">Total / Em Produção</span>
+                <span class="info-box-text">Total / Produção</span>
                 <span class="info-box-number" id="card-pneus-em-producao">0
                     <small>% Atraso</small>
                 </span>

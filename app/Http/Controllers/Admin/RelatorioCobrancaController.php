@@ -458,6 +458,7 @@ class RelatorioCobrancaController extends Controller
 
         return response()->json($data);
     }
+
     public static function indexarVendedorSupervisorRecebimentoLiquidado($receber_liquidada)
     {
 
@@ -498,6 +499,7 @@ class RelatorioCobrancaController extends Controller
 
         return $indexado;
     }
+
     public static function indexarGerenteComercial($receber_liquidada, $regioes_mysql)
     {
         //faz a indexação dos valores por gerente comercial
@@ -615,6 +617,7 @@ class RelatorioCobrancaController extends Controller
         }
         return $regioesIndexadas;
     }
+    
     public function getInadimplencia()
     {
         $this->request->validate([
@@ -701,6 +704,7 @@ class RelatorioCobrancaController extends Controller
             'hierarquia' => $hierarquia,            
         ]);
     }
+
     static function formataArrayMeses($data, $tab, $regioes_mysql)
     {
         // Inicializa um array vazio para armazenar os objetos
