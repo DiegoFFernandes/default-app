@@ -250,269 +250,434 @@ class Producao extends Model
 
     public function getPneusAtrasoLotePCP($cd_empresa)
     {
-        $query = "
-                SELECT
-                    X.IDEMPRESA, X.NR_COLETA, X.IDPEDIDOMOVEL, X.DTENTRADA, X.DTENTREGA, X.IDPESSOA, X.IDSERVICOPNEU,
-                    P.NM_PESSOA, COALESCE(RC.DS_REGIAOCOMERCIAL,'SEM REGIAO') DS_REGIAOCOMERCIAL, SP.DSSERVICO,
-                    X.DSCONTROLELOTEPCP, X.NR_LOTE, X.NRLOTESEQDIA, X.DTFIM, X.HRFIM, X.NR_ORDEM, X.ID NR_OP,
-                    X.DT_EXAME, X.DT_MANCHAO, X.DT_COBER, X.DT_VULC, X.DT_FINAL,
-                    X.CD_ETAPA, X.DS_ETAPA, X.DSOBSERVACAO, MP.DSMOTIVO
-                FROM (
-                    --EXAME INICIAL
-                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
-                    
-                    OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                    MAX(IPP2.NRSEQUENCIA)
-                                                FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+    $query = "
+        SELECT
+            X.IDEMPRESA,
+            X.NR_COLETA,
+            X.IDPEDIDOMOVEL,
+            X.DTENTRADA,
+            X.DTENTREGA,
+            X.IDPESSOA,
+            X.IDSERVICOPNEU,
+            P.NM_PESSOA,
+            COALESCE(RC.DS_REGIAOCOMERCIAL, 'SEM REGIAO') DS_REGIAOCOMERCIAL,
+            SP.DSSERVICO,
+            X.DSCONTROLELOTEPCP,
+            X.NR_LOTE,
+            X.NRLOTESEQDIA,
+            X.DTFIM,
+            X.HRFIM,
+            X.NR_ORDEM,
+            X.ID NR_OP,
+            X.DT_EXAME,
+            X.DT_MANCHAO,
+            X.DT_COBER,
+            X.DT_VULC,
+            X.DT_FINAL,
+            X.CD_ETAPA,
+            X.DS_ETAPA,
+            X.DSOBSERVACAO,
+            MP.DSMOTIVO
+        FROM (
+        --EXAME INICIAL
+        SELECT
+            PP.IDEMPRESA,
+            PP.ID NR_COLETA,
+            PP.IDPEDIDOMOVEL,
+            PP.IDPESSOA,
+            IPP.IDSERVICOPNEU,
+            C.DSCONTROLELOTEPCP,
+            M.ID NR_LOTE,
+            M.NRLOTESEQDIA,
+            MLE.DTFIM,
+            MLE.HRFIM,
+            OPR.ID NR_ORDEM,
+            OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+            EI.DTFIM DT_EXAME,
+            NULL DT_MANCHAO,
+            NULL DT_COBER,
+            NULL DT_VULC,
+            NULL DT_FINAL,
+            OPR.DSOBSERVACAO,
+            CASE
+            WHEN EI.ID IS NULL THEN 'SEM EXAME'
+            WHEN EI.ST_ETAPA = 'A' THEN 'EXAME INICIAL'
+            END DS_ETAPA,
+            CASE
+            WHEN EI.ID IS NULL THEN 0
+            WHEN EI.ST_ETAPA = 'A' THEN 1
+            END CD_ETAPA,
+            OPR.DTENTRADA,
+            OPR.DTENTREGA,
+            OPR.CD_MOTIVOALTDTENTREGA
+        FROM ORDEMPRODUCAORECAP OPR
+        INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+        INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+            AND M.IDEMPRESA = PCP.IDEMPRESA)
+        INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
+            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
+            AND MLE.IDETAPA = 1) -- EXAME
+        INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+            AND C.IDEMPRESA = M.IDEMPRESA)
+        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
+        WHERE
+            IPP.STCANCELADO = 'N'
+            AND IPP.STGARANTIA = 'N'
+            AND PP.IDEMPRESA IN ($cd_empresa)
+            AND M.STLOTE IN ('P', 'L', 'A')
+            AND OPR.STORDEM = 'A'
+            AND (EI.ID IS NULL OR EI.ST_ETAPA = 'A')
+            AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
 
+        UNION ALL
 
-
-                    EI.DTFIM DT_EXAME, NULL DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
-                    CASE
-                        WHEN EI.ID IS NULL THEN 'SEM EXAME'
-                        WHEN EI.ST_ETAPA = 'A' THEN 'EXAME INICIAL'
-                    END DS_ETAPA,
-                    CASE
-                        WHEN EI.ID IS NULL THEN 0
-                        WHEN EI.ST_ETAPA = 'A' THEN 1
-                    END CD_ETAPA,
-                    OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                                                    AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
-                                                            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
-                                                            AND MLE.IDETAPA = 1) -- EXAME
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                                                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
-                    WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L', 'A')
-                        AND OPR.STORDEM = 'A'
-                        AND (EI.ID IS NULL OR EI.ST_ETAPA = 'A')
-                        AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
-                    
-                    UNION ALL
-
-                    --lIMPEZA MANCHÃO
-                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
-                    OPR.ID NR_ORDEM, 
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                    MAX(IPP2.NRSEQUENCIA)
-                                                FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
-                    EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, NULL DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
-                    CASE
-                        WHEN RP.ID IS NULL THEN 'EXAME INICIAL'
-                        WHEN ES.ID IS NULL THEN 'RASPA'
-                        WHEN LM.ID IS NULL THEN 'LIMPEZA MANCHAO'
-                        WHEN LM.ST_ETAPA = 'A' THEN 'COLA'
-                    END DS_ETAPA,
-                    CASE
-                        WHEN RP.ID IS NULL THEN 1
-                        WHEN ES.ID IS NULL THEN 2
-                        WHEN LM.ID IS NULL THEN 5
-                        WHEN LM.ST_ETAPA = 'A' THEN 6
-                    END CD_ETAPA,
-
-                    OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                                                    AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
-                                                            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
-                                                            AND MLE.IDETAPA = 5) -- LIMPEZA
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                                                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
-                                                AND EI.ST_ETAPA = 'F')
-                    LEFT JOIN RASPAGEMPNEU RP ON (RP.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN ESCAREACAOPNEU ES ON (ES.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
-                    WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L', 'A')
-                        AND OPR.STORDEM = 'A'
-                        AND (LM.ID IS NULL OR LM.ST_ETAPA = 'A')
-                        AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
-
-                    
-                    UNION ALL
-
-                    --COBERTURA
-                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU,
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
-                    OPR.ID NR_ORDEM, 
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                    MAX(IPP2.NRSEQUENCIA)
-                                                FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
-                    EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, NULL DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
-                    CASE
-                        WHEN PB.ID IS NULL THEN 'ESCAREACAO'
-                        WHEN CP.ID IS NULL THEN 'PREPARACAO BANDA'
-                        WHEN CS.ID IS NULL THEN 'COLA'
-                        WHEN EX.ID IS NULL THEN 'AP. CONS'
-                        WHEN EB.ID IS NULL THEN 'EXTRUS'
-                        WHEN EB.ST_ETAPA = 'A' THEN 'COBERTURA'
-                    END DS_ETAPA,
-                    CASE
-                        WHEN PB.ID IS NULL THEN 4
-                        WHEN CP.ID IS NULL THEN 3
-                        WHEN CS.ID IS NULL THEN 6
-                        WHEN EX.ID IS NULL THEN 7
-                        WHEN EB.ID IS NULL THEN 8
-                        WHEN EB.ST_ETAPA = 'A' THEN 9
-                    END CD_ETAPA,
-                    OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                                                    AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
-                                                            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
-                                                            AND MLE.IDETAPA = 9) -- COBERTURA
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                                                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
-                                                AND EI.ST_ETAPA = 'F')
-                    INNER JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN PREPARACAOBANDAPNEU PB ON (PB.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN APLICACAOCOLAPNEU CP ON (CP.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN APLICCONSERTOPNEU CS ON (CS.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN EXTRUSORAPNEU EX ON (EX.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
-                    WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L', 'A')
-                        AND OPR.STORDEM = 'A'
-                        AND (EB.ID IS NULL OR EB.ST_ETAPA = 'A')
-                        AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
-
-                    
-                    UNION ALL
-
-                    --VULCANIZAÇÃO
-                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
-                    OPR.ID NR_ORDEM, 
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                    MAX(IPP2.NRSEQUENCIA)
-                                                FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
-                    EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, NULL DT_FINAL, OPR.DSOBSERVACAO,
-                    CASE
-                        WHEN EN.ID IS NULL THEN 'COBERTURA'
-                        WHEN MO.ID IS NULL THEN 'ENVELOPA'
-                        WHEN VP.ID IS NULL THEN 'MONTAGEM'
-                        WHEN VP.ST_ETAPA = 'A' THEN 'VULCANIZ'
-                    END DS_ETAPA,
-                    CASE
-                        WHEN EN.ID IS NULL THEN 9
-                        WHEN MO.ID IS NULL THEN 15
-                        WHEN VP.ID IS NULL THEN 14
-                        WHEN VP.ST_ETAPA = 'A' THEN 11
-                    END CD_ETAPA,
-                    OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                                                    AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
-                                                            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
-                                                            AND MLE.IDETAPA = 11) -- VULCANIZAÇÃO
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                                                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
-                                                AND EI.ST_ETAPA = 'F')
-                    LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
-                    INNER JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN ENVELOPAMENTO EN ON (EN.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN MONTAGEMRECAP MO ON (MO.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
-                    WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L', 'A')
-                        AND OPR.STORDEM = 'A'
-                        AND (VP.ID IS NULL OR VP.ST_ETAPA = 'A')
-                        AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
-
-                    
-                    UNION ALL
-
-                    --EXAME FINAL
-                    SELECT PP.IDEMPRESA, PP.ID NR_COLETA, PP.IDPEDIDOMOVEL, PP.IDPESSOA, IPP.IDSERVICOPNEU, 
-                    C.DSCONTROLELOTEPCP, M.ID NR_LOTE, M.NRLOTESEQDIA, MLE.DTFIM, MLE.HRFIM, 
-                    OPR.ID NR_ORDEM, 
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                    MAX(IPP2.NRSEQUENCIA)
-                                                FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
-                    EI.DTFIM DT_EXAME, LM.DTFIM DT_MANCHAO, eb.DTFIM DT_COBER, VP.DTFIM DT_VULC, EF.DTFIM DT_FINAL, OPR.DSOBSERVACAO,
-                    CASE
-                        WHEN DE.ID IS NULL THEN 'VULC'
-                        WHEN EF.ID IS NULL THEN 'DESENVEL'
-                        WHEN EF.ST_ETAPA = 'A' THEN 'DESENVEL'
-                    END DS_ETAPA,
-                    CASE
-                        WHEN DE.ID IS NULL THEN 11
-                        WHEN EF.ID IS NULL THEN 16
-                        WHEN EF.ST_ETAPA = 'A' THEN 16
-                    END CD_ETAPA,
-                    OPR.DTENTRADA, OPR.DTENTREGA, OPR.CD_MOTIVOALTDTENTREGA
-                    FROM ORDEMPRODUCAORECAP OPR
-                    INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
-                    INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
-                                                    AND M.IDEMPRESA = PCP.IDEMPRESA)
-                    INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
-                                                            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
-                                                            AND MLE.IDETAPA = 12) -- EXAME FINAL
-                    INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
-                                                        AND C.IDEMPRESA = M.IDEMPRESA)
-                    INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
-                    INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
-                    INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
-                                                AND EI.ST_ETAPA = 'F')
-                    LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
-                    INNER JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN DESENVELOPAMENTO DE ON (DE.IDORDEMPRODUCAORECAP = OPR.ID)
-                    LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
-                    WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
-                        AND PP.IDEMPRESA IN ($cd_empresa)
-                        AND M.STLOTE IN ('P', 'L', 'A')
-                        AND OPR.STORDEM = 'A'
-                        AND (EF.ID IS NULL OR EF.ST_ETAPA = 'A')
-                        AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
-
-                ) X
-                INNER JOIN SERVICOPNEU SP ON (SP.ID = X.IDSERVICOPNEU)
-                INNER JOIN PESSOA P ON (P.CD_PESSOA = X.IDPESSOA)
-                INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA
-                                            AND EP.CD_ENDERECO = 1)
-                LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
-                LEFT JOIN MOTIVOPNEU MP ON (MP.ID = X.CD_MOTIVOALTDTENTREGA)
-                ORDER BY X.DTFIM DESC, X.NR_LOTE, X.NRLOTESEQDIA, X.ID
-        ";
+        --PREPARACAO BANDA
+        SELECT
+            PP.IDEMPRESA,
+            PP.ID NR_COLETA,
+            PP.IDPEDIDOMOVEL,
+            PP.IDPESSOA,
+            IPP.IDSERVICOPNEU,
+            C.DSCONTROLELOTEPCP,
+            M.ID NR_LOTE,
+            M.NRLOTESEQDIA,
+            MLE.DTFIM,
+            MLE.HRFIM,
+            OPR.ID NR_ORDEM,
+            OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+            EI.DTFIM DT_EXAME,
+            LM.DTFIM DT_MANCHAO,
+            NULL DT_COBER,
+            NULL DT_VULC,
+            NULL DT_FINAL,
+            OPR.DSOBSERVACAO,
+            CASE
+            WHEN RP.ID IS NULL THEN 'EXAME INICIAL'
+            WHEN ES.ID IS NULL THEN 'RASPA'
+            WHEN PBP.ID IS NULL THEN 'ESCAREACAO'
+            WHEN PBP.ST_ETAPA = 'A' THEN 'LIMPEZA'
+            END DS_ETAPA,
+            CASE
+            WHEN RP.ID IS NULL THEN 1
+            WHEN ES.ID IS NULL THEN 2
+            WHEN LM.ID IS NULL THEN 4
+            WHEN PBP.ID IS NULL THEN 5
+            WHEN PBP.ST_ETAPA = 'A' THEN 2
+            END CD_ETAPA,
+            OPR.DTENTRADA,
+            OPR.DTENTREGA,
+            OPR.CD_MOTIVOALTDTENTREGA
+        FROM ORDEMPRODUCAORECAP OPR
+        INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+        INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+            AND M.IDEMPRESA = PCP.IDEMPRESA)
+        INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
+            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
+            AND MLE.IDETAPA = 3) -- PREPARACAO BANDA
+        INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+            AND C.IDEMPRESA = M.IDEMPRESA)
+        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
+            AND EI.ST_ETAPA = 'F')
+        LEFT JOIN RASPAGEMPNEU RP ON (RP.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN ESCAREACAOPNEU ES ON (ES.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN PREPARACAOBANDAPNEU PBP ON (PBP.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
+        WHERE
+            IPP.STCANCELADO = 'N'
+            AND IPP.STGARANTIA = 'N'
+            AND PP.IDEMPRESA IN ($cd_empresa)
+            AND M.STLOTE IN ('P', 'L', 'A')
+            AND OPR.STORDEM = 'A'
+            AND (PBP.ID IS NULL OR PBP.ST_ETAPA = 'A')
+            AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
+        UNION ALL
+        --lIMPEZA MANCHÃO
+        SELECT
+            PP.IDEMPRESA,
+            PP.ID NR_COLETA,
+            PP.IDPEDIDOMOVEL,
+            PP.IDPESSOA,
+            IPP.IDSERVICOPNEU,
+            C.DSCONTROLELOTEPCP,
+            M.ID NR_LOTE,
+            M.NRLOTESEQDIA,
+            MLE.DTFIM,
+            MLE.HRFIM,
+            OPR.ID NR_ORDEM,
+            OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+            EI.DTFIM DT_EXAME,
+            LM.DTFIM DT_MANCHAO,
+            NULL DT_COBER,
+            NULL DT_VULC,
+            NULL DT_FINAL,
+            OPR.DSOBSERVACAO,
+            CASE
+            WHEN RP.ID IS NULL THEN 'EXAME INICIAL'
+            WHEN ES.ID IS NULL THEN 'RASPA'
+            WHEN LM.ID IS NULL THEN 'ESCAREACAO'
+            WHEN LM.ST_ETAPA = 'A' THEN 'LIMPEZA'
+            END DS_ETAPA,
+            CASE
+            WHEN RP.ID IS NULL THEN 1
+            WHEN ES.ID IS NULL THEN 2
+            WHEN LM.ID IS NULL THEN 5
+            WHEN LM.ST_ETAPA = 'A' THEN 6
+            END CD_ETAPA,
+            OPR.DTENTRADA,
+            OPR.DTENTREGA,
+            OPR.CD_MOTIVOALTDTENTREGA
+        FROM ORDEMPRODUCAORECAP OPR
+        INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+        INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+            AND M.IDEMPRESA = PCP.IDEMPRESA)
+        INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
+            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
+            AND MLE.IDETAPA = 5) -- LIMPEZA
+        INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+            AND C.IDEMPRESA = M.IDEMPRESA)
+        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
+            AND EI.ST_ETAPA = 'F')
+        LEFT JOIN RASPAGEMPNEU RP ON (RP.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN ESCAREACAOPNEU ES ON (ES.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
+        WHERE
+            IPP.STCANCELADO = 'N'
+            AND IPP.STGARANTIA = 'N'
+            AND PP.IDEMPRESA IN ($cd_empresa)
+            AND M.STLOTE IN ('P', 'L', 'A')
+            AND OPR.STORDEM = 'A'
+            AND (LM.ID IS NULL OR LM.ST_ETAPA = 'A')
+            AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
+        UNION ALL
+        --COBERTURA
+        SELECT
+            PP.IDEMPRESA,
+            PP.ID NR_COLETA,
+            PP.IDPEDIDOMOVEL,
+            PP.IDPESSOA,
+            IPP.IDSERVICOPNEU,
+            C.DSCONTROLELOTEPCP,
+            M.ID NR_LOTE,
+            M.NRLOTESEQDIA,
+            MLE.DTFIM,
+            MLE.HRFIM,
+            OPR.ID NR_ORDEM,
+            OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+            EI.DTFIM DT_EXAME,
+            LM.DTFIM DT_MANCHAO,
+            EB.DTFIM DT_COBER,
+            NULL DT_VULC,
+            NULL DT_FINAL,
+            OPR.DSOBSERVACAO,
+            CASE
+            WHEN PB.ID IS NULL THEN 'ESCAREACAO'
+            WHEN CP.ID IS NULL THEN 'PREPARACAO BANDA'
+            WHEN CS.ID IS NULL THEN 'COLA'
+            WHEN EX.ID IS NULL THEN 'AP. CONS'
+            WHEN EB.ID IS NULL THEN 'EXTRUS'
+            WHEN EB.ST_ETAPA = 'A' THEN 'COBERTURA'
+            END DS_ETAPA,
+            CASE
+            WHEN PB.ID IS NULL THEN 4
+            WHEN CP.ID IS NULL THEN 3
+            WHEN CS.ID IS NULL THEN 6
+            WHEN EX.ID IS NULL THEN 7
+            WHEN EB.ID IS NULL THEN 8
+            WHEN EB.ST_ETAPA = 'A' THEN 9
+            END CD_ETAPA,
+            OPR.DTENTRADA,
+            OPR.DTENTREGA,
+            OPR.CD_MOTIVOALTDTENTREGA
+        FROM ORDEMPRODUCAORECAP OPR
+        INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+        INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+            AND M.IDEMPRESA = PCP.IDEMPRESA)
+        INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
+            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
+            AND MLE.IDETAPA = 9) -- COBERTURA
+        INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+            AND C.IDEMPRESA = M.IDEMPRESA)
+        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
+            AND EI.ST_ETAPA = 'F')
+        INNER JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN PREPARACAOBANDAPNEU PB ON (PB.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN APLICACAOCOLAPNEU CP ON (CP.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN APLICCONSERTOPNEU CS ON (CS.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN EXTRUSORAPNEU EX ON (EX.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
+        WHERE
+            IPP.STCANCELADO = 'N'
+            AND IPP.STGARANTIA = 'N'
+            AND PP.IDEMPRESA IN ($cd_empresa)
+            AND M.STLOTE IN ('P', 'L', 'A')
+            AND OPR.STORDEM = 'A'
+            AND (EB.ID IS NULL OR EB.ST_ETAPA = 'A')
+            AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
+        UNION ALL
+        --VULCANIZAÇÃO
+        SELECT
+            PP.IDEMPRESA,
+            PP.ID NR_COLETA,
+            PP.IDPEDIDOMOVEL,
+            PP.IDPESSOA,
+            IPP.IDSERVICOPNEU,
+            C.DSCONTROLELOTEPCP,
+            M.ID NR_LOTE,
+            M.NRLOTESEQDIA,
+            MLE.DTFIM,
+            MLE.HRFIM,
+            OPR.ID NR_ORDEM,
+            OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+            EI.DTFIM DT_EXAME,
+            LM.DTFIM DT_MANCHAO,
+            EB.DTFIM DT_COBER,
+            VP.DTFIM DT_VULC,
+            NULL DT_FINAL,
+            OPR.DSOBSERVACAO,
+            CASE
+            WHEN EN.ID IS NULL THEN 'COBERTURA'
+            WHEN MO.ID IS NULL THEN 'ENVELOPA'
+            WHEN VP.ID IS NULL THEN 'MONTAGEM'
+            WHEN VP.ST_ETAPA = 'A' THEN 'VULCANIZ'
+            END DS_ETAPA,
+            CASE
+            WHEN EN.ID IS NULL THEN 9
+            WHEN MO.ID IS NULL THEN 15
+            WHEN VP.ID IS NULL THEN 14
+            WHEN VP.ST_ETAPA = 'A' THEN 11
+            END CD_ETAPA,
+            OPR.DTENTRADA,
+            OPR.DTENTREGA,
+            OPR.CD_MOTIVOALTDTENTREGA
+        FROM ORDEMPRODUCAORECAP OPR
+        INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+        INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+            AND M.IDEMPRESA = PCP.IDEMPRESA)
+        INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
+            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
+            AND MLE.IDETAPA = 11) -- VULCANIZAÇÃO
+        INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+            AND C.IDEMPRESA = M.IDEMPRESA)
+        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
+            AND EI.ST_ETAPA = 'F')
+        LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
+        INNER JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN ENVELOPAMENTO EN ON (EN.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN MONTAGEMRECAP MO ON (MO.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
+        WHERE
+            IPP.STCANCELADO = 'N'
+            AND IPP.STGARANTIA = 'N'
+            AND PP.IDEMPRESA IN ($cd_empresa)
+            AND M.STLOTE IN ('P', 'L', 'A')
+            AND OPR.STORDEM = 'A'
+            AND (VP.ID IS NULL OR VP.ST_ETAPA = 'A')
+            AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
+        UNION ALL
+        --EXAME FINAL
+        SELECT
+            PP.IDEMPRESA,
+            PP.ID NR_COLETA,
+            PP.IDPEDIDOMOVEL,
+            PP.IDPESSOA,
+            IPP.IDSERVICOPNEU,
+            C.DSCONTROLELOTEPCP,
+            M.ID NR_LOTE,
+            M.NRLOTESEQDIA,
+            MLE.DTFIM,
+            MLE.HRFIM,
+            OPR.ID NR_ORDEM,
+            OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                                                            MAX(IPP2.NRSEQUENCIA)
+                                                        FROM ITEMPEDIDOPNEU IPP2
+                                                        WHERE
+                                                            IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+            EI.DTFIM DT_EXAME,
+            LM.DTFIM DT_MANCHAO,
+            EB.DTFIM DT_COBER,
+            VP.DTFIM DT_VULC,
+            EF.DTFIM DT_FINAL,
+            OPR.DSOBSERVACAO,
+            CASE
+            WHEN DE.ID IS NULL THEN 'VULC'
+            WHEN EF.ID IS NULL THEN 'DESENVEL'
+            WHEN EF.ST_ETAPA = 'A' THEN 'DESENVEL'
+            END DS_ETAPA,
+            CASE
+            WHEN DE.ID IS NULL THEN 11
+            WHEN EF.ID IS NULL THEN 16
+            WHEN EF.ST_ETAPA = 'A' THEN 16
+            END CD_ETAPA,
+            OPR.DTENTRADA,
+            OPR.DTENTREGA,
+            OPR.CD_MOTIVOALTDTENTREGA
+        FROM ORDEMPRODUCAORECAP OPR
+        INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
+        INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
+            AND M.IDEMPRESA = PCP.IDEMPRESA)
+        INNER JOIN MONTAGEMLOTEPCPETAPARECAP MLE ON (MLE.IDEMPRESA = M.IDEMPRESA
+            AND MLE.IDMONTAGEMLOTEPCPRECAP = M.ID
+            AND MLE.IDETAPA = 12) -- EXAME FINAL
+        INNER JOIN CONTROLELOTEPCPRECAP C ON (C.ID = M.IDCONTROLELOTEPCPRECAP
+            AND C.IDEMPRESA = M.IDEMPRESA)
+        INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
+        INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+        INNER JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID
+            AND EI.ST_ETAPA = 'F')
+        LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
+        INNER JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN DESENVELOPAMENTO DE ON (DE.IDORDEMPRODUCAORECAP = OPR.ID)
+        LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
+        WHERE
+            IPP.STCANCELADO = 'N'
+            AND IPP.STGARANTIA = 'N'
+            AND PP.IDEMPRESA IN ($cd_empresa)
+            AND M.STLOTE IN ('P', 'L', 'A')
+            AND OPR.STORDEM = 'A'
+            AND (EF.ID IS NULL OR EF.ST_ETAPA = 'A')
+            AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP) X
+        INNER JOIN SERVICOPNEU SP ON (SP.ID = X.IDSERVICOPNEU)
+        INNER JOIN PESSOA P ON (P.CD_PESSOA = X.IDPESSOA)
+        INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA
+            AND EP.CD_ENDERECO = 1)
+        LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_REGIAOCOMERCIAL = EP.CD_REGIAOCOMERCIAL)
+        LEFT JOIN MOTIVOPNEU MP ON (MP.ID = X.CD_MOTIVOALTDTENTREGA)
+        ORDER BY X.DTFIM DESC,
+            X.NR_LOTE,
+            X.NRLOTESEQDIA,
+            X.ID  
+    ";
 
         $data = DB::connection('firebird')->select($query);
 
@@ -721,7 +886,9 @@ class Producao extends Model
                     AND OPR.STORDEM = 'A'
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                     AND PBP.ST_ETAPA IS NULL
-                GROUP BY PP.IDEMPRESA, MATPRIMA.DS_ITEM, ST_BANDA, MATPRIMA.SG_UNIDMED, BP.IDITEM, S.O_QT_SALDO        
+                    AND M.STLOTE IN ('P', 'L')
+                GROUP BY PP.IDEMPRESA, MATPRIMA.DS_ITEM, ST_BANDA, MATPRIMA.SG_UNIDMED, BP.IDITEM, S.O_QT_SALDO 
+                       
         ";
 
         $data = DB::connection('firebird')->select($query);
@@ -778,7 +945,7 @@ class Producao extends Model
                 AND IPP.STGARANTIA = 'N'
                 AND OPR.STORDEM = 'A'
                 AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
-                and BP.IDITEM IS NULL
+                and BP.IDITEM IS NULL                
                 ";
 
         $data = DB::connection('firebird')->select($query);

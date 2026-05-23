@@ -418,7 +418,7 @@
                 }, {
                     data: 'DT_EXAME',
                     name: 'DT_EXAME',
-                    title: 'Exame Inicial',
+                    title: 'Exa.Inicial',
                     className: 'text-center no-wrap',
                 }, {
                     data: 'DT_MANCHAO',
