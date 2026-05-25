@@ -4,8 +4,14 @@
             <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Qtde Lotes</span>
-                <span class="info-box-number" id="lotes">0
-                     <small>0 Atraso</small>
+                <span class="info-box-number d-flex justify-content-between align-items-center" id="lotesBox">
+
+                    <span id="lotes">0</span>
+
+                    <span id="lotesAtraso" class="small text-muted px-2 py-1">
+                        0 atraso
+                    </span>
+
                 </span>
             </div>
         </div>

@@ -573,9 +573,13 @@
 
 
                     //atualiza o card de quantidade de lotes
-                    $('#lotes').html(totalLotes + ' <small class="text-muted" style="color:#d6b3ff">' + totalLotesAtraso + ' Atras.</small>');
+                    $('#lotes').html(totalLotes);
 
-                    console.log(totalLotesAtraso);
+                    if(totalLotesAtraso > 0) {
+                        $('#lotesAtraso').html('<small class="badge badge-atrasado badge-atrasado-dias-purple">' + totalLotesAtraso + ' Atrasados</small>');
+                    } else {
+                        $('#lotesAtraso').html('<small class="text-muted">0 atraso</small>');
+                    }
 
                     // atualiza os cards
                     $('#card-pneus-em-producao').html(totalPneusLote + ' / ' + totalEmProducao);
