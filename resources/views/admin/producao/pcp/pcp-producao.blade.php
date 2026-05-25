@@ -126,7 +126,7 @@
 
     <script>
         function collapseMenu() {
-            $('[data-widget="pushmenu"]').PushMenu('collapse');           
+            $('[data-widget="pushmenu"]').PushMenu('collapse');
         }
 
         $(window).on('load resize', function() {
@@ -164,6 +164,7 @@
         var totalFinalizados = 0;
         var totalSemExame = 0;
         var totalLotes = 0;
+        var totalLotesAtraso = 0;
         var pcAtrasado = 0;
         var canLotePcp = @json($canEditPCP);
 
@@ -506,6 +507,13 @@
                             totalPneusLote += parseInt(lote.QTDE_TOT_LOTE);
                             totalEmProducao += parseInt(lote.QTDE_EM_PROD);
 
+                            const [ano, mes, dia] = lote.DTPRODUCAO.split('-');
+                            const dtFim = new Date(ano, mes - 1,
+                                dia); // -1 e o mes anterior, Date inicia em 0                   
+                            if (dtFim < new Date()) {
+                                totalLotesAtraso++;
+                            }
+
                         });
 
                         return json.datatables.data || [];
@@ -565,7 +573,9 @@
 
 
                     //atualiza o card de quantidade de lotes
-                    $('#lotes').text(totalLotes);
+                    $('#lotes').html(totalLotes + ' <small class="text-muted" style="color:#d6b3ff">' + totalLotesAtraso + ' Atras.</small>');
+
+                    console.log(totalLotesAtraso);
 
                     // atualiza os cards
                     $('#card-pneus-em-producao').html(totalPneusLote + ' / ' + totalEmProducao);

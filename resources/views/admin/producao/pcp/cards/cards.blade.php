@@ -4,7 +4,9 @@
             <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Qtde Lotes</span>
-                <span class="info-box-number" id="lotes">0</span>
+                <span class="info-box-number" id="lotes">0
+                     <small>0 Atraso</small>
+                </span>
             </div>
         </div>
     </div>
@@ -12,7 +14,7 @@
         <div class="info-box info-box-custom">
             <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
             <div class="info-box-content">
-                <span class="info-box-text">Total / Produção</span>
+                <span class="info-box-text">Total/Produção</span>
                 <span class="info-box-number" id="card-pneus-em-producao">0
                     <small>% Atraso</small>
                 </span>
