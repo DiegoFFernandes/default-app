@@ -529,12 +529,12 @@
                         dia); // -1 e o mes anterior, Date inicia em 0                    
 
                     // adiciona a classe de atraso dependendo da etapa e fica piscando  
-                    if (parseInt(data.CD_ETAPA) === 0) {
+                    if (dtFim < new Date()) {
+                        $(row).addClass('badge-atrasado badge-atrasado-dias-purple');
+                    } else if (parseInt(data.CD_ETAPA) === 0) {
                         $(row).addClass('badge-atrasado badge-atrasado-danger');
                     } else if (parseInt(data.CD_ETAPA) === 1) {
                         $(row).addClass('badge-atrasado badge-atrasado-warning');
-                    } else if (dtFim < new Date()) {
-                        $(row).addClass('badge-atrasado badge-atrasado-dias-purple');
                     }
                 },
                 drawCallback: function(settings) {
