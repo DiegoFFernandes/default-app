@@ -110,6 +110,10 @@
         .badge-atrasado-warning {
             --blink-color: #fff3cd;
         }
+
+        .badge-atrasado-dias-purple {
+            --blink-color: #d6b3ff;
+        }
     </style>
 @stop
 
@@ -121,6 +125,17 @@
     <script src="{{ asset('js/dashboard/painelPCP/atualiza-tela-pcp.js') }}?v={{ time() }}"></script>
 
     <script>
+        function collapseMenu() {
+            $('[data-widget="pushmenu"]').PushMenu('collapse');
+            console.log('Window width:', $(window).width());
+        }
+
+        $(window).on('load resize', function() {
+            setTimeout(() => {
+                collapseMenu();
+            }, 50);
+        });
+
         window.routes = {
             token: "{{ csrf_token() }}",
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
@@ -508,12 +523,18 @@
                     },
                 }],
                 createdRow: function(row, data, dataIndex) {
+                    const [ano, mes, dia] = data.DTFIM.split('-');
+
+                    const dtFim = new Date(ano, mes - 1,
+                        dia); // -1 e o mes anterior, Date inicia em 0                    
 
                     // adiciona a classe de atraso dependendo da etapa e fica piscando  
                     if (parseInt(data.CD_ETAPA) === 0) {
                         $(row).addClass('badge-atrasado badge-atrasado-danger');
                     } else if (parseInt(data.CD_ETAPA) === 1) {
                         $(row).addClass('badge-atrasado badge-atrasado-warning');
+                    } else if (dtFim < new Date()) {
+                        $(row).addClass('badge-atrasado badge-atrasado-dias-purple');
                     }
                 },
                 drawCallback: function(settings) {

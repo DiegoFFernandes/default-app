@@ -279,7 +279,7 @@ class PcpProducaoController extends Controller
 
         $cd_empresa = implode(',', collect($empresa)->pluck('CD_EMPRESA')->toArray());
 
-        return $data = $this->lotePcpRecap->getControleLotePcpRecap($cd_empresa);
+        $data = $this->lotePcpRecap->getControleLotePcpRecap($cd_empresa);
 
         return response()->json($data);
     }
