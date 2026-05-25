@@ -500,6 +500,8 @@
 
                         totalPneusLote = 0;
                         totalEmProducao = 0;
+                        totalLotesAtraso = 0;
+
                         //busca a quantidade de lotes
                         totalLotes = lotePcpTable.length;
 
@@ -508,11 +510,16 @@
                             totalEmProducao += parseInt(lote.QTDE_EM_PROD);
 
                             const [ano, mes, dia] = lote.DTPRODUCAO.split('-');
-                            const dtFim = new Date(ano, mes - 1,
-                                dia); // -1 e o mes anterior, Date inicia em 0                   
-                            if (dtFim < new Date()) {
+                            // -1 e o mes anterior, Date inicia em 0
+                            const dtFim = new Date(ano, mes - 1, dia);
+                            const hoje = new Date();
+                            hoje.setHours(0, 0, 0, 0);
+
+                            if (dtFim < hoje) {
+                                console.log(dtFim, hoje);
                                 totalLotesAtraso++;
                             }
+
 
                         });
 
@@ -532,11 +539,14 @@
                 createdRow: function(row, data, dataIndex) {
                     const [ano, mes, dia] = data.DTFIM.split('-');
 
-                    const dtFim = new Date(ano, mes - 1,
-                        dia); // -1 e o mes anterior, Date inicia em 0                    
+                    // -1 e o mes anterior, Date inicia em 0 
+                    const dtFim = new Date(ano, mes - 1, dia);  
+                    
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
 
                     // adiciona a classe de atraso dependendo da etapa e fica piscando  
-                    if (dtFim < new Date()) {
+                    if (dtFim < hoje) {
                         $(row).addClass('badge-atrasado badge-atrasado-dias-purple');
                     } else if (parseInt(data.CD_ETAPA) === 0) {
                         $(row).addClass('badge-atrasado badge-atrasado-danger');
@@ -575,8 +585,10 @@
                     //atualiza o card de quantidade de lotes
                     $('#lotes').html(totalLotes);
 
-                    if(totalLotesAtraso > 0) {
-                        $('#lotesAtraso').html('<small class="badge badge-atrasado badge-atrasado-dias-purple">' + totalLotesAtraso + ' Atrasados</small>');
+                    if (totalLotesAtraso > 0) {
+                        $('#lotesAtraso').html(
+                            '<small class="badge badge-atrasado badge-atrasado-dias-purple">' +
+                            totalLotesAtraso + ' Atrasados</small>');
                     } else {
                         $('#lotesAtraso').html('<small class="text-muted">0 atraso</small>');
                     }
