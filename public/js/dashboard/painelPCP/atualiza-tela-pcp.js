@@ -2,7 +2,18 @@ let intervaloAtualizacao = null;
 let intervaloRelogio = null;
 let tempoRestante = 300; // 5 minutos em segundos
 
+
 $("#atualizarTela").change(function () {
+    iniciarAtualizacaoAutomatica.call(this);
+});
+
+$("#atualizarTela").prop("checked", true).trigger("change"); // Ativa a atualização automática ao carregar a página
+
+
+function iniciarAtualizacaoAutomatica() {
+    clearInterval(intervaloAtualizacao);
+    clearInterval(intervaloRelogio);
+
     if ($(this).is(":checked")) {
         Swal.fire({
             title: "Atualização Automática",
@@ -51,4 +62,4 @@ $("#atualizarTela").change(function () {
         $("#minutosParaAtualizacao").text("05:00");
         tempoRestante = 300; // Reinicia o contador
     }
-});
+}

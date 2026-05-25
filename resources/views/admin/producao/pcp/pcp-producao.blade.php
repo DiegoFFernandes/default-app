@@ -126,8 +126,7 @@
 
     <script>
         function collapseMenu() {
-            $('[data-widget="pushmenu"]').PushMenu('collapse');
-            console.log('Window width:', $(window).width());
+            $('[data-widget="pushmenu"]').PushMenu('collapse');           
         }
 
         $(window).on('load resize', function() {
