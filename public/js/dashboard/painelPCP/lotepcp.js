@@ -171,16 +171,29 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
     let lote = $(this).data("lote");
     let empresa = $(this).data("empresa");
 
+    $("#cd_empresa_pneus_lote_pcp").val(empresa);
+    $("#lote_pneus_lote_pcp").val(lote);
+
     $(".modal-title-lote").text(`Pneus do Lote: ${lote} - Empresa: ${empresa}`);
 
     $("#table-pneus-lote-pcp").DataTable({
-        pageLength: 100,
+        pageLength: -1,
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "Todos"],
+        ],
         processing: false,
         serverSide: false,
         destroy: true,
+        scrollY: "400px",
+        scrollCollapse: true,
         pagingType: "simple",
         language: {
             url: window.routes.languageDatatables,
+        },
+        select: {
+            style: "multi",
+            selector: "td:first-child",
         },
         ajax: {
             url: window.routes.detalhesPneusLotePcp,
@@ -192,6 +205,13 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
             },
         },
         columns: [
+            {
+                data: null,
+                width: "1%",
+                className: "pl-3 pr-3 text-center",
+                render: DataTable.render.select(),
+                orderable: false,
+            },
             {
                 data: "IDEMPRESA",
                 name: "IDEMPRESA",
@@ -207,11 +227,18 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
                 width: "20%",
             },
             {
-                data: "NR_ORDEM",
-                name: "NR_ORDEM",
+                data: "NR_PEDIDO",
+                name: "NR_PEDIDO",
+                title: "Pedido",
+                className: "no-wrap text-center",
+                width: "5%",
+            },
+            {
+                data: "NR_OP",
+                name: "NR_OP",
                 title: "Ordem",
                 className: "no-wrap text-center",
-                width: "10%",
+                width: "5%",
             },
             {
                 data: "DS_ITEM",
@@ -228,6 +255,7 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
                 width: "5%",
             },
         ],
+        order: [[10, "asc"]],
     });
 
     $("#modal-pneus-lote-pcp").modal("show");
@@ -278,3 +306,144 @@ $(document).on("click", ".btn-banda-com-associacao", function () {
         confirmButtonText: "Fechar",
     });
 });
+
+//Remover pneus do lote PCP
+$(document).on(
+    "click",
+    ".btn-remover-todos-pneus-lote-pcp-detalhes",
+    function () {
+        let cd_empresa = $("#cd_empresa_pneus_lote_pcp").val();
+        let lote = $("#lote_pneus_lote_pcp").val();
+
+        let tabelaPneusLotePcp = $("#table-pneus-lote-pcp").DataTable();
+        let tabelaLotePcp = $("#lote-pcp").DataTable();
+        let bandaConsumir = $("#bandas-consumir").DataTable();
+
+        let selectedRows = tabelaPneusLotePcp
+            .rows({
+                selected: true,
+            })
+            .data()
+            .toArray();
+
+        if (selectedRows.length === 0) {
+            Swal.fire({
+                title: "Nenhum pneu selecionado",
+                text: "Por favor, selecione os pneus que deseja remover.",
+                icon: "warning",
+                confirmButtonText: "Fechar",
+            });
+            return;
+        }
+
+        let possuiFinalizados = false;
+
+        selectedRows.forEach(function (rowData) {
+            if (
+                rowData.CHAR_STORDEM === "F" ||
+                rowData.ST_EXAMEINICIAL === "S"
+            ) {
+                possuiFinalizados = true;
+                return false; // interrompe o loop
+            }
+        });
+
+        if (possuiFinalizados) {
+            Swal.fire({
+                title: "Atenção",
+                text: "Não é possível remover os pneus selecionados, pois um ou mais já foram finalizados ou passaram do exame inicial.",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "OK",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-warning btn-sm",
+                },
+            });
+            return; // interrompe a função inteira
+        }
+
+        confirmRemoverPneusLote(selectedRows, tabelaPneusLotePcp, [
+            tabelaLotePcp,
+            bandaConsumir,
+        ]);
+    },
+);
+
+//Transferir pneus do lote PCP para outro lote
+$(document).on(
+    "click",
+    ".btn-transferir-todos-pneus-lote-pcp-detalhes",
+    function () {
+        let cd_empresa = $("#cd_empresa_pneus_lote_pcp").val();
+        let lote = $("#lote_pneus_lote_pcp").val();
+
+        let tabelaPneusLotePcp = $("#table-pneus-lote-pcp").DataTable();
+        let tabelaLotePcp = $("#lote-pcp").DataTable();
+        let bandaConsumir = $("#bandas-consumir").DataTable();
+
+        let selectedRows = tabelaPneusLotePcp
+            .rows({
+                selected: true,
+            })
+            .data()
+            .toArray();
+
+        if (selectedRows.length === 0) {
+            Swal.fire({
+                title: "Nenhum pneu selecionado",
+                text: "Por favor, selecione os pneus que deseja transferir.",
+                icon: "warning",
+                confirmButtonText: "Fechar",
+            });
+            return;
+        }
+
+        let possuiFinalizados = false;
+
+        selectedRows.forEach(function (rowData) {
+            if (rowData.CHAR_STORDEM === "F") {
+                possuiFinalizados = true;
+                return false; // interrompe o loop
+            }
+        });
+
+        if (possuiFinalizados) {
+            Swal.fire({
+                title: "Atenção",
+                text: "Não é possível transferir os pneus selecionados, pois um ou mais já foram finalizados.",
+                icon: "warning",
+                showConfirmButton: true,
+                confirmButtonText: "OK",
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: "btn btn-warning btn-sm",
+                },
+            });
+            return; // interrompe a função inteira
+        }
+
+        $("#empresa-lote-pcp-transf").val(cd_empresa);
+
+        let data = {
+            cd_empresa: cd_empresa,
+        };
+
+        inicializaSelect2Lista({
+            route: window.routes.getListLotePCPEmProducao,
+            selectId: "#lote-pcp-novo-transf",
+            placeholder: "Selecione o Novo Lote",
+            modalParent: "#modal-transferir-lote-pcp",
+            textField: "DSLOTEPCP",
+            valueField: "NR_LOTE",
+            additionalData: data,
+        });
+
+        $("#modal-transferir-lote-pcp")
+            .data("tabelaPrincipal", "#table-pneus-lote-pcp")
+
+            .data("tabelaSecundaria", ["#lote-pcp", "#bandas-consumir"])
+
+            .modal("show");
+    },
+);

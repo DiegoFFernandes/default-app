@@ -43,7 +43,7 @@ class Pessoa extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function FindPessoaJunsoftId($cd_pessoa)
+    public function FindPessoaJunsoftId($cd_pessoa, $cd_tabpreco = 1)
     {
         $query = "
             SELECT
@@ -56,7 +56,7 @@ class Pessoa extends Model
                 TP.DS_TIPOPESSOA,
                 EP.NR_CELULAR,
                 EP.CD_VENDEDOR,
-                COALESCE(PT.CD_TABPRECO, 1) CD_TABPRECO
+                COALESCE(PT.CD_TABPRECO, $cd_tabpreco) CD_TABPRECO
             FROM PESSOA P
             INNER JOIN TIPOPESSOA TP ON (TP.CD_TIPOPESSOA = P.CD_TIPOPESSOA)
             INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA)

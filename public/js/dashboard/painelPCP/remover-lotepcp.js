@@ -1,5 +1,3 @@
-
-
 $(document).on("click", ".btn-remover-pneus-lote", function () {
     let cd_empresa = $(this).data("empresa");
     let tabela = $("#pneus-lote-pcp-" + cd_empresa).DataTable();
@@ -28,7 +26,7 @@ function removerOrdensLotePCP(selectedRows, tabela) {
         Swal.fire({
             icon: "warning",
             title: "Nenhum pneu selecionado.",
-            text: "Por favor, selecione ao menos um pneu para remover do painel.",
+            text: "Por favor, selecione ao menos um pneu para remover do lote.",
         });
         return;
     }
@@ -46,7 +44,7 @@ function removerOrdensLotePCP(selectedRows, tabela) {
         Swal.fire({
             title: "Atenção",
             text: "Não é possível remover os pneus selecionados, pois um ou mais já passaram do exame inicial.",
-            icon: "warning",            
+            icon: "warning",
             showConfirmButton: true,
             confirmButtonText: "OK",
             buttonsStyling: false,
@@ -57,6 +55,14 @@ function removerOrdensLotePCP(selectedRows, tabela) {
         return; // interrompe a função inteira
     }
 
+    confirmRemoverPneusLote(selectedRows, tabela);
+}
+
+function confirmRemoverPneusLote(
+    selectedRows,
+    tabelaPrincipal,
+    tabelasRelacionadas = [],
+) {
     Swal.fire({
         title: "Confirmação",
         text: "Tem certeza que deseja remover os pneus deste lote?",
@@ -99,7 +105,15 @@ function removerOrdensLotePCP(selectedRows, tabela) {
                             showConfirmButton: true,
                             confirmButtonText: "OK",
                         });
-                        tabela.ajax.reload(); // recarrega a tabela sem resetar a paginação
+                        tabelaPrincipal.ajax.reload();
+
+                        tabelasRelacionadas.forEach(
+                            function (tabelaRelacionada) {
+                                setTimeout(function () {
+                                    tabelaRelacionada.ajax.reload();
+                                }, 500); // Atraso de 500ms para garantir que a tabela principal seja recarregada primeiro
+                            },
+                        );
                     } else {
                         Swal.fire({
                             title: "Erro",

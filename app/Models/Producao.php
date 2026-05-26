@@ -250,7 +250,7 @@ class Producao extends Model
 
     public function getPneusAtrasoLotePCP($cd_empresa)
     {
-    $query = "
+        $query = "
         SELECT
             X.IDEMPRESA,
             X.NR_COLETA,
@@ -403,7 +403,7 @@ class Producao extends Model
             AND (PBP.ID IS NULL OR PBP.ST_ETAPA = 'A')
             AND CAST(MLE.DTFIM || ' ' || MLE.HRFIM AS TIMESTAMP) < CURRENT_TIMESTAMP
         UNION ALL
-        --lIMPEZA MANCHÃO
+        --LIMPEZA MANCHÃO
         SELECT
             PP.IDEMPRESA,
             PP.ID NR_COLETA,
@@ -436,7 +436,7 @@ class Producao extends Model
             CASE
             WHEN RP.ID IS NULL THEN 1
             WHEN ES.ID IS NULL THEN 2
-            WHEN LM.ID IS NULL THEN 5
+            WHEN LM.ID IS NULL THEN 4
             WHEN LM.ST_ETAPA = 'A' THEN 6
             END CD_ETAPA,
             OPR.DTENTRADA,
@@ -804,10 +804,11 @@ class Producao extends Model
                     M.DTPRODUCAO,
                     PESSOA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
                     PP.ID NR_PEDIDO,
-                    OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
+                    OPR.ID NR_ORDEM,                    
+                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                     MAX(IPP2.NRSEQUENCIA)
                                                 FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_ORDEM,
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_OP,
                     ITEM.CD_ITEM || '-' || ITEM.DS_ITEM DS_ITEM,
                     OPR.STORDEM,
                     CASE
@@ -815,7 +816,12 @@ class Producao extends Model
                         WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
                         WHEN OPR.STORDEM = 'C' THEN 'CANCELADA'
                         ELSE OPR.STORDEM
-                    END STATUS
+                    END STATUS,
+                    OPR.STORDEM CHAR_STORDEM,
+                    CASE
+                        WHEN EI.ID IS NOT NULL THEN 'S'
+                        ELSE 'N'
+                    END ST_EXAMEINICIAL
                 FROM ORDEMPRODUCAORECAP OPR
                 INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
                 INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
@@ -827,6 +833,7 @@ class Producao extends Model
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
                 INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
+                LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                 WHERE IPP.STCANCELADO = 'N'
                     AND IPP.STGARANTIA = 'N'
                     AND PP.IDEMPRESA IN (:cd_empresa)

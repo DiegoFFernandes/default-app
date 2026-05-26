@@ -39,7 +39,7 @@ $(document).on("change", "#select-empresa-lote-pcp", function (e) {
 $(document).on("submit", "#form-adicionar-lote-pcp", function (e) {
     e.preventDefault();
 
-    const dataForms = $("#form-adicionar-lote-pcp").serialize();
+    const dataForms = $("#form-adicionar-lote-pcp").serialize();    
 
     $.ajax({
         type: "POST",
@@ -74,8 +74,8 @@ $(document).on("submit", "#form-adicionar-lote-pcp", function (e) {
                         confirmButton: "btn btn-success btn-sm",
                     },
                 });
-                $("#lote-pcp").DataTable().ajax.reload();
-                
+                $("#lote-pcp").DataTable().ajax.reload();               
+
                 $("#btn-adicionar-lote-pcp")
                     .prop("disabled", false)
                     .text("Salvar");

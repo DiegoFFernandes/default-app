@@ -8,6 +8,7 @@ use App\Models\Estoque;
 use App\Models\Item;
 use App\Models\LiberaOrdemComercial;
 use App\Models\ModeloPneu;
+use App\Models\ParmFatur;
 use App\Models\PedidoPneu;
 use App\Models\PedidosAlterados;
 use App\Models\Pessoa;
@@ -110,7 +111,12 @@ class PedidoPneuController extends Controller
 
         DB::beginTransaction();
 
-        $pessoa = $this->pessoa->FindPessoaJunsoftId($validate->validated()['pessoa']);
+        // Obtem o codigo da empresa do primeiro item do grupo (todos os itens do grupo tem a mesma empresa)
+        $parmFaturData = ParmFatur::getParmFatur(intval($validate->validated()['cd_empresa']));
+
+        $cd_tabpreco = $parmFaturData[0]->CD_TABPRECO ?? 1;
+
+        $pessoa = $this->pessoa->FindPessoaJunsoftId($validate->validated()['pessoa'], $cd_tabpreco);
 
         if (empty($pessoa)) {
             return response()->json(['success' => false, 'message' => 'Pessoa não encontrada no sistema.'], 400);

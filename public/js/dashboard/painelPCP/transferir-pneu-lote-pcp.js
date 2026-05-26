@@ -17,7 +17,10 @@ $(document).on("click", ".btn-transferir-todos-pneus-lote-pcp", function () {
         additionalData: data,
     });
 
-    $("#modal-transferir-lote-pcp").modal("show");
+    $("#modal-transferir-lote-pcp")
+        .data("tabelaPrincipal", "#pneus-lote-pcp-" + cd_empresa)
+        .data("tabelaSecundaria", [])
+        .modal("show");
 });
 
 $(document).on("submit", "#form-transferir-lote-pcp", function (e) {
@@ -26,6 +29,29 @@ $(document).on("submit", "#form-transferir-lote-pcp", function (e) {
     let cd_empresa = $("#empresa-lote-pcp-transf").val();
     let nr_lote_novo = $("#lote-pcp-novo-transf").val();
 
+    // pega a tabela salva no modal
+    let tableSelectorPrimaria = $("#modal-transferir-lote-pcp").data(
+        "tabelaPrincipal",
+    );
+
+    let tabelaPrincipal = $(tableSelectorPrimaria).DataTable();
+
+    let tabelaSecundaria = $("#modal-transferir-lote-pcp").data(
+        "tabelaSecundaria",
+    );
+
+    confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabelaPrincipal).done(
+        function () {
+            if (tabelaSecundaria && tabelaSecundaria.length > 0) {
+                tabelaSecundaria.forEach(function (tabela) {
+                    $(tabela).DataTable().ajax.reload();
+                });
+            }
+        },
+    );
+});
+
+function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
     if (!nr_lote_novo) {
         Swal.fire({
             icon: "warning",
@@ -36,8 +62,6 @@ $(document).on("submit", "#form-transferir-lote-pcp", function (e) {
         });
         return;
     }
-
-    let tabela = $("#pneus-lote-pcp-" + cd_empresa).DataTable();
 
     let selectedRows = tabela
         .rows({
@@ -62,7 +86,7 @@ $(document).on("submit", "#form-transferir-lote-pcp", function (e) {
         return;
     }
 
-    $.ajax({
+    return $.ajax({
         type: "POST",
         url: window.routes.transferirPneusLotePcp,
         data: {
@@ -114,4 +138,4 @@ $(document).on("submit", "#form-transferir-lote-pcp", function (e) {
             });
         },
     });
-});
+}
