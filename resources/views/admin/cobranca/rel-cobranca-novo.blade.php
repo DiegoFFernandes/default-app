@@ -286,6 +286,7 @@
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
             carregaDadosTela1(data);
+
             vincularTabelaAoGrafico("tabela-inadimplencia-meses", "graficoInadimplencia");
         });
 
@@ -500,7 +501,4 @@
             );
         }
     </script>
-
-
-
 @stop

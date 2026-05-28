@@ -1,249 +1,16 @@
 @extends('layouts.master')
 
-@section('title', 'Dashboard')
+@section('title', 'Produzidos não Faturados')
 
 @section('content')
     <section class="content">
-        <!-- Small boxes (Stat box) -->
-        <div class="row">
 
-            <div class="col-md-3 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <x-loading-card />
-                    <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="far fa-dot-circle"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Total Pneus</span>
-                        <span class="info-box-number pneusTotal"></span>
-                    </div>
-                </div>
-            </div>
+        @include('admin.producao.produzidos-sem-faturar.cards.cards-info')
 
-            @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                <div class="col-md-3 col-sm-4 col-xs-6">
-                    <div class="info-box">
-                        <x-loading-card />
-                        <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-dollar-sign"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Valor</span>
-                            <span class="info-box-number" id="valorTotal"></span>
-                        </div>
-                    </div>
-                </div>
-            @endhasrole
+        @include('admin.producao.produzidos-sem-faturar.cards.cards-charts')
 
-            <div class="col-md-3 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <x-loading-card />
-                    <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-truck"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Expedicionado</span>
-                        <span class="info-box-number" id="expedicionado"></span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-4 col-xs-6">
-                <div class="info-box">
-                    <x-loading-card />
-                    <span class="info-box-icon" style="background-color: #d6d6d6;"><i class="fas fa-door-open"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Embarque</span>
-                        <span class="info-box-number" id="embarque"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <x-loading-card />
-                    <div class="card-header ui-sortable-handle">
-                        <h3 class="card-title card-title-chart">Pneus Gerente</h3>
-                        <div class="card-tools">
-                            <ul class="nav nav-pills ml-auto">
-                                <li class="nav-item">
-                                    <button href="#cliente-chart" class="btn btn-xs nav-link" data-toggle="tab">Cliente</button>
-                                </li>
-                                <li class="nav-item">
-                                    <button href="#gerente-chart" class="btn btn-xs nav-link active ml-1" data-toggle="tab">Gerente</button>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="card-body" style="height: 300px">
-                        <div class="tab-content p-0">
-                            <div class="tab-pane active" id="gerente-chart">
-                                <div class="d-flex">
-                                    <p class="d-flex flex-column">
-                                        <span class="text-bold text-lg pneusTotal"></span>
-                                        <span>Pneus Sem Faturar</span>
-                                    </p>
-                                    <p class="ml-auto d-flex flex-column text-right calc-percentual">
-                                    </p>
-                                </div>
-                                {{-- Legenda fixa --}}
-                                <div class="mb-2 text-center" id="legend-container-gerente"></div>
+        @include('admin.producao.produzidos-sem-faturar.filtros.filtros')
 
-                                <div style="overflow-x: auto;">
-                                    <div class="position-relative mb-4" style="height: 150px;">
-                                        <canvas id="chartPneusGerente"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane" id="cliente-chart">
-                                <p class="d-flex flex-column">
-                                    <span class="text-bold text-lg pneusTotalCliente"></span>
-                                    <span>Pneus Sem Faturar</span>
-                                </p>
-                                {{-- Legenda fixa --}}
-                                <div class="mb-2 text-center" id="legend-container-cliente"></div>
-
-                                <div style="overflow-x: auto;">
-                                    <div id="chart-container-cliente" style="height: 180px;">
-                                        <canvas id="chartPneusCliente"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <x-loading-card />
-                    <div class="card-header ui-sortable-handle">
-                        <h3 class="card-title">Pneus Mês</h3>
-                    </div>
-                    <div class="card-body" style="height: 300px">
-                        <div class="d-flex">
-                            <p class="d-flex flex-column">
-                                <span class="text-bold text-lg pneusTotal"></span>
-                                <span>Pneus Sem Faturar</span>
-                            </p>
-                            <p class="ml-auto d-flex flex-column text-right calc-percentual">
-                            </p>
-                        </div>
-                        <div class="position-relative mb-4">
-                            <canvas id="chartPneusMesAno" style="width: 100%; height: 150px;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card collapsed-card">
-                    <div class="card-header">
-                        <h3 class="card-title">Filtros:</h3>
-                        <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                                <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="small">Empresa</label>
-                                    <select name="cd_empresa" id="cd_empresa" class="form-control form-control-sm"
-                                        style="width: 100%;">
-                                        <option value="0" selected>Todas</option>
-                                        @foreach ($empresa as $e)
-                                            <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="small">Dt Emissão</label>
-                                    <input type="text" class="form-control form-control-sm" id="daterange"
-                                        placeholder="Data Emissão">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="small">Pedido Palm</label>
-                                    <input type="number" class="form-control form-control-sm" id="pedido_palm"
-                                        placeholder="Pedido Palm">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-group">
-                                    <label class="small">Pedido</label>
-                                    <input type="number" class="form-control form-control-sm" id="pedido"
-                                        placeholder="Pedido">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label class="small">Grupo Item</label>
-                                    <select name="grupo_item" id="grupo_item" class="form-control form-control-sm"
-                                        style="width: 100%;">
-                                        <option value="0">Todos</option>
-                                        {{-- @foreach ($grupo as $g)
-                                        <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}
-                                        </option>
-                                    @endforeach --}}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="small">Vendedor</label>
-                                    <input type="text" class="form-control form-control-sm" id="nm_vendedor"
-                                        placeholder="Nome Vendedor">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="small">Cliente</label>
-                                    <input type="text" class="form-control form-control-sm" id="nm_cliente"
-                                        placeholder="Nome Cliente">
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="small">Região</label>
-                                    <select name="cd_regiaocomercial[]" class="form-control form-control-sm"
-                                        id="cd_regiaocomercial" style="width: 100%;" multiple>
-                                        @foreach ($regiao as $r)
-                                            <option value="{{ $r->CD_REGIAOCOMERCIAL }}">
-                                                {{ $r->DS_REGIAOCOMERCIAL }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label class="small">Status Embarque</label>
-                                    <select name="st_embarque" id="st_embarque" class="form-control form-control-sm"
-                                        style="width: 100%;">
-                                        <option value="0">Todos</option>
-                                        <option value="1">Com Embarque</option>
-                                        <option value="2">Sem Embarque</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <button type="button" class="btn btn-primary btn-sm float-right mr-2"
-                                        id="search">Filtrar</button>
-                                </div>
-                                <!-- /.row -->
-                            </div>
-                        </div>
-                        <!-- /.row -->
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-primary">
@@ -254,7 +21,7 @@
                                 <tr>
                                     <th colspan="5" style="text-align: right;"></th>
                                     @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                                        <th colspan="4"></th>
+                                        <th colspan="5"></th>
                                     @else
                                         <th colspan="3"></th>
                                     @endhasrole
@@ -273,7 +40,7 @@
     <style>
         .col-actions {
             width: 1% !important;
-        }        
+        }
 
         @media (max-width: 768px) {
             .table-left {
@@ -313,20 +80,22 @@
             window.routes = {
                 getPneusProduzidosSemFaturar: "{{ route('get-pneus-produzidos-sem-faturar') }}",
                 getPneusProduzidosSemFaturarDetails: "{{ route('get-pneus-produzidos-sem-faturar-details') }}",
-                languageDataTable: "{{ asset('vendor/datatables/pt-br.json') }}"
+                languageDataTable: "{{ asset('vendor/datatables/pt-BR.json') }}"
             };
 
             $('#grupo_item').select2({
                 placeholder: 'Selecione o grupo',
                 theme: 'bootstrap4',
             });
+
             $('#cd_regiaocomercial').select2({
                 theme: 'bootstrap4',
             });
+
             var template = Handlebars.compile($("#details-template").html());
 
-            var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
-            // var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
+            // var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
+            var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
 
             $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas.getFim());
 
@@ -341,7 +110,8 @@
                 dt_inicial: datasSelecionadas.getInicio(),
                 dt_final: datasSelecionadas.getFim(),
                 regiao: $('#cd_regiaocomercial').val(),
-                st_embarque: $('#st_embarque').val()
+                st_embarque: $('#st_embarque').val(),
+                supervisor: $('#supervisor').val(),
             };
 
             initTablePneus(dados);
@@ -363,7 +133,8 @@
                     dt_inicial: datasSelecionadas.getInicio(),
                     dt_final: datasSelecionadas.getFim(),
                     regiao: $('#cd_regiaocomercial').val(),
-                    st_embarque: $('#st_embarque').val()
+                    st_embarque: $('#st_embarque').val(),
+                    supervisor: $('#supervisor').val(),
 
                 };
 
@@ -422,12 +193,16 @@
 
             function initTablePneus(dados) {
                 table = $('#produzidosTable').DataTable({
-                    pageLength: 50,
-                    "language": {
+                    language: {
                         url: window.routes.languageDataTable,
                     },
                     fixedHeader: true,
-                    "scrollX": true,
+                    scrollY: '400px',
+                    pageLength: -1,
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        [10, 25, 50, "Todos"],
+                    ],
                     layout: {
                         topStart: {
                             buttons: [{
@@ -499,7 +274,7 @@
                         },
                         {
                             "data": "EXPEDICIONADO",
-                            title: "Expedicionado",
+                            title: "Expedição",
                             className: "text-center",
                         },
                         {
@@ -508,6 +283,7 @@
                                 return moment(data).format('DD/MM/YYYY HH:mm');
                             },
                             title: "Data",
+                            className: "text-center",
                             "visible": true
                         },
                         {
@@ -628,6 +404,9 @@
                                     return moment(data).format('DD/MM/YYYY HH:mm');
                                 }
                             }
+                        ],
+                        order: [
+                            [1, 'asc']
                         ]
                     });
             }
@@ -644,9 +423,14 @@
                 const qtdClientes = {};
                 const vlrClientes = {};
 
+                const acumuladorSupervisores = {};
+                const qtdSupervisores = {};
+                const vlrSupervisores = {};
+
                 data.forEach(({
                     MES_ANO,
                     NM_GERENTE,
+                    NM_SUPERVISOR,
                     CD_PESSOA,
                     NM_PESSOA,
                     PNEUS,
@@ -658,8 +442,6 @@
                     acumuladorMeses[MES_ANO] ??= {};
                     acumuladorMeses[MES_ANO][NM_GERENTE] ??= 0;
                     acumuladorGerentes[NM_GERENTE] ??= 0;
-                    acumuladorClientes[CD_PESSOA] ??= 0;
-                    acumuladorNomeCliente[CD_PESSOA] ??= NM_PESSOA;
 
                     qtdMes[MES_ANO] ??= 0;
                     qtdGerente[NM_GERENTE] ??= 0;
@@ -670,15 +452,26 @@
                     qtdGerente[NM_GERENTE] += qtde;
                     vlrGerente[NM_GERENTE] += valor;
 
+                    acumuladorClientes[CD_PESSOA] ??= 0;
+                    acumuladorNomeCliente[CD_PESSOA] ??= NM_PESSOA;
                     qtdClientes[CD_PESSOA] ??= 0;
                     vlrClientes[CD_PESSOA] ??= 0;
                     qtdClientes[CD_PESSOA] += qtde;
                     vlrClientes[CD_PESSOA] += valor;
 
+                    acumuladorSupervisores[NM_SUPERVISOR] ??= 0;
+                    qtdSupervisores[NM_SUPERVISOR] ??=
+                        0; // Inicializa a quantidade para o supervisor se ainda não existir
+                    vlrSupervisores[NM_SUPERVISOR] ??=
+                        0; // Inicializa o valor para o supervisor se ainda não existir
+                    qtdSupervisores[NM_SUPERVISOR] += qtde;
+                    vlrSupervisores[NM_SUPERVISOR] += valor;
+
                 });
 
                 const meses = Object.keys(acumuladorMeses);
-                const NomeGerentes = Object.keys(acumuladorGerentes);                
+                const NomeGerentes = Object.keys(acumuladorGerentes);
+                const NomeSupervisores = Object.keys(acumuladorSupervisores);
 
                 const qtdPneusMes = Object.values(qtdMes);
                 const qtdPneusGerente = Object.values(qtdGerente);
@@ -687,7 +480,8 @@
                 // Transformo o objeto de clientes em um array para ordenar pelo valor total 
                 const clientesArray = Object.keys(vlrClientes).map(cliente => ({
                     idcliente: cliente,
-                    nomeCliente: acumuladorNomeCliente[cliente].split(' ')[0], // Pego apenas o primeiro nome para exibir no gráfico
+                    nomeCliente: acumuladorNomeCliente[cliente].split(' ')[
+                        0], // Pego apenas o primeiro nome para exibir no gráfico
                     valor: vlrClientes[cliente],
                     quantidade: qtdClientes[cliente]
                 }));
@@ -698,10 +492,21 @@
                 const qtdPneusCliente = clientesArray.map(c => c.quantidade);
                 const vlrPneusCliente = clientesArray.map(c => c.valor);
 
-                
+                // Transformo o objeto de supervisores em um array para ordenar pelo valor total
+                const supervisoresArray = Object.keys(vlrSupervisores).map(supervisor => ({
+                    nomeSupervisor: supervisor,
+                    valor: vlrSupervisores[supervisor],
+                    quantidade: qtdSupervisores[supervisor]
+                }));
+
+                supervisoresArray.sort((a, b) => b.valor - a.valor);
+
+                const labelsSupervisores = supervisoresArray.map(s => s.nomeSupervisor);
+                const qtdPneusSupervisor = supervisoresArray.map(s => s.quantidade);
+                const vlrPneusSupervisor = supervisoresArray.map(s => s.valor);
 
 
-                //VERIFICO SE TEVE AUMENTO NO ULTIMO MES
+                //Verifico se teve aumento no ultimo mês em relação ao penúltimo mês
                 const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
 
                 const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
@@ -730,52 +535,14 @@
                     'Meses');
 
 
-                const coresGerentes = [
-                    'rgba(60, 145, 230, 0.5)',
-                    'rgba(9, 188, 138, 0.5)',
-                    'rgba(43, 65, 98, 0.5)'
-                ];
+                // Datasets de gerentes    
+                const datasetsGerente = loadDatasets(qtdPneusGerente, vlrPneusGerente);
 
-                const datasetsGerente = [{
-                        label: "Quantidade",
-                        type: 'bar',
-                        data: qtdPneusGerente,
-                        backgroundColor: coresGerentes,
-                        borderColor: coresGerentes.map(cor => cor.replace('0.5', '1')),
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                    },
-                    {
-                        type: 'bar',
-                        label: 'Valor (R$)',
-                        data: vlrPneusGerente,
-                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
-                        borderColor: 'rgba(220, 53, 69, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y1'
-                    }
-                ];
+                // Datasets de clientes
+                const datasetsClientes = loadDatasets(qtdPneusCliente, vlrPneusCliente);
 
-                // Gráfico de clientes
-                const datasetsClientes = [{
-                        label: "Quantidade",
-                        type: 'bar',
-                        data: qtdPneusCliente,
-                        backgroundColor: 'rgba(60, 145, 230, 0.5)',
-                        borderColor: 'rgba(60, 145, 230, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                    },
-                    {
-                        type: 'bar',
-                        label: 'Valor (R$)',
-                        data: vlrPneusCliente,
-                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
-                        borderColor: 'rgba(220, 53, 69, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y1'
-                    }
-                ];
+                // Datasets de supervisores
+                const datasetsSupervisores = loadDatasets(qtdPneusSupervisor, vlrPneusSupervisor);
 
                 // Renderiza o gráfico de gerentes
                 renderChartJsDualAxis(
@@ -795,6 +562,14 @@
                     'legend-container-cliente'
                 );
 
+                // Renderiza o gráfico de Supervisores
+                renderChartJsDualAxis(
+                    labelsSupervisores,
+                    datasetsSupervisores,
+                    'chartPneusSupervisor',
+                    'Supervisores',
+                    'legend-container-supervisor'
+                );
             }
 
             const charts = {};
@@ -982,6 +757,29 @@
                 table.search(label).draw();
             }
 
+            function loadDatasets(qtd = [], vlr = []) {
+
+                return [{
+                        label: "Quantidade",
+                        type: 'bar',
+                        data: qtd,
+                        backgroundColor: 'rgba(60, 145, 230, 0.5)',
+                        borderColor: 'rgba(60, 145, 230, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Valor (R$)',
+                        data: vlr,
+                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }
+                ];
+            }
+
             function gerarLegenda(chart, containerId) {
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
@@ -1027,8 +825,6 @@
                     container.appendChild(item);
                 });
             }
-
-
 
         });
     </script>

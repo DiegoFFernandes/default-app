@@ -9,6 +9,7 @@ use App\Models\GerenteUnidade;
 use App\Models\Pessoa;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
+use App\Models\SupervisorComercial;
 use App\Models\User;
 use App\Services\SupervisorAuthService;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $pessoa, $area;
+    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $pessoa, $area, $supervisor;
 
     public function __construct(
         Request $request,
@@ -27,6 +28,7 @@ class ProducaoController extends Controller
         Producao $producao,
         SupervisorAuthService $supervisorComercial,
         GerenteUnidade $gerenteUnidade,
+        SupervisorComercial $supervisor,
         Pessoa $pessoa,
         AreaComercial $area
     ) {
@@ -39,7 +41,7 @@ class ProducaoController extends Controller
         $this->supervisorComercial = $supervisorComercial;
         $this->gerenteUnidade = $gerenteUnidade;
         $this->pessoa = $pessoa;
-
+        $this->supervisor = $supervisor;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -57,28 +59,41 @@ class ProducaoController extends Controller
         $user =  $this->user->getData();
         $regiao = $this->regiao->regiaoAll();
 
-        if ($this->user->hasRole('admin|gerente comercial')) {
+        if ($this->user->hasRole('admin|gerente comercial|diretoria')) {
             $regiao = $this->regiao->regiaoAll();
+            $supervisor = $this->supervisor->SupervisorAll();
         } elseif ($this->user->hasRole('supervisor')) {
+
             $regiao = $this->regiao->findRegiaoUser($this->user->id);
+
+            $supervisorData = $this->supervisor->seachSupervisor($this->user->id);
+
+            $supervisorObjto = new \stdClass();
+            $supervisorObjto->CD_VENDEDORGERAL = intval($supervisorData->cd_supervisorcomercial);
+            $supervisorObjto->NM_SUPERVISOR = $supervisorData->ds_supervisorcomercial;
+
+            $supervisor = [$supervisorObjto];
+
         } elseif ($this->user->hasRole('gerente unidade')) {
             $regiao = $this->regiao->regiaoAll();
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
             $empresa = $this->empresa->empresa($cd_empresa);
+            $supervisor = $this->supervisor->SupervisorAll();
         }
 
         $list_regiao = $this->regiao->showUserRegiao();
 
-        return view('admin.producao.produzidos-sem-faturar', compact(
+        return view('admin.producao.produzidos-sem-faturar.produzidos-sem-faturar', compact(
             'title_page',
             'user_auth',
             'uri',
             'regiao',
             'user',
             'list_regiao',
-            'empresa'
+            'empresa',
+            'supervisor'
         ));
     }
     public function getListPneusProduzidosFaturar()
@@ -95,6 +110,7 @@ class ProducaoController extends Controller
             $cd_regiao = "";
             $cd_empresa = 0;
             $supervisor = $this->supervisorComercial->getCdSupervisor();
+
         } elseif ($this->user->hasRole('gerente unidade')) {
             $cd_regiao = "";
             $supervisor = 0;

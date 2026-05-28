@@ -578,6 +578,11 @@ return [
                     'text' => 'Executor X Etapa',
                     'route' => 'executor-etapas.index',
                     'can' => 'ver-producao',
+                ],
+                [
+                    'text' => 'Painel PCP',
+                    'route' => 'pneus-lote-pcp',
+                    'can' => 'ver-producao',
                 ]
             ],
         ],

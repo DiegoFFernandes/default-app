@@ -13,7 +13,7 @@ class SupervisorComercial extends Model
 
     protected $table = 'supervisor_comercial';
 
-    public function SupervisorAll()
+    public function SupervisorAll($cd_supervisor = NULL)
     {
         $query = "
                 SELECT
@@ -21,6 +21,7 @@ class SupervisorComercial extends Model
                     V.CD_VENDEDORGERAL || ' - ' || P.NM_PESSOA NM_SUPERVISOR
                 FROM VENDEDOR V
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = V.CD_VENDEDORGERAL)
+                " . ($cd_supervisor ? "WHERE V.CD_VENDEDORGERAL in ($cd_supervisor)" : "") . "
                 GROUP BY CD_VENDEDORGERAL, P.NM_PESSOA";
 
         $data = DB::connection('firebird')->select($query);

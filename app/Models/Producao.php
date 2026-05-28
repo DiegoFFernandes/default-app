@@ -13,9 +13,8 @@ class Producao extends Model
 {
     use HasFactory;
 
-    public function getPneusProduzidosFaturar($empresa = 0, $cd_regiao = "",  $supervisor = 0, $data, $cd_pessoa = 0)
+    public function getPneusProduzidosFaturar($empresa = 0, $cd_regiao = "", $supervisor = 0, $data, $cd_pessoa = 0)
     {
-
         if (is_null($data)) {
             $pedido = "";
             $pedido_palm = "";
@@ -34,8 +33,10 @@ class Producao extends Model
             $grupo_item = $data['grupo_item'];
             $inicioData = $data['dt_inicial'];
             $fimData = $data['dt_final'];
+            $supervisor = $supervisor ?? $data['supervisor'];
             $st_embarque = intval($data['st_embarque'] ?? 0);
         }
+
 
         $query = "
             SELECT DISTINCT
@@ -60,6 +61,7 @@ class Producao extends Model
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA NM_VENDEDOR,
                 VENDEDOR.CD_VENDEDORGERAL,
+                SUPERVISOR.NM_PESSOA AS NM_SUPERVISOR,
                 EMBARQUE.DS_OBSFATURAMENTO
             FROM PEDIDOPNEU PP
             INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
@@ -89,6 +91,7 @@ class Producao extends Model
             INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = PESSOA.CD_PESSOA
                 AND EP.CD_ENDERECO = 1)
             INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)  
+            LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = VENDEDOR.CD_VENDEDORGERAL)
             --LEFT JOIN MES_EXTENSO(EF.DTFIM) MES ON (1 = 1)  
             WHERE OPR.STORDEM <> 'C'             
                     " . (($cd_regiao != "") ? "AND EP.CD_REGIAOCOMERCIAL IN ($cd_regiao)" : "") . "
@@ -123,7 +126,8 @@ class Producao extends Model
                 EP.CD_REGIAOCOMERCIAL,
                 V.NM_PESSOA,
                 VENDEDOR.CD_VENDEDORGERAL,
-                EMBARQUE.DS_OBSFATURAMENTO
+                EMBARQUE.DS_OBSFATURAMENTO,
+                SUPERVISOR.NM_PESSOA
             ORDER BY DTFIM asc    
                 ";
 

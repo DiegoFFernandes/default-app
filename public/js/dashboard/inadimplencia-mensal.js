@@ -1,8 +1,14 @@
+
 Chart.register(ChartDataLabels); // inicia o datalabels
 
 let graficoInadimplencia;
 
-vincularTabelaAoGrafico("tabela-inadimplencia-meses", "graficoInadimplencia");
+setTimeout(() => {
+    vincularTabelaAoGrafico(
+        "tabela-inadimplencia-meses",
+        "graficoInadimplencia",
+    );
+}, 1000);
 
 function vincularTabelaAoGrafico(idTabela, idGrafico) {
     const seletorTabela = "#" + idTabela;
