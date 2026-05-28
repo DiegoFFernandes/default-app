@@ -62,6 +62,7 @@ class ProducaoController extends Controller
         if ($this->user->hasRole('admin|gerente comercial|diretoria')) {
             $regiao = $this->regiao->regiaoAll();
             $supervisor = $this->supervisor->SupervisorAll();
+
         } elseif ($this->user->hasRole('supervisor')) {
 
             $regiao = $this->regiao->findRegiaoUser($this->user->id);
@@ -127,7 +128,7 @@ class ProducaoController extends Controller
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
 
-        $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
+       $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');

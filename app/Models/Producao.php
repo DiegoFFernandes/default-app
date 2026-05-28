@@ -13,30 +13,19 @@ class Producao extends Model
 {
     use HasFactory;
 
-    public function getPneusProduzidosFaturar($empresa = 0, $cd_regiao = "", $supervisor = 0, $data, $cd_pessoa = 0)
+    public function getPneusProduzidosFaturar($Dtempresa = 0, $cd_regiao = "", $supervisor = 0, $data, $cd_pessoa = 0)
     {
-        if (is_null($data)) {
-            $pedido = "";
-            $pedido_palm = "";
-            $nm_cliente = "";
-            $nm_vendedor = "";
-            $grupo_item = 0;
-            $inicioData = 0;
-            $fimData = 0;
-            $st_embarque = 0;
-        } else {
-            $empresa = $data['cd_empresa'];
-            $pedido = $data['pedido'];
-            $pedido_palm = $data['pedido_palm'];
-            $nm_cliente = $data['nm_cliente'];
-            $nm_vendedor = $data['nm_vendedor'];
-            $grupo_item = $data['grupo_item'];
-            $inicioData = $data['dt_inicial'];
-            $fimData = $data['dt_final'];
-            $supervisor = $supervisor ?? $data['supervisor'];
-            $st_embarque = intval($data['st_embarque'] ?? 0);
-        }
 
+        $empresa = $data['cd_empresa'] == 0  ? $Dtempresa : $data['cd_empresa'];
+        $pedido = $data['pedido'];
+        $pedido_palm = $data['pedido_palm'];
+        $nm_cliente = $data['nm_cliente'] == "" ? "" : $data['nm_cliente'];
+        $nm_vendedor = $data['nm_vendedor'] == "" ? "" : $data['nm_vendedor'];
+        $grupo_item = $data['grupo_item'] == 0 ? "" : $data['grupo_item'];
+        $inicioData = $data['dt_inicial'];
+        $fimData = $data['dt_final'];
+        $supervisor = $data['supervisor'] == 0 ? $supervisor : $data['supervisor'];
+        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];        
 
         $query = "
             SELECT DISTINCT

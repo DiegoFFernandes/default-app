@@ -76,6 +76,7 @@
             var fimData = moment().subtract(0, 'days').format('DD.MM.YYYY');
             var dados;
             var table;
+            const charts = {};
 
             window.routes = {
                 getPneusProduzidosSemFaturar: "{{ route('get-pneus-produzidos-sem-faturar') }}",
@@ -92,10 +93,14 @@
                 theme: 'bootstrap4',
             });
 
+            $('#supervisor').select2({
+                theme: 'bootstrap4',
+            });
+
             var template = Handlebars.compile($("#details-template").html());
 
-            var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
-            // var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
+            // var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
+            var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
 
             $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas.getFim());
 
@@ -253,11 +258,13 @@
                         },
                         {
                             "data": "NR_EMBARQUE",
-                            title: "Embarque"
+                            title: "Embarque",
+                            className: "text-center",
                         },
                         {
                             "data": "NR_COLETA",
-                            title: "Pedido"
+                            title: "Pedido",
+                            className: "text-center",
                         },
                         {
                             "data": "NM_PESSOA",
@@ -301,7 +308,11 @@
                                 "data": "VALOR",
                                 title: "Valor"
                             },
-                        @endhasrole
+                        @endhasrole {
+                            "data": "NM_SUPERVISOR",
+                            title: "Supervisor",
+                            "visible": false
+                        },
                     ],
                     "columnDefs": [{
                         "targets": 0,
@@ -470,54 +481,7 @@
                 });
 
                 const meses = Object.keys(acumuladorMeses);
-                const NomeGerentes = Object.keys(acumuladorGerentes);
-                const NomeSupervisores = Object.keys(acumuladorSupervisores);
-
                 const qtdPneusMes = Object.values(qtdMes);
-                const qtdPneusGerente = Object.values(qtdGerente);
-                const vlrPneusGerente = Object.values(vlrGerente);
-
-                // Transformo o objeto de clientes em um array para ordenar pelo valor total 
-                const clientesArray = Object.keys(vlrClientes).map(cliente => ({
-                    idcliente: cliente,
-                    nomeCliente: acumuladorNomeCliente[cliente].split(' ')[
-                        0], // Pego apenas o primeiro nome para exibir no gráfico
-                    valor: vlrClientes[cliente],
-                    quantidade: qtdClientes[cliente]
-                }));
-
-                clientesArray.sort((a, b) => b.valor - a.valor);
-
-                const labelsClientes = clientesArray.map(c => c.nomeCliente);
-                const qtdPneusCliente = clientesArray.map(c => c.quantidade);
-                const vlrPneusCliente = clientesArray.map(c => c.valor);
-
-                // Transformo o objeto de supervisores em um array para ordenar pelo valor total
-                const supervisoresArray = Object.keys(vlrSupervisores).map(supervisor => ({
-                    nomeSupervisor: supervisor,
-                    valor: vlrSupervisores[supervisor],
-                    quantidade: qtdSupervisores[supervisor]
-                }));
-
-                supervisoresArray.sort((a, b) => b.valor - a.valor);
-
-                const labelsSupervisores = supervisoresArray.map(s => s.nomeSupervisor);
-                const qtdPneusSupervisor = supervisoresArray.map(s => s.quantidade);
-                const vlrPneusSupervisor = supervisoresArray.map(s => s.valor);
-
-
-                //Verifico se teve aumento no ultimo mês em relação ao penúltimo mês
-                const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
-
-                const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
-
-                const calcPercentual = $('.calc-percentual').html(`
-                    <span class="${percentual >= 0 ? 'text-success' : 'text-danger'}">
-                        <i class="fas fa-arrow-${percentual >= 0 ? 'up' : 'down'}"></i> ${percentual.toFixed(2)}%
-                    </span>
-                    <span class="text-muted">${percentual >= 0 ? 'Aumento do ultimo Mês' : 'Queda do ultimo Mês'}</span>
-                `);
-
 
                 const datasetsMeses = [{
                     data: qtdPneusMes,
@@ -534,45 +498,104 @@
                     'bar',
                     'Meses');
 
+                //Verifico se teve aumento no ultimo mês em relação ao penúltimo mês
+                const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
 
-                // Datasets de gerentes    
-                const datasetsGerente = loadDatasets(qtdPneusGerente, vlrPneusGerente);
+                const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
 
-                // Datasets de clientes
-                const datasetsClientes = loadDatasets(qtdPneusCliente, vlrPneusCliente);
+                $('.calc-percentual').html(`
+                    <span class="${percentual >= 0 ? 'text-success' : 'text-danger'}">
+                        <i class="fas fa-arrow-${percentual >= 0 ? 'up' : 'down'}"></i> ${percentual.toFixed(2)}%
+                    </span>
+                    <span class="text-muted">${percentual >= 0 ? 'Aumento do ultimo Mês' : 'Queda do ultimo Mês'}</span>
+                `);
 
-                // Datasets de supervisores
-                const datasetsSupervisores = loadDatasets(qtdPneusSupervisor, vlrPneusSupervisor);
 
                 // Renderiza o gráfico de gerentes
-                renderChartJsDualAxis(
-                    NomeGerentes,
-                    datasetsGerente,
-                    'chartPneusGerente',
-                    'Meses',
-                    'legend-container-gerente'
-                );
+                montarGrafico({
+                    valores: vlrGerente,
+                    quantidades: qtdGerente,
+                    campoLabel: 'nomeGerente',
 
-                // Renderiza o gráfico de Clientes
-                renderChartJsDualAxis(
-                    labelsClientes,
-                    datasetsClientes,
-                    'chartPneusCliente',
-                    'Clientes',
-                    'legend-container-cliente'
-                );
+                    transformarItem: (gerente) => ({
+                        nomeGerente: gerente,
+                        valor: vlrGerente[gerente],
+                        quantidade: qtdGerente[gerente]
+                    }),
 
-                // Renderiza o gráfico de Supervisores
-                renderChartJsDualAxis(
-                    labelsSupervisores,
-                    datasetsSupervisores,
-                    'chartPneusSupervisor',
-                    'Supervisores',
-                    'legend-container-supervisor'
-                );
+                    chartId: 'chartPneusGerente',
+                    titulo: 'Meses',
+                    legendId: 'legend-container-gerente'
+                });
+
+                // Renderiza o gráfico de clientes
+                montarGrafico({
+                    valores: vlrClientes,
+                    quantidades: qtdClientes,
+                    campoLabel: 'nomeCliente',
+
+                    transformarItem: (cliente) => ({
+                        nomeCliente: acumuladorNomeCliente[cliente].split(' ')[0],
+                        valor: vlrClientes[cliente],
+                        quantidade: qtdClientes[cliente]
+                    }),
+
+                    chartId: 'chartPneusCliente',
+                    titulo: 'Meses',
+                    legendId: 'legend-container-cliente'
+                });
+
+                // Renderiza o gráfico de supervisores
+                montarGrafico({
+                    valores: vlrSupervisores,
+                    quantidades: qtdSupervisores,
+                    campoLabel: 'nomeSupervisor',
+
+                    transformarItem: (supervisor) => ({
+                        nomeSupervisor: supervisor,
+                        valor: vlrSupervisores[supervisor],
+                        quantidade: qtdSupervisores[supervisor]
+                    }),
+
+                    chartId: 'chartPneusSupervisor',
+                    titulo: 'Meses',
+                    legendId: 'legend-container-supervisor'
+                });
+                
             }
 
-            const charts = {};
+            
+
+            function montarGrafico({
+                valores,
+                quantidades,
+                campoLabel,
+                transformarItem,
+                chartId,
+                titulo,
+                legendId
+            }) {
+
+                const array = Object.keys(valores).map(chave =>
+                    transformarItem(chave)
+                );
+
+                array.sort((a, b) => b.valor - a.valor);
+
+                const labels = array.map(item => item[campoLabel]);
+                const qtd = array.map(item => item.quantidade);
+                const vlr = array.map(item => item.valor);
+
+                const datasets = loadDatasets(qtd, vlr);
+
+                renderChartJsDualAxis(
+                    labels,
+                    datasets,
+                    chartId,
+                    titulo,
+                    legendId
+                );
+            }
 
             function renderChartJsDualAxis(labels, datasets, chartId, labelChart, legendContainerId) {
 
