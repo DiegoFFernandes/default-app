@@ -99,8 +99,8 @@
 
             var template = Handlebars.compile($("#details-template").html());
 
-            // var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
-            var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
+            var datasSelecionadas = initDateRangePicker('#daterange', '01.10.2024', fimData);
+            // var datasSelecionadas = initDateRangePicker('#daterange', '01.01.2026', '28.02.2026');
 
             $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas.getFim());
 
