@@ -147,10 +147,24 @@
             text-overflow: ellipsis;
         }
 
+        .badge-indicador {
+            display: inline-block;
+            width: 150px;
+            text-align: center;
+        }
+
         .badge-purple {
             color: #fff;
             background-color: #6f42c1;
         }
+
+        .accordion-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
 
         @media (max-width: 768px) {
             #tabela-limite-credito td:nth-child(1) {
@@ -191,6 +205,12 @@
 
             .saldo {
                 display: block;
+            }
+
+            .badge-detalhes {
+                width: 150px !important;
+                display: block;
+                margin-top: 5px;
             }
         }
 

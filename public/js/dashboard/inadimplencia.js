@@ -106,12 +106,12 @@ function tentarProcessar() {
 
                     if (cartorioSupervisor != 0 || sup.cartorio != 0) {
                         var pc_cartorio_supervisor = (
-                            (cartorioSupervisor / (sup.atrasados + sup.inadimplencia)) * 100 ?? 0
+                            (cartorioSupervisor /
+                                (sup.atrasados + sup.inadimplencia)) *
+                                100 ?? 0
                         ).toFixed(2);
-
                     }
                 }
-            
 
                 $(`.pc_atrasados-supervisor-${gIndex}-${sIndex}`).html(
                     `Atrasados: ${pc_atrasados_supervisor ?? 0}%`,
@@ -165,12 +165,13 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                 html += `
                             <div class="card gerente-card">
                             <div class="card-header p-1">
-                                <button class="btn btn-link text-left" data-toggle="collapse" data-target="#sup-${gIndex}">
-                                    👔 ${gerente.nome} (R$ ${formatarValorBR(gerente.saldo)})                                     
+                                <button class="btn btn-link accordion-item-header" data-toggle="collapse" data-target="#sup-${gIndex}">                                    
+                                        👔 ${gerente.nome} (R$ ${formatarValorBR(gerente.saldo)})        
+                                                           
                                     <span class="saldo">
-                                        <span class="badge badge-info pc_atrasados-gerente pc_atrasados-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
-                                        <span class="badge badge-warning pc_inadimplencia-gerente pc_inadimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
-                                        <span class="badge badge-purple pc_cartorio-gerente pc_cartorio-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-indicador badge-info pc_atrasados-gerente pc_atrasados-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-indicador badge-warning pc_inadimplencia-gerente pc_inadimplencia-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                        <span class="badge badge-indicador badge-purple pc_cartorio-gerente pc_cartorio-gerente-${gIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
                                     </span>
                                 </button>
                             </div>
@@ -178,23 +179,23 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
                                 <div class="card-body p-2">     `;
 
                 gerente.supervisores.forEach((sup, sIndex) => {
-                    html += `<div class="supervisor-container ml-2">`;
+                    html += `<div class="supervisor-container ml-2 mb-2">`;
                     html += `
-                            <button class="btn btn-sm btn-secondary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
+                            <button class="btn btn-sm btn-secondary accordion-item-header" data-toggle="collapse" data-target="#vend-${gIndex}-${sIndex}">
                                 🛡️ ${sup.nome} (R$ ${formatarValorBR(sup.saldo)}) 
                                 <span class="saldo">
-                                    <span class="badge badge-info pc_atrasados-supervisor pc_atrasados-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
-                                    <span class="badge badge-warning pc_inadimplencia-supervisor pc_inadimplencia-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
-                                    <span class="badge badge-purple pc_cartorio-supervisor pc_cartorio-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                    <span class="badge badge-indicador badge-info pc_atrasados-supervisor pc_atrasados-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                    <span class="badge badge-indicador badge-warning pc_inadimplencia-supervisor pc_inadimplencia-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
+                                    <span class="badge badge-indicador badge-purple pc_cartorio-supervisor pc_cartorio-supervisor-${gIndex}-${sIndex}"><i class="fas fa-sync-alt fa-spin"></i></span>
                                 </span>
                             </button>
                             <div id="vend-${gIndex}-${sIndex}" class="collapse mt-2">
                             `;
 
                     sup.vendedores.forEach((vend, vIndex) => {
-                        html += `<div class="vendedor-container ml-4">`;
+                        html += `<div class="vendedor-container ml-4 mb-2">`;
                         html += `
-                                <button class="btn btn-sm btn-primary d-block mb-2 btn-list btn-d-block text-left" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
+                                <button class="btn btn-sm btn-primary accordion-item-header" data-toggle="collapse" data-target="#cli-${gIndex}-${sIndex}-${vIndex}">
                                 👤 ${vend.nome} (R$ ${formatarValorBR(vend.saldo)})
                                    
                                 </button>
@@ -567,12 +568,22 @@ function initTableInadimplenciaMeses(
                 mes: row.data().MES,
                 ano: row.data().ANO,
                 tab: tab,
+                filtro: {
+                    filtro_cartorio: 0,
+                },
             },
             dataType: "json",
             beforeSend: function () {
-                $("#loading").removeClass("invisible");
+                Swal.fire({
+                    title: "Carregando detalhes...",
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
             },
             success: function (response) {
+                Swal.close();
                 data = Object.values(response);
 
                 $(".modal-table-cliente-label").html(
@@ -583,9 +594,10 @@ function initTableInadimplenciaMeses(
                         ")",
                 );
                 $("#" + idAccordion).empty(); // limpa antes de popular
+                let accordion = '';
 
                 data.forEach(function (item) {
-                    let accordion = `
+                    accordion = `
                         <div class="card card-outline">
                         <div class="card-header pt-1 pb-1" id="heading${
                             item.CD_PESSOA
@@ -600,13 +612,23 @@ function initTableInadimplenciaMeses(
                                         }" style="font-size: 13px;">
                                 <b>${item.NM_PESSOA}</b>
                                 </button>
-                                <span class="badge badge-warning ml-2">
-                                    ${parseFloat(
-                                        item.VL_SALDO_AGRUPADO,
-                                    ).toLocaleString("pt-BR", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                    })}
+                                <span class="w-50 d-flex justify-content-end align-items-center">
+                                    <span class="badge badge-warning badge-detalhes ml-2 w-25">
+                                        ${parseFloat(
+                                            item.VL_SALDO_AGRUPADO,
+                                        ).toLocaleString("pt-BR", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}
+                                    </span>
+                                    <span class="badge badge-purple badge-detalhes ml-2 w-25">
+                                        ${parseFloat(
+                                            item.VL_CARTORIO_AGRUPADO,
+                                        ).toLocaleString("pt-BR", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        })}
+                                    </span>
                                 </span>
                             </h6>
                         </div>
@@ -626,6 +648,7 @@ function initTableInadimplenciaMeses(
                                     <span class="badge badge-dark mr-1">${
                                         detalhe.CD_FORMAPAGTO
                                     }</span>
+                                    ${detalhe.VL_CARTORIO > 0 ? `<span class="badge badge-purple">Em Cartório</span>` : ""}
                                     <table class="table table-sm mb-0">
                                         <tbody>
                                             <tr>

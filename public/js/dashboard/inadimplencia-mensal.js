@@ -95,11 +95,13 @@ function formatarValorBR(valor) {
         maximumFractionDigits: 2,
     });
 }
+
 function formatDate(value) {
     if (!value) return "";
     const [ano, mes, dia] = value.split("-");
     return `${dia}/${mes}/${ano}`;
 }
+
 function criarGraficoInadimplencia(data, canvasId) {
     const ctx = document.getElementById(canvasId).getContext("2d");
     const labels = data.map((item) => item.MES_ANO).reverse();

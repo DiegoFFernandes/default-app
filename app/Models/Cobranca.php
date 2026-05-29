@@ -13,7 +13,7 @@ class Cobranca extends Model
 {
     use HasFactory;
 
-    public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0, $tela = 1, $mes = 0, $ano = 0, $filtro = null)
+    public function AreaRegiaoInadimplentes($cd_regiao, $cd_empresa = 0, $tela = 1, $mes = 0, $ano = 0, $filtro = null, $detalhes = false)
     {
         if ($tela == 1) {
             $string = 'DT_VENCIMENTO';
@@ -94,19 +94,22 @@ class Cobranca extends Model
                 LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RGC.CD_AREACOMERCIAL)
                 WHERE 
                     " . ($tela == 1 ? "CONTAS.CD_TIPOCONTA IN (2, 10)" : "CONTAS.CD_TIPOCONTA IN (2)") . "                    
-                    " . ($tela == 1 ?
-            "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
-            "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
+                    
                     AND CONTAS.ST_CONTAS IN ('T', 'P')
                     AND COALESCE(CONTAS.CD_SERIE, 'NA') NOT IN ('S') 
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "                    
                     " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
-                    " . ($mes != 0 && $tela == 1 ? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
-                    " . ($ano != 0 && $tela == 1 ? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
+                    
 
-                    " . ($mes != 0 && $tela == 2 ? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
-                    " . ($ano != 0 && $tela == 2 ? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
+                    " . ($tela == 1 && $detalhes == false ? "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "                    
+                    " . ($tela == 2 && $detalhes == false ? "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "
+                    
+                    " . ($mes != 0 && $tela == 1 && $detalhes == true ? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
+                    " . ($ano != 0 && $tela == 1 && $detalhes == true ? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
+
+                    " . ($mes != 0 && $tela == 2 && $detalhes == true ? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
+                    " . ($ano != 0 && $tela == 2 && $detalhes == true ? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
 
                     " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
@@ -121,6 +124,12 @@ class Cobranca extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+
+        // return
+        //     Cache::remember("AreaRegiaoInadimplentes-" . Auth::user()->id, now()->addMinutes(15), function () use ($query) {
+        //         $data = DB::connection('firebird')->select($query);
+        //         return Helper::ConvertFormatText($data);
+        //     });
     }
 
     public function clientesInadiplentes($cd_regiao)
@@ -353,6 +362,12 @@ class Cobranca extends Model
                 MES DESC";
 
         $data = DB::connection('firebird')->select($query);
+
         return Helper::ConvertFormatText($data);
+
+        // return Cache::remember("Inadimplencia-" . Auth::user()->id, now()->addMinutes(15), function () use ($query) {
+        //     $data = DB::connection('firebird')->select($query);
+        //     return Helper::ConvertFormatText($data);
+        // });
     }
 }

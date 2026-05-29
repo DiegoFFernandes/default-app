@@ -617,7 +617,7 @@ class RelatorioCobrancaController extends Controller
         }
         return $regioesIndexadas;
     }
-    
+
     public function getInadimplencia()
     {
         $this->request->validate([
@@ -700,8 +700,8 @@ class RelatorioCobrancaController extends Controller
             'carteira60dias' => $carteira60dias,
             'carteiraMaior60dias' => $carteiraMaior60dias,
             'cartorio' => $cartorio,
-            'qtd_titulos_cartorio' => $resultados['qtd_titulos_cartorio'],  
-            'hierarquia' => $hierarquia,            
+            'qtd_titulos_cartorio' => $resultados['qtd_titulos_cartorio'],
+            'hierarquia' => $hierarquia,
         ]);
     }
 
@@ -881,7 +881,7 @@ class RelatorioCobrancaController extends Controller
             }
         }
 
-        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa, $tab, $mes, $ano, $filtro);
+        $data = $this->cobranca->AreaRegiaoInadimplentes($cd_regiao, $cd_empresa, $tab, $mes, $ano, $filtro, true);
 
         $pessoa = [];
 
@@ -891,11 +891,13 @@ class RelatorioCobrancaController extends Controller
                     'CD_PESSOA' => $item->CD_PESSOA,
                     'NM_PESSOA' => $item->NM_PESSOA,
                     'VL_SALDO_AGRUPADO' => 0,
+                    'VL_CARTORIO_AGRUPADO' => 0,
                     'DETALHES' => []
                 ];
             }
 
             $pessoa[$item->CD_PESSOA]['VL_SALDO_AGRUPADO'] += (float)$item->VL_SALDO;
+            $pessoa[$item->CD_PESSOA]['VL_CARTORIO_AGRUPADO'] += (float)$item->VL_CARTORIO;
 
             $pessoa[$item->CD_PESSOA]['DETALHES'][] = [
                 'NR_DOCUMENTO' => $item->NR_DOCUMENTO,
@@ -906,7 +908,8 @@ class RelatorioCobrancaController extends Controller
                 'VL_SALDO'  => $item->VL_SALDO,
                 'VL_JUROS'  => $item->VL_JUROS,
                 'TIPOCONTA' => $item->TIPOCONTA,
-                'VL_TOTAL'  => $item->VL_TOTAL
+                'VL_TOTAL'  => $item->VL_TOTAL,
+                'VL_CARTORIO' => $item->VL_CARTORIO,
             ];
         }
 
@@ -916,8 +919,6 @@ class RelatorioCobrancaController extends Controller
         });
 
         return array_values($pessoa);
-
-        dd($pessoa);
     }
 
     public function relatorioFinanceiroCliente()
