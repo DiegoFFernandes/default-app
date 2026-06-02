@@ -4,17 +4,21 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PedidoPneu;
+use App\Services\ServiceFiltroGrupoSubgrupo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class IAController extends Controller
 {
-    protected $pedidoPneu;
+    protected $pedidoPneu, $serviceFiltroGrupoSubgrupo;
 
-    public function __construct(PedidoPneu $pedidoPneu)
-    {
+    public function __construct(
+        PedidoPneu $pedidoPneu,
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
+    ) {
         $this->pedidoPneu = $pedidoPneu;
+        $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
     }
 
     public function index()
@@ -76,11 +80,36 @@ class IAController extends Controller
 
         $dados = $this->pedidoPneu->getColetaPedidoPneu($dtInicio, $dtFim, 1);
 
+        // 9 - RECUSADAS
+        $subgrupoRcs = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
         $qtdPneus = array_sum(array_column($dados, 'QTD'));
         $valorTotal = array_sum(array_column($dados, 'VL_TOTAL'));
         $qtdVendedores = count(array_unique(array_column($dados, 'NM_VENDEDOR')));
         $qtdClientes = count(array_unique(array_column($dados, 'NM_PESSOA')));
+        $qtdRecusados =
+            array_sum(
+                array_column(array_filter($dados, function ($item) use ($subgrupoRcs) {
+                    return in_array($item->CD_SUBGRUPO, [$subgrupoRcs['data']]);
+                }), 'QTD')
+            );
 
+
+        $vendedor = [];
+
+        foreach ($dados as $item) {
+            $nm_vendedor = $item->NM_VENDEDOR;
+            if (!isset($vendedor[$nm_vendedor])) {
+                $vendedor[$nm_vendedor] = [
+                    'qtd' => 0,
+                    'valor' => 0,
+                ];
+            }
+            $vendedor[$nm_vendedor]['qtd'] += $item->QTD;
+            $vendedor[$nm_vendedor]['valor'] += $item->VL_TOTAL;
+        }
+
+        arsort($vendedor);
 
         return response()->json([
             'tabela' => [
@@ -99,7 +128,7 @@ class IAController extends Controller
                 [
                     'tipo' => 'info_box',
                     'titulo' => 'Valor Total',
-                    'valor' => "R$ " . number_format($valorTotal, 2, ',', '.'),
+                    'valor' =>  number_format($valorTotal, 2, ',', '.'),
                     'icone' => 'fas fa-dollar-sign',
                     'cor' => 'success'
                 ],
@@ -116,7 +145,27 @@ class IAController extends Controller
                     'valor' => $qtdClientes,
                     'icone' => 'fas fa-users',
                     'cor' => 'primary'
+                ],
+                [
+                    'tipo' => 'info_box',
+                    'titulo' => 'Recusados',
+                    'valor' => $qtdRecusados,
+                    'icone' => 'fas fa-times',
+                    'cor' => 'danger'
                 ]
+            ],
+            'progress_vendedores' => [
+                'titulo' => 'Coletas por Vendedor',
+                'progress' => array_map(function ($vendedor, $qtd, $valor) use ($qtdPneus, $valorTotal) {
+                    return [
+                        'vendedor' => $vendedor,
+                        'qtdColetado' => $qtd,
+                        'totalPneus' => $qtdPneus,
+                        'percQtd' => round(($qtd / $qtdPneus) * 100, 2),
+                        'percValor' => round(($valor / $valorTotal) * 100, 2),
+                        'valor' => "R$ " . number_format($valor, 2, ',', '.')
+                    ];
+                }, array_keys($vendedor), array_column($vendedor, 'qtd'), array_column($vendedor, 'valor'))
             ]
 
         ]);

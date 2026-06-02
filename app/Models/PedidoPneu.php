@@ -335,20 +335,26 @@ class PedidoPneu extends Model
     static function getColetaPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null)
     {
         $query = "       
-            SELECT
-                PP.IDVENDEDOR || '-' || V.NM_PESSOA NM_VENDEDOR,
+            SELECT                
                 P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
                 SP.ID || '-' || SP.DSSERVICO DS_SERVICOPNEU,
                 COUNT(*) QTD,
                 CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO,
                 IPP.VLUNITARIO * COUNT(IPP.ID) VL_TOTAL,
-                CAST(PP.DTEMISSAO AS DATE) DT_EMISSAO
+                PP.IDVENDEDOR || '-' || V.NM_PESSOA NM_VENDEDOR,
+                CAST(PP.DTEMISSAO AS DATE) DT_EMISSAO,
+
+                DP.DSDESENHO,
+                IPP.IDDESENHOPNEU,
+                ITEM.CD_SUBGRUPO
                                
             FROM PEDIDOPNEU PP
-            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = PP.ID)
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            LEFT JOIN DESENHOPNEU DP ON (DP.ID = IPP.IDDESENHOPNEU)
             INNER JOIN MEDIDAPNEU MP ON (MP.ID = PNEU.IDMEDIDAPNEU)
 
             INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
@@ -362,7 +368,13 @@ class PedidoPneu extends Model
                 CAST(PP.DTEMISSAO AS DATE),
                 IPP.VLUNITARIO,
                 PP.IDVENDEDOR,
-                V.NM_PESSOA
+                V.NM_PESSOA,
+                DP.DSDESENHO,
+                IPP.IDDESENHOPNEU,
+                ITEM.CD_SUBGRUPO,
+                DP.DSDESENHO,
+                IPP.IDDESENHOPNEU,
+                ITEM.CD_SUBGRUPO
             ORDER BY CAST(PP.DTEMISSAO AS DATE) DESC  
             ";
 

@@ -190,111 +190,7 @@
                     @endforeach
                 </div>
 
-                <div class="modal fade" id="modal-detalhes-pedido" tabindex="-1" role="dialog"
-                    aria-labelledby="modal-default-label" aria-hidden="true">
-                    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header py-2">
-                                <h5 class="modal-title">Detalhes Pedido
-                                    <span class="badge badge-danger" id="badge-num-pedido"></span>
-                                    <span class="badge badge-warning" id="badge-dt-registro-palm"></span>
-                                    <span class="badge badge-info" id="badge-dt-sinc"></span>
-                                    <span class="badge" id="badge-ds-motivo"></span>
-                                </h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body pt-2 pb-1">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="dsEmpresa" class="mb-0">Empresa:</label>
-                                        <input type="text" class="form-control form-control-sm mb-2" id="dsEmpresa"
-                                            readonly>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="form-group mb-2">
-                                            <label for="nomePessoa" class="mb-0">Pessoa:</label>
-                                            <input type="text" class="form-control form-control-sm" id="nomePessoa"
-                                                readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <label for="nomeVendedor" class="mb-0">Vendedor:</label>
-                                        <input type="text" class="form-control form-control-sm mb-2" id="nomeVendedor"
-                                            readonly>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group mb-2">
-                                            <label for="pedidoPalm" class="mb-0">Pedido Palm</label>
-                                            <input type="text" class="form-control form-control-sm" id="pedidoPalm"
-                                                readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <div class="form-group mb-2">
-                                            <label for="pedido" class="mb-0">Pedido</label>
-                                            <input type="text" class="form-control form-control-sm" id="pedidoColeta"
-                                                readonly>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <label for="condicaoDetails" class="mb-0">Condição Pagamento:</label>
-                                        <input type="text" class="form-control form-control-sm mb-2"
-                                            id="condicaoDetails" readonly>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="formaDetails" class="mb-0">Forma Pagamento:</label>
-                                        <input type="text" class="form-control form-control-sm mb-2" id="formaDetails"
-                                            readonly>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="dtEmissao" class="mb-0">Data Emissão:</label>
-                                        <input type="text" class="form-control form-control-sm mb-2" id="dtEmissao"
-                                            readonly>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="dtEntrega" class="mb-0">Data Entrega:</label>
-                                        <input type="text" class="form-control form-control-sm mb-2" id="dtEntrega"
-                                            readonly>
-                                    </div>
-                                </div>
-
-                                <div class="form-group mb-2">
-                                    <label for="observacaoDetails" class="mb-0">Observação:</label>
-                                    <textarea class="form-control form-control-sm" id="observacaoDetails" rows="1" readonly></textarea>
-                                </div>
-                                <div class="form-group mb-2 d-none form-group-bloqueio">
-                                    <label for="dsBloqueioDetails" class="mb-0">Bloqueio:</label>
-                                    <textarea class="form-control form-control-sm" id="dsBloqueioDetails" rows="4" readonly></textarea>
-                                </div>
-
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-sm compact" id="item-pedido"
-                                        style="width:100%; font-size:12px">
-                                        <thead>
-                                            <tr>
-                                                <th>Sq</th>
-                                                <th>Nr Ordem</th>
-                                                <th>Serviço</th>
-                                                <th>Valor</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="modal-footer p-2">
-                                <button type="button" class="btn btn-secondary btn-sm"
-                                    data-dismiss="modal">Fechar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @include('admin.comercial.coleta-empresa.modals.modal-detalhe-pedido')
 
             </div>
         </div>
@@ -370,8 +266,14 @@
             </table>
         @endverbatim
     </script>
-
+    <script src="{{ asset('js/dashboard/coletaEmpresa/modal-detalhes-pedidos.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
+
+        window.routes = {
+            languageDatatables: "{{ asset('vendor/datatables/pt-br.json') }}",
+            getItemPedidoAcompanhar: "{{ route('get-item-pedido-acompanhar') }}"
+        }
+
         var details_pedido_vendedor = Handlebars.compile($("#details-pedido-vendedor").html());
         var details_pedido_cliente = Handlebars.compile($("#details-pedido-cliente").html());
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
@@ -480,47 +382,6 @@
             initTableColetaGeralRegiao(cd_empresa, tableId, inicio, fim, 1, grupo_item);
         });
 
-        $(document).on('click', '.btn-show-modal', function(e) {
-            e.preventDefault();
-
-            $('#item-pedido').DataTable().destroy();
-            $('#modal-detalhes-pedido').modal('show');
-            const dt_sinc = formatDate($(this).data('dt_sincronizacao'));
-            const dt_registro_palm = formatDate($(this).data('dt_registro_palm'));
-
-            $('#badge-num-pedido').text('#' + $(this).data('pedido'));
-            $('#badge-dt-sinc').text("Sinc: " + dt_sinc);
-            $('#badge-dt-registro-palm').text("Reg. Palm: " + dt_registro_palm);
-
-            let ds_motivo = $(this).data('ds_motivo').trim();
-
-            if (ds_motivo === 'LIBERADO') {
-                $('#badge-ds-motivo').text(ds_motivo).removeClass('badge-warning').addClass('badge-success');
-                $('.form-group-bloqueio').addClass('d-none');
-            } else {
-                $('#badge-ds-motivo').text(ds_motivo).removeClass('badge-success').addClass('badge-warning');
-                $('.form-group-bloqueio').removeClass('d-none');
-                $('#dsBloqueioDetails').val($(this).data('ds_bloqueio'));
-
-            }
-
-            $('#dsEmpresa').val($(this).data('empresa'));
-            $('#nomePessoa').val($(this).data('nm_pessoa'));
-            $('#nomeVendedor').val($(this).data('nm_vendedor'));
-            $('#condicaoDetails').val($(this).data('cond_pagamento'));
-            $('#formaDetails').val($(this).data('forma_pagamento'));
-            $('#observacaoDetails').val($(this).data('observacao'));
-
-            $('#pedidoPalm').val($(this).data('pedido_palm'));
-            $('#pedidoColeta').val($(this).data('pedido'));
-            $('#dtEmissao').val($(this).data('dt_emissao'));
-            $('#dtEntrega').val($(this).data('dt_entrega'));
-
-            initTableItemPedido('item-pedido', {
-                ID: $(this).data('pedido')
-            });
-
-        });
 
         function formatDate(value) {
             if (!value) return "";
@@ -930,56 +791,7 @@
             return table;
         }
 
-        function initTableItemPedido(tableId, data) {
-
-            return $('#' + tableId).DataTable({
-                language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
-                },
-                "searching": false,
-                "paging": false,
-                sDom: 't',
-                processing: false,
-                serverSide: false,
-                scrollX: true,
-                autoWidth: false,
-                ajax: {
-                    method: "GET",
-                    url: " {{ route('get-item-pedido-acompanhar') }}",
-                    data: {
-                        _token: $("[name=csrf-token]").attr("content"),
-                        id: data.ID
-                    }
-                },
-                columns: [{
-                        data: 'NRSEQUENCIA',
-                        name: 'NRSEQUENCIA',
-                        className: 'col-actions',
-                    },
-                    {
-                        data: 'NRORDEM',
-                        name: 'NRORDEM',
-                        width: "60px"
-                    },
-                    {
-                        data: 'DSSERVICO',
-                        name: 'DSSERVICO'
-                    },
-                    {
-                        data: 'VLUNITARIO',
-                        name: 'VLUNITARIO'
-                    }, {
-                        data: 'STORDEM',
-                        name: 'STORDEM',
-                    },
-                ],
-                columnDefs: [{
-                    targets: [3],
-                    className: 'dt-right',
-                    render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
-                }],
-            });
-        }
+        
 
         function getQtdColetaDia(cd_empresa) {
             return new Promise(function(resolve, reject) {

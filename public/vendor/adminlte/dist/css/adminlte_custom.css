@@ -215,6 +215,18 @@ table.dataTable thead tr {
     border-radius: 4px;
 }
 
+.btn-info-custom {
+    background-color: #007bff; 
+    color: #ffffff;
+    padding: 3px;
+    border-radius: 4px;
+}
+
+.btn-info-custom:hover {
+    background-color: #0069d9; 
+    color: #ffffff;
+}
+
 .content-header {
     padding: 8px .5rem;
 }
@@ -345,6 +357,19 @@ button.select2-selection__choice__remove {
         background: #f0f0f0;
         cursor: pointer;
     }
+
+    .btn-info-custom {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #007bff; 
+        color: #ffffff;
+        cursor: pointer;
+    }
+
     .btn-block {        
         display: block !important;
         width: 100% !important;

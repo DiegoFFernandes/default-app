@@ -125,8 +125,8 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Empresa</label>
-                                                    <select name="cd_empresa" id="cd_empresa" class="form-control form-control-sm"
-                                                        style="width: 100%;">
+                                                    <select name="cd_empresa" id="cd_empresa"
+                                                        class="form-control form-control-sm" style="width: 100%;">
                                                         <option value="0" selected>Todas</option>
                                                         @foreach ($empresa as $e)
                                                             <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA }}
@@ -138,29 +138,30 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Dt Emissão</label>
-                                                    <input type="text" class="form-control form-control-sm" id="daterange"
-                                                        placeholder="Data Emissão">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="daterange" placeholder="Data Emissão">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Pedido Palm</label>
-                                                    <input type="number" class="form-control form-control-sm" id="pedido_palm"
-                                                        placeholder="Pedido Palm">
+                                                    <input type="number" class="form-control form-control-sm"
+                                                        id="pedido_palm" placeholder="Pedido Palm">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Pedido</label>
-                                                    <input type="number" class="form-control form-control-sm" id="pedido"
-                                                        placeholder="Pedido">
+                                                    <input type="number" class="form-control form-control-sm"
+                                                        id="pedido" placeholder="Pedido">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="small">Grupo Item</label>
-                                                    <select name="grupo_item" id="grupo_item" class="form-control form-control-sm"
-                                                        style="width: 100%;" multiple>
+                                                    <select name="grupo_item" id="grupo_item"
+                                                        class="form-control form-control-sm" style="width: 100%;"
+                                                        multiple>
                                                         <option value="0">Todos</option>
                                                         @foreach ($grupo as $g)
                                                             <option value="{{ $g->CD_GRUPO }}">{{ $g->DS_GRUPO }}
@@ -174,8 +175,9 @@
                                             <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label class="small">Região</label>
-                                                    <select name="cd_regiaocomercial[]" class="form-control form-control-sm"
-                                                        id="cd_regiaocomercial" style="width: 100%;" multiple>
+                                                    <select name="cd_regiaocomercial[]"
+                                                        class="form-control form-control-sm" id="cd_regiaocomercial"
+                                                        style="width: 100%;" multiple>
                                                         @foreach ($regiao as $r)
                                                             <option value="{{ $r->CD_REGIAOCOMERCIAL }}">
                                                                 {{ $r->DS_REGIAOCOMERCIAL }}
@@ -187,15 +189,15 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="small">Vendedor</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nm_vendedor"
-                                                        placeholder="Nome Vendedor">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nm_vendedor" placeholder="Nome Vendedor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="small">Cliente</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nm_cliente"
-                                                        placeholder="Nome Cliente">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nm_cliente" placeholder="Nome Cliente">
                                                 </div>
                                             </div>
                                         </div>
@@ -205,22 +207,22 @@
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Nr Fogo</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nr_fogo"
-                                                        placeholder="Nr Fogo">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nr_fogo" placeholder="Nr Fogo">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Nr Serie</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nr_serie"
-                                                        placeholder="Nr Serie">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nr_serie" placeholder="Nr Serie">
                                                 </div>
                                             </div>
                                             <div class="col-md-2">
                                                 <div class="form-group">
                                                     <label class="small">Nr Dot</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nr_dot"
-                                                        placeholder="Nr Dot">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nr_dot" placeholder="Nr Dot">
                                                 </div>
                                             </div>
                                         </div>
@@ -267,25 +269,25 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Supervisor</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nm_supervisor_bloq"
-                                                        placeholder="Nome Supervisor">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nm_supervisor_bloq" placeholder="Nome Supervisor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Vendedor</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nm_vendedor_bloq"
-                                                        placeholder="Nome Vendedor">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nm_vendedor_bloq" placeholder="Nome Vendedor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>Cliente</label>
-                                                    <input type="text" class="form-control form-control-sm" id="nm_cliente_bloq"
-                                                        placeholder="Nome Cliente">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="nm_cliente_bloq" placeholder="Nome Cliente">
                                                 </div>
                                             </div>
-                                        </div>                                        
+                                        </div>
                                         <!-- /.row -->
                                         <div class="card-footer">
                                             <div class="row">
@@ -315,6 +317,8 @@
                 </div>
             </div>
     </section>
+
+    @include('admin.comercial.coleta-empresa.modals.modal-detalhe-pedido')
 @stop
 
 @section('css')
@@ -326,9 +330,6 @@
             max-width: 10%;
         }
 
-        /* table.dataTable {
-                                                        table-layout: fixed;
-                                                    } */
 
         @media (max-width: 768px) {
             .info-box .info-box-icon {
@@ -370,7 +371,13 @@
             </table>
         @endverbatim
     </script>
+    <script src="{{ asset('js/dashboard/coletaEmpresa/modal-detalhes-pedidos.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
+        window.routes = {
+            languageDatatables: "{{ asset('vendor/datatables/pt-br.json') }}",
+            getItemPedidoAcompanhar: "{{ route('get-item-pedido-acompanhar') }}"
+        }
+
         var template = Handlebars.compile($("#details-template").html());
         var details_item_pedido = Handlebars.compile($("#details-item-pedido").html());
         var regiao;
@@ -530,6 +537,7 @@
             tableBloqueio.search('').columns().search('').draw();
         });
 
+
         $('#acompanhamento').click(function() {
             $('#pedido-acompanhar').DataTable().ajax.reload();
         });
@@ -611,10 +619,16 @@
                         tela: 'acompanhamento'
                     },
                     beforeSend: function() {
-                        $("#acompanhamento-pedido .info-loading.loading-card").removeClass("invisible");
+                        Swal.fire({
+                            title: 'Carregando os pedidos...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
                     },
                     complete: function() {
-                        $("#acompanhamento-pedido .info-loading.loading-card").addClass("invisible");
+                        Swal.close();
                     }
                 },
                 columns: [{
@@ -645,7 +659,7 @@
                     {
                         data: 'PESSOA',
                         name: 'PESSOA',
-                        "width": "40%",
+                        "width": "20%",
                         title: 'Cliente'
                     },
                     {
@@ -703,6 +717,13 @@
                     $('.aguardando').text(aguardando);
                     $('.canceladas').text(canceladas);
                     $('.garantias').text(garantias);
+                },
+                error: function(xhr, error, thrown) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao carregar os pedidos',
+                        text: 'Ocorreu um erro ao carregar os pedidos. Por favor, tente novamente.',
+                    });
                 }
             });
             return table;
@@ -761,21 +782,21 @@
                     },
                     {
                         data: 'NRFOGO',
-                        name: 'NRFOGO',   
+                        name: 'NRFOGO',
                         title: 'Nr Fogo',
-                        "width": "5%",                     
+                        "width": "5%",
                     },
                     {
                         data: 'NRSERIE',
-                        name: 'NRSERIE',                       
+                        name: 'NRSERIE',
                         title: 'Nr Série',
                         "width": "5%",
                     },
                     {
                         data: 'NRDOT',
-                        name: 'NRDOT',  
+                        name: 'NRDOT',
                         title: 'Nr Dot',
-                        "width": "5%",                      
+                        "width": "5%",
                     },
                     {
                         data: 'VLUNITARIO',
@@ -805,69 +826,13 @@
             } else {
                 // Open this row
                 row_item.child(details_item_pedido(row_item.data())).show();
-                initTableItemPedido(tableId, row_item.data());
+                initTableItemDetalhesPedido(tableId, row_item.data());
                 tr_item.addClass('shown');
                 $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');
                 tr_item.next().find('td').addClass('no-padding');
             }
         });
 
-        function initTableItemPedido(tableId, data) {
-            $('#' + tableId).DataTable({
-                language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
-                },
-                "searching": false,
-                "paging": false,
-                "bInfo": false,
-                processing: false,
-                serverSide: false,
-                autoWidth: false,
-                sDom: 't',
-                ajax: data.details_item_pedido_url,
-                columns: [{
-                        data: 'O_DS_ETAPA',
-                        name: 'O_DS_ETAPA'
-                    },
-                    {
-                        data: 'O_NM_USUARIO',
-                        name: 'O_NM_USUARIO',
-                        // "width": "15%"
-                    },
-                    {
-                        data: 'DT_ENTRADA',
-                        name: 'DT_ENTRADA',
-                        render: function(data, type, row) {
-                            return moment(data).format('DD/MM/YYYY HH:mm');
-                        }
-                    },
-                    {
-                        data: 'DT_SAIDA',
-                        name: 'DT_SAIDA',
-                        render: function(data, type, row) {
-                            return moment(data).format('DD/MM/YYYY HH:mm');
-                        }
-                    },
-                    {
-                        data: 'O_DS_COMPLEMENTOETAPA',
-                        name: 'O_DS_COMPLEMENTOETAPA'
-                    },
-                    {
-                        data: 'O_ST_RETRABALHO',
-                        name: 'O_ST_RETRABALHO',
-                        // width: "2%",
-                    },
-                ],
-                columnDefs: [{
-                    targets: [1],
-                    className: 'text-truncate'
-                }],
-                order: [
-                    [2, 'asc']
-                ]
-
-            });
-        }
 
         // Ativar popover após cada renderização
         $('#bloqueio-pedidos').on('draw.dt', function() {

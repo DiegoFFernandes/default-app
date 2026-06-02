@@ -149,8 +149,9 @@ class AcompanhamentoPneu extends Model
                             ELSE 'LIBERADO'
                         END MOTIVO,
                         PP.DSOBSERVACAO,
-                        pp.DSBLOQUEIO,
-                        PC.ST_SCPC
+                        PP.DSBLOQUEIO,
+                        PC.ST_SCPC,
+                        PP.DSLIBERACAOANTERIOR
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id) 
@@ -204,15 +205,16 @@ class AcompanhamentoPneu extends Model
                         PP.DSOBSERVACAO, 
                         PP.DSBLOQUEIO,
                         PC.ST_SCPC,
-                        PP.DHSINCRONIZACAO                        
+                        PP.DHSINCRONIZACAO,
+                        PP.DSLIBERACAOANTERIOR                       
 
                     ORDER BY PP.IDEMPRESA  
                 ";
 
         $key = "PedidoAll" . Auth::user()->id;
 
-         $data = DB::connection('firebird')->select($query);
-            return Helper::ConvertFormatText($data);
+        $data = DB::connection('firebird')->select($query);
+        return Helper::ConvertFormatText($data);
 
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
             $data = DB::connection('firebird')->select($query);
@@ -249,7 +251,8 @@ class AcompanhamentoPneu extends Model
                         CASE
                         WHEN OPR.STORDEM = 'A' THEN 'EM PRODUCAO'
                         WHEN OPR.STORDEM = 'F' THEN 'FINALIZADA'
-                        END, 'SEM OP') STORDEM
+                        END, 'SEM OP') STORDEM,
+                        OPR.DTINICIO
                     FROM PEDIDOPNEU PP
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
                     INNER JOIN PESSOA PC ON (PC.CD_PESSOA = PP.IDPESSOA)
@@ -287,7 +290,8 @@ class AcompanhamentoPneu extends Model
                         IPP.ID,
                         PP.IDVENDEDOR,
                         PP.DTEMISSAO,
-                        OPR.STORDEM
+                        OPR.STORDEM,
+                        OPR.DTINICIO
                     ORDER BY PP.IDEMPRESA,
                         IPP.ID  
             ";
@@ -471,7 +475,7 @@ class AcompanhamentoPneu extends Model
     {
         if (config('app.dev_mode')) {
             return "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE";
-            
+
             return "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'";
         }
 

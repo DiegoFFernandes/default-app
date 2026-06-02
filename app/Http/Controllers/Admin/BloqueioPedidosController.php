@@ -215,6 +215,7 @@ class BloqueioPedidosController extends Controller
                     'dt_registro_palm' => $d->DTREGISTROPALM,
                     'ds_motivo' => $d->MOTIVO,
                     'ds_bloqueio' => $d->DSBLOQUEIO,
+                    'ds_liberacao_anterior' => $d->DSLIBERACAOANTERIOR,
                 ];
 
                 $dataString = collect($dataAttrs)
@@ -224,10 +225,9 @@ class BloqueioPedidosController extends Controller
 
                 $btn = "";
 
-                if ($tela == '') {
-                    $btn .= '<span class="btn-detalhes btn-show-modal right mr-2" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
-                }
-                $btn .=  '<span class="btn-detalhes details-control mr-2"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+                $btn .= '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
+
+                $btn .=  '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
 
                 return $btn;
             })
@@ -255,7 +255,7 @@ class BloqueioPedidosController extends Controller
             'nr_fogo' => $this->request->nr_fogo ?? '',
             'nr_serie' => $this->request->nr_serie ?? '',
             'nr_dot' => $this->request->nr_dot ?? '',
-        ];      
+        ];
 
         $itempedidos = $this->acompanha->ItemPedidoPneu($this->request->id, $dadosPneus);
 
@@ -312,7 +312,7 @@ class BloqueioPedidosController extends Controller
             return redirect()->route('home')->with('warning', 'Usuário sem função associada. Contate o administrador.');
         }
 
-        return view('admin.comercial.coleta-empresa', compact(
+        return view('admin.comercial.coleta-empresa.coleta-empresa', compact(
             'title_page',
             'user_auth',
             'uri',

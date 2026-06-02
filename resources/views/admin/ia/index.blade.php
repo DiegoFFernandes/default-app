@@ -2,6 +2,29 @@
 
 @section('title', 'Assistente IA')
 
+@section('content_top_nav_right')
+
+    <li class="nav-item">
+        <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+            <i class="fas fa-search"></i>
+        </a>
+        <div class="navbar-search-block" style="display: none;">
+            <div id="searchBox">
+                <div class="input-group input-group-sm">
+                    <input class="form-control form-control-navbar" type="search" placeholder="Pesquisar..."
+                        aria-label="Pesquisar" id="customSearch">
+                    <div class="input-group-append">
+
+                        <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </li>
+@endsection
+
 @section('content')
     <section class="content-fluid" id="conteudo-ia">
         <div id="resposta-info"></div>
@@ -12,113 +35,62 @@
                         <h5 class="card-title card-header-tabela"></h5>
 
                         <div class="card-tools">
-                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <button type="button" class="btn btn-tool btn-default" data-card-widget="collapse">
                                 <i class="fas fa-minus"></i>
                             </button>
                         </div>
                     </div>
-                    <!-- /.card-header -->
-                    <div class="card-body pb-0">
-                        <div class="row">
-                            <div class="col-md-8" id="resposta-tabela">
 
+                    <div class="card-body pt-2 pb-0 pr-3">
+                        <div class="row">
+                            <div class="col-md-8 pr-3" id="resposta-tabela" style="border-right: 1px solid #dee2e6;">
                             </div>
-                            <!-- /.col -->
+
                             <div class="col-md-4">
-                                <p class="text-center">
-                                    <strong>Goal Completion</strong>
+                                <p id="resposta-progress-title-vendedor" class="text-center">
                                 </p>
-
-                                <div class="progress-group">
-                                    Add Products to Cart
-                                    <span class="float-right"><b>160</b>/200</span>
-                                    <div class="progress progress-sm">
-                                        <div class="progress-bar bg-primary" style="width: 80%"></div>
-                                    </div>
+                                <div id="resposta-progress-vendedor" style="max-height: 400px; overflow-y: auto;">
                                 </div>
-                                <!-- /.progress-group -->
-
-                                <div class="progress-group">
-                                    Complete Purchase
-                                    <span class="float-right"><b>310</b>/400</span>
-                                    <div class="progress progress-sm">
-                                        <div class="progress-bar bg-danger" style="width: 75%"></div>
-                                    </div>
-                                </div>
-
-                                <!-- /.progress-group -->
-                                <div class="progress-group">
-                                    <span class="progress-text">Visit Premium Page</span>
-                                    <span class="float-right"><b>480</b>/800</span>
-                                    <div class="progress progress-sm">
-                                        <div class="progress-bar bg-success" style="width: 60%"></div>
-                                    </div>
-                                </div>
-
-                                <!-- /.progress-group -->
-                                <div class="progress-group">
-                                    Send Inquiries
-                                    <span class="float-right"><b>250</b>/500</span>
-                                    <div class="progress progress-sm">
-                                        <div class="progress-bar bg-warning" style="width: 50%"></div>
-                                    </div>
-                                </div>
-                                <!-- /.progress-group -->
-                            </div>
-                            <!-- /.col -->
-                        </div>
-                        <!-- /.row -->
-                    </div>
-                    <!-- ./card-body -->
-                    <div class="card-footer">
-                        <div class="row">
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block border-right">
-                                    <span class="description-percentage text-success"><i class="fas fa-caret-up"></i>
-                                        17%</span>
-                                    <h5 class="description-header">$35,210.43</h5>
-                                    <span class="description-text">TOTAL REVENUE</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block border-right">
-                                    <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i>
-                                        0%</span>
-                                    <h5 class="description-header">$10,390.90</h5>
-                                    <span class="description-text">TOTAL COST</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block border-right">
-                                    <span class="description-percentage text-success"><i class="fas fa-caret-up"></i>
-                                        20%</span>
-                                    <h5 class="description-header">$24,813.53</h5>
-                                    <span class="description-text">TOTAL PROFIT</span>
-                                </div>
-                                <!-- /.description-block -->
-                            </div>
-                            <!-- /.col -->
-                            <div class="col-sm-3 col-6">
-                                <div class="description-block">
-                                    <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i>
-                                        18%</span>
-                                    <h5 class="description-header">1200</h5>
-                                    <span class="description-text">GOAL COMPLETIONS</span>
-                                </div>
-                                <!-- /.description-block -->
                             </div>
                         </div>
-                        <!-- /.row -->
                     </div>
-                    <!-- /.card-footer -->
+
                 </div>
-                <!-- /.card -->
+
             </div>
-            <!-- /.col -->
+
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title"></h5>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool btn-default" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-2 pb-0 pr-3">
+                        <div class="row">
+                            <div class="col-md-8 pr-3" style="border-right: 1px solid #dee2e6;">
+
+                            </div>
+
+                            <div class="col-md-4">
+                                <p id="resposta-progress-title-cliente" class="text-center">
+                                    <strong>Coletas por cliente</strong>
+                                </p>
+                                <div id="resposta-progress-cliente" style="max-height: 400px; overflow-y: auto;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
         <div class="row d-none" id="row-resumo-ia">
             <div class="card">
@@ -169,6 +141,7 @@
         }
 
         .modo-chat #row-resposta {
+            padding-bottom: 66px;
             display: block !important;
         }
 
@@ -196,6 +169,74 @@
         body.sidebar-collapse .modo-chat #input-area {
             margin-left: auto;
         }
+
+        .info-box-custom {
+            border-radius: 12px;
+            padding: 6px;
+            transition: all 0.2s ease;
+            min-height: 60px !important;
+            display: flex;
+            justify-content: center;
+            /* centraliza horizontalmente */
+            align-items: center;
+            /* centraliza verticalmente */
+        }
+
+        /* Hover suave */
+        .info-box-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Ícone mais proporcional */
+        .info-box-custom .info-box-icon {
+            font-size: 20px;
+            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            margin: 0 10px 0 10px;
+            display: flex !important;
+            align-items: center !important;
+            /* centraliza vertical */
+            justify-content: center !important;
+            /* centraliza horizontal */
+
+        }
+
+        /* Texto */
+        .info-box-custom .info-box-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        /* Número principal */
+        .info-box-custom .info-box-number {
+            font-size: 20px;
+            margin-top: -4px !important;
+            font-weight: 600;
+        }
+
+        /* Percentual */
+        .info-box-custom .percentual {
+            font-size: 12px;
+            color: #6c757d;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 767.98px) {
+            .card-title {
+                font-size: 1rem !important;
+            }
+
+            .info-box-number {
+                font-size: 16px !important;
+            }
+
+            .info-box-custom .info-box-text {
+                font-size: 10px !important;
+            }
+        }
     </style>
 @stop
 
@@ -205,6 +246,9 @@
             perguntar: '{{ route('ia-perguntar') }}',
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
         };
+
+        let progressDataGlobal = null;
+        let tabelaIA = null;
 
         function perguntarIA() {
 
@@ -250,12 +294,23 @@
                     }
 
                     if (data.tabela) {
-                        inicializaTabelaIA(data.tabela.dados);
+                        tabelaIA = inicializaTabelaIA(data.tabela.dados);
                     }
 
                     if (data.componentes) {
-                        
+
                         renderInfoBox(data.componentes);
+                    }
+
+                    if (data.progress_vendedores) {
+
+                        progressDataGlobal = data.progress_vendedores;
+
+                        document.getElementById('resposta-progress-title-vendedor').innerHTML =
+                            `<strong> ${data.progress_vendedores.titulo}</strong>`;
+
+                        renderProgressBarItens(data.progress_vendedores.progress);
+
                     }
 
                     if (data.resumo_ia) {
@@ -281,6 +336,34 @@
                     console.error('Erro ao perguntar IA:', error);
                 });
         }
+
+        $('#customSearch').on('input', function() {
+            tabelaIA.search(this.value).draw();
+
+            const termo = this.value.toLowerCase();
+
+            if (progressDataGlobal) {
+                const filtrado = progressDataGlobal.progress.filter(item => {
+                    return Object.values(item)
+                        .join(' ')
+                        .toLowerCase()
+                        .includes(termo)
+
+                });
+
+                renderProgressBarItens(filtrado);
+
+            }
+
+        });
+
+        $(document).on('click', '.filtro-vendedor', function(e) {
+            e.preventDefault();
+            const vendedor = $(this).data('vendedor');
+            $('#customSearch').val(vendedor).trigger('input');
+
+            $('.navbar-search-block').css('display', 'flex');
+        });
 
         function formatarColunaTabela(col) {
             if (col == 'NM_VENDEDOR') {
@@ -336,7 +419,28 @@
                     render: $.fn.dataTable.render.moment('DD/MM/YYYY')
                 };
             }
-
+            if (col == 'DSDESENHO') {
+                return {
+                    title: 'Desenho',
+                    data: col,
+                    visible: false,
+                    className: 'no-wrap'
+                };
+            }
+            if (col == 'IDDESENHOPNEU') {
+                return {
+                    title: 'ID Desenho',
+                    data: col,
+                    visible: false
+                };
+            }
+            if (col == 'CD_SUBGRUPO') {
+                return {
+                    title: 'Subgrupo',
+                    data: col,
+                    visible: false
+                };
+            }
 
             return {
                 title: col,
@@ -359,58 +463,58 @@
                 return formatarColunaTabela(col);
             });
 
-            $('#tabelaIA').DataTable({
+            return $('#tabelaIA').DataTable({
                 data: dados,
                 columns: colunas,
                 destroy: true,
-                pageLength: 100,
+                // pageLength: 100,
+                paging: false,
                 scrollX: true,
                 scrollCollapse: true,
                 scrollY: '300px',
                 info: false,
+                dom: 'lrtip',
                 language: {
                     url: window.routes.languageDatatables
                 },
-                layout: {
-                    topStart: {
-                        buttons: [{
-                                extend: "excelHtml5",
-                                title: `${dados.titulo}`,
-                            },
-                            {
-                                extend: "print",
-                                title: `${dados.titulo}`,
-                                customize: function(win) {
-                                    $(win.document.body)
-                                        .find("h1")
-                                        .css("font-size", "12pt")
-                                        .css("color", "#333");
-                                },
-                            },
-                        ],
-                    },
-                },
+                // layout: {
+                //     topStart: {
+                //         buttons: [{
+                //                 extend: "excelHtml5",
+                //                 title: `${dados.titulo}`,
+                //             },
+                //             {
+                //                 extend: "print",
+                //                 title: `${dados.titulo}`,
+                //                 customize: function(win) {
+                //                     $(win.document.body)
+                //                         .find("h1")
+                //                         .css("font-size", "12pt")
+                //                         .css("color", "#333");
+                //                 },
+                //             },
+                //         ],
+                //     },
+                // },
                 columnDefs: [{
                     targets: '_all',
                     className: 'text-nowrap'
                 }],
             });
+
+
         }
 
         function renderInfoBox(componente) {
 
-            
-            
             let html = '<div class="row">';
 
             componente.forEach(comp => {
 
                 if (comp.tipo === 'info_box') {
-
-                    console.log('Renderizando info-box:', comp);
                     html += `
-                        <div class="col-md-3 col-sm-6 col-12">
-                            <div class="info-box">
+                        <div class="col-md-2 col-sm-6 col-6">
+                            <div class="info-box info-box-custom">
                                 <span class="info-box-icon bg-${comp.cor}"><i class="${comp.icone}"></i></span>
                                 <div class="info-box-content">
                                     <span class="info-box-text">${comp.titulo}</span>
@@ -424,9 +528,33 @@
 
             html += '</div>';
 
-            console.log(html);
-
             document.getElementById('resposta-info').innerHTML = html;
+        }
+
+        function renderProgressBarItens(itens) {
+            let html = ``;
+
+            itens.forEach(item => {
+                html += `
+                        <div class="progress-group" style="font-size: 0.8rem;">
+                            <a href="" class='filtro-vendedor' data-vendedor="${item.vendedor}">${item.vendedor}</a>                           
+                            <span class="float-right badge badge-primary ml-2">
+                                <b>${item.qtdColetado}/${item.totalPneus}</b>
+                            </span>
+                            <span class="float-right badge badge-success ml-2">
+                                (${item.valor})
+                            </span>
+                            <div class="progress progress-xs">
+                                <div class="progress-bar bg-primary" style="width: ${item.percQtd}%"></div>
+                            </div>   
+                            <div class="progress progress-xs">
+                                <div class="progress-bar bg-success" style="width: ${item.percValor}%"></div>
+                            </div>                               
+                        </div>
+                    `;
+            });
+
+            document.querySelector('#resposta-progress-vendedor').innerHTML = `${html}`;
         }
     </script>
 @stop
