@@ -46,7 +46,7 @@ class NotaVendedorDivergenteController extends Controller
             ->make(true);
     }
 
-    public function alterarVendedorNota(Request $request)
+    public function substituirItemVendedorNota(Request $request)
     {
 
         $rules = [

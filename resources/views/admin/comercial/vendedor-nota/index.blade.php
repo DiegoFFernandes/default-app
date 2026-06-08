@@ -44,7 +44,7 @@
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             notaVendedorDivergentes: "{{ route('get-nota-vendedor-divergentes') }}",
-            alterarVendedorNota: "{{ route('alterar-vendedor-nota') }}",
+            substituirItemVendedorNota: "{{ route('substituir-item-vendedor-nota') }}",
             searchVendedor: "{{ route('get-search-vendedor') }}",
             updateVendedorNota: "{{ route('update-alterar-vendedor-nota') }}",
             token: "{{ csrf_token() }}"
@@ -90,8 +90,8 @@
             }
 
             $.ajax({
-                type: "GET",
-                url: window.routes.alterarVendedorNota,
+                type: "POST",
+                url: window.routes.substituirItemVendedorNota,
                 data: {
                     notas: selectedData,
                     _token: window.routes.token
@@ -231,6 +231,18 @@
         });
 
 
+        $('#table-notas-vendedores-divergentes')
+            .on('preXhr.dt', function() {
+                Swal.fire({
+                    title: 'Carregando notas divergentes...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+            })
+            .on('xhr.dt', function() {
+                Swal.close();
+            });
+
         function initTableNotasVendedorDivergentes() {
             tableNotasVendedorDivergentes = $('#table-notas-vendedores-divergentes').DataTable({
                 processing: false,
@@ -327,22 +339,32 @@
                     [20, 'desc']
                 ],
                 drawCallback: function(settings) {
-                   let grupoAtual = null;
-                   let alternador = false;
+                    let grupoAtual = null;
+                    let alternador = false;
 
-                   const api = this.api();
-                   const rows = api.rows({ page: 'current' }).every(function() {
-                       const row = $(this.node());
-                       const data = this.data();
+                    const api = this.api();
+                    const rows = api.rows({
+                        page: 'current'
+                    }).every(function() {
+                        const row = $(this.node());
+                        const data = this.data();
 
-                       if (grupoAtual !== data.NR_LANCAMENTO) {
-                           grupoAtual = data.NR_LANCAMENTO;
-                           alternador = !alternador; // Alterna entre true e false para cada novo grupo
-                       }
+                        if (grupoAtual !== data.NR_LANCAMENTO) {
+                            grupoAtual = data.NR_LANCAMENTO;
+                            alternador = !alternador; // Alterna entre true e false para cada novo grupo
+                        }
 
-                       row.removeClass('grupo-a grupo-b'); // Remove as classes de grupo anteriores
-                       row.addClass(alternador ? 'grupo-a' : 'grupo-b'); // Adiciona a classe de grupo com base no alternador
-                   });
+                        row.removeClass('grupo-a grupo-b'); // Remove as classes de grupo anteriores
+                        row.addClass(alternador ? 'grupo-a' :
+                            'grupo-b'); // Adiciona a classe de grupo com base no alternador
+                    });
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao carregar dados',
+                        text: 'Ocorreu um erro ao carregar os dados. Por favor, tente novamente.',
+                    });
                 }
             });
         }
