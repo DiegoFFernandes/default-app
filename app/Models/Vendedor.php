@@ -25,16 +25,36 @@ class Vendedor extends Model
 
     public function FindVendedorJunsoftAll($search)
     {
-        $query = "select first 10 p.cd_pessoa id, 
-                    cast(p.nm_pessoa as varchar(100) character set utf8) nm_vendedor
-                    from vendedor v
-                    inner join pessoa p on (v.cd_vendedor = p.cd_pessoa)                    
-                    where p.st_ativa = 'S'
-                        --and p.cd_tipopessoa in (1,3)
-                        and p.nm_pessoa like '%$search%'";
+        $query = "
+            select first 10 p.cd_pessoa id, 
+                cast(p.nm_pessoa as varchar(100) character set utf8) nm_vendedor
+            from vendedor v
+            inner join pessoa p on (v.cd_vendedor = p.cd_pessoa)                    
+            where p.st_ativa = 'S'
+                --and p.cd_tipopessoa in (1,3)
+                " . ($search ? "and p.nm_pessoa like '%$search%'" : "") . "
+        ";
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    public function getVendedorAll()
+    {
+        $query = "
+            SELECT
+                P.CD_PESSOA CD_VENDEDOR,
+                CD_VENDEDOR||'-'||P.NM_PESSOA NM_VENDEDOR
+            FROM VENDEDOR V
+            INNER JOIN PESSOA P ON (V.CD_VENDEDOR = P.CD_PESSOA)
+            WHERE
+                V.ST_ATIVO = 'S'   
+            ORDER BY P.NM_PESSOA";
+
+        return Cache::remember('vendedores_all', now()->addMinutes(60), function () use ($query) {
+            $data = DB::connection('firebird')->select($query);
+            return Helper::ConvertFormatText($data);
+        });
     }
 
     public function getAcompanhamentoVendedor($cd_empresa)

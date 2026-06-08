@@ -96,9 +96,11 @@ class IAController extends Controller
 
 
         $vendedor = [];
+        $cliente = [];
+        $desenhoBanda = [];
 
         foreach ($dados as $item) {
-            $nm_vendedor = $item->NM_VENDEDOR;
+            $nm_vendedor = $item->NM_VENDEDOR ?? 'Sem Vendedor';
             if (!isset($vendedor[$nm_vendedor])) {
                 $vendedor[$nm_vendedor] = [
                     'qtd' => 0,
@@ -107,9 +109,32 @@ class IAController extends Controller
             }
             $vendedor[$nm_vendedor]['qtd'] += $item->QTD;
             $vendedor[$nm_vendedor]['valor'] += $item->VL_TOTAL;
+
+
+            $nm_cliente = $item->NM_PESSOA ?? 'Sem Cliente';
+            if (!isset($cliente[$nm_cliente])) {
+                $cliente[$nm_cliente] = [
+                    'qtd' => 0,
+                    'valor' => 0,
+                ];
+            }
+            $cliente[$nm_cliente]['qtd'] += $item->QTD;
+            $cliente[$nm_cliente]['valor'] += $item->VL_TOTAL;
+
+            $desenho = $item->DSDESENHO ?? 'Sem Desenho';
+            if (!isset($desenhoBanda[$desenho])) {
+                $desenhoBanda[$desenho] = [
+                    'qtd' => 0,
+                    'valor' => 0,
+                ];
+            }
+            $desenhoBanda[$desenho]['qtd'] += $item->QTD;
+            $desenhoBanda[$desenho]['valor'] += $item->VL_TOTAL;
         }
 
         arsort($vendedor);
+        arsort($desenhoBanda);
+        arsort($cliente);
 
         return response()->json([
             'tabela' => [
@@ -158,7 +183,7 @@ class IAController extends Controller
                 'titulo' => 'Coletas por Vendedor',
                 'progress' => array_map(function ($vendedor, $qtd, $valor) use ($qtdPneus, $valorTotal) {
                     return [
-                        'vendedor' => $vendedor,
+                        'nome' => $vendedor,
                         'qtdColetado' => $qtd,
                         'totalPneus' => $qtdPneus,
                         'percQtd' => round(($qtd / $qtdPneus) * 100, 2),
@@ -166,6 +191,32 @@ class IAController extends Controller
                         'valor' => "R$ " . number_format($valor, 2, ',', '.')
                     ];
                 }, array_keys($vendedor), array_column($vendedor, 'qtd'), array_column($vendedor, 'valor'))
+            ],
+            'progress_clientes' => [
+                'titulo' => 'Coletas por Cliente',
+                'progress' => array_map(function ($cliente, $qtd, $valor) use ($qtdPneus, $valorTotal) {
+                    return [
+                        'nome' => $cliente,
+                        'qtdColetado' => $qtd,
+                        'totalPneus' => $qtdPneus,
+                        'percQtd' => round(($qtd / $qtdPneus) * 100, 2),
+                        'percValor' => round(($valor / $valorTotal) * 100, 2),
+                        'valor' => "R$ " . number_format($valor, 2, ',', '.')
+                    ];
+                }, array_keys($cliente), array_column($cliente, 'qtd'), array_column($cliente, 'valor'))
+            ],
+            'progress_desenho_banda' => [
+                'titulo' => 'Coletas por Desenho/Banda',
+                'progress' => array_map(function ($desenho, $qtd, $valor) use ($qtdPneus, $valorTotal) {
+                    return [
+                        'nome' => $desenho,
+                        'qtdColetado' => $qtd,
+                        'totalPneus' => $qtdPneus,
+                        'percQtd' => round(($qtd / $qtdPneus) * 100, 2),
+                        'percValor' => round(($valor / $valorTotal) * 100, 2),
+                        'valor' => "R$ " . number_format($valor, 2, ',', '.')
+                    ];
+                }, array_keys($desenhoBanda), array_column($desenhoBanda, 'qtd'), array_column($desenhoBanda, 'valor'))
             ]
 
         ]);

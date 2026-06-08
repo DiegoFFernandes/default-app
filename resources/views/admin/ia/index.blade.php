@@ -59,6 +59,7 @@
 
             </div>
 
+
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
@@ -74,7 +75,15 @@
                     <div class="card-body pt-2 pb-0 pr-3">
                         <div class="row">
                             <div class="col-md-8 pr-3" style="border-right: 1px solid #dee2e6;">
-
+                                <p id="resposta-chart-title-banda" class="text-center">
+                                    <strong>Coletas por Banda</strong>
+                                </p>
+                                <div class="chart">
+                                    <div class="chartjs-bar">
+                                        <canvas id="resposta-grafico"
+                                            style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="col-md-4">
@@ -151,6 +160,11 @@
 
         .form-control-lg {
             height: calc(3rem + 2px) !important;
+            font-size: 1rem !important;
+        }
+
+        .modo-chat .form-control-lg {
+            height: calc(2rem + 2px) !important;
             font-size: 1rem !important;
         }
 
@@ -247,7 +261,8 @@
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
         };
 
-        let progressDataGlobal = null;
+        let progressDataGlobalVendedores = null;
+        let progressDataGlobalClientes = null;
         let tabelaIA = null;
 
         function perguntarIA() {
@@ -304,13 +319,29 @@
 
                     if (data.progress_vendedores) {
 
-                        progressDataGlobal = data.progress_vendedores;
+                        progressDataGlobalVendedores = data.progress_vendedores;
 
                         document.getElementById('resposta-progress-title-vendedor').innerHTML =
                             `<strong> ${data.progress_vendedores.titulo}</strong>`;
 
-                        renderProgressBarItens(data.progress_vendedores.progress);
+                        renderProgressBarItens(data.progress_vendedores.progress, 'resposta-progress-vendedor');
 
+
+                    }
+
+                    if (data.progress_clientes) {
+
+                        progressDataGlobalClientes = data.progress_clientes;
+
+                        document.getElementById('resposta-progress-title-cliente').innerHTML =
+                            `<strong> ${data.progress_clientes.titulo}</strong>`;
+
+                        renderProgressBarItens(data.progress_clientes.progress, 'resposta-progress-cliente');
+
+                    }
+
+                    if (data.progress_desenho_banda) {
+                        renderChartBar(data.progress_desenho_banda);
                     }
 
                     if (data.resumo_ia) {
@@ -318,6 +349,8 @@
                             <p class="text-bold">${data.resumo_ia}</p>
                         `;
                     }
+
+
 
                     $('.title-ia').addClass('d-none');
                     $('.card-header-tabela').text(data.tabela.titulo);
@@ -342,8 +375,8 @@
 
             const termo = this.value.toLowerCase();
 
-            if (progressDataGlobal) {
-                const filtrado = progressDataGlobal.progress.filter(item => {
+            if (progressDataGlobalVendedores) {
+                const filtrado = progressDataGlobalVendedores.progress.filter(item => {
                     return Object.values(item)
                         .join(' ')
                         .toLowerCase()
@@ -351,7 +384,7 @@
 
                 });
 
-                renderProgressBarItens(filtrado);
+                renderProgressBarItens(filtrado, 'resposta-progress-vendedor');
 
             }
 
@@ -471,7 +504,7 @@
                 paging: false,
                 scrollX: true,
                 scrollCollapse: true,
-                scrollY: '300px',
+                scrollY: '400px',
                 info: false,
                 dom: 'lrtip',
                 language: {
@@ -531,19 +564,24 @@
             document.getElementById('resposta-info').innerHTML = html;
         }
 
-        function renderProgressBarItens(itens) {
+        function renderProgressBarItens(itens, selector) {
             let html = ``;
 
             itens.forEach(item => {
                 html += `
                         <div class="progress-group" style="font-size: 0.8rem;">
-                            <a href="" class='filtro-vendedor' data-vendedor="${item.vendedor}">${item.vendedor}</a>                           
-                            <span class="float-right badge badge-primary ml-2">
-                                <b>${item.qtdColetado}/${item.totalPneus}</b>
-                            </span>
-                            <span class="float-right badge badge-success ml-2">
-                                (${item.valor})
-                            </span>
+                            <div class="d-flex align-items-center pr-2">
+                                <a href="" class="filtro-vendedor flex-grow-1 text-truncate" 
+                                    data-vendedor="${item.nome}">
+                                    ${item.nome}
+                                </a>                           
+                                <span class="badge badge-primary ml-2 flex-shrink-0" >
+                                    <b>${item.qtdColetado}/${item.totalPneus}</b>
+                                </span>
+                                <span class="badge badge-success ml-2 flex-shrink-0" >
+                                    (${item.valor})
+                                </span>
+                            </div>
                             <div class="progress progress-xs">
                                 <div class="progress-bar bg-primary" style="width: ${item.percQtd}%"></div>
                             </div>   
@@ -554,7 +592,42 @@
                     `;
             });
 
-            document.querySelector('#resposta-progress-vendedor').innerHTML = `${html}`;
+            document.querySelector(`#${selector}`).innerHTML = `${html}`;
+        }
+
+        function renderChartBar(data) {
+            const ctx = document.getElementById('resposta-grafico').getContext('2d');
+
+            const labels = data.progress.map(item => item.nome);
+            const dataQtd = data.progress.map(item => item.qtdColetado);
+            const dataValor = data.progress.map(item => parseFloat(item.valor.replace('R$ ', '').replace('.', '').replace(
+                ',', '.')));
+
+            if (window.graficoBarra) {
+                window.graficoBarra.destroy();
+            }
+
+            window.graficoBarra = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Bandas',
+                        data: dataQtd,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
     </script>
 @stop

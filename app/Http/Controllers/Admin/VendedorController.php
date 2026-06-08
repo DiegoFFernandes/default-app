@@ -42,9 +42,13 @@ class VendedorController extends Controller
         if ($this->request->has('q')) {
             $search = $this->request->q;
             $data = $this->vendedor->FindVendedorJunsoftAll($search);
+
+            return response()->json($data);
         }
-        return response()->json($data);
+        
+        return response()->json($this->vendedor->getVendedorAll());
     }
+
 
     public function index()
     {

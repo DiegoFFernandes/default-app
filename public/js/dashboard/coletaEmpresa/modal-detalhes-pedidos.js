@@ -46,16 +46,13 @@ $(document).on("click", ".btn-show-modal", function (e) {
     const ds_liberacao_anterior = $(this).data("ds_liberacao_anterior");
 
     $("#badge-ds-liberacao-anterior").click(function () {
-        swal.fire({
+        Swal.fire({
             text: ds_liberacao_anterior
                 ? ds_liberacao_anterior
-                : "Nenhuma liberação anterior registrada.",
-            icon: "info",
-            buttons: {
-                confirm: {
-                    text: "Fechar",
-                },
-            },
+                : "Nenhuma liberação anterior registrada.",            
+            showConfirmButton: true,
+            confirmButtonText: "Fechar",
+            
         });
     });
 });
