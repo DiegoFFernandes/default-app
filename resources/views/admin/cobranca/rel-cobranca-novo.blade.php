@@ -38,8 +38,8 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-canhoto" data-toggle="tab" href="#painel-canhoto"
-                                        role="tab" aria-controls="painel-canhoto" aria-selected="false">
+                                    <a class="nav-link" id="tab-canhoto" data-toggle="tab" href="#painel-canhoto" role="tab"
+                                        aria-controls="painel-canhoto" aria-selected="false">
                                         <i class="fas fa-receipt mr-1"></i> Canhoto
                                     </a>
                                 </li>
@@ -173,14 +173,29 @@
         }
 
         /* Accordion hierárquico */
-        .gerente-card { overflow: hidden; }
-        .gerente-card > .card-header button:focus { box-shadow: none; }
+        .gerente-card {
+            overflow: hidden;
+        }
 
-        .supervisor-container .btn { box-shadow: none !important; }
-        .supervisor-container .btn:focus { outline: none; }
+        .gerente-card>.card-header button:focus {
+            box-shadow: none;
+        }
 
-        .vendedor-container .btn { box-shadow: none !important; }
-        .vendedor-container .btn:focus { outline: none; }
+        .supervisor-container .btn {
+            box-shadow: none !important;
+        }
+
+        .supervisor-container .btn:focus {
+            outline: none;
+        }
+
+        .vendedor-container .btn {
+            box-shadow: none !important;
+        }
+
+        .vendedor-container .btn:focus {
+            outline: none;
+        }
 
 
         @media (max-width: 768px) {
@@ -197,6 +212,7 @@
         #tabela-inadimplencia-meses {
             font-size: 0.8rem;
         }
+
         #tabela-inadimplencia-meses thead th {
             background: #2d3748;
             color: #e2e8f0;
@@ -207,14 +223,17 @@
             padding: 8px 10px;
             white-space: nowrap;
         }
+
         #tabela-inadimplencia-meses tbody td {
             padding: 6px 10px;
             vertical-align: middle;
             border-color: #edf2f7;
         }
-        #tabela-inadimplencia-meses tbody tr:hover > td {
+
+        #tabela-inadimplencia-meses tbody tr:hover>td {
             background-color: #ebf4ff !important;
         }
+
         #tabela-inadimplencia-meses tfoot th {
             background: #f7fafc;
             font-weight: 700;
@@ -230,6 +249,7 @@
             border-radius: 4px;
             transition: all .15s ease;
         }
+
         .btn-detalhes:hover {
             transform: scale(1.1);
         }
@@ -301,11 +321,11 @@
         var tableInadimplencia;
 
         // Obtem o primeiro dia do mes em 240 dias
-        var dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');       
+        var dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');
 
         //Obtem o ultimo dia do mes atual -1
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
-        
+
         //datas selecionadas no date range picker
         var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
 
@@ -354,7 +374,8 @@
 
         $('#tab-relatorio-cobranca').on('click', function() {
             const tab = 1;
-            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            // Obtem o primeiro dia do mes em 240 dias
+            dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');
             dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
 
             const data = {
@@ -382,7 +403,8 @@
             initSelect2Pessoa('#pessoa_ch_cartao', routesInadimplenciaMensal.searchPessoa);
 
             const tab = 2;
-            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            // Obtem o primeiro dia do mes em 240 dias
+            dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');
             dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
 
@@ -416,7 +438,8 @@
         });
 
         $('#tab-canhoto').on('click', function() {
-            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            // Obtem o primeiro dia do mes em 240 dias
+            dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');
             dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
 
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
@@ -460,6 +483,7 @@
         });
 
         $('#btn-search-ch-cartao').on('click', function() {
+            
             if (!datasSelecionadasCartao.getInicio() == 0) {
                 dtInicio = datasSelecionadasCartao.getInicio();
                 dtFim = datasSelecionadasCartao.getFim();
@@ -472,18 +496,21 @@
                 cnpj: $('#filtro-cnpj_ch_cartao').val(),
                 filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
                 nm_supervisor: $('#filtro-supervisor_ch_cartao').val(),
-                filtro_cartorio: $('#filtro-cartorio_ch_cartao').val(),
+                filtro_cartorio: $('#filtro-cartorio-ch-cartao').val(),
                 session: true,
                 dtFim: dtFim,
                 dtInicio: dtInicio
             };
+
+            console.log(data);
             carregaDadosTela2(data);
         });
 
         //limpa as filtros e retorna tudo novamente
         $('#btn-reset').on('click', function() {
             hierarquia = null;
-            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            // Obtem o primeiro dia do mes em 240 dias
+            dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');
             dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
 
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
@@ -513,7 +540,8 @@
 
         $('#btn-reset-ch-cartao').on('click', function() {
             hierarquia = null;
-            dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+            // Obtem o primeiro dia do mes em 240 dias
+            dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');
             dtFim = moment().subtract(5, 'days').format('DD.MM.YYYY');
 
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
