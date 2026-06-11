@@ -624,7 +624,8 @@ function initTableInadimplenciaMeses(
                 ano: row.data().ANO,
                 tab: tab,
                 filtro: {
-                    filtro_cartorio: 0,
+                    filtro_cartorio: $('#filtro-cartorio').val(),
+                    cd_pessoa: ($("#pessoa").val() || []).join(','),
                 },
             },
             dataType: "json",

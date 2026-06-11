@@ -43,7 +43,7 @@ class Cobranca extends Model
             }                   
             
         }     
-
+        
         $query = "          
                 SELECT DISTINCT 
                     CONTAS.CD_FORMAPAGTO,                   
