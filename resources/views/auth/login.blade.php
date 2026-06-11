@@ -6,7 +6,55 @@
         .login-logo {
             background: white;
             background-size: cover;
-        }   
+        }
+
+        body.login-page {
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.login-page::before,
+        body.login-page::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: blobFloat 10s ease-in-out infinite;
+        }
+
+        body.login-page::before {
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            top: -160px;
+            right: -120px;
+        }
+
+        body.login-page::after {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+            bottom: -120px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes blobFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50%       { transform: translateY(-20px) scale(1.04); }
+        }
+
+        .login-box {
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box .card {
+            border: none !important;
+           
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25) !important;
+        }
     </style>
 @stop
 

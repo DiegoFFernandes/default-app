@@ -13,7 +13,7 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="card-body">
-                        <table class="table display table-sm compact" id="table-roles" style="width: 100%">
+                        <table class="table display table-sm compact table-font-small" id="table-roles" style="width: 100%">
                             <thead>
                                 <tr>
                                     <th>id</th>
@@ -40,7 +40,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Adicionar Usúario</h4>
+                    <h6 class="modal-title">Adicionar Usúario</h6>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -63,9 +63,9 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary" id="btn-save">Salvar</button>
-                    <button type="button" class="btn btn-warning d-none" id="btn-update">Atualizar</button>
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="btn-save">Salvar</button>
+                    <button type="button" class="btn btn-sm btn-warning d-none" id="btn-update">Atualizar</button>
                 </div>
             </div>
             <!-- /.modal-content -->
@@ -77,7 +77,7 @@
 
 @section('js')
     <script>
-        $('#table-roles').DataTable({
+        var table = $('#table-roles').DataTable({
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json'
             },
@@ -117,55 +117,215 @@
                     data: 'actions',
                     name: 'actions'
                 },
+                {
+                    data: 'role_names',
+                    name: 'role_names',
+                    visible: false
+                },
             ]
-        });
-
-        function resetModal() {
-            $('#nome').val('').hide();
-            $('#usuario').val(null).trigger('change').show();
-            $('#usuario').next('.select2-container').show();
-            $('#btn-save').removeClass('d-none');
-            $('#btn-update').addClass('d-none');
-        }
-
-        $('#btn-create').click(function() {
-            $('.modal-title').text('Adicionar usuário');
-            resetModal();
-            $('#modal-user').modal('show');
-        });
-
-        $('#table-roles').on('click', '.btn-editar', function(e) {
-            $('.modal-title').text('Editar função');
-            var rowData = $('#table-roles').DataTable().row($(this).parents('tr')).data();
-            resetModal();
-            $('#modal-user').modal('show');
-            $('#nome').val(rowData['name']).show();
-            $('#btn-save').addClass('d-none');
-            $('#btn-update').removeClass('d-none');
-            $('#usuario').hide();
-            $('#usuario').next('.select2-container').hide();
-
-        });
-        $('#table-roles').on('click', '.btn-delete', function(e) {
-            // var rowData = $('#table-roles').DataTable().row($(this).parents('tr')).data();
-            var rowData = $('#table-roles').DataTable().row($(this).parents('tr')).data();
-            console.log(rowData);
-        });
-
-        $('#modal-user').on('shown.bs.modal', function() {
-            $('#rolepessoa').val(null).trigger('change');
         });
 
         $('#usuario').select2({
             theme: 'bootstrap4',
             placeholder: "Selecione o usuário",
-            width: '100%'
+            width: '100%',
+            dropdownParent: $('#modal-user')
         });
 
         $('#rolepessoa').select2({
             theme: 'bootstrap4',
             width: '100%',
             placeholder: "Selecione as funções",
+            dropdownParent: $('#modal-user')
+        });
+
+        // Carrega as funções disponíveis uma vez
+        $.get("{{ route('usuario.role.get-roles') }}", function(data) {
+            data.forEach(function(role) {
+                $('#rolepessoa').append(new Option(role.name, role.name, false, false));
+            });
+            $('#rolepessoa').trigger('change');
+        });
+
+        function resetModal() {
+            $('#nome').val('').hide();
+            $('#usuario').empty().append('<option></option>').val(null).trigger('change').show();
+            $('#usuario').next('.select2-container').show();
+            $('#rolepessoa').val(null).trigger('change');
+            $('#btn-save').removeClass('d-none');
+            $('#btn-update').addClass('d-none');
+            $('#modal-user').removeData('user-id');
+        }
+
+        $('#btn-create').click(function() {
+            $('.modal-title').text('Adicionar usuário');
+            resetModal();
+
+            $.get("{{ route('usuario.role.get-users') }}", function(data) {
+                data.forEach(function(user) {
+                    var label = user.name + ' — ' + user.email;
+                    $('#usuario').append(new Option(label, user.id, false, false));
+                });
+                $('#usuario').trigger('change');
+            });
+
+            $('#modal-user').modal('show');
+        });
+
+        $('#table-roles').on('click', '.btn-editar', function() {
+            var rowData = table.row($(this).parents('tr')).data();
+            resetModal();
+            $('.modal-title').text('Editar função');
+            $('#nome').val(rowData.name).show();
+            $('#usuario').hide();
+            $('#usuario').next('.select2-container').hide();
+            $('#btn-save').addClass('d-none');
+            $('#btn-update').removeClass('d-none');
+            $('#modal-user').data('user-id', rowData.id);
+            $('#rolepessoa').val(rowData.role_names).trigger('change');
+            $('#modal-user').modal('show');
+        });
+
+        $('#btn-save').click(function() {
+            var userId = $('#usuario').val();
+            var roles = $('#rolepessoa').val();
+
+            if (!userId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Selecione um usuário.'
+                });
+                return;
+            }
+            if (!roles || roles.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Selecione pelo menos uma função.'
+                });
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('usuario.role.assign') }}",
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    user_id: userId,
+                    roles: roles
+                },
+                success: function(response) {
+                    $('#modal-user').modal('hide');
+                    table.ajax.reload(null, false);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message :
+                        'Erro ao salvar.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: msg
+                    });
+                }
+            });
+        });
+
+        $('#btn-update').click(function() {
+            var userId = $('#modal-user').data('user-id');
+            var roles = $('#rolepessoa').val();
+
+            if (!roles || roles.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção',
+                    text: 'Selecione pelo menos uma função.'
+                });
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('usuario.role.update') }}",
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    user_id: userId,
+                    roles: roles
+                },
+                success: function(response) {
+                    $('#modal-user').modal('hide');
+                    table.ajax.reload(null, false);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message :
+                        'Erro ao atualizar.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: msg
+                    });
+                }
+            });
+        });
+
+        $('#table-roles').on('click', '.btn-delete', function() {
+            var rowData = table.row($(this).parents('tr')).data();
+
+            Swal.fire({
+                title: 'Confirmar exclusão',
+                html: 'Deseja remover todas as funções e excluir o usuário <strong>' + rowData.name +
+                    '</strong>?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, excluir',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "{{ route('usuario.role.remove') }}",
+                        method: 'DELETE',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            user_id: rowData.id
+                        },
+                        success: function(response) {
+                            table.ajax.reload(null, false);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sucesso',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        },
+                        error: function(xhr) {
+                            var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr
+                                .responseJSON.message : 'Erro ao excluir.';
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erro',
+                                text: msg
+                            });
+                        }
+                    });
+                }
+            });
         });
     </script>
 @stop

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ConfigurationUsersController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PermissionUserController;
 use App\Http\Controllers\admin\PessoaController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\admin\UserController;
@@ -23,21 +24,40 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::post('atualizar', [UserController::class, 'update'])->name('usuario.update');
 
         /*Rotas funções*/
-        Route::get('funcao', [RoleController::class, 'index'])->name('usuario.role');
+        Route::get('funcao-user', [RoleController::class, 'index'])->name('usuario.role');
         Route::get('list-funcao', [RoleController::class, 'listUserRole'])->name('usuario.list_role');
         Route::get('funcao/editar/{id}', [RoleController::class, 'edit'])->name('usuario.role.edit');
         Route::post('funcao/editar', [RoleController::class, 'update'])->name('usuario.role.edit.do');
         Route::get('funcao/novo', [RoleController::class, 'create'])->name('usuario.role.create');
         Route::post('funcao/novo', [RoleController::class, 'save'])->name('usuario.role.create.do');
         Route::get('funcao/delete/{id}', [RoleController::class, 'delete'])->name('usuario.role.delete');
+        Route::get('funcao/get-users', [RoleController::class, 'getUsers'])->name('usuario.role.get-users');
+        Route::get('funcao/get-roles', [RoleController::class, 'getRoles'])->name('usuario.role.get-roles');
+        Route::post('funcao/atribuir', [RoleController::class, 'assign'])->name('usuario.role.assign');
+        Route::post('funcao/atualizar', [RoleController::class, 'updateRole'])->name('usuario.role.update');
+        Route::delete('funcao/remover', [RoleController::class, 'removeUser'])->name('usuario.role.remove');
 
-        /*Rotas permission*/
-        Route::get('permissao', [PermissionController::class, 'index'])->name('usuario.permission');
-        Route::get('permissao/editar/{id}', [PermissionController::class, 'edit'])->name('usuario.permission.edit');
-        Route::post('permissao/editar', [PermissionController::class, 'update'])->name('usuario.permission.edit.do');
-        Route::get('permissao/novo', [PermissionController::class, 'create'])->name('usuario.permission.create');
-        Route::post('permissao/novo', [PermissionController::class, 'save'])->name('usuario.permission.create.do');
-        Route::get('permissao/delete/{id}', [PermissionController::class, 'delete'])->name('usuario.permission.delete');
+        /*Rotas permission-role*/
+        Route::prefix('permissao-role')->group(function () {
+            Route::get('/', [PermissionController::class, 'index'])->name('usuario.permission-role');
+            Route::get('list', [PermissionController::class, 'listRolePermission'])->name('usuario.permission-role.list');
+            Route::get('get-roles', [PermissionController::class, 'getRoles'])->name('usuario.permission-role.get-roles');
+            Route::get('get-permissions', [PermissionController::class, 'getPermissions'])->name('usuario.permission-role.get-permissions');
+            Route::post('atribuir', [PermissionController::class, 'assign'])->name('usuario.permission-role.assign');
+            Route::post('atualizar', [PermissionController::class, 'updatePermission'])->name('usuario.permission-role.update');
+            Route::delete('remover', [PermissionController::class, 'removePermissions'])->name('usuario.permission-role.remove');
+        });
+
+        /*Rotas permission-user*/
+        Route::prefix('permissao-user')->group(function () {
+            Route::get('/', [PermissionUserController::class, 'index'])->name('usuario.permission-user');
+            Route::get('list', [PermissionUserController::class, 'listUserPermission'])->name('usuario.permission-user.list');
+            Route::get('get-users', [PermissionUserController::class, 'getUsers'])->name('usuario.permission-user.get-users');
+            Route::get('get-permissions', [PermissionUserController::class, 'getPermissions'])->name('usuario.permission-user.get-permissions');
+            Route::post('atribuir', [PermissionUserController::class, 'assign'])->name('usuario.permission-user.assign');
+            Route::post('atualizar', [PermissionUserController::class, 'updatePermission'])->name('usuario.permission-user.update');
+            Route::delete('remover', [PermissionUserController::class, 'removePermissions'])->name('usuario.permission-user.remove');
+        });
 
         // Configurações de Usuários
         Route::get('configuration-users', [ConfigurationUsersController::class, 'index'])->name('usuario.configuration-users');

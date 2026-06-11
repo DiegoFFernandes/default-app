@@ -8,7 +8,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-primary">
-                    <div class="card-body">
+                    <div class="card-body p-3">
                         <h6 class="text-muted">Olá seja bem vindo(a), {{ $user_auth->name }}!</h6>
                     </div>
                 </div>
@@ -27,25 +27,21 @@
                                     <strong>Comercial</strong>
                                 </div>
                             @endcanany
-                            <div class="atalhos-container d-flex flex-wrap gap-2 mb-2">
+                            <div class="atalhos-container mb-2">
                                 @haspermission('ver-coleta-empresa')
                                     <a href="{{ route('coleta-empresa-geral') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fas fa-truck fa-2x mb-2"></i>
                                                 </div>
 
                                                 <div class="text-dark justify-content-center">
                                                     <div class="small font-weight-bold">
                                                         Coleta Geral
-                                                    </div>
-
-                                                    <small class="text-muted">
-                                                        Consultar coletas
-                                                    </small>
+                                                    </div>                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -56,20 +52,16 @@
                                     <a href="{{ route('analise-garantia.index') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fas fa-certificate fa-2x mb-2"></i>
                                                 </div>
 
                                                 <div class="text-dark">
                                                     <div class="small font-weight-bold">
                                                         Garantia
-                                                    </div>
-
-                                                    <small class="text-muted">
-                                                        Garantias Pagas
-                                                    </small>
+                                                    </div>                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -80,20 +72,16 @@
                                     <a href="{{ route('produzidos-sem-faturar') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fa fa-exclamation-circle fa-2x mb-2"></i>
                                                 </div>
 
                                                 <div class="text-dark">
                                                     <div class="small font-weight-bold">
                                                         Prontos S/ Faturar
-                                                    </div>
-
-                                                    <small class="text-muted">
-                                                        Consultar
-                                                    </small>
+                                                    </div>                                                   
                                                 </div>
                                             </div>
                                         </div>
@@ -105,20 +93,16 @@
                                     <a href="{{ route('bloqueio-pedidos') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fas fa-tasks fa-2x mb-2"></i>
                                                 </div>
 
                                                 <div class="text-dark">
                                                     <div class="small font-weight-bold">
                                                         Acompanha Pedidos
-                                                    </div>
-
-                                                    <small class="text-muted">
-                                                        Consultar pedidos
-                                                    </small>
+                                                    </div>                                                
                                                 </div>
                                             </div>
                                         </div>
@@ -128,9 +112,9 @@
                                     <a href="{{ route('analise-faturamento.index') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fas fa-chart-bar fa-2x mb-2"></i>
                                                 </div>
 
@@ -139,9 +123,7 @@
                                                         Análise Faturista
                                                     </div>
 
-                                                    <small class="text-muted">
-                                                        Consultar análise
-                                                    </small>
+                                                   
                                                 </div>
                                             </div>
                                         </div>
@@ -151,9 +133,9 @@
                                     <a href="{{ route('requisicao-borracharia.index') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fas fa-dolly fa-2x mb-2"></i>
                                                 </div>
 
@@ -162,9 +144,7 @@
                                                         Req. Borracharia
                                                     </div>
 
-                                                    <small class="text-muted">
-                                                        Consultar requisições
-                                                    </small>
+                                                   
                                                 </div>
                                             </div>
                                         </div>
@@ -174,9 +154,9 @@
                                     <a href="{{ route('carcaca-casa') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                        <div class="card-body p-2 mr-2">
+                                        <div class="card-body">
                                             <div class="d-flex align-items-center">
-                                                <div class="ml-0 mr-3 card-icon">
+                                                <div class="card-icon">
                                                     <i class="fas fa-boxes fa-2x mb-2"></i>
                                                 </div>
 
@@ -185,9 +165,7 @@
                                                         Estoque Carcacas
                                                     </div>
 
-                                                    <small class="text-muted">
-                                                        Consultar estoque
-                                                    </small>
+                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -199,13 +177,13 @@
                                     <div class="border-bottom mb-3 pb-1">
                                         <strong>Cobrança</strong>
                                     </div>
-                                    <div class="atalhos-container d-flex flex-wrap gap-2 mb-2">
+                                    <div class="atalhos-container mb-2">
                                         <a href="{{ route('rel-cliente') }}"
                                             class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                            <div class="card-body p-2 mr-2">
+                                            <div class="card-body">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="ml-0 mr-3 card-icon">
+                                                    <div class="card-icon">
                                                         <i class="fas fa-credit-card fa-2x mb-2"></i>
                                                     </div>
 
@@ -213,10 +191,7 @@
                                                         <div class="small font-weight-bold">
                                                             Financeiro Cliente
                                                         </div>
-
-                                                        <small class="text-muted">
-                                                            Consultar financeiro
-                                                        </small>
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -229,13 +204,13 @@
                                     <div class="border-bottom mb-3 pb-1">
                                         <strong>Produção</strong>
                                     </div>
-                                    <div class="atalhos-container d-flex flex-wrap gap-2 mb-2">
+                                    <div class="atalhos-container mb-2">
                                         <a href="{{ route('executor-etapas.index') }}"
                                             class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                            <div class="card-body p-2 mr-2">
+                                            <div class="card-body">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="ml-0 mr-3 card-icon">
+                                                    <div class="card-icon">
                                                         <i class="fas fa-cogs fa-2x mb-2"></i>
                                                     </div>
 
@@ -244,9 +219,7 @@
                                                             Executor x Produção
                                                         </div>
 
-                                                        <small class="text-muted">
-                                                            Consultar execução
-                                                        </small>
+                                                      
                                                     </div>
                                                 </div>
                                             </div>
@@ -254,9 +227,9 @@
                                         <a href="{{ route('pneus-lote-pcp') }}"
                                             class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                            <div class="card-body p-2 mr-2">
+                                            <div class="card-body">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="ml-0 mr-3 card-icon">
+                                                    <div class="card-icon">
                                                         <i class="fas fa-layer-group fa-2x mb-2"></i>
                                                     </div>
 
@@ -265,9 +238,7 @@
                                                             Painel PCP
                                                         </div>
 
-                                                        <small class="text-muted">
-                                                            Consultar painel
-                                                        </small>
+                                                        
                                                     </div>
                                                 </div>
                                             </div>
@@ -280,13 +251,13 @@
                                     <div class="border-bottom mb-3 pb-1">
                                         <strong>Faturamento</strong>
                                     </div>
-                                    <div class="atalhos-container d-flex flex-wrap gap-2 mb-2">
+                                    <div class="atalhos-container mb-2">
                                         <a href="{{ route('nota-devolucao.index') }}"
                                             class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                            <div class="card-body p-2 mr-2">
+                                            <div class="card-body">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="ml-0 mr-3 card-icon">
+                                                    <div class="card-icon">
                                                         <i class="fas fa-file-alt fa-2x mb-2"></i>
                                                     </div>
 
@@ -295,9 +266,7 @@
                                                             Nota Devolução
                                                         </div>
 
-                                                        <small class="text-muted">
-                                                            Consultar notas
-                                                        </small>
+                                                     
                                                     </div>
                                                 </div>
                                             </div>
@@ -311,13 +280,13 @@
                                         <div class="border-bottom mb-3 pb-1">
                                             <strong>Faturamento</strong>
                                         </div>
-                                        <div class="atalhos-container d-flex flex-wrap gap-2 mb-2">
+                                        <div class="atalhos-container mb-2">
                                             <a href="{{ route('list-notas-emitidas') }}"
                                                 class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                                <div class="card-body p-2 mr-2">
+                                                <div class="card-body">
                                                     <div class="d-flex align-items-center">
-                                                        <div class="ml-0 mr-3 card-icon">
+                                                        <div class="card-icon">
                                                             <i class="fas fa-receipt fa-2x mb-2"></i>
                                                         </div>
 
@@ -326,9 +295,7 @@
                                                                 Nota e Boleto
                                                             </div>
 
-                                                            <small class="text-muted">
-                                                                Consultar notas
-                                                            </small>
+                                                            
                                                         </div>
                                                     </div>
                                                 </div>
@@ -342,13 +309,13 @@
                                     <div class="border-bottom mb-3 pb-1">
                                         <strong>Tarefas</strong>
                                     </div>
-                                    <div class="atalhos-container d-flex flex-wrap gap-2 mb-2">
+                                    <div class="atalhos-container mb-2">
                                         <a href="{{ route('area-trabalho-tarefas') }}"
                                             class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                            <div class="card-body p-2 mr-2">
+                                            <div class="card-body">
                                                 <div class="d-flex align-items-center">
-                                                    <div class="ml-0 mr-3 card-icon">
+                                                    <div class="card-icon">
                                                         <i class="fas fa-clipboard-list fa-2x mb-2"></i>
                                                     </div>
 
@@ -357,9 +324,7 @@
                                                             Quadro de tarefas
                                                         </div>
 
-                                                        <small class="text-muted">
-                                                            Consultar tarefas
-                                                        </small>
+                                                       
                                                     </div>
                                                 </div>
                                             </div>
@@ -376,6 +341,8 @@
 @section('css')
     <style>
         .atalhos-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 10px;
         }
 
@@ -383,30 +350,72 @@
             transition: all .2s ease;
             text-decoration: none !important;
             color: inherit;
-            /* width: 210px; */
-            /* border-radius: 8px; */
+            border-radius: 8px !important;
+        }
+
+        .dashboard-shortcut .card-body {
+            padding: 10px 12px !important;
         }
 
         .dashboard-shortcut:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, .12);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, .14) !important;
+            border-color: #adb5bd !important;
         }
 
-
-
-        /* Ícone mais proporcional */
         .dashboard-shortcut .card-icon {
-            font-size: 13px;
-            border-radius: 10px;
-            width: 40px;
-            height: 40px;
-            margin: 0 10px 0 10px;
+            border-radius: 8px;
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            margin: 0 10px 0 0;
             display: flex !important;
             align-items: center !important;
-            /* centraliza vertical */
             justify-content: center !important;
-            /* centraliza horizontal */
+            background-color: rgba(0, 0, 0, .06);
+        }
 
+        .dashboard-shortcut .card-icon i {
+            margin: 0 !important;
+            font-size: 1.2rem;
+        }
+
+        /* Tablet: 3 colunas mínimas */
+        @media (max-width: 768px) {
+            .atalhos-container {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+
+        /* Mobile: 2 colunas fixas */
+        @media (max-width: 480px) {
+            .atalhos-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .dashboard-shortcut .card-body {
+                padding: 8px 10px !important;
+            }
+
+            .dashboard-shortcut .card-icon {
+                width: 36px;
+                height: 36px;
+                min-width: 36px;
+                margin-right: 8px;
+            }
+
+            .dashboard-shortcut .card-icon i {
+                font-size: 1rem;
+            }
+
+            .dashboard-shortcut .small {
+                font-size: 0.72rem;
+            }
+
+            .dashboard-shortcut small.text-muted {
+                font-size: 0.65rem;
+            }
         }
     </style>
 @stop

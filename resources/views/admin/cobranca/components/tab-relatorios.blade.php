@@ -1,11 +1,12 @@
-
 <div class="row">
     <div class="col-md-4 col-12">
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
                 <h5 class="card-title">Inadimplência Mensal</h5>
-                <div class="float-right"><button class="btn btn-secondary btn-xs btn-hover btn-toggle-chart">Exibir
-                        Gráfico</button>
+                <div class="float-right">
+                    <button class="btn btn-secondary btn-xs btn-hover btn-toggle-chart">
+                        <i class="fas fa-chart-bar mr-1"></i>Gráfico
+                    </button>
                 </div>
             </div>
             <div class="card-body p-2" id="card-inadimplencia-meses">
@@ -32,7 +33,17 @@
                     </div>
                 </div>
                 <div class="container-grafico" style="display:none;">
-                    <canvas id="{{ $grafico_mensal }}"></canvas>
+                    <div class="chart-type-btns d-flex justify-content-end mb-1" style="gap:3px;">
+                        <button class="btn btn-xs btn-secondary btn-hover btn-chart-type active"
+                                data-type="bar" title="Barras + % Inadimplência">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                        <button class="btn btn-xs btn-outline-secondary btn-hover btn-chart-type"
+                                data-type="line" title="Tendência %">
+                            <i class="fas fa-chart-line"></i>
+                        </button>
+                    </div>
+                    <canvas id="{{ $grafico_mensal }}" style="height:260px;"></canvas>
                 </div>
             </div>
             <div class="modal fade" id="{{ $modal_table }}" tabindex="-1" role="dialog"
@@ -66,9 +77,26 @@
             data-tree-accordion="{{ $treeAccordionGerente }}">
             <div class="card-header">
                 <h5 class="card-title">Relatório Vencidos</h5>
-                <div class="float-right">
-                    <input type="text" class="form-control input-busca input-busca-cliente order-3 order-md-2 mt-3 mt-md-0 mr-md-2"
-                    placeholder="Buscar Cliente...">
+                <div class="float-right d-flex align-items-center flex-wrap" style="gap:5px;">
+                    <select class="form-control form-control-sm select-vencimento"
+                            id="select-venc-{{ $treeAccordionGerente }}"
+                            data-accordion="{{ $treeAccordionGerente }}"
+                            style="width:105px; font-size:0.78rem;"
+                            title="Filtrar por mês">
+                        <option value="">Mês</option>
+                    </select>
+                    <select class="form-control form-control-sm select-dia-vencimento"
+                            id="select-dia-{{ $treeAccordionGerente }}"
+                            data-accordion="{{ $treeAccordionGerente }}"
+                            style="width:115px; font-size:0.78rem;"
+                            disabled
+                            title="Filtrar por data">
+                        <option value="">Data</option>
+                    </select>
+                    <input type="text"
+                        class="form-control form-control-sm input-busca input-busca-cliente"
+                        style="width:145px; font-size:0.78rem;"
+                        placeholder="Buscar Cliente...">
                 </div>
             </div>
             <div class="card-body p-2" id="{{ $card_inadimplencia }}">
@@ -83,8 +111,7 @@
                     <div class="card">
                         <div class="card-header p-1">
                             <h2 class="mb-0">
-                                <button class="btn btn-link" type="button" data-toggle="collapse"
-                                    data-target="#sup1">
+                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#sup1">
                                 </button>
                             </h2>
                         </div>
@@ -110,9 +137,39 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Gráficos de pizza: gerente (esq.) e supervisor (dir.) --}}
+                <div class="row mt-2">
+                    <div class="col-6 pr-1">
+                        <div class="card border-0 shadow-sm mb-0">
+                            <div class="card-header p-2" style="background:#f8f9fa; border-bottom:1px solid #e9ecef;">
+                                <small class="font-weight-bold text-muted" style="font-size:0.74rem;">
+                                    <i class="fas fa-chart-pie mr-1 text-primary"></i> % Gerentes
+                                </small>
+                            </div>
+                            <div class="card-body p-1" style="height:175px; position:relative;">
+                                <canvas id="pizza-g-{{ $treeAccordionGerente }}"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 pl-1">
+                        <div class="card border-0 shadow-sm mb-0">
+                            <div class="card-header p-2" style="background:#f8f9fa; border-bottom:1px solid #e9ecef;">
+                                <small class="font-weight-bold text-muted" style="font-size:0.74rem;">
+                                    <i class="fas fa-chart-pie mr-1 text-info"></i> % Supervisores
+                                </small>
+                            </div>
+                            <div class="card-body p-1" style="height:175px; position:relative;">
+                                <canvas id="pizza-s-{{ $treeAccordionGerente }}"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="card-footer text-right">
-                <strong>Total geral: </strong><span class="valorTotalGerente" id=""></span>
+                <strong>Total geral: </strong>
+                <span class="valorTotalGerente" id="">
+                </span>
             </div>
         </div>
     </div>

@@ -65,6 +65,7 @@ class NotasVendedorDivergencia extends Model
             --AND I.CD_EMPRESA = 1 
             ORDER BY NOTA.CD_EMPRESA,            
             NOTA.NR_LANCAMENTO 
+        
             ";
 
         $dados = DB::connection('firebird')->select($query);

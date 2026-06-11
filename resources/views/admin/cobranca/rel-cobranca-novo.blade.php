@@ -11,44 +11,47 @@
                         <ul class="nav nav-tabs" id="tabRelatorio" role="tablist">
                             @role('admin|gerente comercial|supervisor|vendedor|gerente unidade|cobranca')
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="tab-relatorio-cobranca" data-toggle="pill"
+                                    <a class="nav-link active" id="tab-relatorio-cobranca" data-toggle="tab"
                                         href="#painel-relatorio-cobranca" role="tab"
                                         aria-controls="painel-relatorio-cobranca" aria-selected="true">
-                                        Inadimplência
+                                        <i class="fas fa-exclamation-circle mr-1"></i> Inadimplência
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-cartao-cheque" data-toggle="pill" href="#painel-cartao-cheque"
+                                    <a class="nav-link" id="tab-cartao-cheque" data-toggle="tab" href="#painel-cartao-cheque"
                                         role="tab" aria-controls="painel-cartao-cheque" aria-selected="false">
-                                        Cheques e Cartão
+                                        <i class="fas fa-credit-card mr-1"></i> Cheques e Cartão
                                     </a>
                                 </li>
                             @endrole
                             @role('admin|gerente comercial|supervisor|vendedor|gerente unidade')
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-limite-credito" data-toggle="pill" href="#painel-limite-credito"
+                                    <a class="nav-link" id="tab-limite-credito" data-toggle="tab" href="#painel-limite-credito"
                                         role="tab" aria-controls="painel-limite-credito" aria-selected="false">
-                                        Limite Crédito
+                                        <i class="fas fa-tachometer-alt mr-1"></i> Limite Crédito
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-prazo-medio" data-toggle="pill" href="#painel-prazo-medio"
+                                    <a class="nav-link" id="tab-prazo-medio" data-toggle="tab" href="#painel-prazo-medio"
                                         role="tab" aria-controls="painel-prazo-medio" aria-selected="false">
-                                        Prazo Médio
+                                        <i class="fas fa-clock mr-1"></i> Prazo Médio
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-canhoto" data-toggle="pill" href="#painel-canhoto"
+                                    <a class="nav-link" id="tab-canhoto" data-toggle="tab" href="#painel-canhoto"
                                         role="tab" aria-controls="painel-canhoto" aria-selected="false">
-                                        Canhoto
+                                        <i class="fas fa-receipt mr-1"></i> Canhoto
                                     </a>
                                 </li>
                             @endrole
                         </ul>
                     </div>
                     <div class="card-body">
-                        <div class="mb-2">
-                            <small class="badge badge-danger badge-date-inadimplencia"></small>
+                        <div class="mb-3">
+                            <span class="badge badge-pill badge-secondary">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                <span class="badge-date-inadimplencia"></span>
+                            </span>
                         </div>
                         <div class="tab-content" id="tabContentRelatorio">
                             @role('admin|gerente comercial|supervisor|vendedor|gerente unidade|cobranca')
@@ -109,7 +112,7 @@
                                     ])
                                 </div>
                             @endrole
-                            @role('admin|gerente comercial|supervisor|vendedor|gerente unidade|cobranca')
+                            @role('admin|gerente comercial|supervisor|vendedor|gerente unidade')
                                 <div class="tab-pane fade" id="painel-limite-credito" role="tabpanel"
                                     aria-labelledby="tab-limite-credito">
                                     @include('admin.cobranca.components.tab-painel-limite-credito')
@@ -149,8 +152,9 @@
 
         .badge-indicador {
             display: inline-block;
-            width: 150px;
+            min-width: 58px;
             text-align: center;
+            padding: 4px 6px;
         }
 
         .badge-purple {
@@ -165,6 +169,16 @@
             width: 100%;
         }
 
+        /* Accordion hierárquico */
+        .gerente-card { overflow: hidden; }
+        .gerente-card > .card-header button:focus { box-shadow: none; }
+
+        .supervisor-container .btn { box-shadow: none !important; }
+        .supervisor-container .btn:focus { outline: none; }
+
+        .vendedor-container .btn { box-shadow: none !important; }
+        .vendedor-container .btn:focus { outline: none; }
+
 
         @media (max-width: 768px) {
             #tabela-limite-credito td:nth-child(1) {
@@ -176,13 +190,54 @@
             display: none;
         }
 
+        /* ── DataTable: Inadimplência Mensal ── */
+        #tabela-inadimplencia-meses {
+            font-size: 0.8rem;
+        }
+        #tabela-inadimplencia-meses thead th {
+            background: #2d3748;
+            color: #e2e8f0;
+            border: none;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 8px 10px;
+            white-space: nowrap;
+        }
+        #tabela-inadimplencia-meses tbody td {
+            padding: 6px 10px;
+            vertical-align: middle;
+            border-color: #edf2f7;
+        }
+        #tabela-inadimplencia-meses tbody tr:hover > td {
+            background-color: #ebf4ff !important;
+        }
+        #tabela-inadimplencia-meses tfoot th {
+            background: #f7fafc;
+            font-weight: 700;
+            font-size: 0.78rem;
+            border-top: 2px solid #cbd5e0;
+            padding: 6px 10px;
+        }
+
+        /* ── Botão detalhes ── */
+        .btn-detalhes {
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            transition: all .15s ease;
+        }
+        .btn-detalhes:hover {
+            transform: scale(1.1);
+        }
+
         .btn-hover {
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
 
-        #container-grafico {
-            height: 300px;
+        .container-grafico canvas {
+            height: 260px !important;
         }
 
         @media (max-width: 768px) {
@@ -204,12 +259,15 @@
             }
 
             .saldo {
-                display: block;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 3px;
+                margin-top: 4px;
             }
 
             .badge-detalhes {
-                width: 150px !important;
-                display: block;
+                min-width: 70px;
+                display: inline-block;
                 margin-top: 5px;
             }
         }
@@ -334,7 +392,6 @@
                 dtFim: dtFim,
                 dtInicio: dtInicio
             };
-            console.log(data);
             carregaDadosTela2(data);
 
             buscarTermo('accordion-inadimplencia-gerente-ch-cartao', '#buscarCliente-ch-cartao');

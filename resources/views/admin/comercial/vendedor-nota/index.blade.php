@@ -334,10 +334,7 @@
                         className: 'texto-curto'
 
                     },
-                ],
-                order: [
-                    [20, 'desc']
-                ],
+                ],               
                 drawCallback: function(settings) {
                     let grupoAtual = null;
                     let alternador = false;

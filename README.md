@@ -1,66 +1,185 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistema de Gestão — Recapadora de Pneus
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema web para gestão operacional e comercial de recapadora de pneus, integrando um ERP legado em Firebird com módulos próprios em Laravel/MySQL.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tecnologias
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Camada | Tecnologia |
+|---|---|
+| Backend | Laravel 9 (PHP 8.x) |
+| Frontend | AdminLTE 3 + Bootstrap 5 + jQuery |
+| Banco Principal (ERP) | Firebird (somente leitura + alguns writes) |
+| Banco Próprio | MySQL |
+| Autenticação | Laravel Session + Spatie Permission |
+| Notificações Push | Firebase Cloud Messaging (FCM) |
+| PDF | wkhtmltopdf via barryvdh/laravel-snappy |
+| Excel | maatwebsite/excel |
+| DataTables | yajra/laravel-datatables 9 |
+| Assets | Vite 4 |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Configuração Local
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Pré-requisitos
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- PHP 8.x com extensões: `pdo_firebird`, `pdo_mysql`, `gd`, `zip`
+- MySQL 8+
+- Firebird client (fbclient.dll no Windows)
+- Node.js 18+ e npm
+- wkhtmltopdf (para geração de PDF)
+- Composer 2
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Passo a passo
 
-## Laravel Sponsors
+```bash
+# 1. Clonar e instalar dependências PHP
+composer install
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+# 2. Copiar e configurar variáveis de ambiente
+cp .env.example .env
+php artisan key:generate
 
-### Premium Partners
+# 3. Configurar .env
+# DB_CONNECTION=mysql  (banco MySQL local)
+# Configurar FIREBIRD_* com dados do servidor ERP
+# Configurar FIREBASE_* com credenciais FCM
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+# 4. Criar tabelas e dados iniciais
+php artisan migrate
+php artisan db:seed
 
-## Contributing
+# 5. Instalar e compilar assets frontend
+npm install
+npm run dev       # desenvolvimento
+npm run build     # produção
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 6. Permissões de storage (Linux/Mac)
+chmod -R 775 storage bootstrap/cache
+```
 
-## Code of Conduct
+### Variáveis de Ambiente Críticas
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+# Banco MySQL (dados da aplicação)
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=recapadora
+DB_USERNAME=root
+DB_PASSWORD=
 
-## Security Vulnerabilities
+# Firebird (ERP legado — não alterar estrutura)
+FIREBIRD_HOST=
+FIREBIRD_PORT=3050
+FIREBIRD_DATABASE=
+FIREBIRD_USERNAME=
+FIREBIRD_PASSWORD=
+FIREBIRD_CHARSET=ISO8859_1
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Firebase Cloud Messaging
+FIREBASE_PROJECT_ID=
+FIREBASE_CREDENTIALS_PATH=
 
-## License
+# Fila (sync em produção)
+QUEUE_CONNECTION=sync
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Executando o Projeto
+
+```bash
+# Servidor de desenvolvimento
+php artisan serve
+
+# Compilar assets (modo watch)
+npm run dev
+
+# Executar jobs agendados manualmente
+php artisan send:msg_fcm
+php artisan pedidos:atualizar-alterados
+
+# Scheduler (em produção, configurar no crontab)
+* * * * * php /path/to/artisan schedule:run
+```
+
+---
+
+## Estrutura Geral
+
+```
+app/
+├── Console/Commands/       # Comandos artisan agendados
+├── Http/
+│   ├── Controllers/Admin/  # Controllers por módulo
+│   └── Middleware/         # Auth, UserActivity
+├── Jobs/                   # Processamento assíncrono (FCM)
+├── Models/                 # Eloquent models (MySQL + Firebird)
+└── Services/               # Lógica de negócio isolada
+
+routes/
+├── web.php                 # Rotas de autenticação e base
+├── comercial.php           # Módulo comercial (principal)
+├── pedido.php              # Pedidos de pneus
+├── estoque.php             # Estoque e carcaças
+├── expedicao.php           # Expedição
+├── producao.php            # Produção e PCP
+├── faturamento.php         # Análise de faturamento
+├── financeiro.php          # Liberação de ordens financeiras
+├── cobranca.php            # Relatórios de cobrança
+├── nota.php                # Notas e devoluções
+├── cliente.php             # Portal do cliente
+├── usuarios.php            # Gestão de usuários e permissões
+├── tarefas.php             # Kanban de tarefas
+├── fcm.php                 # Notificações push
+└── importa-junsoft.php     # Integração Junsoft
+
+resources/views/admin/      # Views por módulo (blade)
+database/migrations/        # Apenas tabelas MySQL próprias
+```
+
+---
+
+## Principais Módulos
+
+| Módulo | Descrição |
+|---|---|
+| Comercial | Tabela de preços, bloqueio de pedidos, acompanhamento, coletas, garantia, comissões |
+| Pedidos | Gestão de pedidos de pneus via Firebird |
+| Estoque | Carcaças, lotes, estoque negativo |
+| Expedição | Lotes de expedição e itens |
+| Produção | Executor de etapas, PCP (Planejamento e Controle) |
+| Faturamento | Análise e relatórios de faturamento |
+| Financeiro | Liberação de ordens e contas |
+| Cobrança | Inadimplência, prazo médio, canhotos |
+| Notas | Notas de devolução, divergências de vendedor |
+| Cliente | Portal com notas emitidas e boletos |
+| Usuários | CRUD de usuários, roles e permissões (Spatie) |
+| Tarefas | Board Kanban interno |
+| Notificações | Push via Firebase FCM |
+
+---
+
+## Controle de Acesso
+
+O sistema usa RBAC via `spatie/laravel-permission`. Os principais papéis são:
+
+- `admin` — Acesso total
+- `diretoria` — Relatórios e visão gerencial
+- `gerente comercial` — Módulo comercial completo
+- `supervisor comercial` — Supervisão de equipe
+- `vendedor comercial` — Operações de vendas
+- `gerente de unidade` — Gestão de unidade
+- `usuario comercial` — Operações básicas
+- `cliente` — Portal restrito do cliente
+
+Permissões granulares por tela, ex.: `ver-libera-ordem-comercial`, `ver-pedidos-alterados-valor`.
+
+---
+
+## Documentação Adicional
+
+- [Arquitetura Detalhada](docs/architecture.md)

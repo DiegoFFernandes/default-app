@@ -28,7 +28,7 @@
     <div class="{{ $authType }}-box">
 
         {{-- Logo --}}
-        <div class="{{ $authType }}-logo">
+        <div class="{{ $authType }}-logo rounded">
             <a href="{{ $dashboardUrl }}">
 
                 {{-- Logo Image --}}

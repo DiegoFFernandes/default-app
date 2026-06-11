@@ -44,10 +44,13 @@ class RoleController extends Controller
                 }
                 return $role;
             })
+            ->addColumn('role_names', function ($data) {
+                return $data->getRoleNames()->values()->toArray();
+            })
             ->addColumn('actions', function ($data) {
                 return '
-                <button type="button" class="btn-editar btn btn-warning btn-xs" data-id="' . $data->id . '">Editar</button> 
-                <button type="button" class="btn-delete btn btn-danger btn-xs" data-id="' . $data->id . '">Excluir</button>                     
+                <button type="button" class="btn-editar btn btn-warning btn-xs" data-id="' . $data->id . '">Editar</button>
+                <button type="button" class="btn-delete btn btn-danger btn-xs" data-id="' . $data->id . '">Excluir</button>
                 ';
             })
             ->rawColumns(['role', 'actions'])
@@ -122,5 +125,60 @@ class RoleController extends Controller
         DB::table("model_has_roles")->where('model_id', $id)->delete();
         return redirect()->route('admin.usuarios.role')
             ->with('status', 'Função usuario deletado com successo');
+    }
+
+    public function getUsers()
+    {
+        $users = User::select('users.id', 'users.name', 'users.email')
+            ->leftJoin('model_has_roles', 'model_has_roles.model_id', '=', 'users.id')
+            ->whereNull('model_has_roles.model_id')
+            ->where('users.id', '<>', '1')
+            ->groupBy('users.id', 'users.name', 'users.email')
+            ->orderBy('users.name')
+            ->get();
+
+        return response()->json($users);
+    }
+
+    public function getRoles()
+    {
+        return response()->json(Role::orderBy('name')->get(['id', 'name']));
+    }
+
+    public function assign(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'roles'   => 'required|array',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->syncRoles($request->roles);
+
+        return response()->json(['success' => true, 'message' => 'Funções atribuídas com sucesso!']);
+    }
+
+    public function updateRole(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'roles'   => 'required|array',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+        $user->syncRoles($request->roles);
+
+        return response()->json(['success' => true, 'message' => 'Funções atualizadas com sucesso!']);
+    }
+
+    public function removeUser(Request $request)
+    {
+        $request->validate(['user_id' => 'required|exists:users,id']);
+
+        $user = User::findOrFail($request->user_id);
+        $user->syncRoles([]);
+        $user->delete();
+
+        return response()->json(['success' => true, 'message' => 'Usuário removido com sucesso!']);
     }
 }

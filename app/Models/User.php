@@ -87,7 +87,7 @@ class User extends Authenticatable
     {
         return User::select('users.id', 'users.name', 'users.email', 'users.empresa', 'users.created_at')
             ->join('model_has_roles', 'model_has_roles.model_id', '=', 'users.id')
-            ->where('users.email', '<>', 'ti.campina@ivorecap.com.br')
+            ->where('users.email', '<>', 'admin@dbytech.com.br')
             ->where('users.id', '<>', '1')
             ->groupBy('users.id', 'users.name', 'users.email', 'users.empresa', 'users.created_at')
             ->orderBy('id')->get();

@@ -7,11 +7,11 @@
         <div class="content-fluid">
             <div class="card">
                 <div class="card-header">
-                    <a href="{{ route('usuario.role') }}" class="btn btn-danger float-right btn-sm"
-                        style="margin-right: 5px;">Permissão</a>
-                    <a href="{{ route('usuario.role') }}" class="btn btn-danger float-right btn-sm"
-                        style="margin-right: 5px;">Função</a>
-                    <button class="btn btn-success btn-sm" style="margin-right: 5px;" id="add-user">Adicionar</button>
+                    <a href="{{ route('usuario.permission-user') }}" class="btn btn-warning float-right btn-sm ml-1">Permissão Usuário</a>
+                    <a href="{{ route('usuario.role') }}" class="btn btn-info float-right btn-sm ml-1">Funções Usúario</a>
+                    <a href="{{ route('usuario.permission-role') }}" class="btn btn-danger float-right btn-sm ml-1">Permissões</a>
+                    
+                    <button class="btn btn-success btn-sm" id="add-user">Adicionar</button>
                 </div>
                 <!-- /.card-header -->
                 <div class="card-body">
