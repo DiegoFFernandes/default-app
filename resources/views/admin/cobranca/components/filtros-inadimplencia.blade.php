@@ -2,7 +2,17 @@
     <div class="card-header ui-sortable-handle">
         <h3 class="card-title"><i class="fas fa-filter mr-1 text-muted"></i> Filtros</h3>
         <div class="card-tools m-0">
-            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+           
+            @role('admin')
+                @if(!isset($tela) || $tela == 1)
+                <button type="button" class="btn btn-tool btn-parametros-cogs"
+                        data-toggle="modal" data-target="#modal-parametros-cogs"
+                        title="Parâmetros de inadimplência">
+                    <i class="fas fa-cogs"></i>
+                </button>
+            @endrole
+            @endif
+             <button type="button" class="btn btn-tool" data-card-widget="collapse">
                 <i class="fas fa-plus"></i>
             </button>
         </div>

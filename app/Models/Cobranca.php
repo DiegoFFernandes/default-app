@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Models\CobrancaParametro;
+use Carbon\Carbon;
 
 class Cobranca extends Model
 {
@@ -28,6 +30,20 @@ class Cobranca extends Model
         } else {
             $filtro_cartorio = "";
         }
+
+        if ($mes != 0) {           
+
+            $data = Carbon::create($ano, $mes, 1);
+
+            $filtro['dtInicio'] = $data->copy()->startOfMonth()->format('d.m.Y');
+            $filtro['dtFim'] = $data->copy()->endOfMonth()->format('d.m.Y');
+
+            if(date('m') == $mes){
+                $filtro['dtFim'] = Carbon::now()->subDay()->format('d.m.Y');
+            }                   
+            
+        }        
+
         $query = "          
                 SELECT DISTINCT 
                     CONTAS.CD_FORMAPAGTO,                   
@@ -99,17 +115,11 @@ class Cobranca extends Model
                     AND COALESCE(CONTAS.CD_SERIE, 'NA') NOT IN ('S') 
                     " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "                    
-                    " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
-                    
+                    " . $this->_filtroFormapagto($tela) . "
 
-                    " . ($tela == 1 && $detalhes == false ? "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "                    
-                    " . ($tela == 2 && $detalhes == false ? "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "
-                    
-                    " . ($mes != 0 && $tela == 1 && $detalhes == true ? "AND EXTRACT(MONTH FROM CONTAS.DT_VENCIMENTO) = $mes" : "") . "
-                    " . ($ano != 0 && $tela == 1 && $detalhes == true ? "AND EXTRACT(YEAR FROM CONTAS.DT_VENCIMENTO) = $ano" : "") . "
+                    " . ($tela == 1 ? "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "                    
+                    " . ($tela == 2 ? "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "                   
 
-                    " . ($mes != 0 && $tela == 2 && $detalhes == true ? "AND EXTRACT(MONTH FROM CONTAS.DT_LANCAMENTO) = $mes" : "") . "
-                    " . ($ano != 0 && $tela == 2 && $detalhes == true ? "AND EXTRACT(YEAR FROM CONTAS.DT_LANCAMENTO) = $ano" : "") . "
 
                     " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
@@ -272,7 +282,7 @@ class Cobranca extends Model
                 AND CONTAS.ST_CONTAS IN ('T', 'P', 'L')
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                     " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . "
-                " . ($tela == 1 ? "AND CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN')" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                 " . $this->_filtroFormapagto($tela) . "
                 AND CONTAS.DT_VENCIMENTO BETWEEN CURRENT_DATE - 240 AND CURRENT_DATE - 1
                  --AND CONTAS.NR_LANCAMENTO in (283541, 157658, 299564, 307282)
                 ";
@@ -337,7 +347,7 @@ class Cobranca extends Model
                 " . ($tela == 1 ?
             "AND CONTAS.DT_VENCIMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" :
             "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'") . "
-                " . ($tela == 1 ? " AND (CONTAS.CD_FORMAPAGTO IN ('BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN') OR CONTAS.CD_FORMAPAGTO IS NULL)" : "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')") . "
+                " . $this->_filtroFormapagto($tela) . "
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                 " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
                 
@@ -369,5 +379,19 @@ class Cobranca extends Model
         //     $data = DB::connection('firebird')->select($query);
         //     return Helper::ConvertFormatText($data);
         // });
+    }
+
+    private function _filtroFormapagto(int $tela): string
+    {
+        if ($tela != 1) {
+            return "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')";
+        }
+
+        $saved  = CobrancaParametro::get('inadimplencia_formapagto', 'BL,CC,CH,DB,DF,DI,TL,TC,CN');
+        $codes  = collect(explode(',', $saved))
+            ->map(fn($c) => "'" . trim($c) . "'")
+            ->implode(', ');
+
+        return "AND (CONTAS.CD_FORMAPAGTO IN ({$codes}) OR CONTAS.CD_FORMAPAGTO IS NULL)";
     }
 }

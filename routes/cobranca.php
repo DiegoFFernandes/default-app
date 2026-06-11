@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CobrancaParametroController;
 use App\Http\Controllers\Admin\RelatorioCobrancaController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,10 @@ Route::middleware(['permission:ver-rel-cobranca'])->group(function () {
 
         Route::get('get-list-canhoto', [RelatorioCobrancaController::class, 'getCanhoto'])->name('get-list-canhoto');
         Route::get('get-list-canhoto-details', [RelatorioCobrancaController::class, 'getCanhotoDetails'])->name('get-list-canhoto-details');
+
+        // parâmetros de configuração
+        Route::get('parametros-cogs',  [CobrancaParametroController::class, 'index'])->name('parametros-cogs');
+        Route::post('parametros-cogs', [CobrancaParametroController::class, 'update'])->name('parametros-cogs.update');
     });
     
 });

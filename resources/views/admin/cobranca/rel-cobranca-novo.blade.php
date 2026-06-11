@@ -59,6 +59,7 @@
                                     aria-labelledby="tab-relatorio-cobranca">
 
                                     @include('admin.cobranca.components.filtros-inadimplencia', [
+                                        'tela' => 1,
                                         'pessoa' => 'pessoa',
                                         'filtro_gerente' => 'filtro-gerente',
                                         'filtro_supervisor' => 'filtro-supervisor',
@@ -89,6 +90,7 @@
                                 <div class="tab-pane fade" id="painel-cartao-cheque" role="tabpanel"
                                     aria-labelledby="tab-cartao-cheque">
                                     @include('admin.cobranca.components.filtros-inadimplencia', [
+                                        'tela' => 2,
                                         'pessoa' => 'pessoa_ch_cartao',
                                         'filtro_gerente' => 'filtro-gerente_ch_cartao',
                                         'filtro_supervisor' => 'filtro-supervisor_ch_cartao',
@@ -138,6 +140,7 @@
             </div>
         </div>
     </section>
+    @include('admin.cobranca.components.modal-parametros-cogs')
     <!-- /.content -->
 @stop
 
@@ -296,8 +299,13 @@
     <script type="text/javascript">
         const tab = 1;
         var tableInadimplencia;
-        var dtInicio = moment().subtract(240, 'days').format('DD.MM.YYYY');
+
+        // Obtem o primeiro dia do mes em 240 dias
+        var dtInicio = moment().subtract(240, 'days').startOf('month').format('DD.MM.YYYY');       
+
+        //Obtem o ultimo dia do mes atual -1
         var dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
+        
         //datas selecionadas no date range picker
         var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
 
