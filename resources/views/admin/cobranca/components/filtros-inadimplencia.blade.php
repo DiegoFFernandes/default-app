@@ -10,8 +10,8 @@
                         title="Parâmetros de inadimplência">
                     <i class="fas fa-cogs"></i>
                 </button>
+                @endif
             @endrole
-            @endif
              <button type="button" class="btn btn-tool" data-card-widget="collapse">
                 <i class="fas fa-plus"></i>
             </button>
@@ -22,7 +22,13 @@
             <div class="col-md-4 mb-2">
                 <label for="{{ $pessoa }}" class="form-label small"><i class="fas fa-user mr-1 text-muted"></i>Pessoa</label>
                 <select name='pessoa' class="form-control form-control-sm" id="{{ $pessoa }}"
-                    style="width: 100%">
+                    style="width: 100%"
+                    @if(isset($pessoa_multiple) && $pessoa_multiple)
+                        multiple
+                        data-placeholder="Selecione uma ou mais pessoas"
+                    @else
+                        data-placeholder="Selecione uma pessoa"
+                    @endif>
                 </select>
             </div>
             <div class="col-md-4 mb-2">

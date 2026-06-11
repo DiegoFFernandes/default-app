@@ -96,10 +96,11 @@ class UserController extends Controller
         $data = [];
 
         if ($this->request->has('q')) {
-            $search = $this->request->q;                
+            $search = $this->request->q ;                
             $cdTipoPessoa = $this->request->cd_tipopessoa;
             $data = $this->pessoa->FindPessoaJunsoftAll($search, $cdTipoPessoa);
         }
+
         return response()->json($data);
     }
 

@@ -42,7 +42,7 @@ class Cobranca extends Model
                 $filtro['dtFim'] = Carbon::now()->subDay()->format('d.m.Y');
             }                   
             
-        }        
+        }     
 
         $query = "          
                 SELECT DISTINCT 
@@ -121,12 +121,12 @@ class Cobranca extends Model
                     " . ($tela == 2 ? "AND CONTAS.DT_LANCAMENTO BETWEEN '" . $filtro['dtInicio'] . "' AND '" . $filtro['dtFim'] . "'" : "") . "                   
 
 
-                    " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
+                    " . $this->_filtroPessoa($filtro) . "
                     " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                     " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
-                    " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "     
-                    " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "  
-                    " . $filtro_cartorio . "  
+                    " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
+                    " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "
+                    " . $filtro_cartorio . "
                     --AND CONTAS.NR_LANCAMENTO in (283541, 157658, 299564, 307282)
                 ORDER BY CONTAS.$string, CONTAS.VL_SALDO;
              ";
@@ -351,13 +351,13 @@ class Cobranca extends Model
                 " . (!empty($cd_regiao) ? "AND V.CD_VENDEDORGERAL IN ($cd_regiao)" : "") . "
                 " . (($cd_empresa != 0) ? "AND CONTAS.CD_EMPRESA IN ($cd_empresa)" : "") . " 
                 
-                " . (!empty($filtro['nm_pessoa']) ? "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_pessoa']) . "%')" : "") . "
+                " . $this->_filtroPessoa($filtro) . "
                 " . (!empty($filtro['nm_supervisor']) ? "AND SUPERVISOR.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_supervisor']) . "%')" : "") . "
                 " . (!empty($filtro['nm_vendedor']) ? "AND VEND.NM_PESSOA LIKE ('%" . strtoupper($filtro['nm_vendedor']) . "%')" : "") . "
                 " . (!empty($filtro['cnpj']) ? "AND P.NR_CNPJCPF LIKE ('%" . strtoupper($filtro['cnpj']) . "%')" : "") . "
                 " . (!empty($filtro['cd_vendedor']) ? "AND V.CD_VENDEDOR IN (" . $filtro['cd_vendedor'] . ")" : "") . "
-                " . $filtro_cartorio . "  
-              
+                " . $filtro_cartorio . "
+
                      --AND CONTAS.NR_LANCAMENTO in (283541, 157658, 299564, 307282)
                 
             GROUP BY MES_ANO,
@@ -393,5 +393,21 @@ class Cobranca extends Model
             ->implode(', ');
 
         return "AND (CONTAS.CD_FORMAPAGTO IN ({$codes}) OR CONTAS.CD_FORMAPAGTO IS NULL)";
+    }
+
+    private function _filtroPessoa(array $filtro): string
+    {
+        if (!empty($filtro['cd_pessoa'])) {
+            $ids = collect(explode(',', $filtro['cd_pessoa']))
+                ->map(fn($id) => (int) trim($id))
+                ->filter()
+                ->implode(',');
+            return $ids ? "AND P.CD_PESSOA IN ({$ids})" : '';
+        }
+        if (!empty($filtro['nm_pessoa'])) {
+            $nm = strtoupper($filtro['nm_pessoa']);
+            return "AND P.CD_PESSOA||'-'||P.NM_PESSOA LIKE ('%{$nm}%')";
+        }
+        return '';
     }
 }

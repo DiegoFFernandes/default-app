@@ -75,6 +75,7 @@ class RelatorioCobrancaController extends Controller
     public function getListCobrancaGerente()
     {
         $this->request->validate([
+            'filtro.cd_pessoa' => 'string|nullable',
             'filtro.nm_pessoa' => 'string|nullable',
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',
@@ -621,6 +622,7 @@ class RelatorioCobrancaController extends Controller
     public function getInadimplencia()
     {
         $this->request->validate([
+            'filtro.cd_pessoa' => 'string|nullable',
             'filtro.nm_pessoa' => 'string|nullable',
             'filtro.nm_vendedor' => 'string|nullable',
             'filtro.nm_supervisor' => 'string|nullable',

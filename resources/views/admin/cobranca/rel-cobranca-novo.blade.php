@@ -61,6 +61,7 @@
                                     @include('admin.cobranca.components.filtros-inadimplencia', [
                                         'tela' => 1,
                                         'pessoa' => 'pessoa',
+                                        'pessoa_multiple' => true,
                                         'filtro_gerente' => 'filtro-gerente',
                                         'filtro_supervisor' => 'filtro-supervisor',
                                         'filtro_vendedor' => 'filtro-vendedor',
@@ -92,6 +93,7 @@
                                     @include('admin.cobranca.components.filtros-inadimplencia', [
                                         'tela' => 2,
                                         'pessoa' => 'pessoa_ch_cartao',
+                                        'pessoa_multiple' => true,
                                         'filtro_gerente' => 'filtro-gerente_ch_cartao',
                                         'filtro_supervisor' => 'filtro-supervisor_ch_cartao',
                                         'filtro_vendedor' => 'filtro-vendedor_ch_cartao',
@@ -353,11 +355,43 @@
             'language_datatables': "{{ asset('vendor/datatables/pt-br.json') }}"
         };
 
-        //Carrega o select2 de pessoa
-        initSelect2Pessoa('#pessoa', routesInadimplenciaMensal.searchPessoa);
+        // Select2 multi-pessoa: inicializa lazy (somente ao expandir o card de filtros)
+        // Motivo: collapsed-card oculta o elemento na carga; Select2 em elemento hidden
+        //         não renderiza o placeholder. Inicializar após expansão resolve isso.
+        $('#pessoa').closest('.card').one('expanded.lte.cardwidget', function() {
+            $('#pessoa').select2({
+                theme: 'bootstrap4',
+                language: 'pt-BR',
+                placeholder: 'Selecione uma ou mais pessoas',
+                allowClear: true,
+                minimumInputLength: 2,
+                ajax: {
+                    url: routesInadimplenciaMensal.searchPessoa,
+                    type: 'POST',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function(params) {
+                        return {
+                            q: params.term,
+                            _token: '{{ csrf_token() }}'
+                        };
+                    },
+                    processResults: function(items) {
+                        return {
+                            results: items.map(function(item) {
+                                return {
+                                    text: item.NM_PESSOA,
+                                    id: item.ID
+                                };
+                            })
+                        };
+                    }
+                }
+            });
+        });
 
         const data = {
-            nm_pessoa: $("#pessoa option:selected").text(),
+            cd_pessoa: '',
             nm_vendedor: $('#filtro-vendedor').val(),
             cnpj: $('#filtro-cnpj').val(),
             filtro_gerente: $('#filtro-gerente').val(),
@@ -379,7 +413,7 @@
             dtFim = moment().subtract(1, 'days').format('DD.MM.YYYY');
 
             const data = {
-                nm_pessoa: $("#pessoa option:selected").text(),
+                cd_pessoa: ($("#pessoa").val() || []).join(','),
                 nm_vendedor: $('#filtro-vendedor').val(),
                 cnpj: $('#filtro-cnpj').val(),
                 filtro_gerente: $('#filtro-gerente').val(),
@@ -400,7 +434,37 @@
         let datasSelecionadasCartao = null;
 
         $('#tab-cartao-cheque').on('click', function() {
-            initSelect2Pessoa('#pessoa_ch_cartao', routesInadimplenciaMensal.searchPessoa);
+            if (!$('#pessoa_ch_cartao').data('select2')) {
+                $('#pessoa_ch_cartao').select2({
+                    theme: 'bootstrap4',
+                    language: 'pt-BR',
+                    placeholder: 'Selecione uma ou mais pessoas',
+                    allowClear: true,
+                    minimumInputLength: 2,
+                    ajax: {
+                        url: routesInadimplenciaMensal.searchPessoa,
+                        type: 'POST',
+                        dataType: 'json',
+                        delay: 300,
+                        data: function(params) {
+                            return {
+                                q: params.term,
+                                _token: '{{ csrf_token() }}'
+                            };
+                        },
+                        processResults: function(data) {
+                            return {
+                                results: data.map(function(item) {
+                                    return {
+                                        text: item.NM_PESSOA,
+                                        id: item.ID
+                                    };
+                                })
+                            };
+                        }
+                    }
+                }).trigger('change.select2');
+            }
 
             const tab = 2;
             // Obtem o primeiro dia do mes em 240 dias
@@ -412,7 +476,7 @@
                 datasSelecionadasCartao = initDateRangePicker('#daterange-ch-cartao', dtInicio, dtFim);
             }
             const data = {
-                nm_pessoa: $("#pessoa_ch_cartao option:selected").text(),
+                cd_pessoa: ($("#pessoa_ch_cartao").val() || []).join(','),
                 nm_vendedor: $('#filtro-vendedor_ch_cartao').val(),
                 cnpj: $('#filtro-cnpj_ch_cartao').val(),
                 filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
@@ -469,7 +533,7 @@
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
             hierarquia = null;
             const data = {
-                nm_pessoa: $("#pessoa option:selected").text(),
+                cd_pessoa: ($("#pessoa").val() || []).join(','),
                 nm_vendedor: $('#filtro-vendedor').val(),
                 cnpj: $('#filtro-cnpj').val(),
                 filtro_gerente: $('#filtro-gerente').val(),
@@ -483,7 +547,7 @@
         });
 
         $('#btn-search-ch-cartao').on('click', function() {
-            
+
             if (!datasSelecionadasCartao.getInicio() == 0) {
                 dtInicio = datasSelecionadasCartao.getInicio();
                 dtFim = datasSelecionadasCartao.getFim();
@@ -491,7 +555,7 @@
             $('.badge-date-inadimplencia').text('Período: ' + dtInicio + ' a ' + dtFim);
             // hierarquia = null;
             const data = {
-                nm_pessoa: $("#pessoa_ch_cartao option:selected").text(),
+                cd_pessoa: ($("#pessoa_ch_cartao").val() || []).join(','),
                 nm_vendedor: $('#filtro-vendedor_ch_cartao').val(),
                 cnpj: $('#filtro-cnpj_ch_cartao').val(),
                 filtro_gerente: $('#filtro-gerente_ch_cartao').val(),
@@ -502,7 +566,6 @@
                 dtInicio: dtInicio
             };
 
-            console.log(data);
             carregaDadosTela2(data);
         });
 
@@ -523,9 +586,10 @@
             $('#filtro-cnpj').val('');
             $('#filtro-supervisor').val('');
             $('#filtro-gerente').val(0).change();
+            $('#pessoa').val(null).trigger('change');
 
             const data = {
-                nm_pessoa: '',
+                cd_pessoa: '',
                 nm_vendedor: '',
                 cnpj: '',
                 nm_supervisor: '',
@@ -554,9 +618,10 @@
             $('#filtro-cnpj_ch_cartao').val('');
             $('#filtro-supervisor_ch_cartao').val('');
             $('#filtro-gerente_ch_cartao').val(0).change();
+            $('#pessoa_ch_cartao').val(null).trigger('change');
 
             const data = {
-                nm_pessoa: '',
+                cd_pessoa: '',
                 nm_vendedor: '',
                 cnpj: '',
                 nm_supervisor: '',
