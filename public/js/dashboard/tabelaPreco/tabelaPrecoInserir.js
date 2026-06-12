@@ -77,7 +77,12 @@ $(document).on("click", "#btn-associar", function () {
             // Limpa a tabela e adiciona os dados no topo
             tabela_preview.clear().rows.add(dados_atualizados).draw();
 
-            msgToastr("Itens adicionados à prévia com sucesso!", "success");
+            Swal.fire({
+                icon: "success",
+                title: "Itens adicionados à prévia com sucesso!",
+                showConfirmButton: false,
+                timer: 2000,
+            });
             $("#desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
         },
     });
@@ -312,7 +317,12 @@ $(document).on("click", "#btn-add-modal", function () {
 
             tabela_preview.clear().rows.add(dados_atualizados).draw();
 
-            msgToastr("Itens adicionados à prévia com sucesso!", "success");
+            Swal.fire({
+                icon: "success",
+                title: "Itens adicionados à prévia com sucesso!",
+                showConfirmButton: false,
+                timer: 2000,
+            });
         },
         complete: function () {
             Swal.close();
@@ -497,7 +507,6 @@ function carregaOpcoes(selectOrigem, selectDestino, url, paramName) {
             url: url,
             type: "GET",
             data: {
-                _csrf: "{{ csrf_token() }}",
                 [paramName]: selected,
                 select: paramName,
             },

@@ -310,6 +310,7 @@
 @stop
 
 @section('js')
+    <script src="{{ asset('js/dashboard/chart-helpers.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/inadimplencia.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/prazoMedio.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/limiteCredito.js') }}?v={{ time() }}"></script>

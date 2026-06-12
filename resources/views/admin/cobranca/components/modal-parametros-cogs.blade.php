@@ -42,17 +42,11 @@
 @push('js')
 <script>
 $(function () {
-    const OPCOES_FORMAPAGTO = [
-        { code: 'BL', label: 'Boleto'                   },
-        { code: 'CC', label: 'Cartão de Crédito'        },
-        { code: 'CH', label: 'Cheque'                   },
-        { code: 'DB', label: 'Débito'                   },
-        { code: 'DF', label: 'Débito em Folha'          },
-        { code: 'DI', label: 'Dinheiro'                 },
-        { code: 'TL', label: 'Ticket Log'               },
-        { code: 'TC', label: 'Taurus Card' },
-        { code: 'CN', label: 'Consulth'   },
-    ];
+    const OPCOES_FORMAPAGTO = @json(
+        collect($formasPagamento ?? [])
+            ->map(fn($fp) => ['code' => $fp->CD_FORMAPAGTO, 'label' => $fp->DS_FORMAPAGTO])
+            ->values()
+    );
 
     $('#modal-parametros-cogs').on('show.bs.modal', function () {
         $('#param-cogs-loading').show();
@@ -95,7 +89,12 @@ $(function () {
         }).get();
 
         if (selecionados.length === 0) {
-            toastr.warning('Selecione pelo menos uma forma de pagamento.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Selecione pelo menos uma forma de pagamento.',
+                confirmButtonText: 'OK',
+            });
             return;
         }
 
@@ -108,10 +107,27 @@ $(function () {
             data:   { formapagto: selecionados, _token: '{{ csrf_token() }}' },
             success: function (res) {
                 $('#modal-parametros-cogs').modal('hide');
-                toastr.success(res.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Salvo!',
+                    html: res.message + '<br><small class="text-muted">Atualize a tela para aplicar as novas configurações.</small>',
+                    confirmButtonText: '<i class="fas fa-sync-alt mr-1"></i> Atualizar agora',
+                    showCancelButton: true,
+                    cancelButtonText: 'Fechar',
+                    cancelButtonColor: '#6c757d',
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        location.reload();
+                    }
+                });
             },
             error: function () {
-                toastr.error('Erro ao salvar. Tente novamente.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao salvar. Tente novamente.',
+                    confirmButtonText: 'OK',
+                });
             },
             complete: function () {
                 $btn.prop('disabled', false)

@@ -7,10 +7,6 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
     }
 });
 
-$(document).on("click", "#tab-cadastradas", function () {
-    initTableTabelaPrecoCadastradasPreview();
-});
-
 $(document).on("click", ".btn-ver-itens-cadastradas", function () {
     var cd_tabela = $(this).data("cd_tabela");
     $(".title-nm-tabela").html($(this).data("nm_tabela"));

@@ -156,7 +156,7 @@
                         <div class="card border-0 shadow-sm mb-0">
                             <div class="card-header p-2" style="background:#f8f9fa; border-bottom:1px solid #e9ecef;">
                                 <small class="font-weight-bold text-muted" style="font-size:0.74rem;">
-                                    <i class="fas fa-chart-pie mr-1 text-info"></i> % Supervisores
+                                    <i class="fas fa-chart-bar mr-1 text-info"></i> % Supervisores
                                 </small>
                             </div>
                             <div class="card-body p-1" style="height:175px; position:relative;">

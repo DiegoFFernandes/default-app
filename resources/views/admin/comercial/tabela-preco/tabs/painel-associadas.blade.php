@@ -2,28 +2,24 @@
     <div class="row">
         <div class="col-12 col-md-8">
             <div class="card">
-                <div class="card-header">
-                    <div class="card-tools">
-                        <div class="row align-items-center">
-                            <div class="col-12 col-sm-auto">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="checkNaoAssociadas"
-                                        name="checkNaoAssociadas">
-                                    <label class="form-check-label" for="checkNaoAssociadas">
-                                        Tabelas não Associadas
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-sm-auto">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="checkAssociadas"
-                                        name="checkAssociadas">
-                                    <label class="form-check-label" for="checkAssociadas">
-                                        Tabelas Associadas
-                                    </label>
-                                </div>
-                            </div>
+                <div class="card-header d-flex align-items-center">
+                    <h3 class="card-title mr-3">
+                        <i class="fas fa-filter mr-1 text-muted"></i> Filtros
+                    </h3>
+                    <div class="filtros-associadas">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="checkNaoAssociadas"
+                                name="checkNaoAssociadas">
+                            <label class="form-check-label" for="checkNaoAssociadas">
+                                <i class="fas fa-unlink mr-1 text-warning"></i> Não Associadas
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="checkAssociadas"
+                                name="checkAssociadas">
+                            <label class="form-check-label" for="checkAssociadas">
+                                <i class="fas fa-link mr-1 text-success"></i> Associadas
+                            </label>
                         </div>
                     </div>
                 </div>

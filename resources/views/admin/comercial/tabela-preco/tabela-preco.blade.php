@@ -44,6 +44,45 @@
             font-size: 12px;
         }
 
+        /* Tabs */
+        .nav-tabs .nav-link {
+            font-size: 13px;
+            padding: .5rem .9rem;
+            color: #6c757d;
+        }
+
+        .nav-tabs .nav-link i {
+            font-size: 13px;
+        }
+
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        .nav-tabs .nav-link:not(.active):hover {
+            color: #343a40;
+            background-color: #f8f9fa;
+        }
+
+        /* Filtros da aba Associadas */
+        .filtros-associadas {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .filtros-associadas .form-check {
+            margin-bottom: 0;
+        }
+
+        .filtros-associadas .form-check-label {
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
 
             .card-title-previa {
@@ -64,7 +103,7 @@
 
             /* IMPORTANTE PARA IOS */
             .form-control,
-            input,
+            input:not([type="checkbox"]):not([type="radio"]),
             select,
             textarea {
                 height: 38px;
@@ -116,6 +155,11 @@
                 min-width: 40px;
                 padding: .25rem .5rem;
                 font-size: 14px;
+            }
+
+            .nav-tabs .nav-link {
+                padding: .4rem .6rem;
+                font-size: 12px;
             }
         }
     </style>

@@ -195,58 +195,6 @@ function formatarNome(str) {
     });
 }
 
-function initTableTabelaPrecoPrevia() {
-    tabela_preview = $("#item-tabela-preco").DataTable({
-        paging: true,
-        searching: true,
-        destroy: true,
-        scrollY: isMobile() ? false : "300px",
-        lengthMenu: [
-            [10, 25, 50, -1],
-            [10, 25, 50, "Todos"],
-        ],
-        pageLength: isMobile() ? 10 : -1,
-        language: {
-            url: window.routes.language_datatables,
-        },
-        select: {
-            style: "multi",
-        },
-        data: [],
-        columns: [
-            {
-                data: null,
-                width: "1%",
-                render: DataTable.render.select(),
-            },
-            {
-                title: "Cód",
-                data: "ID",
-                visible: false,
-            },
-            {
-                title: "Descrição",
-                data: "DESCRICAO",
-                width: isMobile() ? "80%" : "60%",
-            },
-            {
-                title: "Valor",
-                data: "VALOR",
-                width: isMobile() ? "20%" : "20%",
-                render: $.fn.dataTable.render.number(".", ",", 2),
-                className: "text-center",
-            },
-            {
-                title: "Subgrupo",
-                data: "SUBGRUPO",
-                width: "20%",
-                visible: isMobile() ? false : true, // Esconde em mobile
-            },
-        ],
-        orderBy: [[0, "asc"]],
-    });
-}
-
 function salvarVinculoTabelaPessoa(
     cd_tabela,
     cd_pessoa,
@@ -420,9 +368,6 @@ function initTableDivergenciaTabelaPreco(routes) {
         ajax: {
             url: window.routes.divergenciaTabelaPreco,
             type: "get",
-            data: {
-                _token: "{{ csrf_token() }}",
-            },
             beforeSend: function () {
                 Swal.fire({
                     title: "Carregando...",
@@ -463,6 +408,16 @@ function isMobile() {
 function renderizarCards(dados, containerId) {
     const container = $("#" + containerId);
     container.empty();
+
+    if (!dados || dados.length === 0) {
+        container.html(`
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                Nenhuma tabela para importar
+            </div>
+        `);
+        return;
+    }
 
     dados.forEach(function (item) {
         const card = `

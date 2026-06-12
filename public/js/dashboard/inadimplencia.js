@@ -15,9 +15,49 @@ var cartorioSupervisor = [];
 
 const datesCache = {};
 const MESES_ABREV = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-const pizzaCharts = {};
 
 var supervisoresObj = {};
+
+function buildMailtoCobranca(nmPessoa, detalhes, vlSaldoFormatado, dsEmail) {
+    var sep = '------------------------------------------------------------';
+
+    var blocos = detalhes.map(function(d, i) {
+        var cartorio = parseFloat(d.VL_CARTORIO) > 0 ? '\n  ** Em Cartorio/Protesto **' : '';
+        return (
+            'Titulo ' + (i + 1) + ': ' + d.NR_DOCUMENTO + cartorio + '\n' +
+            '  Emissao : ' + formatDateCobranca(d.DT_LANCAMENTO) + '   Venc.: ' + formatDateCobranca(d.DT_VENCIMENTO) + '\n' +
+            '  Total   : R$ ' + formatarValorBR(d.VL_TOTAL) +
+            '   Saldo: R$ ' + formatarValorBR(d.VL_SALDO) +
+            '   Juros: R$ ' + formatarValorBR(d.VL_JUROS)
+        );
+    });
+
+    var corpo =
+        'Prezado(a),\n\n' +
+        'Segue relacao de titulos em aberto referente a ' + nmPessoa + ':\n\n' +
+        sep + '\n' +
+        blocos.join('\n' + sep + '\n') + '\n' +
+        sep + '\n\n' +
+        'TOTAL EM ABERTO: R$ ' + vlSaldoFormatado + '\n\n' +
+        'Atenciosamente,';
+
+    var dest = dsEmail ? dsEmail : '';
+    return 'mailto:' + dest +
+           '?subject=' + encodeURIComponent('Cobranca - ' + nmPessoa) +
+           '&body=' + encodeURIComponent(corpo);
+}
+
+function buildWhatsAppUrl(nmPessoa, telefone, vlSaldoFormatado) {
+    var num = String(telefone || '').replace(/\D/g, '');
+    if (!num) return null;
+    if (num.length <= 11) num = '55' + num; // adiciona DDI Brasil se não estiver
+    var texto =
+        'Olá, passando para informar sobre títulos em aberto:\n' +
+        '*Cliente:* ' + nmPessoa + '\n' +
+        '*Total em aberto:* R$ ' + vlSaldoFormatado + '\n\n' +
+        'Podemos verificar juntos a melhor forma de regularização?';
+    return 'https://api.whatsapp.com/send?phone=' + num + '&text=' + encodeURIComponent(texto);
+}
 
 function tentarProcessar() {
     if (inadGerente && inadMeses) {
@@ -303,13 +343,13 @@ function inadimplenciaGerente(tab, data, route, idAccordion, idCard) {
 
             // Gráficos de pizza estáticos: % por saldo de gerente e supervisor
             const _gerenteItems = data.map(g => ({ nome: g.nome, valor: parseFloat(g.saldo) || 0 }));
-            _pizzaStatic("pizza-g-" + idAccordion, _gerenteItems);
+            pizzaStatic("pizza-g-" + idAccordion, _gerenteItems);
 
             const _supItems = [];
             data.forEach(g => (g.supervisores || []).forEach(s =>
                 _supItems.push({ nome: s.nome, valor: parseFloat(s.saldo) || 0 })
             ));
-            _barStatic("pizza-s-" + idAccordion, _supItems);
+            barStatic("pizza-s-" + idAccordion, _supItems);
         },
     });
 }
@@ -655,13 +695,30 @@ function initTableInadimplenciaMeses(
                 data.forEach(function (item) {
                     const vlSaldo = parseFloat(item.VL_SALDO_AGRUPADO).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                     const vlCartorio = parseFloat(item.VL_CARTORIO_AGRUPADO);
+
+                    const mailtoHref = buildMailtoCobranca(item.NM_PESSOA, item.DETALHES, vlSaldo, item.DS_EMAIL);
+                    const waUrl      = buildWhatsAppUrl(item.NM_PESSOA, item.NR_TELEFONE, vlSaldo);
+
+                    const emailBtn = item.DS_EMAIL
+                        ? `<button type="button" class="btn btn-sm p-1" title="E-mail: ${item.DS_EMAIL}" style="line-height:1;"
+                                   onclick="window.location.href='${mailtoHref.replace(/'/g, "\\'")}'">`+
+                           `<i class="fas fa-envelope" style="color:#90cdf4; font-size:0.95rem;"></i></button>`
+                        : `<button type="button" class="btn btn-sm p-1" title="Sem e-mail cadastrado" style="line-height:1; opacity:.35; cursor:default;" disabled>`+
+                           `<i class="fas fa-envelope" style="color:#90cdf4; font-size:0.95rem;"></i></button>`;
+
+                    const waBtn = waUrl
+                        ? `<button type="button" class="btn btn-sm p-1" title="WhatsApp: ${item.NR_TELEFONE}" style="line-height:1;"
+                                   onclick="window.open('${waUrl}','_blank')">`+
+                           `<i class="fab fa-whatsapp" style="color:#68d391; font-size:0.95rem;"></i></button>`
+                        : `<button type="button" class="btn btn-sm p-1" title="Sem telefone cadastrado" style="line-height:1; opacity:.35; cursor:default;" disabled>`+
+                           `<i class="fab fa-whatsapp" style="color:#68d391; font-size:0.95rem;"></i></button>`;
+
                     accordion = `
                         <div class="card gerente-card mb-2 border-0 shadow-sm">
-                            <div class="card-header p-0" style="background:#2d3748; border-left:4px solid #4299e1; border-radius:4px 4px 0 0;">
-                                <button class="btn btn-block text-white text-left accordion-item-header py-2 px-3"
+                            <div class="card-header p-0 d-flex align-items-stretch" style="background:#2d3748; border-left:4px solid #4299e1; border-radius:4px 4px 0 0;">
+                                <button class="btn flex-grow-1 text-white text-left accordion-item-header py-2 px-3"
                                         type="button" data-toggle="collapse" data-target="#collapse${item.CD_PESSOA}">
                                     <span class="accordion-nome" style="font-size:0.87rem; font-weight:600;">
-                                        <i class="fas fa-building mr-1" style="color:#90cdf4;"></i>
                                         ${item.NM_PESSOA}
                                     </span>
                                     <span class="saldo">
@@ -669,6 +726,10 @@ function initTableInadimplenciaMeses(
                                         ${vlCartorio > 0 ? `<span class="badge badge-pill badge-purple badge-indicador ml-1">R$ ${vlCartorio.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ""}
                                     </span>
                                 </button>
+                                <div class="d-flex align-items-center px-2" style="gap:6px; border-left:1px solid rgba(255,255,255,0.12);">
+                                    ${emailBtn}
+                                    ${waBtn}
+                                </div>
                             </div>
                             <div id="collapse${item.CD_PESSOA}" class="collapse">
                                 <div class="card-body p-2" style="background:#f7fafc;">
@@ -834,145 +895,6 @@ $(document).on("change", ".select-dia-vencimento", function () {
     filtrarAccordion(accordionId, mesAno, dataCompleta);
 });
 
-// ── Gráficos de pizza estáticos (% por saldo) ────────────────────────────────
-
-function _pizzaStatic(canvasId, items) {
-    const $canvas = $("#" + canvasId);
-    if (!$canvas.length) return;
-
-    if (pizzaCharts[canvasId]) {
-        pizzaCharts[canvasId].destroy();
-        delete pizzaCharts[canvasId];
-    }
-
-    const total = items.reduce((a, b) => a + b.valor, 0);
-    if (total === 0) return;
-
-    const PALETTE = [
-        "#4299e1","#48bb78","#ed8936","#9f7aea","#e53e3e",
-        "#38b2ac","#f6ad55","#667eea","#fc8181","#68d391",
-        "#63b3ed","#b794f4"
-    ];
-
-    pizzaCharts[canvasId] = new Chart($canvas[0].getContext("2d"), {
-        type: "doughnut",
-        data: {
-            labels: items.map(i => i.nome),
-            datasets: [{
-                data:            items.map(i => i.valor),
-                backgroundColor: items.map((_, k) => PALETTE[k % PALETTE.length] + "cc"),
-                borderColor:     items.map((_, k) => PALETTE[k % PALETTE.length]),
-                borderWidth:     1.5,
-                hoverOffset:     5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "52%",
-            plugins: {
-                legend: {
-                    display: true,
-                    position: "bottom",
-                    labels: { font: { size: 9 }, padding: 5, boxWidth: 8, color: "#4a5568" }
-                },
-                datalabels: {
-                    display: ctx => (ctx.dataset.data[ctx.dataIndex] / total) * 100 >= 4,
-                    formatter: v => ((v / total) * 100).toFixed(1) + "%",
-                    color: "#fff",
-                    font: { weight: "bold", size: 9 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => {
-                            const pct = ((ctx.raw / total) * 100).toFixed(1);
-                            return ` ${pct}% — R$ ${formatarValorBR(ctx.raw)}`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-function _barStatic(canvasId, items) {
-    const $canvas = $("#" + canvasId);
-    if (!$canvas.length) return;
-
-    if (pizzaCharts[canvasId]) {
-        pizzaCharts[canvasId].destroy();
-        delete pizzaCharts[canvasId];
-    }
-
-    const total = items.reduce((a, b) => a + b.valor, 0);
-    if (total === 0) return;
-
-    // Ajusta altura conforme qtd de barras (mínimo 175px, ~22px por item)
-    const dynH = Math.max(175, items.length * 22 + 30);
-    $canvas.closest(".card-body").css("height", dynH + "px");
-
-    const pcts   = items.map(i => parseFloat(((i.valor / total) * 100).toFixed(2)));
-    const PALETTE = [
-        "#4299e1","#48bb78","#ed8936","#9f7aea","#e53e3e",
-        "#38b2ac","#f6ad55","#667eea","#fc8181","#68d391",
-        "#63b3ed","#b794f4"
-    ];
-
-    pizzaCharts[canvasId] = new Chart($canvas[0].getContext("2d"), {
-        type: "bar",
-        data: {
-            labels: items.map(i => i.nome),
-            datasets: [{
-                data:            pcts,
-                backgroundColor: items.map((_, k) => PALETTE[k % PALETTE.length] + "bb"),
-                borderColor:     items.map((_, k) => PALETTE[k % PALETTE.length]),
-                borderWidth:     1,
-                borderRadius:    3
-            }]
-        },
-        options: {
-            indexAxis: "y",
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                datalabels: {
-                    display: true,
-                    anchor: "end",
-                    align: "right",
-                    formatter: v => v.toFixed(1) + "%",
-                    color: "#4a5568",
-                    font: { weight: "600", size: 9 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => {
-                            const item = items[ctx.dataIndex];
-                            return ` ${ctx.raw.toFixed(1)}% — R$ ${formatarValorBR(item.valor)}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    display: false,
-                    max: Math.max(...pcts) * 1.25
-                },
-                y: {
-                    ticks: {
-                        font: { size: 9 },
-                        color: "#4a5568",
-                        callback: function (v) {
-                            const lbl = this.getLabelForValue(v);
-                            return lbl.length > 14 ? lbl.substring(0, 13) + "…" : lbl;
-                        }
-                    },
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-}
 
 function buscarTermo(idAccordion, idSelector) {
     // faz a busca com debounce

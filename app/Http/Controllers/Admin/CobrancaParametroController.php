@@ -4,17 +4,29 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CobrancaParametro;
+use App\Models\FormaPagamento;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CobrancaParametroController extends Controller
 {
-    private const FORMAPAGTO_DEFAULT = 'BL,CC,CH,DB,DF,DI,TL,TC,CN';
-    private const FORMAPAGTO_VALIDOS = ['BL', 'CC', 'CH', 'DB', 'DF', 'DI', 'TL', 'TC', 'CN'];
+    public function __construct(private FormaPagamento $formaPagamento) {}
+
+    private function codigosValidos(): array
+    {
+        return collect($this->formaPagamento->getFormaPagamento())
+            ->pluck('CD_FORMAPAGTO')
+            ->filter()
+            ->values()
+            ->all();
+    }
 
     public function index(): JsonResponse
     {
-        $valor = CobrancaParametro::get('inadimplencia_formapagto', self::FORMAPAGTO_DEFAULT);
+        $codigos = $this->codigosValidos();
+        $default = implode(',', $codigos);
+        $valor   = CobrancaParametro::get('inadimplencia_formapagto', $default);
 
         return response()->json([
             'formapagto' => array_values(array_filter(explode(',', $valor))),
@@ -23,9 +35,11 @@ class CobrancaParametroController extends Controller
 
     public function update(Request $request): JsonResponse
     {
+        $codigos = $this->codigosValidos();
+
         $request->validate([
             'formapagto'   => 'required|array|min:1',
-            'formapagto.*' => 'in:BL,CC,CH,DB,DF,DI,TL,TC,CN',
+            'formapagto.*' => Rule::in($codigos),
         ]);
 
         CobrancaParametro::set(

@@ -382,3 +382,169 @@ button.select2-selection__choice__remove {
         /* font-size: 10px !important; */
     }
 }
+
+/* ============================================================
+   DATATABLES — MELHORIAS VISUAIS GLOBAIS
+   ============================================================ */
+
+/* --- Header --- */
+table.dataTable thead tr {
+    background-color: #444B53;
+    color: #ffffff;
+}
+
+table.dataTable thead th {
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: .3px;
+    padding: 8px 10px;
+    border-bottom: 2px solid #2d3238 !important;
+    white-space: nowrap;
+}
+
+table.dataTable thead th.sorting:after,
+table.dataTable thead th.sorting_asc:after,
+table.dataTable thead th.sorting_desc:after {
+    color: rgba(255,255,255,.55);
+}
+
+table.dataTable thead th.sorting_asc:after  { color: #ffffff; }
+table.dataTable thead th.sorting_desc:after { color: #ffffff; }
+
+/* --- Linhas zebradas --- */
+table.dataTable tbody tr:nth-child(odd)  { background-color: #ffffff; }
+table.dataTable tbody tr:nth-child(even) { background-color: #f6f8fa; }
+
+/* --- Hover --- */
+table.dataTable tbody tr:hover {
+    background-color: #e8f0fe !important;
+    transition: background-color .12s ease;
+}
+
+/* --- Células --- */
+table.dataTable tbody td {
+    padding: 5px 10px;
+    vertical-align: middle;
+    font-size: 12px;
+    border-top: 1px solid #e9ecef !important;
+}
+
+/* --- Linha selecionada (select extension) --- */
+table.dataTable tbody tr.selected,
+table.dataTable tbody tr.selected td {
+    background-color: #cce5ff !important;
+    color: #004085;
+}
+
+table.dataTable tbody tr.selected:hover {
+    background-color: #b8d9ff !important;
+}
+
+/* --- Coluna sem quebra de linha (ações) --- */
+td.no-wrap, th.no-wrap {
+    white-space: nowrap;
+}
+
+/* --- Área de scroll --- */
+.dataTables_scrollBody {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.dataTables_scrollBody::-webkit-scrollbar        { width: 6px; height: 6px; }
+.dataTables_scrollBody::-webkit-scrollbar-track  { background: #f1f3f4; }
+.dataTables_scrollBody::-webkit-scrollbar-thumb  { background-color: #adb5bd; border-radius: 3px; }
+.dataTables_scrollBody::-webkit-scrollbar-thumb:hover { background-color: #6c757d; }
+
+/* Congela o header no scroll horizontal */
+.dataTables_scrollHead {
+    overflow: hidden !important;
+    background: #444B53;
+}
+
+/* --- Paginação --- */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 2px 8px !important;
+    font-size: 12px;
+    border-radius: 4px !important;
+    border: 1px solid #dee2e6 !important;
+    margin: 0 2px;
+    color: #495057 !important;
+    background: #ffffff !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #e9ecef !important;
+    border-color: #adb5bd !important;
+    color: #212529 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #444B53 !important;
+    border-color: #444B53 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    color: #adb5bd !important;
+    cursor: not-allowed;
+}
+
+/* --- Busca e info --- */
+div.dt-search input,
+.dataTables_filter input {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    outline: none;
+}
+
+div.dt-search input:focus,
+.dataTables_filter input:focus {
+    border-color: #444B53;
+    box-shadow: 0 0 0 2px rgba(68,75,83,.15);
+}
+
+div.dt-info,
+.dataTables_info {
+    font-size: 12px;
+    color: #6c757d;
+    padding-top: 4px !important;
+}
+
+/* --- Botões Export (Excel / Print) --- */
+.dt-button,
+div.dt-buttons .btn {
+    font-size: 11px !important;
+    padding: 3px 10px !important;
+    border-radius: 4px !important;
+    border: 1px solid #ced4da !important;
+    background: #f8f9fa !important;
+    color: #495057 !important;
+    box-shadow: none !important;
+    margin-bottom: 4px;
+}
+
+.dt-button:hover {
+    background: #e2e6ea !important;
+    border-color: #adb5bd !important;
+}
+
+/* --- Mensagem sem dados --- */
+table.dataTable tbody td.dataTables_empty {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 20px !important;
+    font-size: 13px;
+}
+
+/* --- Mobile: simplifica a tabela --- */
+@media (max-width: 768px) {
+    table.dataTable thead th { font-size: 11px; padding: 6px 8px; }
+    table.dataTable tbody td { font-size: 11px; padding: 5px 8px; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button { padding: 2px 6px !important; font-size: 11px; }
+}

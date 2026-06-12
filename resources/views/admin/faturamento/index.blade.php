@@ -315,7 +315,7 @@
         }
     </style>
 
-    <script src="{{ asset('js/datatables-collapsible-group.js') }}"></script>
+    <script src="{{ asset('js/dashboard/datatables-collapsible-group.js') }}"></script>
     <script>
         var inicioData = 0,
             fimData = 0;

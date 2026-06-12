@@ -7,6 +7,7 @@ use App\Models\AreaComercial;
 use App\Models\Cobranca;
 use App\Models\ControleCanhoto;
 use App\Models\Empresa;
+use App\Models\FormaPagamento;
 use App\Models\GerenteUnidade;
 use App\Models\LimiteCredito;
 use App\Models\RegiaoComercial;
@@ -21,7 +22,7 @@ use Yajra\DataTables\Facades\DataTables;
 
 class RelatorioCobrancaController extends Controller
 {
-    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite, $controleCanhoto, $vendedorComercial;
+    public $cobranca, $empresa, $request, $area, $regiao, $user, $supervisorComercial, $gerenteUnidade, $limite, $controleCanhoto, $vendedorComercial, $formaPagamento;
     public function __construct(
         Request $request,
         RegiaoComercial $regiao,
@@ -32,7 +33,8 @@ class RelatorioCobrancaController extends Controller
         GerenteUnidade $gerenteUnidade,
         LimiteCredito $limite,
         ControleCanhoto $controleCanhoto,
-        Vendedor $vendedor
+        Vendedor $vendedor,
+        FormaPagamento $formaPagamento
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -44,6 +46,7 @@ class RelatorioCobrancaController extends Controller
         $this->empresa = $empresa;
         $this->limite = $limite;
         $this->controleCanhoto = $controleCanhoto;
+        $this->formaPagamento = $formaPagamento;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -890,11 +893,13 @@ class RelatorioCobrancaController extends Controller
         foreach ($data as $item) {
             if (!isset($pessoa[$item->CD_PESSOA])) {
                 $pessoa[$item->CD_PESSOA] = [
-                    'CD_PESSOA' => $item->CD_PESSOA,
-                    'NM_PESSOA' => $item->NM_PESSOA,
-                    'VL_SALDO_AGRUPADO' => 0,
+                    'CD_PESSOA'          => $item->CD_PESSOA,
+                    'NM_PESSOA'          => $item->NM_PESSOA,
+                    'DS_EMAIL'           => $item->DS_EMAIL ?? null,
+                    'NR_TELEFONE'        => $item->NR_TELEFONE ?? null,
+                    'VL_SALDO_AGRUPADO'  => 0,
                     'VL_CARTORIO_AGRUPADO' => 0,
-                    'DETALHES' => []
+                    'DETALHES'           => []
                 ];
             }
 
@@ -938,7 +943,9 @@ class RelatorioCobrancaController extends Controller
             $gerentes = $this->area->GerenteAll();
         }
 
-        return view('admin.cobranca.rel-cobranca-novo', compact('gerentes'));
+        $formasPagamento = $this->formaPagamento->getFormaPagamento();
+
+        return view('admin.cobranca.rel-cobranca-novo', compact('gerentes', 'formasPagamento'));
     }
 
     public function getLimiteCredito()
