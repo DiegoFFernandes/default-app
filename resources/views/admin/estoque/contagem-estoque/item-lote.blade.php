@@ -10,8 +10,10 @@
                 <div class="card card-dark card-outline">
                     <div class="card-header with-border">
                         <h3 class="card-title">{{ $title_page }}</h3>
-                        <div class="card-tools float-right">
-                            <span class="label label-danger" id="qtd_itens_coleta">{{ $qtde_coleta }} Itens</span>
+                        
+                        <div class="card-tools">     
+                            <span class="badge badge-danger" id="qtd_itens_coleta">{{ $qtde_coleta }} Itens</span>                       
+                            {{-- <button class="btn btn-sm btn-primary" id="showCamera">Camera</button> --}}
                         </div>
                     </div>
                     <div class="card-body">
@@ -162,6 +164,21 @@
             </div>
     </section>
     <!-- /.content -->
+    {{-- Modal Camera --}}
+    <div class="modal fade" id="modal-camera" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title"><i class="fas fa-camera mr-1"></i> Ler Código de Barras</h6>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body p-2">
+                    <div id="camera-reader"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Modal de Pesquisa de Produto --}}
     <div class="modal fade" id="modal-search" role="dialog" aria-labelledby="ModalSearch">
         <div class="modal-dialog" role="document">
@@ -216,6 +233,7 @@
     </style>
 @stop
 @section('js')
+    <script src="{{ asset('vendor/adminlte/dist/js/html5-qrcode.min.js') }}"></script>
     <script type="text/javascript">
         window.route = {
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
@@ -573,6 +591,60 @@
                     $('#cd_barras').val(data[0].cd_barras);
                 });
         });
+
+        // --- Câmera / Leitor de código de barras ---
+        var html5QrcodeScanner = null;
+
+        $('#showCamera').on('click', function() {
+            $('#modal-camera').modal('show');
+        });
+
+        $('#modal-camera').on('shown.bs.modal', function() {
+            html5QrcodeScanner = new Html5Qrcode("camera-reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                {
+                    fps: 15,
+                    // qrbox dinâmico: 90% da largura e 35% da altura — ideal para Code 128 largo
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        return {
+                            width:  Math.floor(viewfinderWidth  * 0.90),
+                            height: Math.floor(viewfinderHeight * 0.35)
+                        };
+                    },
+                    aspectRatio: 1.7778, // 16:9 landscape — mais espaço horizontal para Code 128
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                    ]
+                },
+                function(decodedText) {
+                    $('#cd_barras').val(decodedText).trigger('blur');
+                    $('#modal-camera').modal('hide');
+                },
+                function() {}
+            ).catch(function(err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Câmera indisponível',
+                    text: 'Verifique se a permissão de câmera foi concedida e se o site usa HTTPS.',
+                    confirmButtonText: 'OK'
+                });
+            });
+        });
+
+        $('#modal-camera').on('hide.bs.modal', function() {
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                html5QrcodeScanner.stop().then(function() {
+                    html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                });
+            }
+        });
+        // --- Fim câmera ---
 
         function processarCodigoPeso(marca) {
             let codigoLido = $("#cd_barras_peso").val();

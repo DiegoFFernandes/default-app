@@ -4,7 +4,7 @@
             <li class="nav-item">
                 <a class="nav-link" id="tab-lotesPCP" data-toggle="pill" href="#painel-lotesPCP" role="tab"
                     aria-controls="painel-lotesPCP" aria-selected="false">
-                    Lotes PCP
+                    <i class="fas fa-layer-group mr-1"></i> Lotes PCP
                 </a>
             </li>
             @foreach ($empresa as $emp)
@@ -13,7 +13,7 @@
                         href="#painel-pcp-{{ $emp->CD_EMPRESA }}" role="tab"
                         aria-controls="painel-pcp-{{ $emp->CD_EMPRESA }}" aria-selected="false"
                         data-empresa="{{ $emp->CD_EMPRESA }}">
-                        {{ $emp->NM_EMPRESA }}
+                        <i class="fas fa-industry mr-1"></i> {{ $emp->NM_EMPRESA }}
                     </a>
                 </li>
             @endforeach

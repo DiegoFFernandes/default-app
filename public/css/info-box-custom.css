@@ -1,0 +1,46 @@
+.info-box-custom {
+    border-radius: 12px;
+    padding: 6px;
+    transition: all 0.2s ease;
+    min-height: 60px !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-box-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.info-box-custom .info-box-icon {
+    font-size: 20px;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    margin: 0 10px 0 10px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.info-box-custom .info-box-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.info-box-custom .info-box-number {
+    font-size: 16px;
+    margin-top: -4px !important;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.info-box-custom .percentual {
+    font-size: 12px;
+    color: #6c757d;
+    margin-left: 4px;
+}

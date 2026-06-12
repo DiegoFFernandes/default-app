@@ -6,89 +6,71 @@
     <section class="content">
         <div class="row">
             <div class="col-6 col-sm-4 col-lg-2">
-                <div class="info-box">
-                    <span class="info-box-icon bg-success"><a href="#" id="i-finalizados"><i
-                                class="fas fa-check"></i></a></span>
-
+                <div class="info-box info-box-custom">
+                    <span class="info-box-icon bg-success">
+                        <a href="#" id="i-finalizados"><i class="fas fa-check-circle"></i></a>
+                    </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Finalizados</span>
-                        <span class="info-box-number finalizados"></span>
+                        <span class="info-box-number finalizados">0</span>
                     </div>
-                    <!-- /.info-box-content -->
                 </div>
-                <!-- /.info-box -->
             </div>
-            <!-- /.col -->
             <div class="col-6 col-sm-4 col-lg-2">
-                <div class="info-box">
-                    <span class="info-box-icon"><a href="#" id="i-aguardando"><i class="far fa-flag"></i></a></span>
-
+                <div class="info-box info-box-custom">
+                    <span class="info-box-icon bg-primary">
+                        <a href="#" id="i-aguardando"><i class="fas fa-hourglass-half"></i></a>
+                    </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Aguardando</span>
-                        <span class="info-box-number aguardando"></span>
+                        <span class="info-box-number aguardando">0</span>
                     </div>
-                    <!-- /.info-box-content -->
                 </div>
-                <!-- /.info-box -->
             </div>
-            <!-- /.col -->
             <div class="col-6 col-sm-4 col-lg-2">
-                <div class="info-box">
-                    <span class="info-box-icon bg-warning"><a href="#" id="i-producao"><i
-                                class="far fa-copy"></i></a></span>
-
+                <div class="info-box info-box-custom">
+                    <span class="info-box-icon bg-warning">
+                        <a href="#" id="i-producao"><i class="fas fa-industry"></i></a>
+                    </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Em produção</span>
-                        <span class="info-box-number producao"></span>
+                        <span class="info-box-number producao">0</span>
                     </div>
-                    <!-- /.info-box-content -->
                 </div>
-                <!-- /.info-box -->
             </div>
-            <!-- /.col -->
             <div class="col-6 col-sm-4 col-lg-2">
-                <div class="info-box">
-                    <span class="info-box-icon bg-danger"><a href="#" id="i-bloqueados"><i
-                                class="fas fa-ban"></i></a></span>
-
+                <div class="info-box info-box-custom">
+                    <span class="info-box-icon bg-danger">
+                        <a href="#" id="i-bloqueados"><i class="fas fa-ban"></i></a>
+                    </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Bloqueados</span>
-                        <span class="info-box-number bloqueados"></span>
+                        <span class="info-box-number bloqueados">0</span>
                     </div>
-                    <!-- /.info-box-content -->
                 </div>
-                <!-- /.info-box -->
             </div>
-            <!-- /.col -->
             <div class="col-6 col-sm-4 col-lg-2">
-                <div class="info-box">
-                    <span class="info-box-icon bg-info"><a href="#" id="i-cancelados"><i
-                                class="fas fa-window-close"></i></a></span>
-
+                <div class="info-box info-box-custom">
+                    <span class="info-box-icon bg-info">
+                        <a href="#" id="i-cancelados"><i class="fas fa-times-circle"></i></a>
+                    </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Canceladas</span>
-                        <span class="info-box-number canceladas"></span>
+                        <span class="info-box-number canceladas">0</span>
                     </div>
-                    <!-- /.info-box-content -->
                 </div>
-                <!-- /.info-box -->
             </div>
-            <!-- /.col -->
-            <!-- /.col -->
             <div class="col-6 col-sm-4 col-lg-2">
-                <div class="info-box">
-                    <span class="info-box-icon bg-secondary"><a href="#" id="i-garantias"><i
-                                class="fas fa-shield-alt"></i></a></span>
-
+                <div class="info-box info-box-custom">
+                    <span class="info-box-icon bg-secondary">
+                        <a href="#" id="i-garantias"><i class="fas fa-shield-alt"></i></a>
+                    </span>
                     <div class="info-box-content">
                         <span class="info-box-text">Garantias</span>
-                        <span class="info-box-number garantias"></span>
+                        <span class="info-box-number garantias">0</span>
                     </div>
-                    <!-- /.info-box-content -->
                 </div>
-                <!-- /.info-box -->
             </div>
-            <!-- /.col -->
         </div>
         <div class="row">
             <div class="col-12">
@@ -98,11 +80,15 @@
                             <li class="nav-item">
                                 <a class="nav-link active" id="acompanhamento" data-toggle="pill"
                                     href="#acompanhamento-pedido" role="tab" aria-controls="acompanhamento-pedido"
-                                    aria-selected="true">Acompanhamento</a>
+                                    aria-selected="true">
+                                    <i class="fas fa-search mr-1"></i> Acompanhamento
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="bloqueio" data-toggle="pill" href="#bloqueio-pedido" role="tab"
-                                    aria-controls="bloqueio-pedido" aria-selected="false">Pedidos Bloqueados</a>
+                                    aria-controls="bloqueio-pedido" aria-selected="false">
+                                    <i class="fas fa-ban mr-1"></i> Pedidos Bloqueados
+                                </a>
                             </li>
                         </ul>
                     </div>
@@ -322,6 +308,7 @@
 @stop
 
 @section('css')
+    <link rel="stylesheet" href="{{ asset('css/info-box-custom.css') }}?v={{ time() }}">
     <style>
         .text-truncate {
             white-space: nowrap;
@@ -330,16 +317,8 @@
             max-width: 10%;
         }
 
-
-        @media (max-width: 768px) {
-            .info-box .info-box-icon {
-                width: 40px;
-                font-size: 0.875rem;
-            }
-
-            .table-left {
-                margin-left: 0 !important;
-            }
+        .table-left {
+            margin-left: 0 !important;
         }
     </style>
 @endsection

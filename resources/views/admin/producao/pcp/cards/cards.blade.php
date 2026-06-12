@@ -21,9 +21,7 @@
             <span class="info-box-icon bg-info"><i class="far fa-dot-circle"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Total/Produção</span>
-                <span class="info-box-number" id="card-pneus-em-producao">0
-                    <small>% Atraso</small>
-                </span>
+                <span class="info-box-number" id="card-pneus-em-producao">0 / 0</span>
             </div>
         </div>
     </div>
@@ -38,7 +36,7 @@
     </div>
     <div class="col-6 col-sm-6 col-md-4 col-lg-2">
         <div class="info-box info-box-custom">
-            <span class="info-box-icon bg-pneu-sem-exame">
+            <span class="info-box-icon bg-success bg-pneu-sem-exame">
                 <i class="fas fa-exclamation-circle"></i>
             </span>
             <div class="info-box-content">

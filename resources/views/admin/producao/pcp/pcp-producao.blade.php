@@ -29,71 +29,11 @@
 @stop
 
 @section('css')
+    <link rel="stylesheet" href="{{ asset('css/info-box-custom.css') }}?v={{ time() }}">
     <style>
-        .info-box-custom {
-            border-radius: 12px;
-            padding: 6px;
-            transition: all 0.2s ease;
-            min-height: 60px !important;
-            display: flex;
-            justify-content: center;
-            /* centraliza horizontalmente */
-            align-items: center;
-            /* centraliza verticalmente */
-        }
-
-        /* Hover suave */
-        .info-box-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Ícone mais proporcional */
-        .info-box-custom .info-box-icon {
-            font-size: 20px;
-            border-radius: 10px;
-            width: 40px;
-            height: 40px;
-            margin: 0 10px 0 10px;
-            display: flex !important;
-            align-items: center !important;
-            /* centraliza vertical */
-            justify-content: center !important;
-            /* centraliza horizontal */
-
-        }
-
-        /* Texto */
-        .info-box-custom .info-box-text {
-            font-size: 12px;
-            font-weight: 500;
-            color: #6c757d;
-        }
-
-        /* Número principal */
-        .info-box-custom .info-box-number {
-            font-size: 20px;
-            margin-top: -4px !important;
-            font-weight: 600;
-        }
-
-        /* Percentual */
-        .info-box-custom .percentual {
-            font-size: 12px;
-            color: #6c757d;
-            margin-left: 4px;
-        }
-
         @keyframes piscar {
-
-            0%,
-            100% {
-                background-color: transparent;
-            }
-
-            50% {
-                background-color: var(--blink-color);
-            }
+            0%, 100% { background-color: transparent; }
+            50% { background-color: var(--blink-color); }
         }
 
         .badge-atrasado {
@@ -101,19 +41,9 @@
             transition: background-color 0.3s ease;
         }
 
-        /* Danger */
-        .badge-atrasado-danger {
-            --blink-color: #f8d7da;
-        }
-
-        /* Warning */
-        .badge-atrasado-warning {
-            --blink-color: #fff3cd;
-        }
-
-        .badge-atrasado-dias-purple {
-            --blink-color: #d6b3ff;
-        }
+        .badge-atrasado-danger    { --blink-color: #f8d7da; }
+        .badge-atrasado-warning   { --blink-color: #fff3cd; }
+        .badge-atrasado-dias-purple { --blink-color: #d6b3ff; }
     </style>
 @stop
 
@@ -162,7 +92,6 @@
         var totalEmProducao = 0;
         var totalAtraso = 0;
         var totalIniciando = 0;
-        var totalFinalizados = 0;
         var totalSemExame = 0;
         var totalLotes = 0;
         var totalLotesAtraso = 0;
@@ -363,7 +292,6 @@
 
                     totalAtraso = data.length;
                     totalIniciando = 0;
-                    totalFinalizados = 0;
                     totalSemExame = 0;
                     pcAtrasado = totalEmProducao > 0 ? ((totalAtraso / totalEmProducao) * 100).toFixed(2) : 0;
 
