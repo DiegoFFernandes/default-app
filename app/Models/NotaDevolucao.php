@@ -14,18 +14,12 @@ class NotaDevolucao extends Model
 
     public function getNotaDevolucao($input = 0)
     {
+        $caseNome = Empresa::buildCaseNome('ORIGEM.CD_EMPRESA');
+
         $query = "
                SELECT DISTINCT
                     ORIGEM.CD_EMPRESA,
-                    CASE
-                    WHEN ORIGEM.CD_EMPRESA = 1 THEN 'Cambe'
-                    WHEN ORIGEM.CD_EMPRESA = 2 THEN '2'
-                    WHEN ORIGEM.CD_EMPRESA = 3 THEN 'Osvaldo Cruz'
-                    WHEN ORIGEM.CD_EMPRESA = 4 THEN '4'
-                    WHEN ORIGEM.CD_EMPRESA = 5 THEN 'Ponta Grossa'
-                    WHEN ORIGEM.CD_EMPRESA = 6 THEN 'Catanduva'
-                    ELSE 'OUTROS'
-                    END NM_EMPRESA,
+                    {$caseNome} NM_EMPRESA,
                     P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
                     ORIGEM.NR_LANCAMENTO NR_LANCORIG,
                     ORIGEM.DT_EMISSAO,

@@ -422,6 +422,32 @@ return [
             ]
         ],
         [
+            'text' => 'Compras',
+            'icon' => 'nav-icon fas fa-shopping-cart',
+            'url'  => '#',
+            'can'  => ['ver-solicitacao-compra', 'aprovar-compra', 'config-compra'],
+            'submenu' => [
+                [
+                    'text'  => 'Solicitações',
+                    'route' => 'compras.solicitacoes.index',
+                    'icon'  => 'far fa-circle nav-icon',
+                    'can'   => 'ver-solicitacao-compra',
+                ],
+                [
+                    'text'  => 'Aprovações Pendentes',
+                    'route' => 'compras.aprovacoes.index',
+                    'icon'  => 'far fa-circle nav-icon',
+                    'can'   => 'aprovar-compra',
+                ],
+                [
+                    'text'  => 'Configuração',
+                    'route' => 'compras.configuracao.index',
+                    'icon'  => 'far fa-circle nav-icon',
+                    'can'   => 'config-compra',
+                ],
+            ],
+        ],
+        [
             'text' => 'Financeiro',
             'icon' => 'nav-icon fas fa-money-bill',
             'url' => '#',

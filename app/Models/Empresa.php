@@ -11,23 +11,29 @@ class Empresa extends Model
 {
     use HasFactory;
 
+    public static function buildCaseNome(string $campo): string
+    {
+        $apelidos = config('empresas.apelidos');
+        $padrao   = config('empresas.apelido_padrao', 'OUTROS');
+        $case = 'CASE';
+        foreach ($apelidos as $id => $nome) {
+            $case .= " WHEN {$campo} = {$id} THEN '{$nome}'";
+        }
+        $case .= " ELSE '{$padrao}' END";
+        return $case;
+    }
+
     public function empresa($empresa = 0)
     {
-        //Se usuario por admin retorna todas as empresas
         if ($empresa == 0) {
-            $empresa = '1,3,5,6';
+            $empresa = implode(',', config('empresas.admin_ids'));
         }
+
+        $caseNome = self::buildCaseNome('EMPRESA.CD_EMPRESA');
+
         $query = "SELECT
                     EMPRESA.CD_EMPRESA,
-                    CASE 
-                        WHEN EMPRESA.CD_EMPRESA = 1 THEN 'Cambe'
-                        WHEN EMPRESA.CD_EMPRESA = 2 THEN '2'
-                        WHEN EMPRESA.CD_EMPRESA = 3 THEN 'Osvaldo Cruz'
-                        WHEN EMPRESA.CD_EMPRESA = 4 THEN '4'
-                        WHEN EMPRESA.CD_EMPRESA = 5 THEN 'Ponta Grossa'
-                        WHEN EMPRESA.CD_EMPRESA = 6 THEN 'Catanduva'
-                        ELSE 'OUTROS'
-                    END NM_EMPRESA,
+                    {$caseNome} NM_EMPRESA,
                     EMPRESA.CD_PESSOA
                 FROM EMPRESA
                 WHERE EMPRESA.CD_EMPRESA IN ($empresa)";

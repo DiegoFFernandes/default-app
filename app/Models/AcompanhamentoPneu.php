@@ -98,15 +98,12 @@ class AcompanhamentoPneu extends Model
 
         $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);
 
+        $caseNome = Empresa::buildCaseNome('PP.IDEMPRESA');
+
         $query = "
                     SELECT
                         PP.IDEMPRESA CD_EMPRESA,
-                        CASE WHEN PP.IDEMPRESA = 1 THEN 'Cambe'
-                             WHEN PP.IDEMPRESA = 3 THEN 'Osvaldo Cruz'
-                             WHEN PP.IDEMPRESA = 5 THEN 'Ponta Grossa'
-                             WHEN PP.IDEMPRESA = 6 THEN 'Catanduva'
-                             ELSE 'Outra'
-                        END AS NM_EMPRESA,
+                        {$caseNome} AS NM_EMPRESA,
                         PP.ID,
                         PPM.IDPEDIDOMOVEL,
                         PP.IDVENDEDOR,

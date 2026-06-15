@@ -420,6 +420,10 @@ table.dataTable tbody tr:hover {
     background-color: #e8f0fe !important;
     transition: background-color .12s ease;
 }
+table.dataTable tbody tr:hover > * {
+    box-shadow: inset 0 0 0 9999px rgba(68, 75, 83, 0.08) !important;
+    color: #212529 !important;
+}
 
 /* --- Células --- */
 table.dataTable tbody td {
@@ -430,14 +434,18 @@ table.dataTable tbody td {
 }
 
 /* --- Linha selecionada (select extension) --- */
-table.dataTable tbody tr.selected,
+table.dataTable tbody tr.selected > *,
 table.dataTable tbody tr.selected td {
-    background-color: #cce5ff !important;
-    color: #004085;
+    box-shadow: inset 0 0 0 9999px rgba(0, 100, 210, 0.18) !important;
+    background-color: transparent !important;
+    color: #003580 !important;
 }
 
-table.dataTable tbody tr.selected:hover {
-    background-color: #b8d9ff !important;
+table.dataTable tbody tr.selected:hover > *,
+table.dataTable tbody tr.selected:hover td {
+    box-shadow: inset 0 0 0 9999px rgba(0, 100, 210, 0.28) !important;
+    background-color: transparent !important;
+    color: #212529 !important;
 }
 
 /* --- Coluna sem quebra de linha (ações) --- */
