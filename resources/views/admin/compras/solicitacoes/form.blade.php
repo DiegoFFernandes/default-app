@@ -42,6 +42,14 @@
                     <button id="btn-submeter" class="btn btn-danger btn-xs mr-1">
                         <i class="fas fa-paper-plane"></i> Enviar para Aprovação
                     </button>
+                    <a id="btn-exportar-excel"
+                        href="{{ route('compras.solicitacoes.exportar-excel', $idSolicitacao) }}"
+                        class="btn btn-success btn-xs mr-1">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </a>
+                    <button id="btn-imprimir" class="btn btn-secondary btn-xs mr-1">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
                     <a href="{{ route('compras.solicitacoes.show', $idSolicitacao) }}"
                         class="btn btn-info btn-xs mr-1">
                         <i class="fas fa-eye"></i> Visualizar
@@ -58,201 +66,18 @@
             <div class="tab-content" id="tabs-form-content">
 
                 {{-- Tab: Cabeçalho --}}
-                <div class="tab-pane fade show active" id="pane-cabecalho" role="tabpanel">
-                    <div class="row mt-1">
-                        <div class="col-md-4">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Empresa <span class="text-danger">*</span></small></label>
-                                <select class="form-control form-control-sm select2" id="cd_empresa" style="width:100%">
-                                    <option value="">Selecione</option>
-                                    @foreach($empresas as $e)
-                                        <option value="{{ $e->CD_EMPRESA }}"
-                                            {{ isset($solicitacao) && $solicitacao->CD_EMPRESA == $e->CD_EMPRESA ? 'selected' : '' }}>
-                                            {{ $e->NM_EMPRESA }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Data <span class="text-danger">*</span></small></label>
-                                <input type="date" class="form-control form-control-sm" id="dt_solicitacao"
-                                    value="{{ isset($solicitacao) ? $solicitacao->DT_SOLICITACAO : date('Y-m-d') }}">
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Justificativa <span class="text-danger">*</span></small></label>
-                                <input type="text" class="form-control form-control-sm" id="ds_justificativa" maxlength="500"
-                                    value="{{ $solicitacao->DS_JUSTIFICATIVA ?? '' }}">
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Observações</small></label>
-                                <textarea class="form-control form-control-sm" id="ds_observacao" rows="2" maxlength="500">{{ $solicitacao->DS_OBSERVACAO ?? '' }}</textarea>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 pt-3">
-                            @if(!$idSolicitacao)
-                                <button id="btn-salvar" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-save"></i> Salvar Rascunho
-                                </button>
-                            @else
-                                <button id="btn-atualizar" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-save"></i> Atualizar Cabeçalho
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+                @include('admin.compras.solicitacoes.form.tabs.cabecalho')
 
                 @if($idSolicitacao)
 
                 {{-- Tab: Itens --}}
-                <div class="tab-pane fade" id="pane-itens" role="tabpanel">
-                    <div class="row mt-1 mb-1">
-                        <div class="col-md-5">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Produto <span class="text-danger">*</span></small></label>
-                                <select class="form-control form-control-sm select2-ajax" id="cd_item" style="width:100%"
-                                    data-url="{{ route('compras.search-item') }}"
-                                    data-placeholder="Buscar produto (mín. 3 caracteres)"></select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Quantidade <span class="text-danger">*</span></small></label>
-                                <input type="number" class="form-control form-control-sm" id="qt_item" min="0.001" step="0.001" placeholder="0.000">
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Unidade <span class="text-danger">*</span></small></label>
-                                <input type="text" class="form-control form-control-sm" id="ds_unidade" maxlength="10" placeholder="UN">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Observação</small></label>
-                                <input type="text" class="form-control form-control-sm" id="ds_obs_item" maxlength="300">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <button id="btn-add-item" class="btn btn-danger btn-sm">
-                                <i class="fas fa-plus"></i> Adicionar Item
-                            </button>
-                        </div>
-                    </div>
-                    <table class="table table-striped table-bordered compact table-font-small" id="table-itens" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Cód.</th>
-                                <th>Produto</th>
-                                <th>Qtd</th>
-                                <th>Un.</th>
-                                <th>Observação</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
+                @include('admin.compras.solicitacoes.form.tabs.itens')
 
                 {{-- Tab: Cotações --}}
-                <div class="tab-pane fade" id="pane-cotacoes" role="tabpanel">
-                    <div class="row mt-1 mb-1">
-                        <div class="col-md-4">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Fornecedor <span class="text-danger">*</span></small></label>
-                                <select class="form-control form-control-sm select2-ajax" id="cd_fornecedor" style="width:100%"
-                                    data-url="{{ route('compras.search-fornecedor') }}"
-                                    data-placeholder="Buscar fornecedor (mín. 3 caracteres)"></select>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Prazo (dias) <span class="text-danger">*</span></small></label>
-                                <input type="number" class="form-control form-control-sm" id="nr_prazo" min="1" placeholder="0">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Condição de Pagamento <span class="text-danger">*</span></small></label>
-                                <input type="text" class="form-control form-control-sm" id="ds_condicao" maxlength="200" placeholder="Ex: 30 dias">
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Valor Total (R$) <span class="text-danger">*</span></small></label>
-                                <input type="text" class="form-control form-control-sm money-mask" id="vl_total_cot" placeholder="0,00">
-                            </div>
-                        </div>
-                        <div class="col-md-1">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Obs.</small></label>
-                                <input type="text" class="form-control form-control-sm" id="ds_obs_cot" maxlength="500">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <button id="btn-add-cot" class="btn btn-info btn-sm">
-                                <i class="fas fa-plus"></i> Adicionar Cotação
-                            </button>
-                        </div>
-                    </div>
-                    <table class="table table-striped table-bordered compact table-font-small" id="table-cotacoes" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>Fornecedor</th>
-                                <th>Prazo</th>
-                                <th>Condição</th>
-                                <th>Valor Total</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
+                @include('admin.compras.solicitacoes.form.tabs.cotacoes')
 
                 {{-- Tab: Fornecedor Selecionado --}}
-                <div class="tab-pane fade" id="pane-fornecedor" role="tabpanel">
-                    <div class="row mt-1">
-                        <div class="col-md-5">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Cotação Vencedora <span class="text-danger">*</span></small></label>
-                                <select class="form-control form-control-sm select2" id="sel_id_cotacao" style="width:100%">
-                                    <option value="">Selecione</option>
-                                    @foreach($cotacoes ?? [] as $c)
-                                        <option value="{{ $c->ID_COTACAO }}"
-                                            {{ $c->ST_SELECIONADA === 'S' ? 'selected' : '' }}>
-                                            {{ $c->NM_FORNECEDOR }} — R$ {{ number_format($c->VL_TOTAL, 2, ',', '.') }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="form-group mb-2">
-                                <label class="mb-1"><small>Motivo da Escolha <span class="text-danger">*</span></small></label>
-                                <input type="text" class="form-control form-control-sm" id="ds_motivo_escolha" maxlength="500"
-                                    value="{{ isset($cotacoes) ? collect($cotacoes)->firstWhere('ST_SELECIONADA', 'S')->DS_MOTIVO_ESCOLHA ?? '' : '' }}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 pt-3">
-                            <button id="btn-selecionar-forn" class="btn btn-success btn-sm">
-                                <i class="fas fa-check"></i> Confirmar Seleção
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                @include('admin.compras.solicitacoes.form.tabs.fornecedor')
 
                 @endif
 
@@ -263,49 +88,58 @@
 </section>
 
 {{-- Modal editar cotação --}}
-<div class="modal fade" id="modal-edit-cot">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Cotação</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="edit_id_cotacao">
-                <input type="hidden" id="edit_id_sol_cot">
-                <div class="form-group mb-2">
-                    <label class="mb-1"><small>Fornecedor</small></label>
-                    <select class="form-control form-control-sm select2-ajax" id="edit_cd_fornecedor" style="width:100%"
-                        data-url="{{ route('compras.search-fornecedor') }}"
-                        data-placeholder="Buscar fornecedor"></select>
-                </div>
-                <div class="form-group mb-2">
-                    <label class="mb-1"><small>Prazo (dias)</small></label>
-                    <input type="number" class="form-control form-control-sm" id="edit_nr_prazo" min="1">
-                </div>
-                <div class="form-group mb-2">
-                    <label class="mb-1"><small>Condição de Pagamento</small></label>
-                    <input type="text" class="form-control form-control-sm" id="edit_ds_condicao" maxlength="200">
-                </div>
-                <div class="form-group mb-2">
-                    <label class="mb-1"><small>Valor Total (R$)</small></label>
-                    <input type="text" class="form-control form-control-sm money-mask" id="edit_vl_total">
-                </div>
-                <div class="form-group mb-2">
-                    <label class="mb-1"><small>Observação</small></label>
-                    <input type="text" class="form-control form-control-sm" id="edit_ds_obs" maxlength="500">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="btn-save-edit-cot" class="btn btn-warning">Salvar</button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
+@include('admin.compras.solicitacoes.form.modals.modal-edit-cotacao')
+
+{{-- Área de Impressão --}}
+@if($idSolicitacao)
+    @include('admin.compras.solicitacoes.show.prints.solicitacao-compra')
+@endif
+@stop
+
+@section('css')
+    @if($idSolicitacao)
+    <style>
+        #print-area { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #print-area,
+            #print-area * { visibility: visible; }
+            #print-area {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+            @page { margin: 1.5cm 1.5cm 1.5cm 0.5cm; size: A4 portrait; }
+        }
+    </style>
+    @endif
 @stop
 
 @section('js')
+@if($idSolicitacao)
+<script>
+$(document).ready(function () {
+    const qtdItens = {{ count($itens ?? []) }};
+
+    $('#btn-imprimir').click(function () {
+        if (qtdItens === 0) {
+            Swal.fire('Atenção', 'A solicitação não possui itens para imprimir.', 'warning');
+            return;
+        }
+        window.print();
+    });
+
+    $('#btn-exportar-excel').on('click', function (e) {
+        if (qtdItens === 0) {
+            e.preventDefault();
+            Swal.fire('Atenção', 'A solicitação não possui itens para exportar.', 'warning');
+        }
+    });
+});
+</script>
+@endif
 <script>
 $(document).ready(function () {
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\SolicitacaoCompraExport;
 use App\Http\Controllers\Controller;
 use App\Models\CompraSolicitacao;
 use App\Models\CompraSolicitacaoItem;
@@ -11,6 +12,8 @@ use App\Models\Empresa;
 use App\Services\CompraFluxoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class SolicitacaoComprasController extends Controller
@@ -136,9 +139,10 @@ class SolicitacaoComprasController extends Controller
         $uri        = $this->request->route()->uri();
         $empresas   = $this->empresa->empresa();
         $cotacoes   = $this->cotacao->getBySolicitacao($id);
+        $itens      = $this->solicitacaoItem->getBySolicitacao($id);
 
         return view('admin.compras.solicitacoes.form', compact(
-            'title_page', 'user_auth', 'uri', 'empresas', 'solicitacao', 'cotacoes'
+            'title_page', 'user_auth', 'uri', 'empresas', 'solicitacao', 'cotacoes', 'itens'
         ));
     }
 
@@ -171,6 +175,24 @@ class SolicitacaoComprasController extends Controller
         return isset($result['errors'])
             ? response()->json(['errors' => $result['errors']])
             : response()->json(['success' => $result['success']]);
+    }
+
+    public function exportarExcel($id)
+    {
+        $solicitacao = $this->solicitacao->findById($id);
+
+        if (!$solicitacao) {
+            return redirect()->route('compras.solicitacoes.index');
+        }
+
+        $itens = $this->solicitacaoItem->getBySolicitacao($id);
+
+        $filename = 'Solicitacao_'
+            . str_pad($id, 6, '0', STR_PAD_LEFT)
+            . '_' . Str::slug($solicitacao->NM_EMPRESA)
+            . '.xlsx';
+
+        return Excel::download(new SolicitacaoCompraExport($solicitacao, $itens), $filename);
     }
 
     // --- Itens ---

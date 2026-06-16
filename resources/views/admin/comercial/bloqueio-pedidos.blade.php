@@ -96,9 +96,10 @@
                         <div class="tab-content">
                             <div class="tab-pane fade active show" id="acompanhamento-pedido" role="tabpanel"
                                 aria-labelledby="custom-tabs-four-home-tab">
-                                <div class="card collapsed-card mb-4">
-                                    <div class="card-header">
-                                        <h3 class="card-title mt-2">Filtros:</h3>
+                                <div class="card collapsed-card mb-2">
+                                    <div class="card-header pt-2 pb-2">
+                                        <h3 class="card-title mt-2"><i class="fas fa-filter mr-1 text-muted"></i> Filtros
+                                        </h3>
                                         <div class="card-tools">
                                             <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                                 <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
@@ -319,6 +320,21 @@
 
         .table-left {
             margin-left: 0 !important;
+        }
+
+        /* --- Header --- */
+        table.dataTable thead tr {
+            background-color: #444B53;
+            color: #ffffff;
+        }
+
+        table.dataTable thead th {
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: .3px;
+            padding: 8px 10px;
+            border-bottom: 2px solid #2d3238 !important;
+            white-space: nowrap;
         }
     </style>
 @endsection
@@ -860,5 +876,7 @@
         $('#i-garantias').click(function() {
             table.search('BLOQ. GARANTIA').draw();
         });
+
+        $('link[href*="custom_datatables"]').remove();
     </script>
 @stop

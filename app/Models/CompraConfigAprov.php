@@ -56,6 +56,25 @@ class CompraConfigAprov extends Model
         );
     }
 
+    public function reordenar(array $ids): void
+    {
+        $offset = 10000;
+        // Primeiro passo: valores temporários para evitar violação do UNIQUE KEY durante a troca
+        foreach ($ids as $index => $id) {
+            DB::connection('firebird')->statement(
+                'UPDATE COMPRA_CONFIG_APROV SET NR_ORDEM = :nr_ordem WHERE ID_CONFIG_APROV = :id',
+                ['nr_ordem' => $offset + $index + 1, 'id' => $id]
+            );
+        }
+        // Segundo passo: valores definitivos
+        foreach ($ids as $index => $id) {
+            DB::connection('firebird')->statement(
+                'UPDATE COMPRA_CONFIG_APROV SET NR_ORDEM = :nr_ordem WHERE ID_CONFIG_APROV = :id',
+                ['nr_ordem' => $index + 1, 'id' => $id]
+            );
+        }
+    }
+
     private function nextId()
     {
         return DB::connection('firebird')

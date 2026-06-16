@@ -37,7 +37,11 @@ class ConfigComprasController extends Controller
         $usuarios   = $this->userModel->getData();
 
         return view('admin.compras.configuracao.index', compact(
-            'title_page', 'user_auth', 'uri', 'empresas', 'usuarios'
+            'title_page',
+            'user_auth',
+            'uri',
+            'empresas',
+            'usuarios'
         ));
     }
 
@@ -47,13 +51,13 @@ class ConfigComprasController extends Controller
 
         return DataTables::of($data)
             ->addColumn('vl_minimo_fmt', fn($row) =>
-                'R$ ' . number_format($row->VL_MINIMO, 2, ',', '.'))
+            'R$ ' . number_format($row->VL_MINIMO, 2, ',', '.'))
             ->addColumn('vl_maximo_fmt', fn($row) =>
-                $row->VL_MAXIMO ? 'R$ ' . number_format($row->VL_MAXIMO, 2, ',', '.') : 'Ilimitado')
+            $row->VL_MAXIMO ? 'R$ ' . number_format($row->VL_MAXIMO, 2, ',', '.') : 'Ilimitado')
             ->addColumn('ativo_badge', fn($row) =>
-                $row->ST_ATIVO === 'S'
-                    ? '<span class="badge badge-success">Ativo</span>'
-                    : '<span class="badge badge-secondary">Inativo</span>')
+            $row->ST_ATIVO === 'S'
+                ? '<span class="badge badge-success">Ativo</span>'
+                : '<span class="badge badge-secondary">Inativo</span>')
             ->addColumn('Actions', function ($row) {
                 return '
                     <button data-id="' . $row->ID_FAIXA . '"
@@ -142,6 +146,21 @@ class ConfigComprasController extends Controller
             return response()->json(['success' => 'Aprovador removido!']);
         } catch (\Exception $e) {
             return response()->json(['errors' => 'Erro ao remover aprovador.']);
+        }
+    }
+
+    public function reordenarAprovadores()
+    {
+        $ids = $this->request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'required|integer',
+        ])['ids'];
+
+        try {
+            $this->configAprov->reordenar($ids);
+            return response()->json(['success' => 'Ordem atualizada com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => $e . 'Erro ao reordenar.']);
         }
     }
 
