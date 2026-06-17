@@ -10,6 +10,26 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/manifest.json', function () {
+    return response()->json([
+        'name'             => config('app.name'),
+        'short_name'       => config('pwa.short_name'),
+        'description'      => 'Sistema de gestão ' . config('app.name'),
+        'start_url'        => '/',
+        'scope'            => '/',
+        'display'          => 'standalone',
+        'orientation'      => 'portrait-primary',
+        'background_color' => config('pwa.background_color'),
+        'theme_color'      => config('pwa.theme_color'),
+        'icons'            => [
+            ['src' => '/img/android-chrome-192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/android-chrome-512x512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any maskable'],
+            ['src' => '/img/apple-touch-icon.png',       'sizes' => '180x180', 'type' => 'image/png'],
+        ],
+    ], 200, ['Content-Type' => 'application/manifest+json']);
+});
+
+
 Route::get('/clear-cache-all', function () {
 
     Artisan::call('cache:clear');
