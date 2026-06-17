@@ -10,9 +10,9 @@ class CompraCotacao extends Model
 {
     use HasFactory;
 
-    public function getBySolicitacao($idSolicitacao)
+    public function getBySolicitacao(int $idSolicitacao)
     {
-        return DB::connection('firebird')->select("
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT
                 C.ID_COTACAO,
                 C.ID_SOLICITACAO,
@@ -29,12 +29,12 @@ class CompraCotacao extends Model
             INNER JOIN PESSOA P ON P.CD_PESSOA = C.CD_FORNECEDOR
             WHERE C.ID_SOLICITACAO = :id_sol
             ORDER BY C.ID_COTACAO
-        ", ['id_sol' => $idSolicitacao]);
+        ", ['id_sol' => $idSolicitacao]));
     }
 
-    public function findById($id)
+    public function findById(int $id)
     {
-        return DB::connection('firebird')->selectOne("
+        $row = DB::connection('firebird')->selectOne("
             SELECT
                 C.ID_COTACAO,
                 C.ID_SOLICITACAO,
@@ -50,11 +50,13 @@ class CompraCotacao extends Model
             INNER JOIN PESSOA P ON P.CD_PESSOA = C.CD_FORNECEDOR
             WHERE C.ID_COTACAO = :id
         ", ['id' => $id]);
+
+        return $row ? \Helper::ConvertFormatText([$row])[0] : null;
     }
 
-    public function getCotacaoSelecionada($idSolicitacao)
+    public function getCotacaoSelecionada(int $idSolicitacao)
     {
-        return DB::connection('firebird')->selectOne("
+        $row = DB::connection('firebird')->selectOne("
             SELECT FIRST 1
                 C.ID_COTACAO,
                 C.CD_FORNECEDOR,
@@ -66,9 +68,11 @@ class CompraCotacao extends Model
             WHERE C.ID_SOLICITACAO = :id_sol
               AND C.ST_SELECIONADA = 'S'
         ", ['id_sol' => $idSolicitacao]);
+
+        return $row ? \Helper::ConvertFormatText([$row])[0] : null;
     }
 
-    public function store($data)
+    public function store(array $data)
     {
         $id = $this->nextId();
 
@@ -87,15 +91,15 @@ class CompraCotacao extends Model
             'id_solicitacao' => $data['id_solicitacao'],
             'cd_fornecedor'  => $data['cd_fornecedor'],
             'nr_prazo'       => $data['nr_prazo_entrega'],
-            'ds_condicao'    => $data['ds_condicao_pagamento'],
+            'ds_condicao'    => \Helper::ToIso($data['ds_condicao_pagamento']),
             'vl_total'       => $data['vl_total'],
-            'ds_observacao'  => $data['ds_observacao'] ?? null,
+            'ds_observacao'  => \Helper::ToIso($data['ds_observacao'] ?? null),
         ]);
 
         return $id;
     }
 
-    public function updateData($id, $data)
+    public function updateData(int $id, array $data)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_COTACAO SET
@@ -108,14 +112,14 @@ class CompraCotacao extends Model
         ", [
             'cd_fornecedor' => $data['cd_fornecedor'],
             'nr_prazo'      => $data['nr_prazo_entrega'],
-            'ds_condicao'   => $data['ds_condicao_pagamento'],
+            'ds_condicao'   => \Helper::ToIso($data['ds_condicao_pagamento']),
             'vl_total'      => $data['vl_total'],
-            'ds_observacao' => $data['ds_observacao'] ?? null,
+            'ds_observacao' => \Helper::ToIso($data['ds_observacao'] ?? null),
             'id'            => $id,
         ]);
     }
 
-    public function selecionarFornecedor($idSolicitacao, $idCotacao, $motivo)
+    public function selecionarFornecedor(int $idSolicitacao, int $idCotacao, ?string $motivo)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_COTACAO SET ST_SELECIONADA = 'N', DS_MOTIVO_ESCOLHA = NULL
@@ -127,10 +131,10 @@ class CompraCotacao extends Model
                 ST_SELECIONADA    = 'S',
                 DS_MOTIVO_ESCOLHA = :motivo
             WHERE ID_COTACAO = :id
-        ", ['motivo' => $motivo, 'id' => $idCotacao]);
+        ", ['motivo' => \Helper::ToIso($motivo), 'id' => $idCotacao]);
     }
 
-    public function deleteById($id, $idSolicitacao)
+    public function deleteById(int $id, int $idSolicitacao)
     {
         DB::connection('firebird')->statement("
             DELETE FROM COMPRA_COTACAO
@@ -138,14 +142,14 @@ class CompraCotacao extends Model
         ", ['id' => $id, 'id_sol' => $idSolicitacao]);
     }
 
-    public function countBySolicitacao($idSolicitacao)
+    public function countBySolicitacao(int $idSolicitacao): int
     {
         return DB::connection('firebird')
             ->selectOne("SELECT COUNT(*) QT FROM COMPRA_COTACAO WHERE ID_SOLICITACAO = :id_sol", ['id_sol' => $idSolicitacao])
             ->QT ?? 0;
     }
 
-    public function searchFornecedor($term)
+    public function searchFornecedor(string $term)
     {
         return DB::connection('firebird')->select("
             SELECT FIRST 20

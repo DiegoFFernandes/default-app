@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CompraSolicitacao;
 use App\Models\CompraSolicitacaoItem;
 use App\Models\CompraCotacao;
+use App\Models\CompraCentroCusto;
 use App\Models\CompraEtapaAprov;
+use App\Models\CompraParamEmpresa;
 use App\Models\Empresa;
 use App\Services\CompraFluxoService;
 use Illuminate\Http\Request;
@@ -27,7 +29,9 @@ class SolicitacaoComprasController extends Controller
         protected CompraCotacao         $cotacao,
         protected CompraEtapaAprov      $etapaAprov,
         protected CompraFluxoService    $fluxoService,
-        protected Empresa               $empresa
+        protected Empresa               $empresa,
+        protected CompraParamEmpresa    $paramEmpresa,
+        protected CompraCentroCusto     $centroCusto
     ) {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -47,15 +51,20 @@ class SolicitacaoComprasController extends Controller
 
     public function list()
     {
-        $data = $this->solicitacao->getAll($this->user->id);
+        $data = $this->solicitacao->getAll();
+
+        $userIds = collect($data)->pluck('CD_USUARIO_SOLICITANTE')->unique()->filter();
+        $users   = \App\Models\User::whereIn('id', $userIds)->pluck('name', 'id');
 
         return DataTables::of($data)
+            ->addColumn('nm_solicitante', fn($row) => $users[$row->CD_USUARIO_SOLICITANTE] ?? '-')
             ->addColumn('status_badge', function ($row) {
                 $map = [
                     'RAS' => ['secondary', 'Rascunho'],
                     'APR' => ['warning',   'Em Aprovação'],
                     'APC' => ['success',   'Aprovada'],
                     'REP' => ['danger',    'Reprovada'],
+                    'CAN' => ['dark',      'Cancelada'],
                 ];
                 [$color, $label] = $map[$row->ST_SOLICITACAO] ?? ['secondary', $row->ST_SOLICITACAO];
                 return "<span class=\"badge badge-{$color}\">{$label}</span>";
@@ -65,14 +74,14 @@ class SolicitacaoComprasController extends Controller
                 : '-')
             ->addColumn('Actions', function ($row) {
                 $btn = '<a href="' . route('compras.solicitacoes.show', $row->CD_SOLICITACAO) . '"
-                            class="btn btn-info btn-xs mr-1" title="Visualizar">
-                            <i class="fas fa-eye"></i></a>';
+                            class="btn btn-primary btn-xs mr-1" title="Visualizar">
+                            <i class="fas fa-eye" style="color: white"></i></a>';
                 if ($row->ST_SOLICITACAO === 'RAS') {
                     $btn .= '<a href="' . route('compras.solicitacoes.edit', $row->CD_SOLICITACAO) . '"
                                 class="btn btn-warning btn-xs mr-1" title="Editar">
                                 <i class="fas fa-edit"></i></a>';
                     $btn .= '<button data-id="' . $row->CD_SOLICITACAO . '"
-                                class="btn btn-danger btn-xs btn-delete" title="Excluir">
+                                class="btn btn-danger btn-xs btn-delete" title="Excluir Rascunho">
                                 <i class="fas fa-trash"></i></button>';
                 }
                 return $btn;
@@ -83,12 +92,15 @@ class SolicitacaoComprasController extends Controller
 
     public function create()
     {
-        $title_page = 'Nova Solicitação de Compra';
-        $user_auth  = $this->user;
-        $uri        = $this->request->route()->uri();
-        $empresas   = $this->empresa->empresa();
+        $title_page          = 'Nova Solicitação de Compra';
+        $user_auth           = $this->user;
+        $uri                 = $this->request->route()->uri();
+        $empresas            = $this->empresa->empresa();
+        $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
 
-        return view('admin.compras.solicitacoes.form', compact('title_page', 'user_auth', 'uri', 'empresas'));
+        return view('admin.compras.solicitacoes.form', compact(
+            'title_page', 'user_auth', 'uri', 'empresas', 'paramUsaCentrocusto'
+        ));
     }
 
     public function store()
@@ -120,9 +132,13 @@ class SolicitacaoComprasController extends Controller
         $user_auth  = $this->user;
         $uri        = $this->request->route()->uri();
 
+        $saldoCiclo = $solicitacao->CD_CENTROCUSTO
+            ? $this->centroCusto->getSaldoCiclo($solicitacao->CD_EMPRESA, $solicitacao->CD_CENTROCUSTO)
+            : null;
+
         return view('admin.compras.solicitacoes.show', compact(
             'title_page', 'user_auth', 'uri',
-            'solicitacao', 'itens', 'cotacoes', 'etapas', 'cotacaoSel'
+            'solicitacao', 'itens', 'cotacoes', 'etapas', 'cotacaoSel', 'saldoCiclo'
         ));
     }
 
@@ -134,15 +150,17 @@ class SolicitacaoComprasController extends Controller
             return redirect()->route('compras.solicitacoes.index');
         }
 
-        $title_page = 'Editar Solicitação #' . $id;
-        $user_auth  = $this->user;
-        $uri        = $this->request->route()->uri();
-        $empresas   = $this->empresa->empresa();
-        $cotacoes   = $this->cotacao->getBySolicitacao($id);
-        $itens      = $this->solicitacaoItem->getBySolicitacao($id);
+        $title_page          = 'Editar Solicitação #' . $id;
+        $user_auth           = $this->user;
+        $uri                 = $this->request->route()->uri();
+        $empresas            = $this->empresa->empresa();
+        $cotacoes            = $this->cotacao->getBySolicitacao($id);
+        $itens               = $this->solicitacaoItem->getBySolicitacao($id);
+        $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
 
         return view('admin.compras.solicitacoes.form', compact(
-            'title_page', 'user_auth', 'uri', 'empresas', 'solicitacao', 'cotacoes', 'itens'
+            'title_page', 'user_auth', 'uri', 'empresas', 'solicitacao', 'cotacoes', 'itens',
+            'paramUsaCentrocusto'
         ));
     }
 
@@ -177,6 +195,16 @@ class SolicitacaoComprasController extends Controller
             : response()->json(['success' => $result['success']]);
     }
 
+    public function cancelar($id)
+    {
+        try {
+            $this->solicitacao->cancelar((int) $id);
+            return response()->json(['success' => 'Solicitação cancelada com sucesso!']);
+        } catch (\Exception) {
+            return response()->json(['errors' => 'Erro ao cancelar solicitação.']);
+        }
+    }
+
     public function exportarExcel($id)
     {
         $solicitacao = $this->solicitacao->findById($id);
@@ -202,11 +230,46 @@ class SolicitacaoComprasController extends Controller
         $data = $this->solicitacaoItem->getBySolicitacao($idSolicitacao);
 
         return DataTables::of($data)
-            ->addColumn('Actions', fn($row) =>
-                '<button data-id="' . $row->ID . '" class="btn btn-danger btn-xs btn-delete-item" title="Remover"><i class="fas fa-trash"></i></button>'
-            )
+            ->addColumn('Actions', function ($row) {
+                $edit = '<button '
+                    . 'data-id="' . $row->ID . '" '
+                    . 'data-cd="' . $row->CD_ITEM . '" '
+                    . 'data-ds="' . e($row->DS_ITEM) . '" '
+                    . 'data-qt="' . $row->QT_ITEM . '" '
+                    . 'data-un="' . e($row->DS_UNIDADE) . '" '
+                    . 'data-obs="' . e($row->DS_OBSERVACAO ?? '') . '" '
+                    . 'class="btn btn-warning btn-xs btn-edit-item mr-1" title="Editar">'
+                    . '<i class="fas fa-edit"></i></button>';
+                $del = '<button data-id="' . $row->ID . '" '
+                    . 'class="btn btn-danger btn-xs btn-delete-item" title="Remover">'
+                    . '<i class="fas fa-trash"></i></button>';
+                return $edit . $del;
+            })
             ->rawColumns(['Actions'])
             ->make(true);
+    }
+
+    public function updateItem($id)
+    {
+        $input = $this->request->validate([
+            'cd_item'       => 'required|integer',
+            'qt_item'       => 'required|numeric|min:0.001',
+            'ds_unidade'    => 'required|string|max:10',
+            'ds_observacao' => 'nullable|string|max:300',
+        ], [
+            'cd_item.required'    => 'Selecione o produto.',
+            'qt_item.required'    => 'Informe a quantidade.',
+            'qt_item.numeric'     => 'A quantidade deve ser numérica.',
+            'qt_item.min'         => 'A quantidade deve ser maior que zero.',
+            'ds_unidade.required' => 'Informe a unidade.',
+        ]);
+
+        try {
+            $this->solicitacaoItem->updateData($id, $input);
+            return response()->json(['success' => 'Item atualizado!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'Erro ao atualizar item.']);
+        }
     }
 
     public function storeItem()
@@ -275,6 +338,7 @@ class SolicitacaoComprasController extends Controller
             'dt_solicitacao'   => 'required|date',
             'ds_justificativa' => 'required|string|max:500',
             'ds_observacao'    => 'nullable|string|max:500',
+            'cd_centrocusto'   => 'nullable|integer',
         ], [
             'cd_empresa.required'       => 'Selecione a empresa.',
             'dt_solicitacao.required'   => 'Informe a data da solicitação.',

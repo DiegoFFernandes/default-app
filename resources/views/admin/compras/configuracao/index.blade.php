@@ -28,6 +28,10 @@
                                 data-target="#modal-faixa">
                                 <i class="fas fa-plus"></i> Nova Faixa
                             </button>
+                            <button id="btn-novo-centro" class="btn btn-success btn-xs" style="display:none"
+                                data-toggle="modal" data-target="#modal-novo-centro">
+                                <i class="fas fa-plus"></i> Novo Centro
+                            </button>
                         </div>
                     </div>
 
@@ -54,6 +58,12 @@
 
     {{-- Modal Aprovadores --}}
     @include('admin.compras.configuracao.modals.modal-aprovadores')
+
+    {{-- Modal Centro de Resultado --}}
+    @include('admin.compras.configuracao.modals.modal-centrocusto')
+
+    {{-- Modal Novo Centro --}}
+    @include('admin.compras.configuracao.modals.modal-novo-centro')
 @stop
 
 @section('js')
@@ -63,10 +73,11 @@
 
             const token = $('[name=csrf-token]').attr('content');
 
-            // Oculta/exibe botão Nova Faixa conforme a tab ativa
+            // Oculta/exibe botões conforme a tab ativa
             $('a[data-toggle="pill"]').on('shown.bs.tab', function(e) {
-                const isTabFaixas = $(e.target).attr('href') === '#pane-faixas';
-                $('#btn-nova-faixa').toggle(isTabFaixas);
+                const href = $(e.target).attr('href');
+                $('#btn-nova-faixa').toggle(href === '#pane-faixas');
+                $('#btn-novo-centro').toggle(href === '#pane-centro');
             });
 
             $('.form-control.select2').select2({
@@ -361,6 +372,186 @@
             $('#aprov_cd_usuario').select2({
                 theme: 'bootstrap4',
                 dropdownParent: $('#modal-aprovadores')
+            });
+
+            // ---- Centro de Resultado ----
+            $('#cc_cd_usuario').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modal-centrocusto')
+            });
+
+            let dtCentros = null;
+
+            $('#tab-centro').on('shown.bs.tab', function() {
+                if (dtCentros) return;
+                dtCentros = $('#table-centros').DataTable({
+                    processing: false,
+                    serverSide: false,
+                    ajax: '{{ route('compras.configuracao.list-centros') }}',
+                    columns: [
+                        { data: 'NM_EMPRESA',      name: 'NM_EMPRESA' },
+                        { data: 'CD_CENTROCUSTO',  name: 'CD_CENTROCUSTO',  width: '70px',  className: 'text-center font-weight-bold' },
+                        { data: 'DS_CENTROCUSTO',  name: 'DS_CENTROCUSTO' },
+                        { data: 'vl_orcado_fmt',   name: 'vl_orcado_fmt',   orderable: false, width: '160px', className: 'text-right' },
+                        { data: 'DIA_INICIO_CICLO',name: 'DIA_INICIO_CICLO',width: '70px',  className: 'text-center' },
+                        { data: 'nm_responsavel',  name: 'nm_responsavel',  orderable: false },
+                        { data: 'Actions',         name: 'Actions',         orderable: false, searchable: false, width: '60px', className: 'text-center' },
+                    ],
+                    pageLength: 20,
+                    order: [[1, 'asc'], [0, 'asc']],
+                    language: { url: "{{ asset('vendor/datatables/pt-br.json') }}" },
+                });
+            });
+
+            $('body').on('click', '.btn-edit-centro', function() {
+                const btn = $(this);
+                const vl  = btn.data('orcado');
+                $('#cc_cd').val(btn.data('cd'));
+                $('#cc_cd_empresa').val(btn.data('empresa'));
+                $('#cc_ds_label').text(btn.data('empresa') + ' | ' + btn.data('cd') + ' — ' + btn.data('ds'));
+                $('#cc_cd_usuario').val(btn.data('usuario') || '').trigger('change');
+                $('#cc_vl_orcado').val(vl ? parseFloat(vl).toFixed(2).replace('.', ',') : '');
+                $('#cc_dia_inicio').val(btn.data('dia') || '');
+                $('#modal-centrocusto').modal('show');
+            });
+
+            // Toggle por empresa
+            $('body').on('change', '.chk-usa-centro', function() {
+                const cdEmpresa = $(this).data('empresa');
+                const st = $(this).is(':checked') ? 'S' : 'N';
+                $.post('{{ route('compras.configuracao.toggle-centrocusto') }}', {
+                    _token: token,
+                    cd_empresa: cdEmpresa,
+                    st_usa: st,
+                }, function(res) {
+                    if (res.errors) {
+                        Swal.fire('Atenção', res.errors, 'warning');
+                    } else {
+                        Swal.fire({
+                            icon: 'success',
+                            title: st === 'S' ? 'Centro de Resultado ativado!' : 'Centro de Resultado desativado!',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true,
+                        });
+                    }
+                });
+            });
+
+            $('#btn-salvar-centro').click(function() {
+                const id    = $('#cc_cd').val();
+                const vlStr = $('#cc_vl_orcado').val().replace(/\./g, '').replace(',', '.');
+                Swal.fire({
+                    title: 'Salvando...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => Swal.showLoading()
+                });
+                $.post('/compras/centros/' + id + '/update', {
+                    _token:           token,
+                    cd_empresa:       $('#cc_cd_empresa').val(),
+                    cd_usuario_resp:  $('#cc_cd_usuario').val() || null,
+                    vl_orcado_mes:    vlStr || null,
+                    dia_inicio_ciclo: $('#cc_dia_inicio').val() || null,
+                }, function(res) {
+                    if (res.errors) {
+                        Swal.fire('Atenção', res.errors, 'warning');
+                    } else {
+                        $('#modal-centrocusto').modal('hide');
+                        Swal.fire('Salvo!', res.success, 'success').then(() => {
+                            dtCentros.ajax.reload();
+                        });
+                    }
+                });
+            });
+
+            // ---- Novo Centro ----
+            $('#nc_cd_empresa').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modal-novo-centro')
+            });
+
+            $('#nc_cd_centrocusto').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modal-novo-centro')
+            });
+
+            $('#nc_cd_usuario').select2({
+                theme: 'bootstrap4',
+                dropdownParent: $('#modal-novo-centro')
+            });
+
+            $('#modal-novo-centro').on('show.bs.modal', function() {
+                $('#nc_cd_empresa, #nc_vl_orcado, #nc_dia_inicio').val('');
+                $('#nc_cd_usuario').val('').trigger('change');
+                $('#nc_cd_empresa').trigger('change');
+                $('#nc_cd_centrocusto')
+                    .empty()
+                    .append('<option value="">— selecione a empresa primeiro —</option>')
+                    .prop('disabled', true)
+                    .trigger('change');
+            });
+
+            $('#nc_cd_empresa').on('change', function() {
+                const cdEmpresa = $(this).val();
+                const sel = $('#nc_cd_centrocusto');
+                if (!cdEmpresa) {
+                    sel.empty()
+                        .append('<option value="">— selecione a empresa primeiro —</option>')
+                        .prop('disabled', true).trigger('change');
+                    return;
+                }
+                sel.empty().append('<option value="">Carregando...</option>').prop('disabled', true).trigger('change');
+                $.getJSON('{{ route('compras.centros.tipos') }}', { cd_empresa: cdEmpresa }, function(data) {
+                    sel.empty().append('<option value="">Selecione o tipo</option>');
+                    if (!data.length) {
+                        sel.append('<option value="" disabled>Todos os tipos já foram adicionados</option>');
+                    } else {
+                        $.each(data, function(_, c) {
+                            sel.append(
+                                $('<option>', { value: c.CD_CENTROCUSTO })
+                                    .data('ds', c.DS_CENTROCUSTO)
+                                    .text(c.CD_CENTROCUSTO + ' — ' + c.DS_CENTROCUSTO)
+                            );
+                        });
+                    }
+                    sel.prop('disabled', false).trigger('change');
+                });
+            });
+
+            $('#btn-salvar-novo-centro').click(function() {
+                const vlStr = ($('#nc_vl_orcado').val() || '').replace(/\./g, '').replace(',', '.');
+                Swal.fire({
+                    title: 'Salvando...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => Swal.showLoading()
+                });
+                $.post('{{ route('compras.configuracao.store-centro') }}', {
+                    _token:           token,
+                    cd_empresa:       $('#nc_cd_empresa').val(),
+                    cd_centrocusto:   $('#nc_cd_centrocusto').val(),
+                    ds_centrocusto:   $('#nc_cd_centrocusto').find('option:selected').data('ds') || '',
+                    cd_usuario_resp:  $('#nc_cd_usuario').val() || null,
+                    vl_orcado_mes:    vlStr || null,
+                    dia_inicio_ciclo: $('#nc_dia_inicio').val() || null,
+                }, function(res) {
+                    if (res.errors) {
+                        Swal.fire('Atenção', res.errors, 'warning');
+                    } else {
+                        $('#modal-novo-centro').modal('hide');
+                        Swal.fire('Criado!', res.success, 'success').then(() => {
+                            if (dtCentros) dtCentros.ajax.reload();
+                        });
+                    }
+                }).fail(function(xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        const msgs = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                        Swal.fire({ icon: 'warning', title: 'Atenção', html: msgs });
+                    }
+                });
             });
 
         });

@@ -5,6 +5,11 @@ use Illuminate\Contracts\Validation\Validator;
 
 class Helper
 {
+    public static function ToIso(?string $value): ?string
+    {
+        return $value !== null ? mb_convert_encoding($value, 'ISO-8859-1', 'UTF-8') : null;
+    }
+
     public static function ConvertFormatText($results)
     {
         // Converter cada objeto ou array e manter o tipo objeto no retorno

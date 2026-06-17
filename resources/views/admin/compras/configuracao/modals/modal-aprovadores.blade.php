@@ -17,7 +17,14 @@
                     <div class="col-md-4">
                         <div class="form-group mb-2">
                             <label class="mb-1"><small>Cargo <span class="text-danger">*</span></small></label>
-                            <input type="text" class="form-control form-control-sm" id="aprov_cargo" maxlength="100" placeholder="Ex: Supervisor">
+                            <select class="form-control form-control-sm" id="aprov_cargo">
+                                <option value="">Selecione...</option>
+                                <option value="Diretoria">Diretoria</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Coordenador">Coordenador</option>
+                                <option value="Usuario">Usuario</option>
+                            </select>
                         </div>
                     </div>
                     <div class="col-md-4">

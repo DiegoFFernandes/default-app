@@ -8,6 +8,8 @@ use App\Models\CompraCotacao;
 use App\Models\CompraConfigFaixa;
 use App\Models\CompraConfigAprov;
 use App\Models\CompraEtapaAprov;
+use App\Models\User;
+use App\Services\WppConnectService;
 
 class CompraFluxoService
 {
@@ -77,17 +79,52 @@ class CompraFluxoService
 
         $this->solicitacao->updateFornecedorTotal($id, $cotacao->CD_FORNECEDOR, $cotacao->VL_TOTAL);
 
+        $userIds = collect($aprovadores)->pluck('CD_USUARIO')->unique();
+        $users   = User::whereIn('id', $userIds)->pluck('name', 'id');
+
+        $etapasCriadas = [];
         foreach ($aprovadores as $aprov) {
-            $this->etapaAprov->store([
+            $idEtapa = $this->etapaAprov->store([
                 'cd_solicitacao'       => $id,
                 'nr_ordem'             => $aprov->NR_ORDEM,
                 'ds_cargo'             => $aprov->DS_CARGO,
                 'cd_usuario_aprovador' => $aprov->CD_USUARIO,
+                'nm_aprovador'         => $users[$aprov->CD_USUARIO] ?? null,
             ]);
+            $etapasCriadas[] = [
+                'id_etapa'   => $idEtapa,
+                'cd_usuario' => $aprov->CD_USUARIO,
+                'ds_cargo'   => $aprov->DS_CARGO,
+            ];
         }
 
         $this->solicitacao->updateStatus($id, 'APR');
 
+        $this->dispararNotificacoesAprovadores($id, $etapasCriadas, $cotacao->VL_TOTAL);
+
         return ['success' => 'Solicitação enviada para aprovação com sucesso!'];
+    }
+
+    private function dispararNotificacoesAprovadores(int $idSolicitacao, array $etapas, float $vlTotal): void
+    {
+        try {
+            $solicitacao = $this->solicitacao->findById($idSolicitacao);
+            $solicitante = User::find($solicitacao->CD_USUARIO_SOLICITANTE);
+            $itens       = $this->solicitacaoItem->getBySolicitacao($idSolicitacao);
+
+            (new WppConnectService())->notificarAprovadores(
+                idSolicitacao: $idSolicitacao,
+                nmSolicitante: $solicitante?->name ?? 'Solicitante',
+                nmEmpresa:     $solicitacao->NM_EMPRESA ?? '',
+                vlTotal:       (float) $vlTotal,
+                itens:         $itens,
+                aprovadores:   $etapas,
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('WppConnect: falha ao notificar aprovadores', [
+                'id_solicitacao' => $idSolicitacao,
+                'error'          => $e->getMessage(),
+            ]);
+        }
     }
 }

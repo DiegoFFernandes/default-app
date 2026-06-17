@@ -39,7 +39,7 @@
 
             <div class="card-tools mr-2">
                 @if($idSolicitacao)
-                    <button id="btn-submeter" class="btn btn-danger btn-xs mr-1">
+                    <button id="btn-submeter" class="btn btn-primary btn-xs mr-1">
                         <i class="fas fa-paper-plane"></i> Enviar para Aprovação
                     </button>
                     <a id="btn-exportar-excel"
@@ -54,6 +54,9 @@
                         class="btn btn-info btn-xs mr-1">
                         <i class="fas fa-eye"></i> Visualizar
                     </a>
+                    <button id="btn-cancelar" class="btn btn-danger btn-xs mr-1">
+                        <i class="fas fa-trash"></i> Excluir
+                    </button>
                 @endif
                 <a href="{{ route('compras.solicitacoes.index') }}" class="btn btn-default btn-xs">
                     <i class="fas fa-arrow-left"></i> Voltar
@@ -86,6 +89,9 @@
     </div>
 
 </section>
+
+{{-- Modal editar item --}}
+@include('admin.compras.solicitacoes.form.modals.modal-edit-item')
 
 {{-- Modal editar cotação --}}
 @include('admin.compras.solicitacoes.form.modals.modal-edit-cotacao')
@@ -137,6 +143,34 @@ $(document).ready(function () {
             Swal.fire('Atenção', 'A solicitação não possui itens para exportar.', 'warning');
         }
     });
+
+    $('#btn-cancelar').click(function () {
+        Swal.fire({
+            title: 'Excluir rascunho?',
+            text: 'A solicitação será excluída permanentemente.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sim, cancelar',
+            cancelButtonText: 'Não',
+        }).then(r => {
+            if (!r.isConfirmed) return;
+            $.ajax({
+                url: '/compras/solicitacoes/{{ $idSolicitacao }}',
+                method: 'DELETE',
+                data: { _token: $('[name=csrf-token]').attr('content') },
+                success: function (res) {
+                    if (res.errors) {
+                        Swal.fire('Erro', res.errors, 'error');
+                    } else {
+                        Swal.fire('Cancelado!', res.success, 'success').then(() => {
+                            window.location.href = '{{ route('compras.solicitacoes.index') }}';
+                        });
+                    }
+                }
+            });
+        });
+    });
 });
 </script>
 @endif
@@ -145,6 +179,38 @@ $(document).ready(function () {
 
     const idSolicitacao = $('#id_solicitacao').val();
     const token = $('[name=csrf-token]').attr('content');
+    const paramUsaCentrocusto  = @json($paramUsaCentrocusto ?? []);
+    const currentCentroCusto   = @json($solicitacao->CD_CENTROCUSTO ?? null);
+
+    function loadCentrosCusto(cdEmpresa, preSelected) {
+        $.getJSON('{{ route('compras.centros.by-empresa') }}', { cd_empresa: cdEmpresa }, function(data) {
+            const sel = $('#cd_centrocusto');
+            sel.empty().append('<option value="">Nenhum</option>');
+            $.each(data, function(_, c) {
+                const opt = $('<option>', { value: c.CD_CENTROCUSTO, text: c.DS_CENTROCUSTO });
+                if (preSelected && c.CD_CENTROCUSTO == preSelected) opt.prop('selected', true);
+                sel.append(opt);
+            });
+            sel.trigger('change');
+        });
+    }
+
+    function toggleCentroCusto(cdEmpresa, preSelected) {
+        if (paramUsaCentrocusto[cdEmpresa] === 'S') {
+            $('#div-centrocusto').show();
+            loadCentrosCusto(cdEmpresa, preSelected);
+        } else {
+            $('#div-centrocusto').hide();
+            $('#cd_centrocusto').empty().append('<option value="">Nenhum</option>').trigger('change');
+        }
+    }
+
+    $('#cd_empresa').on('change', function () {
+        $('#div-saldo-ciclo').hide();
+        toggleCentroCusto($(this).val(), null);
+    });
+
+    toggleCentroCusto($('#cd_empresa').val(), currentCentroCusto);
 
     // Ajusta colunas do DataTable ao trocar de tab
     $('a[data-toggle="pill"]').on('shown.bs.tab', function () {
@@ -167,6 +233,7 @@ $(document).ready(function () {
                     data: params => ({ q: params.term }),
                     processResults: data => ({
                         results: data.map(item => ({
+                            ...item,
                             id:   item.id   ?? item.ID,
                             text: item.text ?? item.TEXT
                         }))
@@ -179,6 +246,37 @@ $(document).ready(function () {
 
     initSelect2Ajax('.select2-ajax');
     $('.form-control.select2:not(.select2-ajax)').select2({ theme: 'bootstrap4' });
+
+    $('#cd_item').on('select2:select', function (e) {
+        const sg = e.params.data.SG_UNIDMED;
+        if (sg) $('#ds_unidade').val(sg);
+    });
+
+    function loadSaldoCiclo(cdEmpresa, cdCentrocusto) {
+        $('#div-saldo-ciclo').hide();
+        if (!cdEmpresa || !cdCentrocusto) return;
+
+        $.getJSON('{{ route('compras.saldo-ciclo') }}', {
+            cd_empresa:     cdEmpresa,
+            cd_centrocusto: cdCentrocusto,
+        }, function(data) {
+            if (!data || data.vl_orcado == null) return;
+
+            $('#saldo-periodo').text(data.dt_inicio + ' a ' + data.dt_fim);
+            $('#saldo-orcado').text('R$ ' + data.vl_orcado_fmt);
+            $('#saldo-utilizado').text('R$ ' + data.vl_utilizado_fmt);
+            const saldo = data.vl_saldo;
+            $('#saldo-valor')
+                .text((saldo < 0 ? '− ' : '') + 'R$ ' + data.vl_saldo_fmt)
+                .removeClass('text-success text-danger')
+                .addClass(saldo >= 0 ? 'text-success' : 'text-danger');
+            $('#div-saldo-ciclo').show();
+        });
+    }
+
+    $('#cd_centrocusto').on('change', function() {
+        loadSaldoCiclo($('#cd_empresa').val(), $(this).val());
+    });
 
     // Máscara monetária simples
     function toFloat(val) {
@@ -202,6 +300,7 @@ $(document).ready(function () {
             dt_solicitacao:   $('#dt_solicitacao').val(),
             ds_justificativa: $('#ds_justificativa').val(),
             ds_observacao:    $('#ds_observacao').val(),
+            cd_centrocusto:   $('#cd_centrocusto').val() || null,
         }, function (res) {
             if (res.errors) {
                 Swal.fire('Atenção', res.errors, 'warning');
@@ -210,7 +309,7 @@ $(document).ready(function () {
                     window.location.href = '/compras/solicitacoes/' + res.id + '/editar';
                 });
             }
-        });
+        }).fail(handleValidationError);
     });
     @else
     $('#btn-atualizar').click(function () {
@@ -220,13 +319,14 @@ $(document).ready(function () {
             dt_solicitacao:   $('#dt_solicitacao').val(),
             ds_justificativa: $('#ds_justificativa').val(),
             ds_observacao:    $('#ds_observacao').val(),
+            cd_centrocusto:   $('#cd_centrocusto').val() || null,
         }, function (res) {
             if (res.errors) {
                 Swal.fire('Atenção', res.errors, 'warning');
             } else {
                 Swal.fire('Atualizado!', res.success, 'success');
             }
-        });
+        }).fail(handleValidationError);
     });
 
     // ---- DataTable Itens ----
@@ -286,6 +386,59 @@ $(document).ready(function () {
                 }
             });
         });
+    });
+
+    // ---- Edição de Item ----
+    $('#ei_cd_item').select2({
+        theme: 'bootstrap4',
+        dropdownParent: $('#modal-edit-item'),
+        placeholder: 'Buscar produto (mín. 3 caracteres)',
+        minimumInputLength: 3,
+        ajax: {
+            url: '{{ route('compras.search-item') }}',
+            dataType: 'json',
+            delay: 300,
+            data: params => ({ q: params.term }),
+            processResults: data => ({
+                results: data.map(item => ({ id: item.id ?? item.ID, text: item.text ?? item.TEXT }))
+            }),
+            cache: true
+        }
+    });
+
+    $('body').on('click', '.btn-edit-item', function () {
+        const btn = $(this);
+        $('#ei_id').val(btn.data('id'));
+        $('#ei_qt_item').val(btn.data('qt'));
+        $('#ei_ds_unidade').val(btn.data('un'));
+        $('#ei_ds_observacao').val(btn.data('obs'));
+
+        const option = new Option(btn.data('ds'), btn.data('cd'), true, true);
+        $('#ei_cd_item').empty().append(option).trigger('change');
+
+        $('#modal-edit-item').modal('show');
+    });
+
+    $('#btn-salvar-edit-item').click(function () {
+        $.ajax({
+            url: '/compras/itens/' + $('#ei_id').val(),
+            method: 'PUT',
+            data: {
+                _token:        token,
+                cd_item:       $('#ei_cd_item').val(),
+                qt_item:       $('#ei_qt_item').val(),
+                ds_unidade:    $('#ei_ds_unidade').val(),
+                ds_observacao: $('#ei_ds_observacao').val(),
+            },
+            success: function (res) {
+                if (res.errors) {
+                    Swal.fire('Atenção', res.errors, 'warning');
+                } else {
+                    $('#modal-edit-item').modal('hide');
+                    dtItens.ajax.reload(null, false);
+                }
+            }
+        }).fail(handleValidationError);
     });
 
     // Recarrega o select de cotação vencedora sem recarregar a página

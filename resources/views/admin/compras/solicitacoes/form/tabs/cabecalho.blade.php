@@ -28,6 +28,39 @@
                     value="{{ $solicitacao->DS_JUSTIFICATIVA ?? '' }}">
             </div>
         </div>
+        <div id="div-saldo-ciclo" class="col-md-12" style="display:none">
+            <div class="alert alert-light border mb-2 py-2 px-3">
+                <small class="text-muted">
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    Ciclo: <span id="saldo-periodo" class="font-weight-bold text-dark"></span>
+                </small>
+                <div class="row mt-1">
+                    <div class="col-4 text-center">
+                        <small class="d-block text-muted">Orçamento</small>
+                        <span class="font-weight-bold text-primary" id="saldo-orcado"></span>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="d-block text-muted">Utilizado</small>
+                        <span class="font-weight-bold text-warning" id="saldo-utilizado"></span>
+                    </div>
+                    <div class="col-4 text-center">
+                        <small class="d-block text-muted">Saldo</small>
+                        <span class="font-weight-bold" id="saldo-valor"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4" id="div-centrocusto" style="display:none">
+            <div class="form-group mb-2">
+                <label class="mb-1"><small>Centro de Resultado</small></label>
+                <select class="form-control form-control-sm select2" id="cd_centrocusto"
+                    data-selected="{{ $solicitacao->CD_CENTROCUSTO ?? '' }}"
+                    style="width:100%">
+                    <option value="">Nenhum</option>
+                </select>
+            </div>
+        </div>
         <div class="col-md-12">
             <div class="form-group mb-2">
                 <label class="mb-1"><small>Observações</small></label>

@@ -10,15 +10,16 @@ class CompraEtapaAprov extends Model
 {
     use HasFactory;
 
-    public function getBySolicitacao($idSolicitacao)
+    public function getBySolicitacao(int $idSolicitacao)
     {
-        return DB::connection('firebird')->select("
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT
                 E.ID_ETAPA,
                 E.CD_SOLICITACAO,
                 E.NR_ORDEM,
                 E.DS_CARGO,
                 E.CD_USUARIO_APROVADOR,
+                E.NM_APROVADOR,
                 E.ST_ETAPA,
                 E.CD_USUARIO_ACAO,
                 E.DT_ACAO,
@@ -26,18 +27,19 @@ class CompraEtapaAprov extends Model
             FROM COMPRA_ETAPA_APROV E
             WHERE E.CD_SOLICITACAO = :id_sol
             ORDER BY E.NR_ORDEM
-        ", ['id_sol' => $idSolicitacao]);
+        ", ['id_sol' => $idSolicitacao]));
     }
 
-    public function findById($id)
+    public function findById(int $id)
     {
-        return DB::connection('firebird')->selectOne("
+        $row = DB::connection('firebird')->selectOne("
             SELECT
                 E.ID_ETAPA,
                 E.CD_SOLICITACAO,
                 E.NR_ORDEM,
                 E.DS_CARGO,
                 E.CD_USUARIO_APROVADOR,
+                E.NM_APROVADOR,
                 E.ST_ETAPA,
                 E.CD_USUARIO_ACAO,
                 E.DT_ACAO,
@@ -45,13 +47,15 @@ class CompraEtapaAprov extends Model
             FROM COMPRA_ETAPA_APROV E
             WHERE E.ID_ETAPA = :id
         ", ['id' => $id]);
+
+        return $row ? \Helper::ConvertFormatText([$row])[0] : null;
     }
 
-    public function getPendentesParaUsuario($cdUsuario)
+    public function getPendentesParaUsuario(int $cdUsuario)
     {
         $caseNome = Empresa::buildCaseNome('EN.CD_EMPRESA');
 
-        return DB::connection('firebird')->select("
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT
                 E.ID_ETAPA,
                 E.CD_SOLICITACAO,
@@ -69,33 +73,34 @@ class CompraEtapaAprov extends Model
               AND E.ST_ETAPA             = 'PEN'
               AND S.ST_SOLICITACAO       = 'APR'
             ORDER BY S.DT_REGISTRO
-        ", ['cd_usuario' => $cdUsuario]);
+        ", ['cd_usuario' => $cdUsuario]));
     }
 
-    public function store($data)
+    public function store(array $data)
     {
         $id = $this->nextId();
 
         DB::connection('firebird')->statement("
             INSERT INTO COMPRA_ETAPA_APROV (
                 ID_ETAPA, CD_SOLICITACAO, NR_ORDEM,
-                DS_CARGO, CD_USUARIO_APROVADOR, ST_ETAPA
+                DS_CARGO, CD_USUARIO_APROVADOR, NM_APROVADOR, ST_ETAPA
             ) VALUES (
                 :id, :cd_sol, :nr_ordem,
-                :ds_cargo, :cd_usuario, 'PEN'
+                :ds_cargo, :cd_usuario, :nm_aprovador, 'PEN'
             )
         ", [
-            'id'         => $id,
-            'cd_sol'     => $data['cd_solicitacao'],
-            'nr_ordem'   => $data['nr_ordem'],
-            'ds_cargo'   => $data['ds_cargo'],
-            'cd_usuario' => $data['cd_usuario_aprovador'],
+            'id'           => $id,
+            'cd_sol'       => $data['cd_solicitacao'],
+            'nr_ordem'     => $data['nr_ordem'],
+            'ds_cargo'     => \Helper::ToIso($data['ds_cargo']),
+            'cd_usuario'   => $data['cd_usuario_aprovador'],
+            'nm_aprovador' => \Helper::ToIso($data['nm_aprovador'] ?? null),
         ]);
 
         return $id;
     }
 
-    public function updateEtapa($id, $status, $cdUsuario, $obs)
+    public function updateEtapa(int $id, string $status, int $cdUsuario, ?string $obs)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_ETAPA_APROV SET
@@ -104,10 +109,10 @@ class CompraEtapaAprov extends Model
                 DT_ACAO         = CURRENT_TIMESTAMP,
                 DS_OBSERVACAO   = :obs
             WHERE ID_ETAPA = :id
-        ", ['status' => $status, 'cd_usuario' => $cdUsuario, 'obs' => $obs, 'id' => $id]);
+        ", ['status' => $status, 'cd_usuario' => $cdUsuario, 'obs' => \Helper::ToIso($obs), 'id' => $id]);
     }
 
-    public function allApproved($idSolicitacao)
+    public function allApproved(int $idSolicitacao)
     {
         $result = DB::connection('firebird')->selectOne("
             SELECT COUNT(*) QT FROM COMPRA_ETAPA_APROV

@@ -10,7 +10,7 @@
         </div>
         <div class="col-md-2">
             <div class="form-group mb-2">
-                <label class="mb-1"><small>Prazo (dias) <span class="text-danger">*</span></small></label>
+                <label class="mb-1"><small>Prazo (dias) Entrega<span class="text-danger">*</span></small></label>
                 <input type="number" class="form-control form-control-sm" id="nr_prazo" min="1" placeholder="0">
             </div>
         </div>

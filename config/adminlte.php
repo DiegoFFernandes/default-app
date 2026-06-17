@@ -508,7 +508,7 @@ return [
             ]
         ],
         [
-            'text' => 'Follow-Up',
+            'text' => 'Notificações',
             'icon' => 'nav-icon fas fas fa-envelope',
             'url' => '#',
             'can' => ['ver-follow-up'],
@@ -516,7 +516,10 @@ return [
                 [
                     'text' => 'Follow-Up',
                     'route' => 'search-envio',
-
+                ],
+                [
+                    'text' => 'Whatsapp',
+                    'route' => 'wppconnect.index',
                 ]
 
             ]

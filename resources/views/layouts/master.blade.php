@@ -1,5 +1,12 @@
 @extends('adminlte::page')
 
+@section('meta_tags')
+    <meta name="theme-color" content="#dc3545">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Portal DF') }}">
+@endsection
+
 @push('content')
     @include('layouts.components.btn-expansivo-modal')
 @endpush
@@ -126,8 +133,8 @@
                 }, 300);
             });
 
-            $('.input-venda').inputmask({
-                mask: ['99,99', '999,99', '9.999,99'],
+            $('.money-mask').inputmask({
+                mask: ['9,99', '99,99', '999,99', '9.999,99', '99.999,99', '999.999,99', '9.999.999,99'],
                 radixPoint: ',',
             });
 
@@ -230,4 +237,134 @@
             });
         }
     </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .catch(err => console.error('SW PWA erro:', err));
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .catch(err => console.error('SW Firebase erro:', err));
+        }
+    </script>
+
+    <script>
+    (function () {
+        var DISMISSED_KEY = 'pwa_banner_dismissed';
+
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone;
+        if (isStandalone || localStorage.getItem(DISMISSED_KEY)) return;
+
+        var ua = navigator.userAgent;
+        var isIOS = /iphone|ipad|ipod/i.test(ua) && !window.MSStream;
+        var isMacSafari = !isIOS
+            && ua.indexOf('Safari') !== -1
+            && ua.indexOf('Chrome') === -1
+            && ua.indexOf('Chromium') === -1
+            && ua.indexOf('CriOS') === -1
+            && ua.indexOf('FxiOS') === -1
+            && ua.indexOf('Edg') === -1
+            && /mac/i.test(navigator.platform || ua);
+
+        var deferredPrompt = null;
+
+        function dismiss() {
+            localStorage.setItem(DISMISSED_KEY, '1');
+            document.getElementById('pwa-banner').style.display = 'none';
+        }
+
+        if (isIOS) {
+            setTimeout(function () {
+                document.getElementById('pwa-ios').style.display = 'block';
+                document.getElementById('pwa-banner').style.display = 'block';
+            }, 2000);
+            document.getElementById('pwa-ios-dismiss').addEventListener('click', dismiss);
+
+        } else if (isMacSafari) {
+            setTimeout(function () {
+                document.getElementById('pwa-mac-safari').style.display = 'block';
+                document.getElementById('pwa-banner').style.display = 'block';
+            }, 2000);
+            document.getElementById('pwa-mac-safari-dismiss').addEventListener('click', dismiss);
+
+        } else {
+            // Chrome, Edge, Brave — desktop e Android
+            window.addEventListener('beforeinstallprompt', function (e) {
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById('pwa-chromium').style.display = 'flex';
+                document.getElementById('pwa-banner').style.display = 'block';
+            });
+
+            document.getElementById('pwa-install-btn').addEventListener('click', function () {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function (result) {
+                    deferredPrompt = null;
+                    if (result.outcome === 'accepted') localStorage.setItem(DISMISSED_KEY, '1');
+                    document.getElementById('pwa-banner').style.display = 'none';
+                });
+            });
+
+            document.getElementById('pwa-chromium-dismiss').addEventListener('click', dismiss);
+        }
+
+        window.addEventListener('appinstalled', function () {
+            document.getElementById('pwa-banner').style.display = 'none';
+        });
+    })();
+    </script>
+@endpush
+
+@push('content')
+    <div id="pwa-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:9999; background:#fff; border-top:3px solid #dc3545; box-shadow:0 -3px 16px rgba(0,0,0,.12); padding:12px 16px;">
+
+        {{-- Chrome / Edge / Brave (Android e Desktop) --}}
+        <div id="pwa-chromium" style="display:none; align-items:center; gap:12px;">
+            <img src="{{ asset('img/android-chrome-192x192.png') }}" style="width:42px;height:42px;border-radius:10px;flex-shrink:0;">
+            <div style="flex:1; min-width:0;">
+                <div style="font-weight:600; font-size:14px; color:#212529;">Instalar {{ config('app.name') }}</div>
+                <div style="font-size:12px; color:#6c757d;">Acesso rápido sem precisar abrir o navegador</div>
+            </div>
+            <button id="pwa-install-btn" class="btn btn-danger btn-sm" style="white-space:nowrap;">Instalar</button>
+            <button id="pwa-chromium-dismiss" class="btn btn-link btn-sm text-muted p-1" style="flex-shrink:0; font-size:16px; line-height:1;">&times;</button>
+        </div>
+
+        {{-- iOS (iPhone / iPad) --}}
+        <div id="pwa-ios" style="display:none;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:14px; color:#212529; margin-bottom:4px;">
+                        📱 Instalar {{ config('app.name') }} no iPhone / iPad
+                    </div>
+                    <div style="font-size:13px; color:#444; line-height:1.7;">
+                        1. Toque em <strong>Compartilhar</strong>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 50 50" style="vertical-align:middle; margin:0 2px;" fill="#007aff">
+                            <path d="M30.3 13.7L25 8.4l-5.3 5.3-1.4-1.4L25 5.6l6.7 6.7z"/>
+                            <path d="M24 7h2v21h-2z"/>
+                            <path d="M35 40H15c-1.7 0-3-1.3-3-3V19c0-1.7 1.3-3 3-3h7v2h-7c-.6 0-1 .4-1 1v18c0 .6.4 1 1 1h20c.6 0 1-.4 1-1V19c0-.6-.4-1-1-1h-7v-2h7c1.7 0 3 1.3 3 3v18c0 1.7-1.3 3-3 3z"/>
+                        </svg>
+                        no Safari<br>
+                        2. Role e toque em <strong>"Adicionar à Tela de Início"</strong> <span style="font-size:15px;">＋</span>
+                    </div>
+                </div>
+                <button id="pwa-ios-dismiss" class="btn btn-link btn-sm text-muted p-1" style="flex-shrink:0; font-size:20px; line-height:1;">&times;</button>
+            </div>
+        </div>
+
+        {{-- Safari no macOS (Sonoma+) --}}
+        <div id="pwa-mac-safari" style="display:none;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
+                <div style="flex:1;">
+                    <div style="font-weight:600; font-size:14px; color:#212529; margin-bottom:4px;">
+                        🖥️ Instalar {{ config('app.name') }} no Mac
+                    </div>
+                    <div style="font-size:13px; color:#444; line-height:1.7;">
+                        No Safari, clique em <strong>Arquivo</strong> → <strong>Adicionar ao Dock...</strong>
+                    </div>
+                </div>
+                <button id="pwa-mac-safari-dismiss" class="btn btn-link btn-sm text-muted p-1" style="flex-shrink:0; font-size:20px; line-height:1;">&times;</button>
+            </div>
+        </div>
+
+    </div>
 @endpush

@@ -27,7 +27,7 @@ class CompraSolicitacao extends Model
                 S.DT_REGISTRO
             FROM COMPRA_SOLICITACAO S
             INNER JOIN EMPRESA E ON E.CD_EMPRESA = S.CD_EMPRESA
-";
+            ";
         $params = [];
 
         if ($cdUsuario) {
@@ -37,7 +37,7 @@ class CompraSolicitacao extends Model
 
         $sql .= ' ORDER BY S.DT_REGISTRO DESC';
 
-        return DB::connection('firebird')->select($sql, $params);
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select($sql, $params));
     }
 
     public function getCounts($cdUsuario = null)
@@ -55,11 +55,11 @@ class CompraSolicitacao extends Model
         return collect($rows)->pluck('QT', 'ST_SOLICITACAO');
     }
 
-    public function findById($id)
+    public function findById(int $id)
     {
         $caseNome = Empresa::buildCaseNome('E.CD_EMPRESA');
 
-        return DB::connection('firebird')->selectOne("
+        $row = DB::connection('firebird')->selectOne("
             SELECT
                 S.CD_SOLICITACAO,
                 S.CD_EMPRESA,
@@ -72,14 +72,19 @@ class CompraSolicitacao extends Model
                 S.CD_FORNECEDOR,
                 S.VL_TOTAL,
                 S.DT_REGISTRO,
-                S.DT_ATUALIZADO
+                S.DT_ATUALIZADO,
+                S.CD_CENTROCUSTO,
+                CC.DS_CENTROCUSTO
             FROM COMPRA_SOLICITACAO S
             INNER JOIN EMPRESA E ON E.CD_EMPRESA = S.CD_EMPRESA
+            LEFT JOIN COMPRA_CENTROCUSTO CC ON CC.CD_CENTROCUSTO = S.CD_CENTROCUSTO
             WHERE S.CD_SOLICITACAO = :id
         ", ['id' => $id]);
+
+        return $row ? \Helper::ConvertFormatText([$row])[0] : null;
     }
 
-    public function store($data)
+    public function store(array $data)
     {
         $id = $this->nextId();
 
@@ -87,25 +92,26 @@ class CompraSolicitacao extends Model
             INSERT INTO COMPRA_SOLICITACAO (
                 CD_SOLICITACAO, CD_EMPRESA, CD_USUARIO_SOLICITANTE,
                 DT_SOLICITACAO, DS_JUSTIFICATIVA, DS_OBSERVACAO,
-                ST_SOLICITACAO, DT_REGISTRO, DT_ATUALIZADO
+                ST_SOLICITACAO, CD_CENTROCUSTO, DT_REGISTRO, DT_ATUALIZADO
             ) VALUES (
                 :id, :cd_empresa, :cd_usuario,
                 :dt_solicitacao, :ds_justificativa, :ds_observacao,
-                'RAS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                'RAS', :cd_centrocusto, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             )
         ", [
             'id'               => $id,
             'cd_empresa'       => $data['cd_empresa'],
             'cd_usuario'       => $data['cd_usuario_solicitante'],
             'dt_solicitacao'   => $data['dt_solicitacao'],
-            'ds_justificativa' => $data['ds_justificativa'],
-            'ds_observacao'    => $data['ds_observacao'] ?? null,
+            'ds_justificativa' => \Helper::ToIso($data['ds_justificativa']),
+            'ds_observacao'    => \Helper::ToIso($data['ds_observacao'] ?? null),
+            'cd_centrocusto'   => $data['cd_centrocusto'] ?? null,
         ]);
 
         return $id;
     }
 
-    public function updateData($id, $data)
+    public function updateData(int $id, array $data)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_SOLICITACAO SET
@@ -113,19 +119,21 @@ class CompraSolicitacao extends Model
                 DT_SOLICITACAO   = :dt_solicitacao,
                 DS_JUSTIFICATIVA = :ds_justificativa,
                 DS_OBSERVACAO    = :ds_observacao,
+                CD_CENTROCUSTO   = :cd_centrocusto,
                 DT_ATUALIZADO    = CURRENT_TIMESTAMP
             WHERE CD_SOLICITACAO = :id
               AND ST_SOLICITACAO  = 'RAS'
         ", [
             'cd_empresa'       => $data['cd_empresa'],
             'dt_solicitacao'   => $data['dt_solicitacao'],
-            'ds_justificativa' => $data['ds_justificativa'],
-            'ds_observacao'    => $data['ds_observacao'] ?? null,
+            'ds_justificativa' => \Helper::ToIso($data['ds_justificativa']),
+            'ds_observacao'    => \Helper::ToIso($data['ds_observacao'] ?? null),
+            'cd_centrocusto'   => $data['cd_centrocusto'] ?? null,
             'id'               => $id,
         ]);
     }
 
-    public function updateStatus($id, $status)
+    public function updateStatus(int $id, string $status)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_SOLICITACAO SET
@@ -135,7 +143,7 @@ class CompraSolicitacao extends Model
         ", ['status' => $status, 'id' => $id]);
     }
 
-    public function updateFornecedorTotal($id, $cdFornecedor, $vlTotal)
+    public function updateFornecedorTotal(int $id, int $cdFornecedor, float $vlTotal)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_SOLICITACAO SET
@@ -146,11 +154,21 @@ class CompraSolicitacao extends Model
         ", ['cd_fornecedor' => $cdFornecedor, 'vl_total' => $vlTotal, 'id' => $id]);
     }
 
-    public function deleteById($id)
+    public function deleteById(int $id)
     {
         DB::connection('firebird')->statement("
             DELETE FROM COMPRA_SOLICITACAO
             WHERE CD_SOLICITACAO = :id AND ST_SOLICITACAO = 'RAS'
+        ", ['id' => $id]);
+    }
+
+    public function cancelar(int $id)
+    {
+        DB::connection('firebird')->statement("
+            UPDATE COMPRA_SOLICITACAO
+            SET ST_SOLICITACAO = 'CAN'
+            WHERE CD_SOLICITACAO = :id
+              AND ST_SOLICITACAO NOT IN ('RAS', 'CAN')
         ", ['id' => $id]);
     }
 

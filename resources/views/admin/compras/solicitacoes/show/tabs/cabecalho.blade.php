@@ -33,6 +33,14 @@
                 </div>
             </div>
             @endif
+            @if(!empty($solicitacao->DS_CENTROCUSTO))
+            <div class="col-md-4">
+                <div class="form-group mb-2">
+                    <label class="text-muted mb-0"><small>Centro de Resultado</small></label>
+                    <p class="font-weight-bold mb-0 mt-1">{{ $solicitacao->DS_CENTROCUSTO }}</p>
+                </div>
+            </div>
+            @endif
             <div class="col-md-8">
                 <div class="form-group mb-0">
                     <label class="text-muted mb-0"><small>Justificativa</small></label>
@@ -49,6 +57,33 @@
             @endif
         </div>
     </div>
+
+    {{-- Saldo do ciclo orçamentário --}}
+    @if(!empty($saldoCiclo))
+    <div class="alert alert-light border mt-2 mb-2 py-2 px-3">
+        <small class="text-muted">
+            <i class="fas fa-calendar-alt mr-1"></i>
+            {{ $saldoCiclo->ds_centrocusto }} — Ciclo:
+            <strong class="text-dark">{{ $saldoCiclo->dt_inicio }} a {{ $saldoCiclo->dt_fim }}</strong>
+        </small>
+        <div class="row mt-1">
+            <div class="col-4 text-center">
+                <small class="d-block text-muted">Orçamento</small>
+                <span class="font-weight-bold text-primary">R$ {{ $saldoCiclo->vl_orcado_fmt }}</span>
+            </div>
+            <div class="col-4 text-center">
+                <small class="d-block text-muted">Utilizado</small>
+                <span class="font-weight-bold text-warning">R$ {{ $saldoCiclo->vl_utilizado_fmt }}</span>
+            </div>
+            <div class="col-4 text-center">
+                <small class="d-block text-muted">Saldo</small>
+                <span class="font-weight-bold {{ $saldoCiclo->vl_saldo >= 0 ? 'text-success' : 'text-danger' }}">
+                    {{ $saldoCiclo->vl_saldo < 0 ? '− ' : '' }}R$ {{ $saldoCiclo->vl_saldo_fmt }}
+                </span>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Timeline de aprovação --}}
     @if(count($etapas) > 0)
@@ -75,7 +110,7 @@
                     {{ $etapa->DT_ACAO ?? 'Aguardando' }}
                 </span>
                 <h3 class="timeline-header">
-                    Etapa {{ $etapa->NR_ORDEM }} — {{ $etapa->DS_CARGO }}
+                    Etapa {{ $etapa->NR_ORDEM }} — {{ $etapa->DS_CARGO }} - {{ explode(' ', $etapa->NM_APROVADOR ?? '')[0] }}
                     <span class="badge badge-{{ $ec }} ml-1">{{ $el }}</span>
                 </h3>
                 @if($etapa->DS_OBSERVACAO)

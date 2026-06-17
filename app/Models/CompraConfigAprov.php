@@ -10,9 +10,9 @@ class CompraConfigAprov extends Model
 {
     use HasFactory;
 
-    public function getByFaixa($idFaixa)
+    public function getByFaixa(int $idFaixa)
     {
-        return DB::connection('firebird')->select("
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT
                 A.ID_CONFIG_APROV,
                 A.ID_FAIXA,
@@ -23,10 +23,10 @@ class CompraConfigAprov extends Model
             FROM COMPRA_CONFIG_APROV A
             WHERE A.ID_FAIXA = :id_faixa
             ORDER BY A.NR_ORDEM
-        ", ['id_faixa' => $idFaixa]);
+        ", ['id_faixa' => $idFaixa]));
     }
 
-    public function store($data)
+    public function store(array $data)
     {
         $id = $this->nextId();
 
@@ -40,15 +40,15 @@ class CompraConfigAprov extends Model
             'id'           => $id,
             'id_faixa'     => $data['id_faixa'],
             'nr_ordem'     => $data['nr_ordem'],
-            'ds_cargo'     => $data['ds_cargo'],
+            'ds_cargo'     => \Helper::ToIso($data['ds_cargo']),
             'cd_usuario'   => $data['cd_usuario'],
-            'nm_aprovador' => $data['nm_aprovador'],
+            'nm_aprovador' => \Helper::ToIso($data['nm_aprovador']),
         ]);
 
         return $id;
     }
 
-    public function deleteById($id)
+    public function deleteById(int $id)
     {
         DB::connection('firebird')->statement(
             'DELETE FROM COMPRA_CONFIG_APROV WHERE ID_CONFIG_APROV = :id',
@@ -59,14 +59,12 @@ class CompraConfigAprov extends Model
     public function reordenar(array $ids): void
     {
         $offset = 10000;
-        // Primeiro passo: valores temporários para evitar violação do UNIQUE KEY durante a troca
         foreach ($ids as $index => $id) {
             DB::connection('firebird')->statement(
                 'UPDATE COMPRA_CONFIG_APROV SET NR_ORDEM = :nr_ordem WHERE ID_CONFIG_APROV = :id',
                 ['nr_ordem' => $offset + $index + 1, 'id' => $id]
             );
         }
-        // Segundo passo: valores definitivos
         foreach ($ids as $index => $id) {
             DB::connection('firebird')->statement(
                 'UPDATE COMPRA_CONFIG_APROV SET NR_ORDEM = :nr_ordem WHERE ID_CONFIG_APROV = :id',

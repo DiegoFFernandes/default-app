@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CompraConfigAprov;
 use App\Models\CompraConfigFaixa;
+use App\Models\CompraCentroCusto;
+use App\Models\CompraParamEmpresa;
 use App\Models\Empresa;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,11 +18,13 @@ class ConfigComprasController extends Controller
     public $user;
 
     public function __construct(
-        protected Request          $request,
-        protected CompraConfigFaixa $configFaixa,
-        protected CompraConfigAprov $configAprov,
-        protected Empresa           $empresa,
-        protected User              $userModel
+        protected Request            $request,
+        protected CompraConfigFaixa  $configFaixa,
+        protected CompraConfigAprov  $configAprov,
+        protected CompraCentroCusto  $centroCusto,
+        protected CompraParamEmpresa $paramEmpresa,
+        protected Empresa            $empresa,
+        protected User               $userModel
     ) {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -30,18 +34,21 @@ class ConfigComprasController extends Controller
 
     public function index()
     {
-        $title_page = 'Configuração de Aprovações';
-        $user_auth  = $this->user;
-        $uri        = $this->request->route()->uri();
-        $empresas   = $this->empresa->empresa();
-        $usuarios   = $this->userModel->getData();
+        $title_page    = 'Configuração de Aprovações';
+        $user_auth     = $this->user;
+        $uri           = $this->request->route()->uri();
+        $empresas      = $this->empresa->empresa();
+        $usuarios      = $this->userModel->getData();
+        $paramEmpresas = $this->paramEmpresa->getAll();
+        $paramMap      = collect($paramEmpresas)->keyBy('CD_EMPRESA');
 
         return view('admin.compras.configuracao.index', compact(
             'title_page',
             'user_auth',
             'uri',
             'empresas',
-            'usuarios'
+            'usuarios',
+            'paramMap'
         ));
     }
 
@@ -161,6 +168,118 @@ class ConfigComprasController extends Controller
             return response()->json(['success' => 'Ordem atualizada com sucesso!']);
         } catch (\Exception $e) {
             return response()->json(['errors' => $e . 'Erro ao reordenar.']);
+        }
+    }
+
+    public function listCentros()
+    {
+        $centros = $this->centroCusto->getAll();
+        $userIds = collect($centros)->pluck('CD_USUARIO_RESP')->unique()->filter();
+        $users   = User::whereIn('id', $userIds)->pluck('name', 'id');
+
+        return DataTables::of($centros)
+            ->addColumn('nm_responsavel', fn($row) =>
+                $row->CD_USUARIO_RESP ? ($users[$row->CD_USUARIO_RESP] ?? '— não definido —') : '— não definido —'
+            )
+            ->addColumn('vl_orcado_fmt', fn($row) =>
+                $row->VL_ORCADO_MES ? 'R$ ' . number_format($row->VL_ORCADO_MES, 2, ',', '.') : '—'
+            )
+            ->addColumn('Actions', function ($row) {
+                return '<button class="btn btn-warning btn-xs btn-edit-centro"
+                            data-cd="' . $row->CD_CENTROCUSTO . '"
+                            data-empresa="' . $row->CD_EMPRESA . '"
+                            data-ds="' . e($row->DS_CENTROCUSTO) . '"
+                            data-usuario="' . ($row->CD_USUARIO_RESP ?? '') . '"
+                            data-orcado="' . ($row->VL_ORCADO_MES ?? '') . '"
+                            data-dia="' . ($row->DIA_INICIO_CICLO ?? '') . '"
+                            title="Configurar"><i class="fas fa-edit"></i></button>';
+            })
+            ->rawColumns(['Actions'])
+            ->make(true);
+    }
+
+    public function getSaldoCiclo()
+    {
+        $cdEmpresa = (int) $this->request->get('cd_empresa');
+        $cdCentro  = (int) $this->request->get('cd_centrocusto');
+
+        $saldo = $this->centroCusto->getSaldoCiclo($cdEmpresa, $cdCentro);
+
+        return response()->json($saldo);
+    }
+
+    public function getCentrosByEmpresa()
+    {
+        $cdEmpresa = (int) $this->request->get('cd_empresa');
+        return response()->json($this->centroCusto->getForSelect($cdEmpresa));
+    }
+
+    public function updateCentroCusto($cd)
+    {
+        $input = $this->request->validate([
+            'cd_empresa'      => 'required|integer',
+            'cd_usuario_resp' => 'nullable|integer',
+            'vl_orcado_mes'   => 'nullable|numeric|min:0',
+            'dia_inicio_ciclo'=> 'nullable|integer|min:1|max:31',
+        ]);
+
+        try {
+            $this->centroCusto->updateResponsavel($input['cd_empresa'], $cd, [
+                'cd_usuario_resp'  => $input['cd_usuario_resp'] ?: null,
+                'vl_orcado_mes'    => $input['vl_orcado_mes'] ?: null,
+                'dia_inicio_ciclo' => $input['dia_inicio_ciclo'] ?: null,
+            ]);
+            return response()->json(['success' => 'Centro de resultado atualizado!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'Erro ao atualizar centro de resultado.']);
+        }
+    }
+
+    public function getCentrosTipos()
+    {
+        $cdEmpresa = (int) $this->request->get('cd_empresa');
+        return response()->json($this->centroCusto->getAvailableTypes($cdEmpresa));
+    }
+
+    public function storeCentro()
+    {
+        $input = $this->request->validate([
+            'cd_empresa'       => 'required|integer',
+            'cd_centrocusto'   => 'required|integer',
+            'ds_centrocusto'   => 'required|string|max:100',
+            'cd_usuario_resp'  => 'nullable|integer',
+            'vl_orcado_mes'    => 'nullable|numeric|min:0',
+            'dia_inicio_ciclo' => 'nullable|integer|min:1|max:31',
+        ], [
+            'cd_empresa.required'     => 'Selecione a empresa.',
+            'cd_centrocusto.required' => 'Selecione o tipo de centro.',
+            'ds_centrocusto.required' => 'Descrição não identificada.',
+        ]);
+
+        try {
+            $this->centroCusto->store($input);
+            return response()->json(['success' => 'Centro criado com sucesso!']);
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'violation of PRIMARY') || str_contains($msg, 'duplicate')) {
+                return response()->json(['errors' => 'Este centro já existe para a empresa selecionada.']);
+            }
+            return response()->json(['errors' => 'Erro ao criar centro: ' . $msg]);
+        }
+    }
+
+    public function toggleCentroCusto()
+    {
+        $input = $this->request->validate([
+            'cd_empresa' => 'required|integer',
+            'st_usa'     => 'required|in:S,N',
+        ]);
+
+        try {
+            $this->paramEmpresa->upsert($input['cd_empresa'], $input['st_usa']);
+            return response()->json(['success' => 'Parâmetro atualizado!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'Erro ao atualizar parâmetro.']);
         }
     }
 

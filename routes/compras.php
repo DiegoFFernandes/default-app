@@ -23,12 +23,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('solicitacoes/{id}/editar',    [SolicitacaoComprasController::class, 'edit'])->name('compras.solicitacoes.edit')->whereNumber('id');
         Route::post('solicitacoes/{id}/update',   [SolicitacaoComprasController::class, 'update'])->name('compras.solicitacoes.update')->whereNumber('id');
         Route::delete('solicitacoes/{id}',        [SolicitacaoComprasController::class, 'destroy'])->name('compras.solicitacoes.destroy')->whereNumber('id');
-        Route::post('solicitacoes/{id}/submeter',       [SolicitacaoComprasController::class, 'submeter'])->name('compras.solicitacoes.submeter')->whereNumber('id');
+        Route::post('solicitacoes/{id}/submeter',  [SolicitacaoComprasController::class, 'submeter'])->name('compras.solicitacoes.submeter')->whereNumber('id');
+        Route::post('solicitacoes/{id}/cancelar',  [SolicitacaoComprasController::class, 'cancelar'])->name('compras.solicitacoes.cancelar')->whereNumber('id');
         Route::get('solicitacoes/{id}/exportar-excel',  [SolicitacaoComprasController::class, 'exportarExcel'])->name('compras.solicitacoes.exportar-excel')->whereNumber('id');
 
         // Itens
         Route::get('get-itens/{idSolicitacao}', [SolicitacaoComprasController::class, 'listItens'])->name('compras.itens.list');
         Route::post('itens',                    [SolicitacaoComprasController::class, 'storeItem'])->name('compras.itens.store');
+        Route::put('itens/{id}',               [SolicitacaoComprasController::class, 'updateItem'])->name('compras.itens.update');
         Route::delete('itens/{id}',             [SolicitacaoComprasController::class, 'destroyItem'])->name('compras.itens.destroy');
 
         // Cotações
@@ -54,5 +56,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('aprovadores',               [ConfigComprasController::class, 'storeAprovador'])->name('compras.configuracao.store-aprovador');
         Route::post('aprovadores/reordenar',     [ConfigComprasController::class, 'reordenarAprovadores'])->name('compras.configuracao.reordenar-aprovadores');
         Route::delete('aprovadores/{id}',        [ConfigComprasController::class, 'destroyAprovador'])->name('compras.configuracao.destroy-aprovador');
+        Route::get('get-centros',                [ConfigComprasController::class, 'listCentros'])->name('compras.configuracao.list-centros');
+        Route::get('centros-by-empresa',         [ConfigComprasController::class, 'getCentrosByEmpresa'])->name('compras.centros.by-empresa');
+        Route::get('saldo-ciclo',                [ConfigComprasController::class, 'getSaldoCiclo'])->name('compras.saldo-ciclo');
+        Route::get('centros-tipos',              [ConfigComprasController::class, 'getCentrosTipos'])->name('compras.centros.tipos');
+        Route::post('centros',                   [ConfigComprasController::class, 'storeCentro'])->name('compras.configuracao.store-centro');
+        Route::post('centros/{id}/update',       [ConfigComprasController::class, 'updateCentroCusto'])->name('compras.configuracao.update-centro')->whereNumber('id');
+        Route::post('param-empresa/centrocusto', [ConfigComprasController::class, 'toggleCentroCusto'])->name('compras.configuracao.toggle-centrocusto');
     });
 });

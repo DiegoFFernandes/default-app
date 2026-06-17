@@ -408,7 +408,7 @@
                     <div class="col-md-12">
                         <div class="form-group">
                             <label class="small">Valor Comissão</label>
-                            <input type="text" class="form-control form-control-sm input-venda" id="valor-comissao"
+                            <input type="text" class="form-control form-control-sm money-mask" id="valor-comissao"
                                 style="width: 100%">
                         </div>
                     </div>

@@ -16,7 +16,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Minhas Solicitações</h3>
+                        <h3 class="card-title">Solicitações de Compra</h3>
                         <div class="card-tools">
                             <a href="{{ route('compras.solicitacoes.create') }}" class="btn btn-danger btn-xs">
                                 <i class="fas fa-plus"></i> Nova Solicitação
@@ -30,6 +30,7 @@
                                 <tr>
                                     <th>Cód.</th>
                                     <th>Empresa</th>
+                                    <th>Solicitante</th>
                                     <th>Data</th>
                                     <th>Justificativa</th>
                                     <th>Status</th>
@@ -82,6 +83,10 @@
                         name: 'NM_EMPRESA'
                     },
                     {
+                        data: 'nm_solicitante',
+                        name: 'nm_solicitante'
+                    },
+                    {
                         data: 'DT_SOLICITACAO',
                         name: 'DT_SOLICITACAO',
                         className: 'text-center',
@@ -128,18 +133,18 @@
                 pagingType: 'simple',
             });
 
-            // Excluir
+            // excluir rascunho
             $('body').on('click', '.btn-delete', function() {
                 const id = $(this).data('id');
                 Swal.fire({
-                    title: 'Confirmar exclusão',
-                    text: 'Deseja excluir a solicitação #' + id + '?',
+                    title: 'Excluir rascunho?',
+                    text: 'A solicitação #' + id + ' será excluída permanentemente.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sim, excluir',
-                    cancelButtonText: 'Cancelar'
+                    confirmButtonText: 'Sim, cancelar',
+                    cancelButtonText: 'Não'
                 }).then(result => {
                     if (!result.isConfirmed) return;
                     $.ajax({
@@ -152,8 +157,9 @@
                             if (res.errors) {
                                 Swal.fire('Erro', res.errors, 'error');
                             } else {
-                                Swal.fire('Excluído!', res.success, 'success');
-                                $('#table-solicitacoes').DataTable().ajax.reload();
+                                Swal.fire('Excluido!', res.success, 'success').then(() => {
+                                    $('#table-solicitacoes').DataTable().ajax.reload();
+                                });
                             }
                         }
                     });

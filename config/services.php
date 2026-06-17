@@ -35,4 +35,10 @@ return [
         'project_id' => env('FCM_PROJECT_ID'),
     ],
 
+    'wppconnect' => [
+        'url'     => env('WPPCONNECT_URL', 'http://localhost:21465'),
+        'secret'  => env('WPPCONNECT_SECRET', 'THISISMYSECRET'),
+        'session' => env('WPPCONNECT_SESSION', 'default'),
+    ],
+
 ];

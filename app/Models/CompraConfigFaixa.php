@@ -14,7 +14,7 @@ class CompraConfigFaixa extends Model
     {
         $caseNome = Empresa::buildCaseNome('E.CD_EMPRESA');
 
-        return DB::connection('firebird')->select("
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT
                 F.ID_FAIXA,
                 F.CD_EMPRESA,
@@ -27,12 +27,12 @@ class CompraConfigFaixa extends Model
             FROM COMPRA_CONFIG_FAIXA F
             INNER JOIN EMPRESA E ON E.CD_EMPRESA = F.CD_EMPRESA
             ORDER BY F.CD_EMPRESA, F.NR_ORDEM
-        ");
+        "));
     }
 
-    public function findFaixaByValor($cdEmpresa, $vlTotal)
+    public function findFaixaByValor(int $cdEmpresa, float $vlTotal)
     {
-        return DB::connection('firebird')->selectOne("
+        $row = DB::connection('firebird')->selectOne("
             SELECT FIRST 1
                 F.ID_FAIXA,
                 F.CD_EMPRESA,
@@ -47,9 +47,11 @@ class CompraConfigFaixa extends Model
               AND (F.VL_MAXIMO IS NULL OR F.VL_MAXIMO >= :vl_total2)
             ORDER BY F.NR_ORDEM
         ", ['cd_empresa' => $cdEmpresa, 'vl_total' => $vlTotal, 'vl_total2' => $vlTotal]);
+
+        return $row ? \Helper::ConvertFormatText([$row])[0] : null;
     }
 
-    public function store($data)
+    public function store(array $data)
     {
         $id = $this->nextId();
 
@@ -64,7 +66,7 @@ class CompraConfigFaixa extends Model
         ", [
             'id'         => $id,
             'cd_empresa' => $data['cd_empresa'],
-            'ds_faixa'   => $data['ds_faixa'],
+            'ds_faixa'   => \Helper::ToIso($data['ds_faixa']),
             'vl_minimo'  => $data['vl_minimo'],
             'vl_maximo'  => $data['vl_maximo'] ?: null,
             'nr_ordem'   => $data['nr_ordem'],
@@ -73,7 +75,7 @@ class CompraConfigFaixa extends Model
         return $id;
     }
 
-    public function updateData($id, $data)
+    public function updateData(int $id, array $data)
     {
         DB::connection('firebird')->statement("
             UPDATE COMPRA_CONFIG_FAIXA SET
@@ -84,7 +86,7 @@ class CompraConfigFaixa extends Model
                 ST_ATIVO  = :st_ativo
             WHERE ID_FAIXA = :id
         ", [
-            'ds_faixa'  => $data['ds_faixa'],
+            'ds_faixa'  => \Helper::ToIso($data['ds_faixa']),
             'vl_minimo' => $data['vl_minimo'],
             'vl_maximo' => $data['vl_maximo'] ?: null,
             'nr_ordem'  => $data['nr_ordem'],
@@ -93,7 +95,7 @@ class CompraConfigFaixa extends Model
         ]);
     }
 
-    public function deleteById($id)
+    public function deleteById(int $id)
     {
         DB::connection('firebird')->statement(
             'DELETE FROM COMPRA_CONFIG_FAIXA WHERE ID_FAIXA = :id',
