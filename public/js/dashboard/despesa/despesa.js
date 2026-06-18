@@ -4,6 +4,7 @@ $(document).ready(function () {
     initTabEvents();
     initFiltros();
     initCombustivel();
+    initPessoa();
 });
 
 // ─── Estado global de fotos ───────────────────────────────────────────────────
@@ -86,8 +87,8 @@ function renderTipo(data) {
 
 function renderVisto(data) {
     return data === "S"
-        ? '<span class="badge badge-success">Sim</span>'
-        : '<span class="badge badge-danger">Não</span>';
+        ? '<span class="badge badge-tipo badge-success">Sim</span>'
+        : '<span class="badge badge-tipo badge-danger">Não</span>';
 }
 
 function renderAcoes(data, type, row) {
@@ -708,6 +709,9 @@ function resetForm() {
     if ($("#nr_placa").data("select2")) {
         $("#nr_placa").val(null).trigger("change");
     }
+    if ($("#cd_pessoa").data("select2")) {
+        $("#cd_pessoa").val(null).trigger("change");
+    }
 }
 
 // ─── Combustível: KM + Placa ──────────────────────────────────────────────────
@@ -745,6 +749,28 @@ function initCombustivel() {
                 $("#nr_placa").val(null).trigger("change");
             }
         }
+    });
+}
+
+// ─── Pessoa / Fornecedor (Firebird) ───────────────────────────────────────────
+function initPessoa() {
+    $("#cd_pessoa").select2({
+        ajax: {
+            url: window.routes.searchPessoas,
+            dataType: "json",
+            delay: 300,
+            data: function (p) { return { q: p.term }; },
+            processResults: function (data) { return { results: data }; },
+        },
+        placeholder: "Digite o nome...",
+        minimumInputLength: 2,
+        allowClear: true,
+        width: "100%",
+        language: {
+            inputTooShort: function () { return "Digite ao menos 2 caracteres"; },
+            noResults:     function () { return "Nenhuma pessoa encontrada"; },
+            searching:     function () { return "Buscando..."; },
+        },
     });
 }
 

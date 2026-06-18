@@ -208,10 +208,7 @@ class AcompanhamentoPneu extends Model
                     ORDER BY PP.IDEMPRESA  
                 ";
 
-        $key = "PedidoAll" . Auth::user()->id;
-
-        $data = DB::connection('firebird')->select($query);
-        return Helper::ConvertFormatText($data);
+        $key = 'PedidoAll:' . Auth::user()->id . ':' . md5($query);
 
         return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
             $data = DB::connection('firebird')->select($query);

@@ -12,7 +12,8 @@ class Comprovante extends Model
     protected $table = 'comprovante';
 
     protected $fillable = [
-        'cd_user',
+        'cd_user_lanc',
+        'cd_pessoa',
         'tp_despesa',
         'vl_consumido',
         'ds_observacao',
@@ -39,6 +40,6 @@ class Comprovante extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'cd_user');
+        return $this->belongsTo(User::class, 'cd_user_lanc');
     }
 }

@@ -340,6 +340,7 @@
 @endsection
 
 @section('js')
+    <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge bg-info">{{ PESSOA }}</span>
@@ -494,7 +495,12 @@
                 ],
                 columnDefs: [{
                         targets: [5],
-                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                        render: function(data, type, row) {
+                            if ((type === 'display' || type === 'filter') && data) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                            return data;
+                        }
                     }, {
                         targets: [1],
                         className: 'text-truncate'
@@ -675,14 +681,24 @@
                         name: 'DTEMISSAO',
                         title: 'Dt Emissão',
                         className: 'dt-center',
-                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                        render: function(data, type, row) {
+                            if ((type === 'display' || type === 'filter') && data) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                            return data;
+                        }
                     },
                     {
                         data: 'DTENTREGAPED',
                         name: 'DTENTREGAPED',
                         title: 'Dt Entrega',
                         className: 'dt-center',
-                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                        render: function(data, type, row) {
+                            if ((type === 'display' || type === 'filter') && data) {
+                                return moment(data).format('DD/MM/YYYY');
+                            }
+                            return data;
+                        }
                     },
                     {
                         data: 'STPEDIDO',

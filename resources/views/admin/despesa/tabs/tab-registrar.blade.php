@@ -3,6 +3,12 @@
         <form id="form-registrar-comprovante" enctype="multipart/form-data">
             @csrf
             <div class="row">
+
+                <div class="col-12 col-md-3 mb-3">
+                    <label class="small" for="cd_pessoa">Solicitante <span class="text-danger">*</span></label>
+                    <select name="cd_pessoa" id="cd_pessoa" class="form-control form-control-sm" style="width:100%;"></select>
+                </div>
+
                 <div class="col-12 col-md-3 mb-3">
                     <label class="small" for="tp_despesa">Tipo de Despesa <span class="text-danger">*</span></label>
                     <select name="tp_despesa" id="tp_despesa" class="form-control form-control-sm select2">
@@ -12,8 +18,7 @@
                         <option value="HOS">Hospedagem</option>
                         <option value="PED">Pedágio</option>
                     </select>
-                </div>
-                
+                </div>                
 
                 <div class="col-12 col-md-3 mb-3">
                     <label class="small" for="vl_consumido">Valor <span class="text-danger">*</span></label>
@@ -41,7 +46,7 @@
                 <div class="col-12 col-md-3 mb-3 campo-combustivel" style="display:none;">
                     <label class="small" for="nr_placa">Placa do Veículo <span class="text-danger">*</span></label>
                     <select name="nr_placa" id="nr_placa" class="form-control form-control-sm" style="width:100%;"></select>
-                </div>
+                </div>                
 
                 <div class="col-12 col-md-6 mb-3">
                     <label class="small" for="ds_observacao">Observação</label>

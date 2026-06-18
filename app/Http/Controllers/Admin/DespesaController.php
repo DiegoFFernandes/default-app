@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Comprovante;
 use App\Models\ComprovanteFoto;
+use App\Models\Pessoa;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -79,7 +80,8 @@ class DespesaController extends Controller
 
         try {
             $comprovante = $this->comprovante->create([
-                'cd_user'       => $this->user->id,
+                'cd_user_lanc'  => $this->user->id,
+                'cd_pessoa'     => $input['cd_pessoa'] ?? null,
                 'tp_despesa'    => $input['tp_despesa'],
                 'vl_consumido'  => $input['vl_consumido'],
                 'ds_observacao' => $input['ds_observacao'] ?? null,
@@ -141,11 +143,12 @@ class DespesaController extends Controller
         try {
             $comprovante = $this->comprovante->findOrFail($id);
 
-            if (!$this->user->can('ver-status-despesas') && $comprovante->cd_user !== $this->user->id) {
+            if (!$this->user->can('ver-status-despesas') && $comprovante->cd_user_lanc !== $this->user->id) {
                 return response()->json(['error' => 'Sem permissão para editar este comprovante.'], 403);
             }
 
             $comprovante->update([
+                'cd_pessoa'     => $input['cd_pessoa'] ?? null,
                 'tp_despesa'    => $input['tp_despesa'],
                 'vl_consumido'  => $input['vl_consumido'],
                 'ds_observacao' => $input['ds_observacao'] ?? null,
@@ -194,7 +197,7 @@ class DespesaController extends Controller
             }, $rows);
 
             return response()->json($results);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return response()->json([]);
         }
     }
@@ -206,7 +209,7 @@ class DespesaController extends Controller
         $query = $this->comprovante->with(['fotos', 'user']);
 
         if (!$this->user->can('ver-status-despesas')) {
-            $query->where('cd_user', $this->user->id);
+            $query->where('cd_user_lanc', $this->user->id);
         }
 
         $data = $query
@@ -228,6 +231,28 @@ class DespesaController extends Controller
             });
 
         return datatables()->of($data)->toJson();
+    }
+
+    public function searchPessoas()
+    {
+        $q = trim($this->request->get('q', ''));
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        try {
+             $results = (new Pessoa())->FindPessoaJunsoftAll($q);
+
+            return response()->json(array_map(function ($r) {
+                return [
+                    'id'   => $r->ID,
+                    'text' => $r->NM_PESSOA,
+                ];
+            }, $results));
+        } catch (\Exception) {
+            return response()->json([]);
+        }
     }
 
     public function toggleVisto(int $id)

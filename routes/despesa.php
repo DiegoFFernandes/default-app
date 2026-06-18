@@ -11,6 +11,7 @@ Route::middleware(['auth', 'can:ver-despesas'])->group(function () {
         Route::post('store',             [DespesaController::class, 'store'])->name('despesa.store');
         Route::get('get-comprovantes',   [DespesaController::class, 'getComprovantes'])->name('despesa.get');
         Route::get('veiculos',           [DespesaController::class, 'searchVeiculos'])->name('despesa.veiculos');
+        Route::get('pessoas',            [DespesaController::class, 'searchPessoas'])->name('despesa.pessoas');
         Route::put('{id}',               [DespesaController::class, 'update'])->name('despesa.update')->whereNumber('id');
         Route::post('{id}/toggle-visto', [DespesaController::class, 'toggleVisto'])->name('despesa.toggle-visto')->whereNumber('id');
     });
