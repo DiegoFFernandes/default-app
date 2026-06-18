@@ -292,6 +292,7 @@ async function abrirCamera() {
     $("#btn-capturar").prop("disabled", false);
     $("#modal-camera").modal("show");
     await iniciarStreamInicial();
+    if (scannerMode) iniciarLoopScanner();
 }
 
 function fecharCamera() {
@@ -422,8 +423,6 @@ function pararStream() {
     }
     const video = document.getElementById("camera-video");
     if (video) video.srcObject = null;
-    $("#camera-video").show();
-    $("#scanner-canvas").hide();
     $("#btn-capturar").prop("disabled", false);
 }
 
@@ -450,19 +449,17 @@ function capturarFoto() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    if (scannerMode && scannerReady && jscanifyInstance) {
-        try {
-            const extracted = jscanifyInstance.extractDocument(video);
-            if (extracted) {
-                canvas.width = extracted.width;
-                canvas.height = extracted.height;
-                canvas.getContext("2d").drawImage(extracted, 0, 0);
-            } else {
-                canvas.getContext("2d").drawImage(video, 0, 0);
-            }
-        } catch (_) {
-            canvas.getContext("2d").drawImage(video, 0, 0);
-        }
+    if (scannerMode) {
+        const { x, y, w, h, vw, vh } = guideRect(video);
+        const sx = video.videoWidth / vw;
+        const sy = video.videoHeight / vh;
+        canvas.width  = Math.round(w * sx);
+        canvas.height = Math.round(h * sy);
+        canvas.getContext("2d").drawImage(
+            video,
+            x * sx, y * sy, w * sx, h * sy,
+            0, 0, canvas.width, canvas.height,
+        );
     } else {
         canvas.getContext("2d").drawImage(video, 0, 0);
     }
@@ -486,9 +483,8 @@ function capturarFoto() {
             $("#qtd-fotos-capturadas").text(num);
             $("#btn-usar-fotos").show();
 
-            const flashTarget = scannerMode ? "#scanner-canvas" : "#camera-video";
-            $(flashTarget).css("opacity", "0.3");
-            setTimeout(() => $(flashTarget).css("opacity", "1"), 150);
+            $("#camera-video").css("opacity", "0.3");
+            setTimeout(() => $("#camera-video").css("opacity", "1"), 150);
         },
         "image/jpeg",
         0.92,
@@ -502,13 +498,12 @@ function usarFotosSessao() {
     atualizarPreviewGlobal();
 }
 
-// ─── Scanner de Documento (jscanify + OpenCV) ─────────────────────────────────
+// ─── Scanner de Documento (guia visual + crop) ───────────────────────────────
 let scannerMode = false;
-let scannerReady = false;
-let scannerLoading = false;
-let jscanifyInstance = null;
 let scannerAnimFrame = null;
-let scannerLastFrame = 0;
+
+const GUIDE_MARGIN = 0.07; // 7% de margem lateral
+const GUIDE_ASPECT = 1.414; // proporção A4
 
 function initScanner() {
     $("#btn-scanner").on("click", toggleScannerMode);
@@ -519,98 +514,62 @@ function toggleScannerMode() {
 
     if (scannerMode) {
         $("#btn-scanner").removeClass("btn-outline-info").addClass("btn-info");
-        if (!scannerReady && !scannerLoading) {
-            carregarScanner();
-        } else if (scannerReady) {
-            iniciarLoopScanner();
-        }
+        iniciarLoopScanner();
     } else {
-        $("#btn-scanner").removeClass("btn-info").addClass("btn-outline-info")
-            .html('<i class="fas fa-magic mr-1"></i> Scanner');
+        $("#btn-scanner").removeClass("btn-info").addClass("btn-outline-info");
         desativarScanner();
     }
 }
 
-function carregarScanner() {
-    scannerLoading = true;
-    $("#btn-scanner").html('<i class="fas fa-spinner fa-spin mr-1"></i> Carregando...').prop("disabled", true);
-
-    carregarScript("https://cdn.jsdelivr.net/npm/jscanify@1.2.0/src/jscanify.min.js")
-        .then(() => carregarScript("https://docs.opencv.org/4.8.0/opencv.js"))
-        .then(() => aguardarOpenCV())
-        .then(() => {
-            jscanifyInstance = new jscanify();
-            scannerReady = true;
-            scannerLoading = false;
-            $("#btn-scanner").html('<i class="fas fa-magic mr-1"></i> Scanner ON').prop("disabled", false);
-            if (scannerMode) iniciarLoopScanner();
-        })
-        .catch(() => {
-            scannerLoading = false;
-            scannerMode = false;
-            $("#btn-scanner")
-                .html('<i class="fas fa-magic mr-1"></i> Scanner')
-                .prop("disabled", false)
-                .removeClass("btn-info").addClass("btn-outline-info");
-            Swal.fire("Erro", "Não foi possível carregar o scanner de documentos.", "error");
-        });
-}
-
-function carregarScript(src) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) return resolve();
-        const s = document.createElement("script");
-        s.src = src;
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-    });
-}
-
-function aguardarOpenCV() {
-    return new Promise((resolve) => {
-        const check = () => {
-            if (typeof cv === "undefined") return setTimeout(check, 150);
-            if (typeof cv.then === "function") return cv.then(resolve);
-            if (cv.Mat || cv.getBuildInformation) return resolve();
-            setTimeout(check, 150);
-        };
-        check();
-    });
+function guideRect(video) {
+    const vw = video.clientWidth;
+    const vh = video.clientHeight;
+    const margin = vw * GUIDE_MARGIN;
+    const w = vw - margin * 2;
+    const h = Math.min(w * GUIDE_ASPECT, vh * 0.88);
+    return { x: margin, y: (vh - h) / 2, w, h, vw, vh };
 }
 
 function iniciarLoopScanner() {
     pararLoopScanner();
     const video = document.getElementById("camera-video");
     const canvas = document.getElementById("scanner-canvas");
+    $(canvas).show();
 
-    function loop(timestamp) {
-        if (!scannerMode || !scannerReady) return;
+    function loop() {
+        if (!scannerMode) return;
+        const { x, y, w, h, vw, vh } = guideRect(video);
+        canvas.width = vw;
+        canvas.height = vh;
+        const ctx = canvas.getContext("2d");
 
-        if (timestamp - scannerLastFrame < 66) {
-            scannerAnimFrame = requestAnimationFrame(loop);
-            return;
-        }
-        scannerLastFrame = timestamp;
+        ctx.clearRect(0, 0, vw, vh);
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.fillRect(0, 0, vw, vh);
+        ctx.clearRect(x, y, w, h);
 
-        if (video.readyState >= 2 && video.videoWidth > 0) {
-            try {
-                const result = jscanifyInstance.highlightDocument(video);
-                if (result) {
-                    canvas.width = result.width;
-                    canvas.height = result.height;
-                    canvas.getContext("2d").drawImage(result, 0, 0);
-                    $("#scanner-canvas").show();
-                    $("#camera-video").hide();
-                }
-            } catch (_) {
-                // mantém o video visível se detecção falhar
-            }
-        }
+        ctx.strokeStyle = "#00e676";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, w, h);
+
+        const c = Math.min(w, h) * 0.07;
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#fff";
+        [
+            [x,     y,     c,  0,  0,  c],
+            [x + w, y,    -c,  0,  0,  c],
+            [x,     y + h, c,  0,  0, -c],
+            [x + w, y + h,-c,  0,  0, -c],
+        ].forEach(([px, py, dx1, dy1, dx2, dy2]) => {
+            ctx.beginPath();
+            ctx.moveTo(px + dx1, py + dy1);
+            ctx.lineTo(px, py);
+            ctx.lineTo(px + dx2, py + dy2);
+            ctx.stroke();
+        });
 
         scannerAnimFrame = requestAnimationFrame(loop);
     }
-
     scannerAnimFrame = requestAnimationFrame(loop);
 }
 
@@ -623,8 +582,11 @@ function pararLoopScanner() {
 
 function desativarScanner() {
     pararLoopScanner();
-    $("#camera-video").show();
-    $("#scanner-canvas").hide();
+    const canvas = document.getElementById("scanner-canvas");
+    if (canvas) {
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        $(canvas).hide();
+    }
 }
 
 // ─── Galeria ──────────────────────────────────────────────────────────────────

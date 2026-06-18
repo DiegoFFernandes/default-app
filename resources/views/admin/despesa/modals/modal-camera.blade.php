@@ -15,7 +15,7 @@
                     <video id="camera-video" autoplay playsinline muted
                         style="width:100%;max-height:55vh;object-fit:cover;display:block;"></video>
                     <canvas id="scanner-canvas"
-                        style="width:100%;max-height:55vh;object-fit:contain;display:none;background:#000;"></canvas>
+                        style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none;"></canvas>
                 </div>
 
                 <canvas id="camera-canvas" style="display:none;"></canvas>
