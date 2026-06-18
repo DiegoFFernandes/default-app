@@ -13,7 +13,7 @@
                     <button class="btn btn-outline-secondary btn-periodo" data-days="0">Tudo</button>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-12 col-md-4 col-lg-2">
                 <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-danger">
                         <i class="fas fa-dollar-sign"></i>
@@ -24,7 +24,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-12 col-md-4 col-lg-2">
                 <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-warning">
                         <i class="fas fa-calculator"></i>
@@ -35,7 +35,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-12 col-md-4 col-lg-2">
                 <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-info">
                         <i class="fas fa-arrow-up"></i>
@@ -46,7 +46,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-12 col-md-4 col-lg-2">
                 <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-success">
                         <i class="fas fa-receipt"></i>
@@ -57,7 +57,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-12 col-md-4 col-lg-2">
                 <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-primary">
                         <i class="fas fa-users"></i>
@@ -68,7 +68,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-sm-4 col-md-2">
+            <div class="col-12 col-md-4 col-lg-2">
                 <div class="info-box info-box-custom">
                     <span class="info-box-icon bg-secondary">
                         <i class="fas fa-clock"></i>

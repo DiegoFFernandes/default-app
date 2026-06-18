@@ -3,6 +3,7 @@ $(document).ready(function () {
     initCamera();
     initTabEvents();
     initFiltros();
+    initCombustivel();
 });
 
 // ─── Estado global de fotos ───────────────────────────────────────────────────
@@ -634,6 +635,17 @@ function initFormSubmit() {
     $("#form-registrar-comprovante").on("submit", function (e) {
         e.preventDefault();
 
+        if ($("#tp_despesa").val() === "COM") {
+            if (!$("#km").val() || parseInt($("#km").val()) < 0) {
+                Swal.fire("Atenção", "Informe o KM do veículo.", "warning");
+                return;
+            }
+            if (!$("#nr_placa").val()) {
+                Swal.fire("Atenção", "Selecione a placa do veículo.", "warning");
+                return;
+            }
+        }
+
         const btn = $("#btn-salvar");
         btn.prop("disabled", true).html(
             '<i class="fas fa-spinner fa-spin mr-1"></i> Salvando...',
@@ -690,8 +702,50 @@ function resetForm() {
     fotosParaEnviar = [];
     atualizarPreviewGlobal();
     if ($("#tp_despesa").data("select2")) {
-        $("#tp_despesa").val("").trigger("change");
+        $("#tp_despesa").val("").trigger("change"); // dispara initCombustivel → oculta campos COM
     }
+    $(".campo-combustivel").hide();
+    if ($("#nr_placa").data("select2")) {
+        $("#nr_placa").val(null).trigger("change");
+    }
+}
+
+// ─── Combustível: KM + Placa ──────────────────────────────────────────────────
+let placaSelect2Init = false;
+
+function initCombustivel() {
+    $("#tp_despesa").on("change", function () {
+        if ($(this).val() === "COM") {
+            $(".campo-combustivel").show();
+            if (!placaSelect2Init) {
+                $("#nr_placa").select2({
+                    ajax: {
+                        url: window.routes.searchVeiculos,
+                        dataType: "json",
+                        delay: 300,
+                        data: function (p) { return { q: p.term }; },
+                        processResults: function (data) { return { results: data }; },
+                    },
+                    placeholder: "Digite a placa...",
+                    minimumInputLength: 2,
+                    allowClear: true,
+                    width: "100%",
+                    language: {
+                        inputTooShort: function () { return "Digite ao menos 2 caracteres"; },
+                        noResults:     function () { return "Nenhum veículo encontrado"; },
+                        searching:     function () { return "Buscando..."; },
+                    },
+                });
+                placaSelect2Init = true;
+            }
+        } else {
+            $(".campo-combustivel").hide();
+            $("#km").val("");
+            if (placaSelect2Init) {
+                $("#nr_placa").val(null).trigger("change");
+            }
+        }
+    });
 }
 
 // ─── Filtros da lista ─────────────────────────────────────────────────────────
@@ -801,12 +855,12 @@ function atualizarStats(api) {
     const maiorValor = Math.max(...valores);
     const usuariosUnicos = new Set(rows.map((r) => r.nm_usuario)).size;
     const naoVistos = rows.filter((r) => r.st_visto === "N").length;
-    $("#stat-total-valor").text(fmtMoeda(totalValor));
-    $("#stat-media-valor").text(fmtMoeda(mediaValor));
-    $("#stat-maior-valor").text(fmtMoeda(maiorValor));
-    $("#stat-qtd-lancamentos").text(rows.length);
-    $("#stat-qtd-usuarios").text(usuariosUnicos);
-    $("#stat-nao-vistos").text(naoVistos);
+    $("#stat-total-valor").text(fmtMoeda(totalValor)).attr("title", fmtMoeda(totalValor));
+    $("#stat-media-valor").text(fmtMoeda(mediaValor)).attr("title", fmtMoeda(mediaValor));
+    $("#stat-maior-valor").text(fmtMoeda(maiorValor)).attr("title", fmtMoeda(maiorValor));
+    $("#stat-qtd-lancamentos").text(rows.length).attr("title", rows.length);
+    $("#stat-qtd-usuarios").text(usuariosUnicos).attr("title", usuariosUnicos);
+    $("#stat-nao-vistos").text(naoVistos).attr("title", naoVistos);
 
     // ── Dados para gráficos ───────────────────────────────────────────────────
     const tiposLabel = {

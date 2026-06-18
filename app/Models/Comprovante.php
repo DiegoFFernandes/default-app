@@ -18,6 +18,8 @@ class Comprovante extends Model
         'ds_observacao',
         'st_visto',
         'dt_despesa',
+        'km',
+        'nr_placa',
     ];
 
     public static function tiposDespesa(): array

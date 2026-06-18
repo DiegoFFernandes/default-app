@@ -265,7 +265,13 @@
                         data: null,
                         width: "1%",
                         className: 'pl-3 pr-3 text-center',
-                        render: DataTable.render.select(),
+                        render: function(data, type, row, meta) {
+                            if (type === 'display') {
+                                var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
+                                return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
+                            }
+                            return '';
+                        },
                         orderable: false
                     },
                     {

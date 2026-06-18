@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DespesaController extends Controller
@@ -47,11 +48,12 @@ class DespesaController extends Controller
     {
         $input = $this->request->all();
 
-        $validator = Validator::make($input, [
+        $rules    = [
             'tp_despesa'   => 'required|in:ALI,COM,HOS,PED',
             'vl_consumido' => 'required|numeric|min:0.01',
             'dt_despesa'   => 'required|date',
-        ], [
+        ];
+        $messages = [
             'tp_despesa.required'   => 'Selecione o tipo de despesa.',
             'tp_despesa.in'         => 'Tipo de despesa inválido.',
             'vl_consumido.required' => 'Informe o valor consumido.',
@@ -59,7 +61,17 @@ class DespesaController extends Controller
             'vl_consumido.min'      => 'O valor deve ser maior que zero.',
             'dt_despesa.required'   => 'Informe a data da despesa.',
             'dt_despesa.date'       => 'Data inválida.',
-        ]);
+        ];
+
+        if (($input['tp_despesa'] ?? '') === 'COM') {
+            $rules['km']       = 'required|integer|min:0';
+            $rules['nr_placa'] = 'required|string|max:10';
+            $messages['km.required']       = 'Informe o KM do veículo.';
+            $messages['km.integer']        = 'KM deve ser um número inteiro.';
+            $messages['nr_placa.required'] = 'Informe a placa do veículo.';
+        }
+
+        $validator = Validator::make($input, $rules, $messages);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()->first()], 422);
@@ -73,6 +85,8 @@ class DespesaController extends Controller
                 'ds_observacao' => $input['ds_observacao'] ?? null,
                 'st_visto'      => 'N',
                 'dt_despesa'    => $input['dt_despesa'],
+                'km'            => ($input['tp_despesa'] === 'COM') ? ($input['km'] ?? null) : null,
+                'nr_placa'      => ($input['tp_despesa'] === 'COM') ? ($input['nr_placa'] ?? null) : null,
             ]);
 
             if ($this->request->hasFile('fotos')) {
@@ -95,11 +109,12 @@ class DespesaController extends Controller
     {
         $input = $this->request->all();
 
-        $validator = Validator::make($input, [
+        $rules    = [
             'tp_despesa'   => 'required|in:ALI,COM,HOS,PED',
             'vl_consumido' => 'required|numeric|min:0.01',
             'dt_despesa'   => 'required|date',
-        ], [
+        ];
+        $messages = [
             'tp_despesa.required'   => 'Selecione o tipo de despesa.',
             'tp_despesa.in'         => 'Tipo de despesa inválido.',
             'vl_consumido.required' => 'Informe o valor consumido.',
@@ -107,7 +122,17 @@ class DespesaController extends Controller
             'vl_consumido.min'      => 'O valor deve ser maior que zero.',
             'dt_despesa.required'   => 'Informe a data da despesa.',
             'dt_despesa.date'       => 'Data inválida.',
-        ]);
+        ];
+
+        if (($input['tp_despesa'] ?? '') === 'COM') {
+            $rules['km']       = 'required|integer|min:0';
+            $rules['nr_placa'] = 'required|string|max:10';
+            $messages['km.required']       = 'Informe o KM do veículo.';
+            $messages['km.integer']        = 'KM deve ser um número inteiro.';
+            $messages['nr_placa.required'] = 'Informe a placa do veículo.';
+        }
+
+        $validator = Validator::make($input, $rules, $messages);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()->first()], 422);
@@ -125,12 +150,53 @@ class DespesaController extends Controller
                 'vl_consumido'  => $input['vl_consumido'],
                 'ds_observacao' => $input['ds_observacao'] ?? null,
                 'dt_despesa'    => $input['dt_despesa'],
+                'km'            => ($input['tp_despesa'] === 'COM') ? ($input['km'] ?? null) : null,
+                'nr_placa'      => ($input['tp_despesa'] === 'COM') ? ($input['nr_placa'] ?? null) : null,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Erro ao atualizar o comprovante: ' . $e->getMessage()], 500);
         }
 
         return response()->json(['success' => true, 'message' => 'Comprovante atualizado com sucesso!']);
+    }
+
+    public function searchVeiculos()
+    {
+        $q = strtoupper(trim($this->request->get('q', '')));
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        try {
+            $rows = DB::connection('firebird')->select("
+                SELECT FIRST 20
+                    V.NR_PLACA,
+                    COALESCE(M.DS_MODELOVEICULO, 'SEM MODELO') DS_MODELO,
+                    COALESCE(MARCAVEICULO.DS_MARCAVEICULO, 'SEM MARCA') DS_MARCA
+                FROM VEICULO V
+                LEFT JOIN MODELOVEICULO M
+                       ON M.CD_MODELOVEICULO = V.CD_MODELOVEICULO
+                      AND M.CD_MARCAVEICULO  = V.CD_MARCAVEICULO
+                LEFT JOIN MARCAVEICULO
+                       ON MARCAVEICULO.CD_MARCAVEICULO = V.CD_MARCAVEICULO
+                WHERE V.NR_PLACA CONTAINING ?
+            ", [$q]);
+
+            $results = array_map(function ($r) {
+                $placa = trim($r->nr_placa ?? $r->NR_PLACA);
+                $marca = trim($r->ds_marca  ?? $r->DS_MARCA);
+                $modelo = trim($r->ds_modelo ?? $r->DS_MODELO);
+                return [
+                    'id'   => $placa,
+                    'text' => $placa . ' — ' . $marca . ' ' . $modelo,
+                ];
+            }, $rows);
+
+            return response()->json($results);
+        } catch (\Exception $e) {
+            return response()->json([]);
+        }
     }
 
     public function getComprovantes()

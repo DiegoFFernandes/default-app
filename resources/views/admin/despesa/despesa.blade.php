@@ -49,6 +49,7 @@
             token: "{{ csrf_token() }}",
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             storeDespesa: "{{ route('despesa.store') }}",
+            searchVeiculos: "{{ route('despesa.veiculos') }}",
             getComprovantes: "{{ route('despesa.get') }}",
             updateDespesa: "{{ route('despesa.update', ':id') }}",
             toggleVisto: "{{ route('despesa.toggle-visto', ':id') }}",
