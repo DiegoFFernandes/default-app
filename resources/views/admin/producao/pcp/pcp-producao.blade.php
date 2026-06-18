@@ -120,7 +120,13 @@
                     data: null,
                     width: "1%",
                     className: 'pl-3 pr-3 text-center',
-                    render: DataTable.render.select(),
+                    render: function(data, type, row, meta) {
+                        if (type === 'display') {
+                            var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
+                            return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
+                        }
+                        return '';
+                    },
                     orderable: false
                 },
                 {
@@ -242,14 +248,13 @@
                             totalPneusLote += parseInt(lote.QTDE_TOT_LOTE);
                             totalEmProducao += parseInt(lote.QTDE_EM_PROD);
 
-                            const [ano, mes, dia] = lote.DTPRODUCAO.split('-');
-                            // -1 e o mes anterior, Date inicia em 0
-                            const dtFim = new Date(ano, mes - 1, dia);
-                            const hoje = new Date();
-                            hoje.setHours(0, 0, 0, 0);
-
-                            if (dtFim < hoje) {
-                                totalLotesAtraso++;
+                            if (lote.DTPRODUCAO) {
+                                const dtFim = new Date(lote.DTPRODUCAO);
+                                const hoje = new Date();
+                                hoje.setHours(0, 0, 0, 0);
+                                if (dtFim < hoje) {
+                                    totalLotesAtraso++;
+                                }
                             }
                         });
 
@@ -267,16 +272,12 @@
                     },
                 }],
                 createdRow: function(row, data, dataIndex) {
-                    const [ano, mes, dia] = data.DTFIM.split('-');
-
-                    // -1 e o mes anterior, Date inicia em 0 
-                    const dtFim = new Date(ano, mes - 1, dia);
+                    const dtFim = data.DTFIM ? new Date(data.DTFIM) : null;
 
                     const hoje = new Date();
                     hoje.setHours(0, 0, 0, 0);
 
-                    // adiciona a classe de atraso dependendo da etapa e fica piscando  
-                    if (dtFim < hoje) {
+                    if (dtFim && dtFim < hoje) {
                         $(row).addClass('badge-atrasado badge-atrasado-dias-purple');
                     } else if (parseInt(data.CD_ETAPA) === 0) {
                         $(row).addClass('badge-atrasado badge-atrasado-danger');
