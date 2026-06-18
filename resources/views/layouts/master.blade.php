@@ -16,58 +16,53 @@
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/datatables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/responsive.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/dataTables.bootstrap.min.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap.min.css">
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/select.dataTables.css') }}">
-    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/4.0.3/css/fixedHeader.bootstrap4.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.5.1/css/rowGroup.dataTables.css">
-
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css"> --}}{{-- duplicata — versão local já cobre --}}
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap.min.css"> --}}{{-- botões de exportação: carregar por página --}}
+    {{-- <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/select.dataTables.css') }}"> --}}{{-- seleção de linha: carregar por página --}}
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/4.0.3/css/fixedHeader.bootstrap4.css"> --}}{{-- extensão fixedHeader: carregar por página --}}
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.5.1/css/rowGroup.dataTables.css"> --}}{{-- extensão rowGroup: carregar por página --}}
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-    <!-- Tabulator CSS -->
-    <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+    {{-- <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet"> --}}{{-- Tabulator: pesado, carregar por página --}}
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/toastr.min.css') }}">
 
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/select2-bootstrap4.min.css') }}">
 
-
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=22') }}">
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/datatables/custom_datatables.css?v=1') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css?v=1') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css?v=1') }}"> --}}{{-- específico para layout de boleto --}}
 @endpush
 
 @push('js')
     <!-- DataTables -->
     <script src="{{ asset('vendor/adminlte/dist/js/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/datatables/dataTables.responsive.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/datatables/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/datatables/buttons.bootstrap.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/datatables/jszip.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/datatables/buttons.html5.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/datatables/dataTables.select.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/datatables/select.dataTables.js') }}"></script>
+    {{-- Botões de exportação (Excel / CSV / Print) — carregar somente nas páginas que usam --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/datatables/dataTables.buttons.min.js') }}"></script> --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/datatables/buttons.bootstrap.min.js') }}"></script> --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/datatables/jszip.min.js') }}"></script> --}}{{-- pesado: necessário só para export Excel --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/datatables/buttons.html5.min.js') }}"></script> --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/datatables/dataTables.select.js') }}"></script> --}}{{-- seleção de linha: carregar por página --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/datatables/select.dataTables.js') }}"></script> --}}
 
-    <script src="https://cdn.datatables.net/buttons/2.3.2/js/buttons.print.min.js"></script>
-    <script src="https://cdn.datatables.net/plug-ins/1.13.4/api/sum().js"></script>
-    <script src="https://cdn.datatables.net/plug-ins/1.10.19/dataRender/datetime.js"></script>
-    <script src="https://cdn.datatables.net/responsive/3.0.4/js/responsive.dataTables.js"></script>
+    {{-- <script src="https://cdn.datatables.net/buttons/2.3.2/js/buttons.print.min.js"></script> --}}{{-- duplicata CDN — usar versão local se necessário --}}
+    {{-- <script src="https://cdn.datatables.net/plug-ins/1.13.4/api/sum().js"></script> --}}{{-- plugin específico: carregar por página --}}
+    {{-- <script src="https://cdn.datatables.net/plug-ins/1.10.19/dataRender/datetime.js"></script> --}}{{-- plugin específico: carregar por página --}}
+    {{-- <script src="https://cdn.datatables.net/responsive/3.0.4/js/responsive.dataTables.js"></script> --}}{{-- duplicata CDN — versão local já carregada --}}
 
+    {{-- <script src="https://cdn.datatables.net/fixedheader/4.0.3/js/dataTables.fixedHeader.js"></script> --}}{{-- extensão fixedHeader: carregar por página --}}
+    {{-- <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/dataTables.rowGroup.js"></script> --}}{{-- extensão rowGroup: carregar por página --}}
+    {{-- <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/rowGroup.dataTables.js"></script> --}}{{-- duplicata da linha acima --}}
 
-    <script src="https://cdn.datatables.net/fixedheader/4.0.3/js/dataTables.fixedHeader.js"></script>
-    <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/dataTables.rowGroup.js"></script>
-    <script src="https://cdn.datatables.net/rowgroup/1.5.1/js/rowGroup.dataTables.js"></script>
-
-
-    <!-- Tabulator JS -->
-    <script src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
-    <script type="text/javascript" src="https://oss.sheetjs.com/sheetjs/xlsx.full.min.js"></script>
-
+    {{-- Tabulator + SheetJS — pesados, carregar somente nas páginas que usam --}}
+    {{-- <script src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script> --}}
+    {{-- <script type="text/javascript" src="https://oss.sheetjs.com/sheetjs/xlsx.full.min.js"></script> --}}
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -77,22 +72,20 @@
     <script src="{{ asset('vendor/adminlte/dist/js/select2.min.js?v=2') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/select2-pt-br.min.js?v=2') }}"></script>
 
-
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/inputmask.extensions.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/jquery.inputmask.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script> --}}{{-- não utilizado globalmente --}}
     <script src="{{ asset('vendor/adminlte/dist/js/moment.min.js') }}"></script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
-    <script src="{{ asset('vendor/adminlte/dist/js/html5-qrcode.min.js') }}"></script>
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/html5-qrcode.min.js') }}"></script> --}}{{-- leitor QR: pesado, carregar por página --}}
 
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/jquery-ui.min.js') }}"></script> --}}{{-- jQuery UI: carregar somente nas páginas que usam drag/sort --}}
+    {{-- <script src="{{ asset('vendor/adminlte/dist/js/jquery.ui.touch-punch.min.js') }}"></script> --}}
 
-    <script src="{{ asset('vendor/adminlte/dist/js/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('vendor/adminlte/dist/js/jquery.ui.touch-punch.min.js') }}"></script>
-
-    <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    {{-- <script src="{{ asset('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script> --}}{{-- duplicata — AdminLTE já carrega o Bootstrap --}}
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
@@ -100,24 +93,62 @@
 
 
     <script>
+        // Suprime o alert padrão do DataTables — tratamos via Swal abaixo
+        $.fn.dataTable.ext.errMode = 'none';
+
         $.extend(true, $.fn.dataTable.defaults, {
             ajax: {
-                error: function(xhr, status, error) {
+                error: function(xhr, textStatus) {
+                    // Requisição cancelada pelo browser (troca de página) — ignorar
+                    if (textStatus === 'abort') return;
+
+                    // Para o spinner das tabelas ativas
+                    $($.fn.dataTable.tables(true)).DataTable().processing(false);
+
+                    // 401 → sessão expirada
                     if (xhr.status === 401) {
-
-                        // Salva a URL atual no sessionStorage antes de redirecionar
                         sessionStorage.setItem('redirect_url', window.location.href);
-
                         Swal.fire({
                             title: 'Sessão Expirada!',
-                            text: 'Sua sessão expirou. Você será redirecionado para login.',
+                            text: 'Sua sessão expirou. Você será redirecionado para o login.',
                             icon: 'warning',
                             confirmButtonColor: '#D43343',
-                            confirmButtonText: 'OK'
+                            confirmButtonText: 'OK',
+                            allowOutsideClick: false,
                         }).then(function() {
-                            window.location.href = '/login'; // Altere para a URL da sua tela de login
+                            window.location.href = '/login';
                         });
+                        return;
                     }
+
+                    // 200 com qualquer textStatus = dado carregou ou problema de formato não crítico → ignorar
+                    if (xhr.status === 200) return;
+
+                    const msgs = {
+                        403: 'Você não tem permissão para acessar estes dados.',
+                        404: 'Recurso não encontrado.',
+                        422: 'Dados inválidos na requisição.',
+                        500: 'Erro interno no servidor. Contate o suporte.',
+                        503: 'Serviço temporariamente indisponível.',
+                    };
+                    const statusInfo = xhr.status ? 'HTTP ' + xhr.status : 'sem conexão com o servidor';
+                    const texto = msgs[xhr.status] || 'Não foi possível carregar os dados. (' + statusInfo + ')';
+
+                    Swal.fire({
+                        title: 'Erro ao carregar dados',
+                        text: texto,
+                        icon: 'error',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fas fa-sync-alt mr-1"></i> Tentar novamente',
+                        cancelButtonText: 'Fechar',
+                        confirmButtonColor: '#D43343',
+                        reverseButtons: true,
+                        allowOutsideClick: false,
+                    }).then(function(result) {
+                        if (result.isConfirmed) {
+                            $($.fn.dataTable.tables(true)).DataTable().ajax.reload(null, false);
+                        }
+                    });
                 }
             }
         });

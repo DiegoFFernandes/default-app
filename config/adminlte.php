@@ -451,7 +451,7 @@ return [
             'text' => 'Financeiro',
             'icon' => 'nav-icon fas fa-money-bill',
             'url' => '#',
-            'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas'],
+            'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas', 'ver-despesas'],
             'submenu' => [
                 [
                     'text' => 'Libera Ordem Financeiro',
@@ -462,7 +462,13 @@ return [
                     'text' => 'Libera Contas',
                     'route' => 'libera-contas.index',
                     'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas'],
-                ]
+                ],
+                [
+                    'text' => 'Adiant. Despesas',
+                    'route' => 'despesa.index',
+                    'icon' => 'far fa-circle nav-icon',
+                    'can' => ['ver-despesas'],
+                ],
             ]
         ],
         [

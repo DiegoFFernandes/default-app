@@ -2,20 +2,28 @@
  * chart-helpers.js
  * Funções reutilizáveis de gráficos Chart.js para o painel.
  *
- * Dependências (devem ser carregadas antes das chamadas):
- *   - Chart.js
- *   - chartjs-plugin-datalabels
- *   - formatarValorBR() — definida em inadimplencia-mensal.js
+ * Dependências: Chart.js, chartjs-plugin-datalabels
  *
  * API pública:
- *   pizzaStatic(canvasId, items)  — doughnut com % por fatia
- *   barStatic(canvasId, items)    — barras horizontais com % por item
+ *   formatarValorBR(valor)              — formata número para pt-BR (R$ X,XX)
+ *   pizzaStatic(canvasId, items)        — doughnut com % por fatia
+ *   barStatic(canvasId, items)          — barras horizontais com % por item
+ *   barVertical(canvasId, labels, data) — barras verticais com valores absolutos
  *
  * items: Array<{ nome: string, valor: number }>
  */
 (function (window) {
 
     var _registry = {};
+
+    // Disponibiliza globalmente caso ainda não exista (ex: páginas sem inadimplencia-mensal.js)
+    if (typeof window.formatarValorBR === 'undefined') {
+        window.formatarValorBR = function (valor) {
+            var n = Number(valor);
+            if (isNaN(n)) return '0,00';
+            return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+    }
 
     var PALETTE = [
         "#4299e1", "#48bb78", "#ed8936", "#9f7aea", "#e53e3e",
@@ -165,7 +173,68 @@
         });
     }
 
-    window.pizzaStatic = pizzaStatic;
-    window.barStatic   = barStatic;
+    /**
+     * Barras verticais — valores absolutos (ex: evolução por dia).
+     * labels: string[]  — rótulos do eixo X
+     * datasets: Array<{ label, data: number[], color? }> — séries de dados
+     */
+    function barVertical(canvasId, labels, datasets) {
+        var $canvas = $("#" + canvasId);
+        if (!$canvas.length) return;
+
+        _destroy(canvasId);
+
+        var chartDatasets = datasets.map(function (ds, k) {
+            var cor = ds.color || PALETTE[k % PALETTE.length];
+            return {
+                label:           ds.label || '',
+                data:            ds.data,
+                backgroundColor: cor + 'bb',
+                borderColor:     cor,
+                borderWidth:     1,
+                borderRadius:    3,
+            };
+        });
+
+        _registry[canvasId] = new Chart($canvas[0].getContext('2d'), {
+            type: 'bar',
+            data: { labels: labels, datasets: chartDatasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: datasets.length > 1,
+                        labels: { font: { size: 9 }, color: '#4a5568', boxWidth: 8, padding: 5 }
+                    },
+                    datalabels: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                return ' R$ ' + formatarValorBR(ctx.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { font: { size: 9 }, color: '#4a5568', maxRotation: 45 },
+                        grid: { display: false }
+                    },
+                    y: {
+                        ticks: {
+                            font: { size: 9 }, color: '#4a5568',
+                            callback: function (v) { return 'R$ ' + formatarValorBR(v); }
+                        },
+                        grid: { color: '#e2e8f0' }
+                    }
+                }
+            }
+        });
+    }
+
+    window.pizzaStatic  = pizzaStatic;
+    window.barStatic    = barStatic;
+    window.barVertical  = barVertical;
 
 })(window);
