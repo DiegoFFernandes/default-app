@@ -21,6 +21,7 @@
 
         @include('admin.despesa.modals.modal-foto')
         @include('admin.despesa.modals.modal-camera')
+        @include('admin.despesa.modals.modal-editar')
     </section>
 @stop
 
@@ -49,6 +50,7 @@
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             storeDespesa: "{{ route('despesa.store') }}",
             getComprovantes: "{{ route('despesa.get') }}",
+            updateDespesa: "{{ route('despesa.update', ':id') }}",
             toggleVisto: "{{ route('despesa.toggle-visto', ':id') }}",
         };
         window.canStatusDespesas = @json($canStatusDespesas);

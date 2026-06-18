@@ -99,6 +99,13 @@ function renderAcoes(data, type, row) {
         ? `<button class="btn btn-xs btn-info btn-ver-fotos mr-1" ${fotosAttr} title="Ver fotos"><i class="fas fa-images"></i></button>`
         : `<button class="btn btn-xs btn-secondary mr-1" disabled title="Sem fotos"><i class="fas fa-image"></i></button>`;
 
+    const dtIso = row.dt_despesa.split("/").reverse().join("-");
+    const obs    = row.ds_observacao !== "-" ? row.ds_observacao : "";
+    const editBtn = `<button class="btn btn-xs btn-warning btn-editar mr-1"
+        data-id="${row.id}" data-tp="${row.tp_despesa}"
+        data-valor="${row.vl_consumido}" data-data="${dtIso}"
+        data-obs="${obs}" title="Editar"><i class="fas fa-edit"></i></button>`;
+
     let vistoBtn = "";
     if (window.canStatusDespesas) {
         const vistoClass =
@@ -112,7 +119,7 @@ function renderAcoes(data, type, row) {
         vistoBtn = `<button class="btn btn-xs ${vistoClass} btn-toggle-visto" data-id="${row.id}" title="${vistoTitle}"><i class="fas ${vistoIcon}"></i></button>`;
     }
 
-    return fotosBtn + vistoBtn;
+    return editBtn + fotosBtn + vistoBtn;
 }
 
 // ─── Toggle Visto ─────────────────────────────────────────────────────────────
@@ -128,6 +135,65 @@ $(document).on("click", ".btn-toggle-visto", function () {
     });
 });
 
+// ─── Editar Comprovante ───────────────────────────────────────────────────────
+$(document).on("click", ".btn-editar", function () {
+    const btn = $(this);
+    $("#edit-id").val(btn.data("id"));
+    $("#edit-tp_despesa").val(btn.data("tp"));
+    $("#edit-vl_consumido").val(btn.data("valor"));
+    $("#edit-dt_despesa").val(btn.data("data"));
+    $("#edit-ds_observacao").val(btn.data("obs"));
+    $("#modal-editar").modal("show");
+});
+
+$("#btn-salvar-edicao").on("click", function () {
+    const id  = $("#edit-id").val();
+    const url = window.routes.updateDespesa.replace(":id", id);
+    const btn = $(this);
+
+    btn.prop("disabled", true).html(
+        '<i class="fas fa-spinner fa-spin mr-1"></i> Salvando...',
+    );
+
+    const vlRaw = $("#edit-vl_consumido")
+        .val()
+        .replace(/\./g, "")
+        .replace(",", ".");
+
+    $.ajax({
+        url,
+        type: "PUT",
+        data: {
+            _token:        window.routes.token,
+            tp_despesa:    $("#edit-tp_despesa").val(),
+            vl_consumido:  vlRaw,
+            dt_despesa:    $("#edit-dt_despesa").val(),
+            ds_observacao: $("#edit-ds_observacao").val(),
+        },
+        success: function (res) {
+            $("#modal-editar").modal("hide");
+            Swal.fire({
+                icon: "success",
+                title: "Sucesso!",
+                text: res.message,
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            tabelaComprovantes.ajax.reload(null, false);
+        },
+        error: function (xhr) {
+            const msg =
+                xhr.responseJSON?.error || "Erro ao atualizar comprovante.";
+            Swal.fire("Erro", msg, "error");
+        },
+        complete: function () {
+            btn.prop("disabled", false).html(
+                '<i class="fas fa-save mr-1"></i> Salvar',
+            );
+        },
+    });
+});
+
 // ─── Modal de Fotos (lista) ────────────────────────────────────────────────────
 $(document).on("click", ".btn-ver-fotos", function () {
     const fotos = $(this).data("fotos");
@@ -137,6 +203,7 @@ $(document).on("click", ".btn-ver-fotos", function () {
     inner.empty();
     indicators.empty();
     $("#sem-fotos").hide();
+    $("#btn-download-foto").hide();
 
     if (!fotos || fotos.length === 0) {
         $("#sem-fotos").show();
@@ -156,9 +223,33 @@ $(document).on("click", ".btn-ver-fotos", function () {
                 </div>
             `);
         });
+        $("#btn-download-foto").show();
     }
 
     $("#modal-fotos").modal("show");
+});
+
+$("#carousel-fotos").on("slid.bs.carousel", function () {
+    // URL da foto ativa é atualizada automaticamente via DOM ao clicar em Download
+});
+
+$("#btn-download-foto").on("click", function () {
+    const url = $("#carousel-fotos-inner .carousel-item.active img").attr("src");
+    if (!url) return;
+
+    const btn = $(this);
+    btn.prop("disabled", true);
+
+    fetch(url)
+        .then((r) => r.blob())
+        .then((blob) => {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "comprovante_" + Date.now() + ".jpg";
+            a.click();
+            URL.revokeObjectURL(a.href);
+        })
+        .finally(() => btn.prop("disabled", false));
 });
 
 // ─── Câmera (getUserMedia) ────────────────────────────────────────────────────
@@ -188,6 +279,7 @@ function initCamera() {
     });
 
     $("#modal-camera").on("hidden.bs.modal", pararStream);
+    initScanner();
 }
 
 async function abrirCamera() {
@@ -323,12 +415,15 @@ function atualizarLabelBotaoAlternar() {
 }
 
 function pararStream() {
+    pararLoopScanner();
     if (cameraStream) {
         cameraStream.getTracks().forEach((t) => t.stop());
         cameraStream = null;
     }
     const video = document.getElementById("camera-video");
     if (video) video.srcObject = null;
+    $("#camera-video").show();
+    $("#scanner-canvas").hide();
     $("#btn-capturar").prop("disabled", false);
 }
 
@@ -354,7 +449,23 @@ function capturarFoto() {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0);
+
+    if (scannerMode && scannerReady && jscanifyInstance) {
+        try {
+            const extracted = jscanifyInstance.extractDocument(video);
+            if (extracted) {
+                canvas.width = extracted.width;
+                canvas.height = extracted.height;
+                canvas.getContext("2d").drawImage(extracted, 0, 0);
+            } else {
+                canvas.getContext("2d").drawImage(video, 0, 0);
+            }
+        } catch (_) {
+            canvas.getContext("2d").drawImage(video, 0, 0);
+        }
+    } else {
+        canvas.getContext("2d").drawImage(video, 0, 0);
+    }
 
     canvas.toBlob(
         function (blob) {
@@ -363,7 +474,6 @@ function capturarFoto() {
             });
             fotosSessao.push(file);
 
-            // Miniatura no modal
             const url = URL.createObjectURL(blob);
             const num = fotosSessao.length;
             $("#fotos-capturadas").append(`
@@ -376,9 +486,9 @@ function capturarFoto() {
             $("#qtd-fotos-capturadas").text(num);
             $("#btn-usar-fotos").show();
 
-            // Flash visual
-            $("#camera-video").css("opacity", "0.3");
-            setTimeout(() => $("#camera-video").css("opacity", "1"), 150);
+            const flashTarget = scannerMode ? "#scanner-canvas" : "#camera-video";
+            $(flashTarget).css("opacity", "0.3");
+            setTimeout(() => $(flashTarget).css("opacity", "1"), 150);
         },
         "image/jpeg",
         0.92,
@@ -390,6 +500,131 @@ function usarFotosSessao() {
     fotosSessao = [];
     fecharCamera();
     atualizarPreviewGlobal();
+}
+
+// ─── Scanner de Documento (jscanify + OpenCV) ─────────────────────────────────
+let scannerMode = false;
+let scannerReady = false;
+let scannerLoading = false;
+let jscanifyInstance = null;
+let scannerAnimFrame = null;
+let scannerLastFrame = 0;
+
+function initScanner() {
+    $("#btn-scanner").on("click", toggleScannerMode);
+}
+
+function toggleScannerMode() {
+    scannerMode = !scannerMode;
+
+    if (scannerMode) {
+        $("#btn-scanner").removeClass("btn-outline-info").addClass("btn-info");
+        if (!scannerReady && !scannerLoading) {
+            carregarScanner();
+        } else if (scannerReady) {
+            iniciarLoopScanner();
+        }
+    } else {
+        $("#btn-scanner").removeClass("btn-info").addClass("btn-outline-info")
+            .html('<i class="fas fa-magic mr-1"></i> Scanner');
+        desativarScanner();
+    }
+}
+
+function carregarScanner() {
+    scannerLoading = true;
+    $("#btn-scanner").html('<i class="fas fa-spinner fa-spin mr-1"></i> Carregando...').prop("disabled", true);
+
+    carregarScript("https://cdn.jsdelivr.net/npm/jscanify@1.2.0/src/jscanify.min.js")
+        .then(() => carregarScript("https://docs.opencv.org/4.8.0/opencv.js"))
+        .then(() => aguardarOpenCV())
+        .then(() => {
+            jscanifyInstance = new jscanify();
+            scannerReady = true;
+            scannerLoading = false;
+            $("#btn-scanner").html('<i class="fas fa-magic mr-1"></i> Scanner ON').prop("disabled", false);
+            if (scannerMode) iniciarLoopScanner();
+        })
+        .catch(() => {
+            scannerLoading = false;
+            scannerMode = false;
+            $("#btn-scanner")
+                .html('<i class="fas fa-magic mr-1"></i> Scanner')
+                .prop("disabled", false)
+                .removeClass("btn-info").addClass("btn-outline-info");
+            Swal.fire("Erro", "Não foi possível carregar o scanner de documentos.", "error");
+        });
+}
+
+function carregarScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve();
+        const s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    });
+}
+
+function aguardarOpenCV() {
+    return new Promise((resolve) => {
+        const check = () => {
+            if (typeof cv === "undefined") return setTimeout(check, 150);
+            if (typeof cv.then === "function") return cv.then(resolve);
+            if (cv.Mat || cv.getBuildInformation) return resolve();
+            setTimeout(check, 150);
+        };
+        check();
+    });
+}
+
+function iniciarLoopScanner() {
+    pararLoopScanner();
+    const video = document.getElementById("camera-video");
+    const canvas = document.getElementById("scanner-canvas");
+
+    function loop(timestamp) {
+        if (!scannerMode || !scannerReady) return;
+
+        if (timestamp - scannerLastFrame < 66) {
+            scannerAnimFrame = requestAnimationFrame(loop);
+            return;
+        }
+        scannerLastFrame = timestamp;
+
+        if (video.readyState >= 2 && video.videoWidth > 0) {
+            try {
+                const result = jscanifyInstance.highlightDocument(video);
+                if (result) {
+                    canvas.width = result.width;
+                    canvas.height = result.height;
+                    canvas.getContext("2d").drawImage(result, 0, 0);
+                    $("#scanner-canvas").show();
+                    $("#camera-video").hide();
+                }
+            } catch (_) {
+                // mantém o video visível se detecção falhar
+            }
+        }
+
+        scannerAnimFrame = requestAnimationFrame(loop);
+    }
+
+    scannerAnimFrame = requestAnimationFrame(loop);
+}
+
+function pararLoopScanner() {
+    if (scannerAnimFrame) {
+        cancelAnimationFrame(scannerAnimFrame);
+        scannerAnimFrame = null;
+    }
+}
+
+function desativarScanner() {
+    pararLoopScanner();
+    $("#camera-video").show();
+    $("#scanner-canvas").hide();
 }
 
 // ─── Galeria ──────────────────────────────────────────────────────────────────

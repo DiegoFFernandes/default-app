@@ -91,6 +91,48 @@ class DespesaController extends Controller
         return response()->json(['success' => true, 'message' => 'Comprovante registrado com sucesso!']);
     }
 
+    public function update(int $id)
+    {
+        $input = $this->request->all();
+
+        $validator = Validator::make($input, [
+            'tp_despesa'   => 'required|in:ALI,COM,HOS,PED',
+            'vl_consumido' => 'required|numeric|min:0.01',
+            'dt_despesa'   => 'required|date',
+        ], [
+            'tp_despesa.required'   => 'Selecione o tipo de despesa.',
+            'tp_despesa.in'         => 'Tipo de despesa inválido.',
+            'vl_consumido.required' => 'Informe o valor consumido.',
+            'vl_consumido.numeric'  => 'O valor deve ser numérico.',
+            'vl_consumido.min'      => 'O valor deve ser maior que zero.',
+            'dt_despesa.required'   => 'Informe a data da despesa.',
+            'dt_despesa.date'       => 'Data inválida.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        try {
+            $comprovante = $this->comprovante->findOrFail($id);
+
+            if (!$this->user->can('ver-status-despesas') && $comprovante->cd_user !== $this->user->id) {
+                return response()->json(['error' => 'Sem permissão para editar este comprovante.'], 403);
+            }
+
+            $comprovante->update([
+                'tp_despesa'    => $input['tp_despesa'],
+                'vl_consumido'  => $input['vl_consumido'],
+                'ds_observacao' => $input['ds_observacao'] ?? null,
+                'dt_despesa'    => $input['dt_despesa'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erro ao atualizar o comprovante: ' . $e->getMessage()], 500);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Comprovante atualizado com sucesso!']);
+    }
+
     public function getComprovantes()
     {
         $tipos = Comprovante::tiposDespesa();

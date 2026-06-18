@@ -14,6 +14,8 @@
                 <div class="text-center position-relative bg-dark" style="border-radius:4px;overflow:hidden;">
                     <video id="camera-video" autoplay playsinline muted
                         style="width:100%;max-height:55vh;object-fit:cover;display:block;"></video>
+                    <canvas id="scanner-canvas"
+                        style="width:100%;max-height:55vh;object-fit:contain;display:none;background:#000;"></canvas>
                 </div>
 
                 <canvas id="camera-canvas" style="display:none;"></canvas>
@@ -29,9 +31,14 @@
                 </div>
             </div>
             <div class="modal-footer py-2 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary btn-sm" id="btn-alternar-camera" title="Alternar câmera frontal/traseira">
-                    <i class="fas fa-sync-alt mr-1"></i> Alternar
-                </button>
+                <div class="d-flex">
+                    <button type="button" class="btn btn-secondary btn-sm mr-1" id="btn-alternar-camera" title="Alternar câmera frontal/traseira">
+                        <i class="fas fa-sync-alt mr-1"></i> Alternar
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" id="btn-scanner" title="Ativar scanner de documento (detecta bordas e corrige perspectiva)">
+                        <i class="fas fa-magic mr-1"></i> Scanner
+                    </button>
+                </div>
                 <div>
                     <button type="button" class="btn btn-danger" id="btn-capturar">
                         <i class="fas fa-camera mr-1"></i> Capturar

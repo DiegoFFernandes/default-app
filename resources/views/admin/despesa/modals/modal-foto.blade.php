@@ -11,7 +11,7 @@
                 </button>
             </div>
             <div class="modal-body p-2">
-                <div id="carousel-fotos" class="carousel slide" data-ride="carousel">
+                <div id="carousel-fotos" class="carousel slide" data-ride="carousel" data-interval="false">
                     <ol class="carousel-indicators" id="carousel-indicators"></ol>
                     <div class="carousel-inner" id="carousel-fotos-inner"></div>
                     <a class="carousel-control-prev" href="#carousel-fotos" role="button" data-slide="prev">
@@ -25,6 +25,11 @@
                     <i class="fas fa-image fa-2x mb-2 d-block"></i>
                     Nenhuma foto registrada para este comprovante.
                 </p>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" id="btn-download-foto" class="btn btn-sm btn-outline-secondary" style="display:none;">
+                    <i class="fas fa-download mr-1"></i> Baixar Foto
+                </button>
             </div>
         </div>
     </div>
