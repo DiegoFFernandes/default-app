@@ -56,23 +56,3 @@ Route::middleware('auth')->group(function () {
         Route::get('search-produto', [ItemController::class, 'searchProduto'])->name('search-product');
     });
 });
-
-Route::get('/manifest.json', function () {
-    return response()->json([
-        'name' => env('APP_NAME', 'App'),
-        'short_name' => env('APP_SHORT_NAME', 'App'),
-        'start_url' => '/',
-        'background_color' => '#FFFFFF',
-        'description' => 'Aplicativo para gerenciamento de pneus',
-        'display' => 'standalone',
-        'theme_color' => '#FFFFFF',
-        'icons' => [
-            [
-                'src' => 'img/android-chrome-512x512.png',
-                'sizes' => '512x512',
-                'type' => 'image/png',
-                'purpose' => 'any maskable'
-            ]
-        ]
-    ]);
-});
