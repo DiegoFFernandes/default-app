@@ -227,6 +227,22 @@
             /* Não força 100% */
         }
 
+        /* --- Header --- */
+        table.dataTable thead tr {
+            background-color: #444B53;
+            color: #ffffff;
+        }
+
+        table.dataTable thead th {
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: .3px;
+            padding: 8px 10px;
+            border-bottom: 2px solid #2d3238 !important;
+            white-space: nowrap;
+        }
+
+
 
         @media (max-width: 768px) {
             .col-actions {
@@ -269,7 +285,6 @@
     </script>
     <script src="{{ asset('js/dashboard/coletaEmpresa/modal-detalhes-pedidos.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
-
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-br.json') }}",
             getItemPedidoAcompanhar: "{{ route('get-item-pedido-acompanhar') }}"
@@ -792,7 +807,7 @@
             return table;
         }
 
-        
+
 
         function getQtdColetaDia(cd_empresa) {
             return new Promise(function(resolve, reject) {
@@ -824,5 +839,7 @@
             }
             return grupo_item;
         }
+
+        $('link[href*="custom_datatables"]').remove();
     </script>
 @stop
