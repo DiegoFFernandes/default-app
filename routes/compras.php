@@ -24,7 +24,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('solicitacoes/{id}/update',   [SolicitacaoComprasController::class, 'update'])->name('compras.solicitacoes.update')->whereNumber('id');
         Route::delete('solicitacoes/{id}',        [SolicitacaoComprasController::class, 'destroy'])->name('compras.solicitacoes.destroy')->whereNumber('id');
         Route::post('solicitacoes/{id}/submeter',  [SolicitacaoComprasController::class, 'submeter'])->name('compras.solicitacoes.submeter')->whereNumber('id');
-        Route::post('solicitacoes/{id}/cancelar',  [SolicitacaoComprasController::class, 'cancelar'])->name('compras.solicitacoes.cancelar')->whereNumber('id');
+        Route::post('solicitacoes/{id}/cancelar',      [SolicitacaoComprasController::class, 'cancelar'])->name('compras.solicitacoes.cancelar')->whereNumber('id');
+        Route::post('solicitacoes/{id}/enviar-analise', [SolicitacaoComprasController::class, 'enviarAnalise'])->name('compras.solicitacoes.enviar-analise')->whereNumber('id');
         Route::get('solicitacoes/{id}/exportar-excel',  [SolicitacaoComprasController::class, 'exportarExcel'])->name('compras.solicitacoes.exportar-excel')->whereNumber('id');
 
         // Itens

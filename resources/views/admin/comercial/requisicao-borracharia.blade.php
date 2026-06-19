@@ -1196,18 +1196,16 @@
 
                     // Soma apenas os registros filtrados (search aplicado)
                     var totalItens = api
-                        .column(2, {
-                            search: 'applied'
-                        })
+                        .column(2, { search: 'applied' })
                         .data()
-                        .sum();
+                        .toArray()
+                        .reduce(function(a, b) { return a + (parseFloat(b) || 0); }, 0);
 
                     var totalValor = api
-                        .column(3, {
-                            search: 'applied'
-                        })
+                        .column(3, { search: 'applied' })
                         .data()
-                        .sum();
+                        .toArray()
+                        .reduce(function(a, b) { return a + (parseFloat(b) || 0); }, 0);
 
                     $('#total-itens').html(
                         totalItens.toLocaleString('pt-BR')

@@ -51,7 +51,11 @@ class SolicitacaoComprasController extends Controller
 
     public function list()
     {
-        $data = $this->solicitacao->getAll();
+        $isSolicitante = $this->user->can('solicitacao-compra-criar')
+            && !$this->user->can('solicitacao-compra-gerenciar')
+            && !$this->user->can('solicitacao-compra-aprovar');
+
+        $data = $this->solicitacao->getAll($isSolicitante ? $this->user->id : null);
 
         $userIds = collect($data)->pluck('CD_USUARIO_SOLICITANTE')->unique()->filter();
         $users   = \App\Models\User::whereIn('id', $userIds)->pluck('name', 'id');
@@ -61,13 +65,14 @@ class SolicitacaoComprasController extends Controller
             ->addColumn('status_badge', function ($row) {
                 $map = [
                     'RAS' => ['secondary', 'Rascunho'],
+                    'ANA' => ['info',      'Em Análise'],
                     'APR' => ['warning',   'Em Aprovação'],
                     'APC' => ['success',   'Aprovada'],
                     'REP' => ['danger',    'Reprovada'],
                     'CAN' => ['dark',      'Cancelada'],
                 ];
                 [$color, $label] = $map[$row->ST_SOLICITACAO] ?? ['secondary', $row->ST_SOLICITACAO];
-                return "<span class=\"badge badge-{$color}\">{$label}</span>";
+                return "<span class=\"badge badge-{$color} badge-status\">{$label}</span>";
             })
             ->addColumn('vl_total_fmt', fn($row) => $row->VL_TOTAL
                 ? 'R$ ' . number_format($row->VL_TOTAL, 2, ',', '.')
@@ -77,9 +82,6 @@ class SolicitacaoComprasController extends Controller
                             class="btn btn-primary btn-xs mr-1" title="Visualizar">
                             <i class="fas fa-eye" style="color: white"></i></a>';
                 if ($row->ST_SOLICITACAO === 'RAS') {
-                    $btn .= '<a href="' . route('compras.solicitacoes.edit', $row->CD_SOLICITACAO) . '"
-                                class="btn btn-warning btn-xs mr-1" title="Editar">
-                                <i class="fas fa-edit"></i></a>';
                     $btn .= '<button data-id="' . $row->CD_SOLICITACAO . '"
                                 class="btn btn-danger btn-xs btn-delete" title="Excluir Rascunho">
                                 <i class="fas fa-trash"></i></button>';
@@ -97,9 +99,15 @@ class SolicitacaoComprasController extends Controller
         $uri                 = $this->request->route()->uri();
         $empresas            = $this->empresa->empresa();
         $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
+        $solicitacao         = null;
+        $itens               = [];
+        $cotacoes            = [];
+        $etapas              = [];
+        $saldoCiclo          = null;
 
-        return view('admin.compras.solicitacoes.form', compact(
-            'title_page', 'user_auth', 'uri', 'empresas', 'paramUsaCentrocusto'
+        return view('admin.compras.solicitacoes.show', compact(
+            'title_page', 'user_auth', 'uri', 'empresas', 'paramUsaCentrocusto',
+            'solicitacao', 'itens', 'cotacoes', 'etapas', 'saldoCiclo'
         ));
     }
 
@@ -110,7 +118,7 @@ class SolicitacaoComprasController extends Controller
 
         try {
             $id = $this->solicitacao->store($input);
-            return response()->json(['success' => 'Solicitação criada com sucesso!', 'id' => $id]);
+            return response()->json(['success' => 'Solicitação criada com sucesso, vamos adicionar os itens!', 'id' => $id]);
         } catch (\Exception $e) {
             return response()->json(['errors' => 'Erro ao criar solicitação: ' . $e->getMessage()]);
         }
@@ -124,13 +132,14 @@ class SolicitacaoComprasController extends Controller
             return redirect()->route('compras.solicitacoes.index');
         }
 
-        $itens      = $this->solicitacaoItem->getBySolicitacao($id);
-        $cotacoes   = $this->cotacao->getBySolicitacao($id);
-        $etapas     = $this->etapaAprov->getBySolicitacao($id);
-        $cotacaoSel = $this->cotacao->getCotacaoSelecionada($id);
-        $title_page = 'Solicitação #' . $id;
-        $user_auth  = $this->user;
-        $uri        = $this->request->route()->uri();
+        $itens               = $this->solicitacaoItem->getBySolicitacao($id);
+        $cotacoes            = $this->cotacao->getBySolicitacao($id);
+        $etapas              = $this->etapaAprov->getBySolicitacao($id);
+        $empresas            = $this->empresa->empresa();
+        $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
+        $title_page          = 'Solicitação #' . $id;
+        $user_auth           = $this->user;
+        $uri                 = $this->request->route()->uri();
 
         $saldoCiclo = $solicitacao->CD_CENTROCUSTO
             ? $this->centroCusto->getSaldoCiclo($solicitacao->CD_EMPRESA, $solicitacao->CD_CENTROCUSTO)
@@ -138,30 +147,14 @@ class SolicitacaoComprasController extends Controller
 
         return view('admin.compras.solicitacoes.show', compact(
             'title_page', 'user_auth', 'uri',
-            'solicitacao', 'itens', 'cotacoes', 'etapas', 'cotacaoSel', 'saldoCiclo'
+            'solicitacao', 'itens', 'cotacoes', 'etapas', 'saldoCiclo',
+            'empresas', 'paramUsaCentrocusto'
         ));
     }
 
     public function edit($id)
     {
-        $solicitacao = $this->solicitacao->findById($id);
-
-        if (!$solicitacao || $solicitacao->ST_SOLICITACAO !== 'RAS') {
-            return redirect()->route('compras.solicitacoes.index');
-        }
-
-        $title_page          = 'Editar Solicitação #' . $id;
-        $user_auth           = $this->user;
-        $uri                 = $this->request->route()->uri();
-        $empresas            = $this->empresa->empresa();
-        $cotacoes            = $this->cotacao->getBySolicitacao($id);
-        $itens               = $this->solicitacaoItem->getBySolicitacao($id);
-        $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
-
-        return view('admin.compras.solicitacoes.form', compact(
-            'title_page', 'user_auth', 'uri', 'empresas', 'solicitacao', 'cotacoes', 'itens',
-            'paramUsaCentrocusto'
-        ));
+        return redirect()->route('compras.solicitacoes.show', $id);
     }
 
     public function update($id)
@@ -193,6 +186,22 @@ class SolicitacaoComprasController extends Controller
         return isset($result['errors'])
             ? response()->json(['errors' => $result['errors']])
             : response()->json(['success' => $result['success']]);
+    }
+
+    public function enviarAnalise($id)
+    {
+        $itens = $this->solicitacaoItem->getBySolicitacao($id);
+
+        if (empty($itens)) {
+            return response()->json(['errors' => 'Adicione pelo menos um item antes de enviar para análise.']);
+        }
+
+        try {
+            $this->solicitacao->enviarAnalise((int) $id);
+            return response()->json(['success' => 'Solicitação enviada para análise de compra!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => $e->getMessage()]);
+        }
     }
 
     public function cancelar($id)
@@ -333,16 +342,20 @@ class SolicitacaoComprasController extends Controller
 
     private function _validateSolicitacao($request)
     {
+        $paramMap       = $this->paramEmpresa->getMapUsaCentrocusto();
+        $usaCentrocusto = ($paramMap[$request->cd_empresa] ?? 'N') === 'S';
+
         return $request->validate([
             'cd_empresa'       => 'required|integer',
             'dt_solicitacao'   => 'required|date',
             'ds_justificativa' => 'required|string|max:500',
             'ds_observacao'    => 'nullable|string|max:500',
-            'cd_centrocusto'   => 'nullable|integer',
+            'cd_centrocusto'   => $usaCentrocusto ? 'required|integer' : 'nullable|integer',
         ], [
             'cd_empresa.required'       => 'Selecione a empresa.',
             'dt_solicitacao.required'   => 'Informe a data da solicitação.',
             'ds_justificativa.required' => 'A justificativa é obrigatória.',
+            'cd_centrocusto.required'   => 'O Centro de Resultado é obrigatório para esta empresa.',
         ]);
     }
 }

@@ -4,6 +4,9 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/info-box-custom.css') }}?v={{ time() }}">
+    <style>
+        .badge-status { font-size: 0.8rem; }
+    </style>
 @stop
 
 @section('content')
@@ -30,6 +33,7 @@
                                 <tr>
                                     <th>Cód.</th>
                                     <th>Empresa</th>
+                                    <th>Centro de Resultado</th>
                                     <th>Solicitante</th>
                                     <th>Data</th>
                                     <th>Justificativa</th>
@@ -81,6 +85,11 @@
                     {
                         data: 'NM_EMPRESA',
                         name: 'NM_EMPRESA'
+                    },
+                    {
+                        data: 'DS_CENTROCUSTO',
+                        name: 'DS_CENTROCUSTO',
+                        defaultContent: '-'
                     },
                     {
                         data: 'nm_solicitante',

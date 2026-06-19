@@ -24,8 +24,10 @@ class CompraSolicitacao extends Model
                 S.DS_JUSTIFICATIVA,
                 S.ST_SOLICITACAO,
                 S.VL_TOTAL,
+                CC.DS_CENTROCUSTO,
                 S.DT_REGISTRO
             FROM COMPRA_SOLICITACAO S
+            INNER JOIN COMPRA_CENTROCUSTO CC ON (CC.CD_EMPRESA = S.CD_EMPRESA AND CC.CD_CENTROCUSTO = S.CD_CENTROCUSTO)
             INNER JOIN EMPRESA E ON E.CD_EMPRESA = S.CD_EMPRESA
             ";
         $params = [];
@@ -159,6 +161,16 @@ class CompraSolicitacao extends Model
         DB::connection('firebird')->statement("
             DELETE FROM COMPRA_SOLICITACAO
             WHERE CD_SOLICITACAO = :id AND ST_SOLICITACAO = 'RAS'
+        ", ['id' => $id]);
+    }
+
+    public function enviarAnalise(int $id)
+    {
+        DB::connection('firebird')->statement("
+            UPDATE COMPRA_SOLICITACAO
+            SET ST_SOLICITACAO = 'ANA'
+            WHERE CD_SOLICITACAO = :id
+              AND ST_SOLICITACAO = 'RAS'
         ", ['id' => $id]);
     }
 
