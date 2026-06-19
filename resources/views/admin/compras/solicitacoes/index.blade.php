@@ -149,7 +149,7 @@
                 const id = $(this).data('id');
                 Swal.fire({
                     title: 'Excluir rascunho?',
-                    text: 'A solicitação #' + id + ' será excluída permanentemente.',
+                    text: 'A solicitação #' + id + ' será excluída permanentemente. Verifique se o solicitante ainda não esta preenchendo a solicitação!',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',

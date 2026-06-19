@@ -20,6 +20,7 @@ class CompraCotacao extends Model
                 P.NM_PESSOA AS NM_FORNECEDOR,
                 C.NR_PRAZO_ENTREGA,
                 C.DS_CONDICAO_PAGAMENTO,
+                C.CD_FORMAPAGTO,
                 C.VL_TOTAL,
                 C.DS_OBSERVACAO,
                 C.ST_SELECIONADA,
@@ -42,6 +43,7 @@ class CompraCotacao extends Model
                 P.NM_PESSOA AS NM_FORNECEDOR,
                 C.NR_PRAZO_ENTREGA,
                 C.DS_CONDICAO_PAGAMENTO,
+                C.CD_FORMAPAGTO,
                 C.VL_TOTAL,
                 C.DS_OBSERVACAO,
                 C.ST_SELECIONADA,
@@ -79,11 +81,11 @@ class CompraCotacao extends Model
         DB::connection('firebird')->statement("
             INSERT INTO COMPRA_COTACAO (
                 ID_COTACAO, ID_SOLICITACAO, CD_FORNECEDOR,
-                NR_PRAZO_ENTREGA, DS_CONDICAO_PAGAMENTO,
+                NR_PRAZO_ENTREGA, DS_CONDICAO_PAGAMENTO, CD_FORMAPAGTO,
                 VL_TOTAL, DS_OBSERVACAO, ST_SELECIONADA, DT_COTACAO
             ) VALUES (
                 :id, :id_solicitacao, :cd_fornecedor,
-                :nr_prazo, :ds_condicao,
+                :nr_prazo, :ds_condicao, :cd_formapagto,
                 :vl_total, :ds_observacao, 'N', CURRENT_TIMESTAMP
             )
         ", [
@@ -92,6 +94,7 @@ class CompraCotacao extends Model
             'cd_fornecedor'  => $data['cd_fornecedor'],
             'nr_prazo'       => $data['nr_prazo_entrega'],
             'ds_condicao'    => \Helper::ToIso($data['ds_condicao_pagamento']),
+            'cd_formapagto'  => $data['cd_formapagto'],
             'vl_total'       => $data['vl_total'],
             'ds_observacao'  => \Helper::ToIso($data['ds_observacao'] ?? null),
         ]);
@@ -106,6 +109,7 @@ class CompraCotacao extends Model
                 CD_FORNECEDOR         = :cd_fornecedor,
                 NR_PRAZO_ENTREGA      = :nr_prazo,
                 DS_CONDICAO_PAGAMENTO = :ds_condicao,
+                CD_FORMAPAGTO         = :cd_formapagto,
                 VL_TOTAL              = :vl_total,
                 DS_OBSERVACAO         = :ds_observacao
             WHERE ID_COTACAO = :id
@@ -113,6 +117,7 @@ class CompraCotacao extends Model
             'cd_fornecedor' => $data['cd_fornecedor'],
             'nr_prazo'      => $data['nr_prazo_entrega'],
             'ds_condicao'   => \Helper::ToIso($data['ds_condicao_pagamento']),
+            'cd_formapagto' => $data['cd_formapagto'],
             'vl_total'      => $data['vl_total'],
             'ds_observacao' => \Helper::ToIso($data['ds_observacao'] ?? null),
             'id'            => $id,

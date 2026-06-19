@@ -50,7 +50,7 @@
                 <th style="border:1px solid #ccc; padding:5px 8px; text-align:center; width:90px;">Valor Total (R$)</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="print-items-tbody">
             @foreach($itens as $idx => $item)
             <tr style="{{ $idx % 2 !== 0 ? 'background:#fafafa;' : '' }}">
                 <td style="border:1px solid #ccc; padding:5px 8px; text-align:center;">{{ $idx + 1 }}</td>
@@ -62,6 +62,8 @@
                 <td style="border:1px solid #ccc; padding:5px 8px;"></td>
             </tr>
             @endforeach
+        </tbody>
+        <tbody>
             <tr>
                 <td colspan="5" style="border:1px solid #ccc; padding:5px 10px; text-align:right; font-weight:bold; background:#ecf0f1;">VALOR TOTAL DA PROPOSTA</td>
                 <td style="border:1px solid #ccc; background:#ecf0f1;"></td>

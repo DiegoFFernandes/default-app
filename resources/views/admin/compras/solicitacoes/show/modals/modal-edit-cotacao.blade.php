@@ -23,6 +23,16 @@
                     <input type="text" class="form-control form-control-sm" id="edit_ds_condicao" maxlength="200">
                 </div>
                 <div class="form-group mb-2">
+                    <label class="mb-1"><small>Forma de Pagamento</small></label>
+                    <select class="form-control form-control-sm" id="edit_cd_formapagto">
+                        <option value="">Selecione</option>
+                        <option value="BL">Boleto</option>
+                        <option value="DI">Dinheiro</option>
+                        <option value="CH">Cheque</option>
+                        <option value="PX">Pix</option>
+                    </select>
+                </div>
+                <div class="form-group mb-2">
                     <label class="mb-1"><small>Valor Total (R$)</small></label>
                     <input type="text" class="form-control form-control-sm money-mask" id="edit_vl_total">
                 </div>

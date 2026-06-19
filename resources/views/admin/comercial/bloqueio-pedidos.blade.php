@@ -383,7 +383,7 @@
         var fimData = 0;
         var dados;
 
-        var dtInicio = moment().subtract(120, 'days').startOf('day').format('DD.MM.YYYY');
+        var dtInicio = moment().subtract(30, 'days').startOf('day').format('DD.MM.YYYY');
         var dtFim = moment().subtract(0, 'days').endOf('day').format('DD.MM.YYYY');
 
         var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);

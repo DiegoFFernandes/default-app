@@ -640,8 +640,6 @@ $(document).on("click", "#btn-criar-pedido", function () {
         return selectedIds.has(parseInt(row.ID));
     });
 
-    console.log(selectedRows);
-
     if (selectedRows.length === 0) {
         Swal.fire({
             icon: "warning",

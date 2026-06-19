@@ -313,7 +313,7 @@ class PedidoPneuController extends Controller
         $rules = [
             'idPneu' => 'required|integer',
             'nrSerie' => 'required|string',
-            'fogo' => 'integer|nullable',
+            'fogo' => 'string|nullable',
             'dot' => 'integer|nullable',
             'idDesenho' => 'required|integer',
             'idModeloPneu' => 'required|integer',
@@ -327,7 +327,7 @@ class PedidoPneuController extends Controller
             'idItemPedidoPneu.integer' => 'ID do item do pedido de pneu deve ser um número inteiro.',
             'nrSerie.required' => 'Número de série é obrigatório.',
             'nrSerie.string' => 'Número de série deve ser uma string.',
-            'fogo.integer' => 'Número de fogo deve ser um número inteiro.',
+            'fogo.string' => 'Número de fogo deve ser um número valido.',
             'dot.integer' => 'Número DOT deve ser um número inteiro.',
             'idDesenho.required' => 'ID do desenho é obrigatório.',
             'idDesenho.integer' => 'ID do desenho deve ser um número inteiro.',

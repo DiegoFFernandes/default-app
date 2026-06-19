@@ -11,6 +11,7 @@ use App\Models\CompraCentroCusto;
 use App\Models\CompraEtapaAprov;
 use App\Models\CompraParamEmpresa;
 use App\Models\Empresa;
+use App\Models\Veiculo;
 use App\Services\CompraFluxoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,6 +82,11 @@ class SolicitacaoComprasController extends Controller
                 $btn = '<a href="' . route('compras.solicitacoes.show', $row->CD_SOLICITACAO) . '"
                             class="btn btn-primary btn-xs mr-1" title="Visualizar">
                             <i class="fas fa-eye" style="color: white"></i></a>';
+                if (in_array($row->ST_SOLICITACAO, ['RAS', 'ANA'])) {
+                    $btn .= '<a href="' . route('compras.solicitacoes.edit', $row->CD_SOLICITACAO) . '"
+                                class="btn btn-warning btn-xs mr-1" title="Editar">
+                                <i class="fas fa-edit"></i></a>';
+                }
                 if ($row->ST_SOLICITACAO === 'RAS') {
                     $btn .= '<button data-id="' . $row->CD_SOLICITACAO . '"
                                 class="btn btn-danger btn-xs btn-delete" title="Excluir Rascunho">
@@ -105,7 +111,7 @@ class SolicitacaoComprasController extends Controller
         $etapas              = [];
         $saldoCiclo          = null;
 
-        return view('admin.compras.solicitacoes.show', compact(
+        return view('admin.compras.solicitacoes.edit', compact(
             'title_page', 'user_auth', 'uri', 'empresas', 'paramUsaCentrocusto',
             'solicitacao', 'itens', 'cotacoes', 'etapas', 'saldoCiclo'
         ));
@@ -132,14 +138,12 @@ class SolicitacaoComprasController extends Controller
             return redirect()->route('compras.solicitacoes.index');
         }
 
-        $itens               = $this->solicitacaoItem->getBySolicitacao($id);
-        $cotacoes            = $this->cotacao->getBySolicitacao($id);
-        $etapas              = $this->etapaAprov->getBySolicitacao($id);
-        $empresas            = $this->empresa->empresa();
-        $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
-        $title_page          = 'Solicitação #' . $id;
-        $user_auth           = $this->user;
-        $uri                 = $this->request->route()->uri();
+        $itens      = $this->solicitacaoItem->getBySolicitacao($id);
+        $cotacoes   = $this->cotacao->getBySolicitacao($id);
+        $etapas     = $this->etapaAprov->getBySolicitacao($id);
+        $title_page = 'Solicitação #' . $id;
+        $user_auth  = $this->user;
+        $uri        = $this->request->route()->uri();
 
         $saldoCiclo = $solicitacao->CD_CENTROCUSTO
             ? $this->centroCusto->getSaldoCiclo($solicitacao->CD_EMPRESA, $solicitacao->CD_CENTROCUSTO)
@@ -147,14 +151,36 @@ class SolicitacaoComprasController extends Controller
 
         return view('admin.compras.solicitacoes.show', compact(
             'title_page', 'user_auth', 'uri',
-            'solicitacao', 'itens', 'cotacoes', 'etapas', 'saldoCiclo',
-            'empresas', 'paramUsaCentrocusto'
+            'solicitacao', 'itens', 'cotacoes', 'etapas', 'saldoCiclo'
         ));
     }
 
     public function edit($id)
     {
-        return redirect()->route('compras.solicitacoes.show', $id);
+        $solicitacao = $this->solicitacao->findById($id);
+
+        if (!$solicitacao || !in_array($solicitacao->ST_SOLICITACAO, ['RAS', 'ANA'])) {
+            return redirect()->route('compras.solicitacoes.show', $id);
+        }
+
+        $itens               = $this->solicitacaoItem->getBySolicitacao($id);
+        $cotacoes            = $this->cotacao->getBySolicitacao($id);
+        $etapas              = $this->etapaAprov->getBySolicitacao($id);
+        $empresas            = $this->empresa->empresa();
+        $paramUsaCentrocusto = $this->paramEmpresa->getMapUsaCentrocusto();
+        $title_page          = 'Editar Solicitação #' . $id;
+        $user_auth           = $this->user;
+        $uri                 = $this->request->route()->uri();
+
+        $saldoCiclo = $solicitacao->CD_CENTROCUSTO
+            ? $this->centroCusto->getSaldoCiclo($solicitacao->CD_EMPRESA, $solicitacao->CD_CENTROCUSTO)
+            : null;
+
+        return view('admin.compras.solicitacoes.edit', compact(
+            'title_page', 'user_auth', 'uri',
+            'solicitacao', 'itens', 'cotacoes', 'etapas', 'saldoCiclo',
+            'empresas', 'paramUsaCentrocusto'
+        ));
     }
 
     public function update($id)
@@ -318,6 +344,12 @@ class SolicitacaoComprasController extends Controller
 
     // --- AJAX Search ---
 
+    public function searchVeiculos()
+    {
+        $q = $this->request->get('q', '');
+        return response()->json(Veiculo::search($q));
+    }
+
     public function searchItem()
     {
         $term = $this->request->get('q', '');
@@ -344,6 +376,7 @@ class SolicitacaoComprasController extends Controller
     {
         $paramMap       = $this->paramEmpresa->getMapUsaCentrocusto();
         $usaCentrocusto = ($paramMap[$request->cd_empresa] ?? 'N') === 'S';
+        $isLogistica    = (int) $request->cd_centrocusto === 1700;
 
         return $request->validate([
             'cd_empresa'       => 'required|integer',
@@ -351,11 +384,20 @@ class SolicitacaoComprasController extends Controller
             'ds_justificativa' => 'required|string|max:500',
             'ds_observacao'    => 'nullable|string|max:500',
             'cd_centrocusto'   => $usaCentrocusto ? 'required|integer' : 'nullable|integer',
+            'st_urgencia'      => 'required|in:I,U,N',
+            'tp_solicitacao'   => $isLogistica ? 'required|in:C,P'        : 'nullable|in:C,P',
+            'nr_km'            => $isLogistica ? 'required|integer|min:0' : 'nullable|integer|min:0',
+            'nr_placa'         => $isLogistica ? 'required|string|max:10' : 'nullable|string|max:10',
         ], [
             'cd_empresa.required'       => 'Selecione a empresa.',
             'dt_solicitacao.required'   => 'Informe a data da solicitação.',
             'ds_justificativa.required' => 'A justificativa é obrigatória.',
             'cd_centrocusto.required'   => 'O Centro de Resultado é obrigatório para esta empresa.',
+            'st_urgencia.required'      => 'Selecione a urgência.',
+            'st_urgencia.in'            => 'Urgência inválida.',
+            'tp_solicitacao.required'   => 'Selecione o tipo (Corretiva/Preventiva) para solicitações de Logística.',
+            'nr_km.required'            => 'O KM atual é obrigatório para solicitações de Logística.',
+            'nr_placa.required'         => 'A placa é obrigatória para solicitações de Logística.',
         ]);
     }
 }

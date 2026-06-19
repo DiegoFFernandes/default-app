@@ -76,7 +76,11 @@ class CompraSolicitacao extends Model
                 S.DT_REGISTRO,
                 S.DT_ATUALIZADO,
                 S.CD_CENTROCUSTO,
-                CC.DS_CENTROCUSTO
+                CC.DS_CENTROCUSTO,
+                S.ST_URGENCIA,
+                S.TP_SOLICITACAO,
+                S.NR_KM,
+                S.NR_PLACA
             FROM COMPRA_SOLICITACAO S
             INNER JOIN EMPRESA E ON E.CD_EMPRESA = S.CD_EMPRESA
             LEFT JOIN COMPRA_CENTROCUSTO CC ON CC.CD_CENTROCUSTO = S.CD_CENTROCUSTO
@@ -94,11 +98,13 @@ class CompraSolicitacao extends Model
             INSERT INTO COMPRA_SOLICITACAO (
                 CD_SOLICITACAO, CD_EMPRESA, CD_USUARIO_SOLICITANTE,
                 DT_SOLICITACAO, DS_JUSTIFICATIVA, DS_OBSERVACAO,
-                ST_SOLICITACAO, CD_CENTROCUSTO, DT_REGISTRO, DT_ATUALIZADO
+                ST_SOLICITACAO, CD_CENTROCUSTO, ST_URGENCIA, TP_SOLICITACAO, NR_KM, NR_PLACA,
+                DT_REGISTRO, DT_ATUALIZADO
             ) VALUES (
                 :id, :cd_empresa, :cd_usuario,
                 :dt_solicitacao, :ds_justificativa, :ds_observacao,
-                'RAS', :cd_centrocusto, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                'RAS', :cd_centrocusto, :st_urgencia, :tp_solicitacao, :nr_km, :nr_placa,
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             )
         ", [
             'id'               => $id,
@@ -108,6 +114,10 @@ class CompraSolicitacao extends Model
             'ds_justificativa' => \Helper::ToIso($data['ds_justificativa']),
             'ds_observacao'    => \Helper::ToIso($data['ds_observacao'] ?? null),
             'cd_centrocusto'   => $data['cd_centrocusto'] ?? null,
+            'st_urgencia'      => $data['st_urgencia'] ?? 'N',
+            'tp_solicitacao'   => $data['tp_solicitacao'] ?? null,
+            'nr_km'            => $data['nr_km'] ?? null,
+            'nr_placa'         => $data['nr_placa'] ? \Helper::ToIso($data['nr_placa']) : null,
         ]);
 
         return $id;
@@ -122,15 +132,23 @@ class CompraSolicitacao extends Model
                 DS_JUSTIFICATIVA = :ds_justificativa,
                 DS_OBSERVACAO    = :ds_observacao,
                 CD_CENTROCUSTO   = :cd_centrocusto,
+                ST_URGENCIA      = :st_urgencia,
+                TP_SOLICITACAO   = :tp_solicitacao,
+                NR_KM            = :nr_km,
+                NR_PLACA         = :nr_placa,
                 DT_ATUALIZADO    = CURRENT_TIMESTAMP
             WHERE CD_SOLICITACAO = :id
-              AND ST_SOLICITACAO  = 'RAS'
+              AND ST_SOLICITACAO IN ('RAS', 'ANA')
         ", [
             'cd_empresa'       => $data['cd_empresa'],
             'dt_solicitacao'   => $data['dt_solicitacao'],
             'ds_justificativa' => \Helper::ToIso($data['ds_justificativa']),
             'ds_observacao'    => \Helper::ToIso($data['ds_observacao'] ?? null),
             'cd_centrocusto'   => $data['cd_centrocusto'] ?? null,
+            'st_urgencia'      => $data['st_urgencia'] ?? 'N',
+            'tp_solicitacao'   => $data['tp_solicitacao'] ?? null,
+            'nr_km'            => $data['nr_km'] ?? null,
+            'nr_placa'         => $data['nr_placa'] ? \Helper::ToIso($data['nr_placa']) : null,
             'id'               => $id,
         ]);
     }

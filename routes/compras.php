@@ -13,6 +13,7 @@ Route::middleware(['auth'])->group(function () {
         // AJAX search (Select2)
         Route::get('search-item-compra',      [SolicitacaoComprasController::class, 'searchItem'])->name('compras.search-item');
         Route::get('search-fornecedor-compra', [SolicitacaoComprasController::class, 'searchFornecedor'])->name('compras.search-fornecedor');
+        Route::get('search-veiculo',           [SolicitacaoComprasController::class, 'searchVeiculos'])->name('compras.search-veiculo');
 
         // Solicitações
         Route::get('solicitacoes',                [SolicitacaoComprasController::class, 'index'])->name('compras.solicitacoes.index');

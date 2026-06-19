@@ -26,9 +26,13 @@ class CotacaoComprasController extends Controller
     {
         $data = $this->cotacao->getBySolicitacao($idSolicitacao);
 
+        $pagtoMap = ['BL' => 'Boleto', 'DI' => 'Dinheiro', 'CH' => 'Cheque', 'PX' => 'Pix'];
+
         return DataTables::of($data)
             ->addColumn('vl_total_fmt', fn($row) =>
                 'R$ ' . number_format($row->VL_TOTAL, 2, ',', '.'))
+            ->addColumn('formapagto_label', fn($row) =>
+                $pagtoMap[$row->CD_FORMAPAGTO ?? ''] ?? ($row->CD_FORMAPAGTO ?? '-'))
             ->addColumn('selecionada_badge', fn($row) =>
                 $row->ST_SELECIONADA === 'S'
                     ? '<span class="badge badge-success">Selecionado</span>'
@@ -39,6 +43,7 @@ class CotacaoComprasController extends Controller
                     <button data-id="' . $row->ID_COTACAO . '" data-sol="' . $row->ID_SOLICITACAO . '"
                         data-fornecedor="' . $row->CD_FORNECEDOR . '" data-nm="' . e($row->NM_FORNECEDOR) . '"
                         data-prazo="' . $row->NR_PRAZO_ENTREGA . '" data-cond="' . e($row->DS_CONDICAO_PAGAMENTO) . '"
+                        data-pagto="' . ($row->CD_FORMAPAGTO ?? '') . '"
                         data-vl="' . $row->VL_TOTAL . '" data-obs="' . e($row->DS_OBSERVACAO) . '"
                         class="btn btn-warning btn-xs btn-edit-cot mr-1" title="Editar">
                         <i class="fas fa-edit"></i></button>
@@ -118,6 +123,7 @@ class CotacaoComprasController extends Controller
             'cd_fornecedor'         => 'required|integer',
             'nr_prazo_entrega'      => 'required|integer|min:1',
             'ds_condicao_pagamento' => 'required|string|max:200',
+            'cd_formapagto'         => 'required|string|in:BL,DI,CH,PX',
             'vl_total'              => 'required|numeric|min:0.01',
             'ds_observacao'         => 'nullable|string|max:500',
         ], [
@@ -125,6 +131,8 @@ class CotacaoComprasController extends Controller
             'nr_prazo_entrega.required'      => 'Informe o prazo de entrega.',
             'nr_prazo_entrega.min'           => 'O prazo deve ser de pelo menos 1 dia.',
             'ds_condicao_pagamento.required' => 'Informe a condição de pagamento.',
+            'cd_formapagto.required'         => 'Selecione a forma de pagamento.',
+            'cd_formapagto.in'               => 'Forma de pagamento inválida.',
             'vl_total.required'              => 'Informe o valor total.',
             'vl_total.numeric'               => 'O valor total deve ser numérico.',
             'vl_total.min'                   => 'O valor total deve ser maior que zero.',

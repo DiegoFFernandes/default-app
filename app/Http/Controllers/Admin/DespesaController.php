@@ -7,10 +7,10 @@ use App\Models\Comprovante;
 use App\Models\ComprovanteFoto;
 use App\Models\Pessoa;
 use App\Models\User;
+use App\Models\Veiculo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DespesaController extends Controller
@@ -165,41 +165,8 @@ class DespesaController extends Controller
 
     public function searchVeiculos()
     {
-        $q = strtoupper(trim($this->request->get('q', '')));
-
-        if (strlen($q) < 2) {
-            return response()->json([]);
-        }
-
-        try {
-            $rows = DB::connection('firebird')->select("
-                SELECT FIRST 20
-                    V.NR_PLACA,
-                    COALESCE(M.DS_MODELOVEICULO, 'SEM MODELO') DS_MODELO,
-                    COALESCE(MARCAVEICULO.DS_MARCAVEICULO, 'SEM MARCA') DS_MARCA
-                FROM VEICULO V
-                LEFT JOIN MODELOVEICULO M
-                       ON M.CD_MODELOVEICULO = V.CD_MODELOVEICULO
-                      AND M.CD_MARCAVEICULO  = V.CD_MARCAVEICULO
-                LEFT JOIN MARCAVEICULO
-                       ON MARCAVEICULO.CD_MARCAVEICULO = V.CD_MARCAVEICULO
-                WHERE V.NR_PLACA CONTAINING ?
-            ", [$q]);
-
-            $results = array_map(function ($r) {
-                $placa = trim($r->nr_placa ?? $r->NR_PLACA);
-                $marca = trim($r->ds_marca  ?? $r->DS_MARCA);
-                $modelo = trim($r->ds_modelo ?? $r->DS_MODELO);
-                return [
-                    'id'   => $placa,
-                    'text' => $placa . ' — ' . $marca . ' ' . $modelo,
-                ];
-            }, $rows);
-
-            return response()->json($results);
-        } catch (\Exception) {
-            return response()->json([]);
-        }
+        $q = $this->request->get('q', '');
+        return response()->json(Veiculo::search($q));
     }
 
     public function getComprovantes()
