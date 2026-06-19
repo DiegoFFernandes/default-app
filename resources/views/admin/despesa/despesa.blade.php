@@ -51,6 +51,7 @@
             storeDespesa: "{{ route('despesa.store') }}",
             searchVeiculos: "{{ route('despesa.veiculos') }}",
             searchPessoas: "{{ route('despesa.pessoas') }}",
+            revisarConnectCar: "{{ route('despesa.connectcar.revisar') }}",
             getComprovantes: "{{ route('despesa.get') }}",
             updateDespesa: "{{ route('despesa.update', ':id') }}",
             toggleVisto: "{{ route('despesa.toggle-visto', ':id') }}",

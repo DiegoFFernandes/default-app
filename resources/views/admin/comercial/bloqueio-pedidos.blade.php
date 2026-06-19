@@ -620,15 +620,16 @@
                         tela: 'acompanhamento'
                     },
                     beforeSend: function() {
-                        Swal.fire({
-                            title: 'Carregando os pedidos...',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
+                        window._swalLoadingTimer = setTimeout(function() {
+                            Swal.fire({
+                                title: 'Carregando os pedidos...',
+                                allowOutsideClick: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+                        }, 400);
                     },
                     complete: function() {
+                        clearTimeout(window._swalLoadingTimer);
                         Swal.close();
                     }
                 },

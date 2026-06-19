@@ -180,6 +180,7 @@
 
 @stop
 @section('js')
+    <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
     <script id="details-item-historico" type="text/x-handlebars-template">
         @verbatim
             <span class="badge badge-danger">{{ DS_TIPOCONTA }}</span>

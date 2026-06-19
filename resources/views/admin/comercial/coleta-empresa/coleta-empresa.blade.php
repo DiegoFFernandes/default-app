@@ -237,6 +237,7 @@
 @endsection
 
 @section('js')
+    <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
     <script id="details-pedido-vendedor" type="text/x-handlebars-template">
         @verbatim            
             <table class="table-pedido row-border" id="regiao-{{ CD_REGIAOCOMERCIAL }}" style="width:99%">

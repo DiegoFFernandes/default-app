@@ -14,9 +14,18 @@
         </li>
     </ul>
     
-    <div class="card-tools mr-2" id="tools-lista" style="display:none;">
-        <button class="btn btn-xs btn-secondary" id="btn-reload-lista" title="Atualizar lista">
-            <i class="fas fa-sync"></i> Atualizar
-        </button>
+    <div class="card-tools mr-2 d-flex" style="gap:6px;">
+        <div id="tools-registrar">
+            <a href="{{ route('despesa.connectcar.revisar') }}" class="btn btn-xs btn-primary" title="Importar Pedágio do ConnectCar">
+                <i class="fas fa-file-import mr-1"></i> Importar Pedágio ConnectCar
+            </a>
+        </div>
+
+        <div id="tools-lista" style="display:none;">
+            <button class="btn btn-xs btn-secondary" id="btn-reload-lista" title="Atualizar lista">
+                <i class="fas fa-sync"></i> Atualizar
+            </button>
+        </div>
     </div>
+
 </div>

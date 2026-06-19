@@ -817,6 +817,7 @@ function initFiltros() {
 // ─── Recarrega DataTable ao entrar na aba Lista ───────────────────────────────
 function initTabEvents() {
     $("#tab-lista").on("shown.bs.tab", function () {
+        $("#tools-registrar").hide();
         $("#tools-lista").show();
         if (!tabelaComprovantes) {
             initDataTable();
@@ -826,7 +827,9 @@ function initTabEvents() {
     });
     $("#tab-registrar").on("shown.bs.tab", function () {
         $("#tools-lista").hide();
+        $("#tools-registrar").show();
     });
+
 }
 
 // ─── Stats e Gráficos ─────────────────────────────────────────────────────────
@@ -966,3 +969,4 @@ function atualizarStats(api) {
 
     $("#painel-stats, #painel-graficos").show();
 }
+

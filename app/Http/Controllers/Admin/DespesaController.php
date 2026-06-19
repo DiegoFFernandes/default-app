@@ -233,6 +233,23 @@ class DespesaController extends Controller
         return datatables()->of($data)->toJson();
     }
 
+    public function revisarConnectCar()
+    {
+        $title_page = 'Importar Pedágio — ConnectCar';
+        $uri        = $this->request->route()->uri();
+        $user_auth  = $this->user;
+
+        return view('admin.despesa.connectcar.revisar',
+            compact('title_page', 'uri', 'user_auth'));
+    }
+
+    public function importarConnectCar()
+    {
+        // TODO: implementar mapeamento e persistência no comprovante
+        return redirect()->route('despesa.index')
+            ->with('success', 'Importação realizada com sucesso.');
+    }
+
     public function searchPessoas()
     {
         $q = trim($this->request->get('q', ''));
