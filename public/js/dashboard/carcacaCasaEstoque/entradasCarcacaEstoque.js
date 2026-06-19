@@ -1,5 +1,6 @@
 var table_carcaca_itens;
 var itensCarcacaTable = [];
+var selectedIds = new Set();
 
 initSelect2Pessoa("#pessoa", window.routes.searchPessoa, "#modal-criar-pedido");
 
@@ -72,12 +73,21 @@ function initTableCarcaca() {
     if (table_carcaca_itens) {
         table_carcaca_itens.destroy();
     }
+    selectedIds.clear();
 
     let columns = [
         {
             data: null,
             width: "1%",
-            render: DataTable.render.select(),
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row) {
+                if (type === 'display') {
+                    var checked = selectedIds.has(row.ID) ? ' checked' : '';
+                    return '<input type="checkbox" class="dt-row-checkbox" data-id="' + row.ID + '" aria-label="Selecionar linha"' + checked + '>';
+                }
+                return '';
+            },
         },
     ];
 
@@ -153,16 +163,28 @@ function initTableCarcaca() {
         processing: false,
         serverSide: false,
         responsive: false,
+        paging: false,
         scrollX: true,
-        select: {
-            style: "multi",
-        },
+        scrollY: '400px',
+        scrollCollapse: true,
         language: {
             url: window.routes.languageDatatables,
         },
-        pagingType: "simple",
         ajax: {
             url: window.routes.getCarcacaCasa,
+            beforeSend: function () {
+                window._swalCarcacaTimer = setTimeout(function () {
+                    Swal.fire({
+                        title: 'Carregando carcaças...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                }, 400);
+            },
+            complete: function () {
+                clearTimeout(window._swalCarcacaTimer);
+                Swal.close();
+            },
             dataSrc: function (response) {
                 $("#total-carcacas").text(response.extra.total_carcacas);
 
@@ -185,130 +207,95 @@ function initTableCarcaca() {
 }
 
 function initAccordion(data, idDivAccordion = "accordionResumo") {
-    let html = ``;
-
-    data.forEach((Nivel1Key, gIndex) => {
-        html += `
-                    <div class="card nivel1-card">
-                        ${renderNivel0(Nivel1Key, gIndex)}
-                    </div>
-                `;
-    });
-
+    let html = '';
+    data.forEach((item, idx) => { html += renderNivel0(item, idx); });
     $("#" + idDivAccordion).html(html);
 }
 
 function renderNivel0(Nivel1Key, lIndex) {
-    let html = `
-                <div class="card-header p-1">
-                    <button class="btn btn-block"
-                        data-toggle="collapse"
-                        data-target="#nivel0-${lIndex}">
-                        <table class="table table-borderless mb-0 w-100">
-                            <tr>
-                                <td class="text-left p-0">
-                                    <small class="text-muted">
-                                        <i class="fas fa-chevron-down"></i>
-                                        <strong>${Nivel1Key.local}</strong>
-                                    </small>
-                                </td>
-                                <td class="text-right p-0 w-10">
-                                    ${Nivel1Key.qtd} unid.
-                                </td>                                
-                            </tr>
-                        </table>
-                    </button>
-                </div>
-
-                <div id="nivel0-${lIndex}" class="collapse">
-                    <div class="card-body p-1">
-            `;
-
-    Nivel1Key.medida.forEach((Nivel2Key, maIndex) => {
-        html += renderNivel1(Nivel2Key, lIndex, maIndex);
+    let inner = '';
+    Nivel1Key.medida.forEach((item, maIndex) => {
+        inner += renderNivel1(item, lIndex, maIndex);
     });
 
-    html += `
-                    </div>
+    return `
+        <div class="card nivel1-card mb-2 border-0 shadow-sm">
+            <div class="card-header p-0" style="background:#2d3748; border-left:4px solid #4299e1; border-radius:4px 4px 0 0;">
+                <button class="btn btn-block text-white text-left accordion-item-header py-2 px-3"
+                        data-toggle="collapse" data-target="#nivel0-${lIndex}">
+                    <span style="font-size:0.87rem; font-weight:600;">
+                        <i class="fas fa-map-marker-alt mr-1" style="color:#90cdf4;"></i>
+                        ${Nivel1Key.local}
+                    </span>
+                    <span class="badge badge-pill badge-info" style="font-size:0.78rem;">${Nivel1Key.qtd} unid.</span>
+                </button>
+            </div>
+            <div id="nivel0-${lIndex}" class="collapse">
+                <div class="card-body p-2" style="background:#f7fafc;">
+                    ${inner}
                 </div>
-            `;
-
-    return html;
+            </div>
+        </div>`;
 }
 
 function renderNivel1(Nivel2Key, lIndex, maIndex) {
-    let html = `
-                <div class="medida-container">
-                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
-                            data-target="#medida-${lIndex}-${maIndex}">
-                        <table class="table table-bordered table-borderless mb-0 w-100 tabela">
-                            <tr>
-                                <td class="text-left p-0 indent-1 col-nome">                                     
-                                        <i class="fas fa-chevron-down"></i>
-                                        <strong class="ps-3"> ${Nivel2Key.medida}</strong>                                     
-                                </td>
-                                <td class="text-right p-0 col-qtd"> ${Nivel2Key.qtd} unid.</td>                                
-                            </tr>
-                        </table>
-                    </button>
-                    <div id="medida-${lIndex}-${maIndex}" class="collapse">
-            `;
-
-    Nivel2Key.marca.forEach((Nivel2Key, moIndex) => {
-        html += renderNivel2(Nivel2Key, lIndex, maIndex, moIndex);
+    let inner = '';
+    Nivel2Key.marca.forEach((item, moIndex) => {
+        inner += renderNivel2(item, lIndex, maIndex, moIndex);
     });
 
-    html += `
-                    </div>
-                </div>
-            `;
-
-    return html;
+    return `
+        <div class="nivel2-container mb-2">
+            <button class="btn btn-block text-left accordion-item-header py-2 px-3 bg-white border"
+                    style="border-left:4px solid #718096 !important; font-size:0.82rem; font-weight:600; border-radius:4px;"
+                    data-toggle="collapse" data-target="#medida-${lIndex}-${maIndex}">
+                <span>
+                    <i class="fas fa-ruler-combined mr-1 text-secondary"></i>
+                    ${Nivel2Key.medida}
+                </span>
+                <span class="badge badge-pill badge-secondary" style="font-size:0.75rem;">${Nivel2Key.qtd} unid.</span>
+            </button>
+            <div id="medida-${lIndex}-${maIndex}" class="collapse mt-1 ml-2">
+                ${inner}
+            </div>
+        </div>`;
 }
 
-function renderNivel2(Nivel2Key, lIndex, maIndex, moIndex) {
-    let html = `
-                <div class="marca-container">
-                    <button class="btn btn-list btn-block pt-0 pb-0" data-toggle="collapse"
-                            data-target="#marca-${lIndex}-${maIndex}-${moIndex}">
-                        <table class="table table-bordered table-borderless mb-0 w-100 tabela">
-                            <tr>
-                                <td class="text-left p-0 indent-2 col-nome">                                     
-                                    <i class="fas fa-chevron-down"></i>
-                                    <strong class="ps-3"> ${Nivel2Key.marca}</strong>                                        
-                                </td>
-                                <td class="text-right p-0 col-qtd"> ${Nivel2Key.qtd} unid.</td>                                
-                            </tr>
-                        </table>
-                    </button>
-                    <div id="marca-${lIndex}-${maIndex}-${moIndex}" class="collapse">
-                    `;
-
-    Nivel2Key.modelo.forEach((Nivel3Key, moIndex) => {
-        html += renderNivel3(Nivel3Key);
+function renderNivel2(Nivel3Key, lIndex, maIndex, moIndex) {
+    let inner = '';
+    Nivel3Key.modelo.forEach((item) => {
+        inner += renderNivel3(item);
     });
 
-    html += `
-                    </div>
-                </div>
-                `;
-    return html;
+    return `
+        <div class="nivel3-container mb-1">
+            <button class="btn btn-block text-left accordion-item-header py-1 px-3 bg-white border mt-1"
+                    style="border-left:4px solid #17a2b8 !important; font-size:0.8rem; border-radius:4px;"
+                    data-toggle="collapse" data-target="#marca-${lIndex}-${maIndex}-${moIndex}">
+                <span>
+                    <i class="fas fa-tag mr-1 text-info"></i>
+                    ${Nivel3Key.marca}
+                </span>
+                <span class="badge badge-pill badge-info" style="font-size:0.72rem;">${Nivel3Key.qtd} unid.</span>
+            </button>
+            <div id="marca-${lIndex}-${maIndex}-${moIndex}" class="collapse mt-1 ml-2">
+                <ul class="list-group list-group-flush">
+                    ${inner}
+                </ul>
+            </div>
+        </div>`;
 }
 
-function renderNivel3(Nivel3Key) {
-    let html = `
-                <div class="modelo-container ml-1 mr-1">
-                    <button class="btn btn-list btn-block pt-0 pb-0">
-                        <table class="table table-bordered table-borderless mb-0 w-100 tabela">
-                            <tr>
-                                <td class="text-left p-0 indent-3 col-nome"> ${Nivel3Key.modelo} </td>
-                                <td class="text-right p-0 col-qtd"> ${Nivel3Key.qtd} unid.</td>
-                            </tr>
-                        </table>
-                    </button>
-                </div>
-            `;
-    return html;
+function renderNivel3(Nivel4Key) {
+    return `
+        <li class="list-group-item px-3 py-1 d-flex justify-content-between align-items-center"
+            style="border-left:3px solid #e2e8f0; border-radius:3px; font-size:0.78rem;">
+            <span class="text-muted">
+                <i class="fas fa-circle mr-1" style="font-size:0.5rem; vertical-align:middle; color:#cbd5e0;"></i>
+                ${Nivel4Key.modelo}
+            </span>
+            <span class="badge badge-light border" style="font-size:0.72rem;">${Nivel4Key.qtd} unid.</span>
+        </li>`;
 }
 
 function deleteOrDown(status, id) {
@@ -562,13 +549,20 @@ $(document).on("click", "#btn-edit-carcaca", function () {
     });
 });
 
+$(document).on("click", ".dt-row-checkbox", function (e) {
+    e.stopPropagation();
+    var id = parseInt($(this).attr("data-id"));
+    if ($(this).is(":checked")) {
+        selectedIds.add(id);
+    } else {
+        selectedIds.delete(id);
+    }
+});
+
 $(document).on("click", "#btn-baixar-todos", function () {
-    let selectedRows = table_carcaca_itens
-        .rows({
-            selected: true,
-        })
-        .data();
-    if (selectedRows.length === 0) {
+    var id = Array.from(selectedIds);
+
+    if (id.length === 0) {
         Swal.fire({
             icon: "warning",
             title: "Nenhuma carcaça selecionada.",
@@ -576,21 +570,14 @@ $(document).on("click", "#btn-baixar-todos", function () {
         });
         return;
     }
-    var id = [];
-    selectedRows.each(function (rowData) {
-        id.push(rowData.ID);
-    });
 
     deleteOrDown("B", id);
 });
 
 $(document).on("click", "#btn-transferir-todos", function () {
-    let selectedRows = table_carcaca_itens
-        .rows({
-            selected: true,
-        })
-        .data();
-    if (selectedRows.length === 0) {
+    var id = Array.from(selectedIds);
+
+    if (id.length === 0) {
         Swal.fire({
             icon: "warning",
             title: "Nenhuma carcaça selecionada.",
@@ -598,11 +585,7 @@ $(document).on("click", "#btn-transferir-todos", function () {
         });
         return;
     }
-    var id = [];
-    selectedRows.each(function (rowData) {
-        id.push(rowData.ID);
-    });
-    // grava os IDs dentro do modal
+
     $("#modal-transferir-carcaca").data("ids", id);
     $("#modal-transferir-carcaca").modal("show");
 });
@@ -653,6 +636,21 @@ $(document).on("click", "#btn-transferir-carcaca", function () {
 });
 
 $(document).on("click", "#btn-criar-pedido", function () {
+    let selectedRows = itensCarcacaTable.filter(function (row) {
+        return selectedIds.has(parseInt(row.ID));
+    });
+
+    console.log(selectedRows);
+
+    if (selectedRows.length === 0) {
+        Swal.fire({
+            icon: "warning",
+            title: "Nenhuma carcaça selecionada.",
+            text: "Por favor, selecione ao menos uma carcaça para criar o pedido.",
+        });
+        return;
+    }
+
     $("#itens-pedido").html("");
     $("#btn-confirmar-pedido").prop("disabled", false);
 
@@ -674,70 +672,37 @@ $(document).on("click", "#btn-criar-pedido", function () {
         valueField: "CD_FORMAPAGTO",
     });
 
-    let selectedRows = table_carcaca_itens
-        .rows({
-            selected: true,
-        })
-        .data();
-
-    if (selectedRows.length === 0) {
-        Swal.fire({
-            icon: "warning",
-            title: "Nenhuma carcaça selecionada.",
-            text: "Por favor, selecione ao menos uma carcaça para criar o pedido.",
-        });
-        return;
-    }
-
-    selectedRows.each(function (rowData) {
+    selectedRows.forEach(function (rowData) {
         let itemHtml = `
-                                <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
-                                    <div class="col-4 col-md-3">
-                                        <label class="form-label small">Medida</label>
-                                        <input type="text"
-                                            class="form-control form-control-sm"
-                                            value="${rowData.DSMEDIDAPNEU}"
-                                            readonly />
-                                    </div>
-                                    <div class="col-4 col-md-3">
-                                        <label class="form-label small">Marca/Modelo</label>
-                                        <input type="text"
-                                            class="form-control form-control-sm"
-                                            value="${rowData.DSMODELO}"
-                                            readonly />
-                                    </div>    
-
-                                     <!-- Botão -->
-                                    <div class="col-1 col-md-auto d-flex align-items-end">
-                                        <button type="button"
-                                            class="btn btn-success btn-sm btn-atualizar-servicos mb-1"
-                                            data-item-id="${rowData.ID}"
-                                            data-medida-pneu="${rowData.IDMEDIDAPNEU}"
-                                            >
-                                            <i class="fas fa-sync-alt"></i>
-                                        </button>
-                                    </div>
-                                    <div class="col-11 col-md-4">
-                                        <label class="form-label small">Serviço</label>
-                                        <select class="form-control form-control-sm servico-item-${rowData.ID}" style="width: 100%">                                           
-                                        </select>
-                                    </div>
-                                    <div class="col-12 col-md-1">
-                                        <label class="form-label small">Valor</label>
-                                        <input type="text"
-                                            class="form-control form-control-sm input-venda"                                           
-                                            />
-                                    </div>
-                                </div>
-                            `;
+            <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
+                <div class="col-4 col-md-3">
+                    <label class="form-label small">Medida</label>
+                    <input type="text" class="form-control form-control-sm" value="${rowData.DSMEDIDAPNEU}" readonly />
+                </div>
+                <div class="col-4 col-md-3">
+                    <label class="form-label small">Marca/Modelo</label>
+                    <input type="text" class="form-control form-control-sm" value="${rowData.DSMODELO}" readonly />
+                </div>
+                <div class="col-1 col-md-auto d-flex align-items-end">
+                    <button type="button" class="btn btn-success btn-sm btn-atualizar-servicos mb-1"
+                        data-item-id="${rowData.ID}" data-medida-pneu="${rowData.IDMEDIDAPNEU}">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="col-11 col-md-4">
+                    <label class="form-label small">Serviço</label>
+                    <select class="form-control form-control-sm servico-item-${rowData.ID}" style="width: 100%"></select>
+                </div>
+                <div class="col-12 col-md-1">
+                    <label class="form-label small">Valor</label>
+                    <input type="text" class="form-control form-control-sm input-venda" />
+                </div>
+            </div>`;
 
         $("#itens-pedido").append(itemHtml);
 
         inicializaSelect2Lista({
-            route:
-                window.routes.servicoPneu +
-                "?idMedidaPneu=" +
-                rowData.IDMEDIDAPNEU,
+            route: window.routes.servicoPneu + "?idMedidaPneu=" + rowData.IDMEDIDAPNEU,
             selectId: `.servico-item-${rowData.ID}`,
             placeholder: "Selecione o Serviço",
             modalParent: ".item-pedido",

@@ -295,7 +295,11 @@ class Estoque extends Model
     public function updateStatusPneuCarcaca($idPneuCarcaca, $iditemPedidoPneu)
     {
         $query = "
-           UPDATE PNEUCARCACA SET ST_CARCACA = 'B', IDITEMPEDIDOPNEU = :idItemPedidoPneu, ST_BAIXA = 'A'
+           UPDATE PNEUCARCACA SET 
+                ST_CARCACA = 'B', 
+                IDITEMPEDIDOPNEU = :idItemPedidoPneu, 
+                ST_BAIXA = 'A', 
+                DT_ATUALIZACAO = CURRENT_TIMESTAMP
             WHERE ID = :idPneuCarcaca
         ";
 

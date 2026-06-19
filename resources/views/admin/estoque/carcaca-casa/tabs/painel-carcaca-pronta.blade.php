@@ -2,12 +2,12 @@
     <div class="card-body p-2">
         <div class="row">
             <div class="col-md-8" id="div-tabela-carcacas-prontas">
-                <div class="card-header">                    
-                    <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;" id="btn-reservar-carcaca">
-                        Reservar Pneus
+                <div class="card-header">
+                    <button type="button" class="btn btn-success btn-xs btn-sm-phone mr-1" id="btn-reservar-carcaca" title="Reservar pneus selecionados">
+                        <i class="fas fa-bookmark mr-1"></i> Reservar Pneus
                     </button>
-                    <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;" id="btn-cancelar-reserva-carcaca">
-                        Cancelar Reserva
+                    <button type="button" class="btn btn-warning btn-xs btn-sm-phone" id="btn-cancelar-reserva-carcaca" title="Cancelar reserva dos selecionados">
+                        <i class="fas fa-bookmark mr-1"></i> Cancelar Reserva
                     </button>
                 </div>
                 <div class="card-body pb-0">
@@ -19,6 +19,9 @@
                 <div class="row">
                     <div class="col-12 col-sm-12 col-md-12">
                         <div class="info-box">
+                            <span class="info-box-icon bg-success elevation-1">
+                                <i class="fas fa-cubes"></i>
+                            </span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Total</span>
                                 <span class="info-box-number">

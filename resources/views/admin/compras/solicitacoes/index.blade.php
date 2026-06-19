@@ -131,15 +131,17 @@
                         width: '180px'
                     },
                 ],
-                pageLength: 20,
+                pageLength: -1,
                 order: [
                     [0, 'desc']
                 ],
                 language: {
                     url: window.route.languageDatatables
                 },
-                responsive: true,
-                pagingType: 'simple',
+                scrollY: '400px',
+                scrollCollapse: true,
+                paging: false,
+                responsive: false,
             });
 
             // excluir rascunho

@@ -425,13 +425,13 @@ return [
             'text' => 'Compras',
             'icon' => 'nav-icon fas fa-shopping-cart',
             'url'  => '#',
-            'can'  => ['solicitacao-compra-criar', 'aprovar-compra', 'config-compra'],
+            'can'  => ['solicitacao-compra-gerenciar','solicitacao-compra-criar', 'aprovar-compra', 'config-compra'],
             'submenu' => [
                 [
                     'text'  => 'Solicitações',
                     'route' => 'compras.solicitacoes.index',
                     'icon'  => 'far fa-circle nav-icon',
-                    'can'   => ['solicitacao-compra-criar']
+                    'can'   => ['solicitacao-compra-criar', 'solicitacao-compra-gerenciar']
                 ],
                 [
                     'text'  => 'Aprovações Pendentes',

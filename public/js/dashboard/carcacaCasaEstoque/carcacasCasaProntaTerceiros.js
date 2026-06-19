@@ -18,6 +18,19 @@ $(document).on("click", "#tab-carcaca-pronta-terceiros", function () {
         pagingType: "simple",
         ajax: {
             url: window.routes.getCarcacaCasaProntasTerceiros,
+            beforeSend: function () {
+                window._swalTerceirosTimer = setTimeout(function () {
+                    Swal.fire({
+                        title: 'Carregando prontos em terceiros...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                }, 400);
+            },
+            complete: function () {
+                clearTimeout(window._swalTerceirosTimer);
+                Swal.close();
+            },
             dataSrc: function (response) {
                 $("#total-carcacas-prontas-terceiros").text(
                     response.total_carcacas_prontas,

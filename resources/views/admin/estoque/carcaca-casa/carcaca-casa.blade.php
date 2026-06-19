@@ -34,6 +34,41 @@
 @stop
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/carcacaCasaEstoque.css?v=' . time()) }}">
+    <style>
+        .nav-tabs .nav-link {
+            font-size: 13px;
+            padding: .5rem .9rem;
+            color: #6c757d;
+        }
+
+        .nav-tabs .nav-link i {
+            font-size: 13px;
+        }
+
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        .nav-tabs .nav-link:not(.active):hover {
+            color: #343a40;
+            background-color: #f8f9fa;
+        }
+
+        .accordion-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .nivel1-card > .card-header button:focus,
+        .nivel2-container .btn:focus,
+        .nivel3-container .btn:focus {
+            box-shadow: none;
+            outline: none;
+        }
+    </style>
 @stop
 @section('js')
     <script type="text/javascript">

@@ -17,6 +17,19 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
         pagingType: "simple",
         ajax: {
             url: window.routes.getCarcacaCasaProntas,
+            beforeSend: function () {
+                window._swalProntaTimer = setTimeout(function () {
+                    Swal.fire({
+                        title: 'Carregando carcaças prontas...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                }, 400);
+            },
+            complete: function () {
+                clearTimeout(window._swalProntaTimer);
+                Swal.close();
+            },
             dataSrc: function (response) {
                 $("#total-carcacas-prontas").text(
                     response.total_carcacas_prontas,
@@ -39,7 +52,13 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
             {
                 data: null,
                 width: "1%",
-                render: DataTable.render.select(),
+                render: function(data, type, row, meta) {
+                    if (type === 'display') {
+                        var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
+                        return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
+                    }
+                    return '';
+                },
                 orderable: false,
             },
             {

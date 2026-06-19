@@ -25,6 +25,9 @@
                  <div class="row">
                      <div class="col-12 col-sm-12 col-md-12">
                          <div class="info-box">
+                             <span class="info-box-icon elevation-1">
+                                 <i class="fas fa-cubes"></i>
+                             </span>
                              <div class="info-box-content">
                                  <span class="info-box-text">Total</span>
                                  <span class="info-box-number">
@@ -37,7 +40,7 @@
                          <!-- /.info-box -->
                      </div>
                      <div class="col-12 col-md-12">
-                         <div class="card">
+                         <div class="card card-secondary card-outline">
                              <div class="card-header">
                                  <h6 class="card-title">Resumo Local</h6>
                                  <div class="card-tools m-0">

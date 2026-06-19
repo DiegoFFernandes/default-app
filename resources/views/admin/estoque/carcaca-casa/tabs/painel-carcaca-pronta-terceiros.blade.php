@@ -4,10 +4,7 @@
         <div class="row">
             <div class="col-md-8" id="div-tabela-carcacas-prontas">
                 <div class="card-header">
-                    <button type="button" class="btn btn-secondary btn-xs" style="width: 100px;"
-                        id="btn-reservar-carcaca">
-                        Reservar Pneus
-                    </button>
+                   <h6 class="card-title">Pronto em estoque de Terceiros</h6>
                 </div>
                 <div class="card-body pb-0">
                     <table class="table table-bordered compact table-font-small" id="table-carcacas-prontas-terceiros">
@@ -33,6 +30,9 @@
                 <div class="row">
                     <div class="col-12 col-sm-12 col-md-12">
                         <div class="info-box">
+                            <span class="info-box-icon bg-info elevation-1">
+                                <i class="fas fa-cubes"></i>
+                            </span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Total</span>
                                 <span class="info-box-number">
