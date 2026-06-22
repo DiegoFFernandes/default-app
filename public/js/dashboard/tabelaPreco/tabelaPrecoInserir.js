@@ -153,11 +153,7 @@ $(document).on("click", "#btn-enviar-importar", function () {
 });
 
 $("#btn-deletar-itens").on("click", function () {
-    var linhasSelecionadas = tabela_preview.rows({
-        selected: true,
-    });
-
-    if (linhasSelecionadas.count() === 0) {
+    if (selectedPreviewIds.size === 0) {
         Swal.fire({
             icon: "warning",
             title: "Atenção",
@@ -182,11 +178,11 @@ $("#btn-deletar-itens").on("click", function () {
         },
     }).then((result) => {
         if (result.isConfirmed) {
-            linhasSelecionadas.every(function (rowIdx, tableLoop, rowLoop) {
-                var data = this.data();
-                itens_preview.delete(data.ID); // Remove do Map
-                return true;
+            selectedPreviewIds.forEach(function(id) {
+                itens_preview.delete(id);
             });
+            selectedPreviewIds.clear();
+            $('.dt-select-all-previa').prop('checked', false);
 
             var dados_atualizados = Array.from(itens_preview.values());
             tabela_preview.clear().rows.add(dados_atualizados).draw();
@@ -356,15 +352,21 @@ function initTableTabelaPrecoPrevia() {
         language: {
             url: window.routes.language_datatables,
         },
-        select: {
-            style: "multi",
-        },
         data: [],
         columns: [
             {
                 data: null,
-                width: "1%",
-                render: DataTable.render.select(),
+                width: "30px",
+                orderable: false,
+                searchable: false,
+                className: "text-center",
+                title: '<input type="checkbox" class="dt-select-all-previa" title="Selecionar todos" style="margin:0;">',
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        return '<input type="checkbox" class="dt-row-checkbox-previa" aria-label="Selecionar linha" style="margin:0;">';
+                    }
+                    return '';
+                },
             },
             {
                 title: "Cód",
@@ -392,7 +394,37 @@ function initTableTabelaPrecoPrevia() {
         ],
         orderBy: [[0, "asc"]],
     });
+
 }
+
+var selectedPreviewIds = new Set();
+
+// Selecionar / desselecionar todos
+$(document).on('click', '.dt-select-all-previa', function() {
+    var checked = $(this).is(':checked');
+    selectedPreviewIds.clear();
+    $('#item-tabela-preco .dt-row-checkbox-previa').prop('checked', checked);
+    if (checked) {
+        tabela_preview.rows({ search: 'applied' }).data().each(function(row) {
+            selectedPreviewIds.add(row.ID);
+        });
+    }
+});
+
+// Checkbox individual
+$(document).on('click', '#item-tabela-preco .dt-row-checkbox-previa', function(e) {
+    e.stopPropagation();
+    var rowData = tabela_preview.row($(this).closest('tr')).data();
+    if (!rowData) return;
+    var id = rowData.ID;
+    if ($(this).is(':checked')) {
+        selectedPreviewIds.add(id);
+    } else {
+        selectedPreviewIds.delete(id);
+    }
+    var total = tabela_preview.rows().count();
+    $('.dt-select-all-previa').prop('checked', total > 0 && selectedPreviewIds.size === total);
+});
 
 function formularioDinamico(route) {
     const cardTabela = $("#item-tabela-preco").closest(".card");
@@ -530,6 +562,8 @@ function recomecar() {
     $("#item-tabela-preco").DataTable().clear().destroy();
     dados_atualizados = [];
     itens_preview = new Map();
+    selectedPreviewIds.clear();
+    $('.dt-select-all-previa').prop('checked', false);
     $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
     $("#desenho").closest(".form-group").hide(); // esconde os selects
     $("#item-tabela-preco").closest(".card").hide();

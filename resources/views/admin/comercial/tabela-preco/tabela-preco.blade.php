@@ -28,6 +28,7 @@
 @stop
 
 @section('css')
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.2/css/buttons.bootstrap4.min.css">
     <style>
         .select2-container--bootstrap4 .select2-selection--single {
             height: calc(1.6em + .75rem + 2px) !important;
@@ -165,6 +166,12 @@
     </style>
 @stop
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/pdfmake.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.7/build/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
@@ -202,7 +209,7 @@
 
         var tabelaClientesTabela = Handlebars.compile($("#details-template").html());
         var tabelaPreco = null;
-        var tabelaPrecoCadastradas = null;       
+        var tabelaPrecoCadastradas = null;
         var itemTabelaCliente = null;
         var dados_atualizados = [];
         var itens_preview = new Map();
@@ -225,6 +232,8 @@
             iconeMenos: 'fa-minus-circle',
             routes: window.routes
         });
+
+        $('link[href*="custom_datatables"]').remove();
     </script>
 
 @stop

@@ -8,6 +8,7 @@ use App\Models\CompraCotacao;
 use App\Models\CompraConfigFaixa;
 use App\Models\CompraConfigAprov;
 use App\Models\CompraEtapaAprov;
+use App\Models\CompraParamEmpresa;
 use App\Models\User;
 use App\Services\WppConnectService;
 
@@ -19,7 +20,8 @@ class CompraFluxoService
         protected CompraCotacao         $cotacao,
         protected CompraConfigFaixa     $configFaixa,
         protected CompraConfigAprov     $configAprov,
-        protected CompraEtapaAprov      $etapaAprov
+        protected CompraEtapaAprov      $etapaAprov,
+        protected CompraParamEmpresa    $paramEmpresa
     ) {}
 
     public function validarParaSubmissao($id): array
@@ -40,8 +42,9 @@ class CompraFluxoService
         }
 
         $qtCotacoes = $this->cotacao->countBySolicitacao($id);
-        if ($qtCotacoes < 3) {
-            return ['errors' => "São necessárias no mínimo 3 cotações. Cadastradas: {$qtCotacoes}."];
+        $qtMinCot   = $this->paramEmpresa->getQtdFornecCot($solicitacao->CD_EMPRESA);
+        if ($qtCotacoes < $qtMinCot) {
+            return ['errors' => "São necessárias no mínimo {$qtMinCot} cotações. Cadastradas: {$qtCotacoes}."];
         }
 
         $cotacaoSel = $this->cotacao->getCotacaoSelecionada($id);

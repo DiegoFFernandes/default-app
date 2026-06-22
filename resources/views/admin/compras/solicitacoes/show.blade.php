@@ -148,6 +148,27 @@ $(document).ready(function () {
         }
     });
 
+    @if($solicitacao->ST_SOLICITACAO === 'ANA' && !$isSolicitante)
+    $('#btn-submeter').click(function () {
+        Swal.fire({
+            title: 'Enviar para aprovação?',
+            text: 'Após enviada, os responsáveis serão notificados!',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Sim, enviar',
+            cancelButtonText: 'Cancelar',
+        }).then(r => {
+            if (!r.isConfirmed) return;
+            Swal.fire({ title: 'Enviando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+            $.post('{{ route('compras.solicitacoes.submeter', $idSolicitacao) }}', { _token: token }, function (res) {
+                if (res.errors) Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
+                else Swal.fire({ icon: 'success', title: 'Enviada!', text: res.success, confirmButtonColor: '#dc3545' }).then(() => window.location.reload());
+            });
+        });
+    });
+    @endif
+
     @if(in_array($solicitacao->ST_SOLICITACAO, ['APR', 'APC']))
     $('#btn-cancelar-sol').click(function () {
         Swal.fire({

@@ -49,4 +49,14 @@
         <p>Nenhum fornecedor selecionado ainda.</p>
     </div>
     @endif
+
+    @if($solicitacao->ST_SOLICITACAO === 'ANA')
+    <div class="row">
+        <div class="col-md-12 pt-3 text-center">
+            <button id="btn-submeter" class="btn btn-primary btn-sm">
+                <i class="fas fa-paper-plane"></i> Enviar para Aprovação
+            </button>
+        </div>
+    </div>
+    @endif
 </div>

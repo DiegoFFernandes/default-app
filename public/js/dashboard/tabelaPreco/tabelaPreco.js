@@ -127,20 +127,8 @@ function initTableItemTabelaPreco(
         layout: {
             topStart: {
                 buttons: [
-                    {
-                        extend: "excelHtml5",
-                        title: title,
-                    },
-                    {
-                        extend: "print",
-                        title: title,
-                        customize: function (win) {
-                            $(win.document.body)
-                                .find("h1")
-                                .css("font-size", "12pt")
-                                .css("color", "#333");
-                        },
-                    },
+                    "copy", "csv", "excel",
+                    { extend: "pdfHtml5", title: title },
                 ],
             },
         },
@@ -173,6 +161,12 @@ function initTableItemTabelaPreco(
                 name: "CD_TABELA",
                 title: "Cód Tabela",
                 visible: false,
+            },
+            {
+                data: "ID",
+                name: "ID",
+                title: "Cód Item",
+                visible: true,
             },
             {
                 data: "DESCRICAO",

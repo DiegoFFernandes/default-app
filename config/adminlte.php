@@ -425,19 +425,20 @@ return [
             'text' => 'Compras',
             'icon' => 'nav-icon fas fa-shopping-cart',
             'url'  => '#',
-            'can'  => ['solicitacao-compra-gerenciar','solicitacao-compra-criar', 'aprovar-compra', 'config-compra'],
+            'can'  => ['solicitacao-compra-gerenciar','solicitacao-compra-criar', 'solicitacao-compra-aprovar', 'config-compra'],
             'submenu' => [
                 [
-                    'text'  => 'Solicitações',
-                    'route' => 'compras.solicitacoes.index',
-                    'icon'  => 'far fa-circle nav-icon',
-                    'can'   => ['solicitacao-compra-criar', 'solicitacao-compra-gerenciar']
+                    'text'   => 'Solicitações',
+                    'route'  => 'compras.solicitacoes.index',
+                    'icon'   => 'far fa-circle nav-icon',
+                    'can'    => ['solicitacao-compra-criar', 'solicitacao-compra-gerenciar'],
+                    'active' => ['compras/solicitacoes*'],
                 ],
                 [
                     'text'  => 'Aprovações Pendentes',
                     'route' => 'compras.aprovacoes.index',
                     'icon'  => 'far fa-circle nav-icon',
-                    'can'   => 'aprovar-compra',
+                    'can'   => 'solicitacao-compra-aprovar',
                 ],
                 [
                     'text'  => 'Configuração',

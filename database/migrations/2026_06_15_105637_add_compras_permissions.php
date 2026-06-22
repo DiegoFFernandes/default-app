@@ -5,9 +5,7 @@ use Spatie\Permission\Models\Permission;
 
 return new class extends Migration
 {
-    private array $permissions = [
-        'ver-solicitacao-compra',
-        'aprovar-compra',
+    private array $permissions = [       
         'config-compra',
     ];
 

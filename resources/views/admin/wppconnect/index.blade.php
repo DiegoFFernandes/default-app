@@ -199,7 +199,14 @@ $(document).ready(function () {
                 }, 2000);
             })
             .fail(function (xhr) {
-                mostrarErro(xhr.responseJSON?.message ?? 'Falha ao iniciar sessão.');
+                const msg = xhr.responseJSON?.message ?? 'Falha ao iniciar sessão.';
+                console.error('[WppConnect] iniciarSessao falhou', {
+                    status:   xhr.status,
+                    statusText: xhr.statusText,
+                    message:  msg,
+                    response: xhr.responseJSON ?? xhr.responseText,
+                });
+                mostrarErro(msg);
             });
     }
 

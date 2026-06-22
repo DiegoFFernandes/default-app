@@ -22,6 +22,11 @@
                                     <i class="fas fa-chart-bar mr-1"></i> Centro de Resultado
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-cotacoes" data-toggle="pill" href="#pane-cotacoes" role="tab">
+                                    <i class="fas fa-file-invoice-dollar mr-1"></i> Cotações
+                                </a>
+                            </li>
                         </ul>
                         <div class="card-tools mr-2">
                             <button id="btn-nova-faixa" class="btn btn-danger btn-xs" data-toggle="modal"
@@ -44,6 +49,9 @@
 
                             {{-- Tab: Centro de Resultado --}}
                             @include('admin.compras.configuracao.tabs.centro-resultado')
+
+                            {{-- Tab: Cotações --}}
+                            @include('admin.compras.configuracao.tabs.cotacoes')
 
                         </div>
                     </div>
@@ -78,6 +86,29 @@
                 const href = $(e.target).attr('href');
                 $('#btn-nova-faixa').toggle(href === '#pane-faixas');
                 $('#btn-novo-centro').toggle(href === '#pane-centro');
+            });
+
+            // ---- Cotações mínimas ----
+            $('body').on('click', '.btn-salvar-qtd-fornec', function() {
+                const cdEmpresa = $(this).data('empresa');
+                const qtd       = $('.input-qtd-fornec[data-empresa="' + cdEmpresa + '"]').val();
+                $.post('{{ route('compras.configuracao.update-qtd-fornec') }}', {
+                    _token:          token,
+                    cd_empresa:      cdEmpresa,
+                    qtd_fornec_cot:  qtd,
+                }, function(res) {
+                    if (res.errors) {
+                        Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
+                    } else {
+                        Swal.fire({ icon: 'success', title: 'Salvo!', text: res.success, toast: true,
+                            position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+                    }
+                }).fail(function(xhr) {
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        const msgs = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                        Swal.fire({ icon: 'warning', title: 'Atenção', html: msgs, confirmButtonColor: '#dc3545' });
+                    }
+                });
             });
 
             $('.form-control.select2').select2({
