@@ -19,12 +19,21 @@
                         <table id="produzidosTable" class="table table-bordered table-font-small compact">
                             <tfoot>
                                 <tr>
-                                    <th colspan="5" style="text-align: right;"></th>
+                                    <th></th>{{-- 0: actions --}}
+                                    <th></th>{{-- 1: empresa --}}
+                                    <th></th>{{-- 2: embarque --}}
+                                    <th></th>{{-- 3: pedido --}}
+                                    <th class="text-right">Total:</th>{{-- 4: cliente --}}
+                                    <th></th>{{-- 5: pneus (total preenchido via footerCallback) --}}
+                                    <th></th>{{-- 6: vendedor --}}
+                                    <th></th>{{-- 7: expedição --}}
+                                    <th></th>{{-- 8: data --}}
+                                    <th></th>{{-- 9: gerente (hidden) --}}
+                                    <th></th>{{-- 10: mês/ano (hidden) --}}
                                     @hasrole('admin|supervisor|gerente unidade|gerente comercial')
-                                        <th colspan="5"></th>
-                                    @else
-                                        <th colspan="3"></th>
+                                        <th></th>{{-- 11: valor --}}
                                     @endhasrole
+                                    <th></th>{{-- 11/12: supervisor (hidden) --}}
                                 </tr>
                             </tfoot>
                         </table>
@@ -37,9 +46,24 @@
 @stop
 
 @section('css')
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.2/css/buttons.bootstrap4.min.css">
     <style>
         .col-actions {
             width: 1% !important;
+        }
+        /* --- Header --- */
+        table.dataTable thead tr {
+            background-color: #444B53;
+            color: #ffffff;
+        }
+
+        table.dataTable thead th {
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: .3px;
+            padding: 8px 10px;
+            border-bottom: 2px solid #2d3238 !important;
+            white-space: nowrap;
         }
 
         @media (max-width: 768px) {
@@ -55,6 +79,10 @@
 @stop
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
@@ -202,7 +230,6 @@
                     language: {
                         url: window.routes.languageDataTable,
                     },
-                    fixedHeader: true,
                     scrollY: '400px',
                     pageLength: -1,
                     lengthMenu: [
@@ -211,20 +238,12 @@
                     ],
                     layout: {
                         topStart: {
-                            buttons: [{
+                            buttons: [
+                                {
                                     extend: "excelHtml5",
                                     title: 'Pneus Produzidos Sem Faturar',
-                                },
-                                {
-                                    extend: "print",
-                                    title: 'Pneus Produzidos Sem Faturar',
-                                    customize: function(win) {
-                                        $(win.document.body)
-                                            .find("h1")
-                                            .css("font-size", "12pt")
-                                            .css("color", "#333");
-                                    },
-                                },
+                                    footer: false,
+                                }
                             ],
                         },
                     },
@@ -321,6 +340,8 @@
                     }],
 
                     footerCallback: function(row, data, start, end, display) {
+                        var api = new $.fn.dataTable.Api(this);
+
                         let QtdPneus = 0;
                         let valorTotal = 0;
                         let expedicionadoSim = 0;
@@ -344,17 +365,13 @@
                             }
                         });
 
-                        const totalPneus = this.api()
-                            .column(5, {
-                                search: 'applied'
-                            })
+                        const totalPneus = api
+                            .column(5, { search: 'applied' })
                             .data()
-                            .sum()
+                            .toArray()
+                            .reduce(function(a, b) { return a + (Number(b) || 0); }, 0);
 
-
-                        $(this.api().column(5).footer()).html(
-                            "Total: " + totalPneus.toLocaleString('pt-BR')
-                        );
+                        $(api.column(5).footer()).html(totalPneus.toLocaleString('pt-BR'));
 
 
                         $('.pneusTotal').html(QtdPneus);
@@ -668,7 +685,6 @@
 
                                     // Se for quantidade
                                     return value;
-                                    s
                                 }
                             },
                         },
@@ -851,5 +867,7 @@
             }
 
         });
+
+        $('link[href*="custom_datatables"]').remove();
     </script>
 @stop
