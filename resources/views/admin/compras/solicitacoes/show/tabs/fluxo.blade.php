@@ -4,7 +4,7 @@
             'RAS' => ['secondary', 'fa-pencil-alt', 'Rascunho'],
             'ANA' => ['info',      'fa-search',     'Análise de Compra'],
             'APR' => ['warning',   'fa-thumbs-up',  'Em Aprovação'],
-            'APC' => ['success',   'fa-check-circle','Aprovada'],
+            'APC' => ['primary',   'fa-check-circle','Aprovada'],
             'REP' => ['danger',    'fa-times-circle','Reprovada'],
             'CAN' => ['dark',      'fa-ban',         'Cancelada'],
         ];

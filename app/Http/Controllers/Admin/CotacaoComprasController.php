@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\CompraCotacao;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 
 class CotacaoComprasController extends Controller
@@ -26,7 +28,7 @@ class CotacaoComprasController extends Controller
     {
         $data = $this->cotacao->getBySolicitacao($idSolicitacao);
 
-        $pagtoMap = ['BL' => 'Boleto', 'DI' => 'Dinheiro', 'CH' => 'Cheque', 'PX' => 'Pix'];
+        $pagtoMap = ['BL' => 'Boleto', 'DI' => 'Dinheiro', 'CH' => 'Cheque', 'PX' => 'Pix', 'CC' => 'Cartão de Crédito'];
 
         return DataTables::of($data)
             ->addColumn('vl_total_fmt', fn($row) =>
@@ -38,13 +40,21 @@ class CotacaoComprasController extends Controller
                     ? '<span class="badge badge-success">Selecionado</span>'
                     : '')
             ->addColumn('Actions', function ($row) {
-                if ($row->ST_SELECIONADA === 'S') return '';
-                return '
+                $docBtn = '';
+                if ($row->DOC_ORCAMENTO) {
+                    $url = asset('storage/' . $row->DOC_ORCAMENTO);
+                    $docBtn = '<a href="' . $url . '" target="_blank" class="btn btn-info btn-xs mr-1" title="Ver Orçamento PDF">
+                        <i class="fas fa-file-pdf"></i></a>';
+                }
+                if ($row->ST_SELECIONADA === 'S') return $docBtn;
+                return $docBtn . '
                     <button data-id="' . $row->ID_COTACAO . '" data-sol="' . $row->ID_SOLICITACAO . '"
                         data-fornecedor="' . $row->CD_FORNECEDOR . '" data-nm="' . e($row->NM_FORNECEDOR) . '"
                         data-prazo="' . $row->NR_PRAZO_ENTREGA . '" data-cond="' . e($row->DS_CONDICAO_PAGAMENTO) . '"
                         data-pagto="' . ($row->CD_FORMAPAGTO ?? '') . '"
                         data-vl="' . $row->VL_TOTAL . '" data-obs="' . e($row->DS_OBSERVACAO) . '"
+                        data-doc="' . ($row->DOC_ORCAMENTO ? '1' : '0') . '"
+                        data-docurl="' . ($row->DOC_ORCAMENTO ? asset('storage/' . $row->DOC_ORCAMENTO) : '') . '"
                         class="btn btn-warning btn-xs btn-edit-cot mr-1" title="Editar">
                         <i class="fas fa-edit"></i></button>
                     <button data-id="' . $row->ID_COTACAO . '" data-sol="' . $row->ID_SOLICITACAO . '"
@@ -60,10 +70,20 @@ class CotacaoComprasController extends Controller
     {
         $input = $this->_validate($this->request);
 
+        if (!$this->request->hasFile('doc_orcamento')) {
+            return response()->json(['errors' => 'O orçamento em PDF é obrigatório.']);
+        }
+
+        $path = $this->request->file('doc_orcamento')
+            ->storeAs('compras/orcamentos', Str::uuid() . '.pdf', 'public');
+
+        $input['doc_orcamento'] = $path;
+
         try {
             $id = $this->cotacao->store($input);
             return response()->json(['success' => 'Cotação adicionada com sucesso!', 'id' => $id]);
         } catch (\Exception $e) {
+            Storage::disk('public')->delete($path);
             return response()->json(['errors' => 'Erro ao adicionar cotação: ' . $e->getMessage()]);
         }
     }
@@ -72,10 +92,24 @@ class CotacaoComprasController extends Controller
     {
         $input = $this->_validate($this->request);
 
+        if ($this->request->hasFile('doc_orcamento')) {
+            $cotacaoAtual = $this->cotacao->findById($id);
+
+            $path = $this->request->file('doc_orcamento')
+                ->storeAs('compras/orcamentos', Str::uuid() . '.pdf', 'public');
+
+            $input['doc_orcamento'] = $path;
+
+            if ($cotacaoAtual && $cotacaoAtual->DOC_ORCAMENTO) {
+                Storage::disk('public')->delete($cotacaoAtual->DOC_ORCAMENTO);
+            }
+        }
+
         try {
             $this->cotacao->updateData($id, $input);
             return response()->json(['success' => 'Cotação atualizada!']);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
+            if (isset($path)) Storage::disk('public')->delete($path);
             return response()->json(['errors' => 'Erro ao atualizar cotação.']);
         }
     }
@@ -85,23 +119,40 @@ class CotacaoComprasController extends Controller
         $idSolicitacao = $this->request->id_solicitacao;
 
         try {
+            $cotacao = $this->cotacao->findById($id);
             $this->cotacao->deleteById($id, $idSolicitacao);
+            if ($cotacao && $cotacao->DOC_ORCAMENTO) {
+                Storage::disk('public')->delete($cotacao->DOC_ORCAMENTO);
+            }
             return response()->json(['success' => 'Cotação removida!']);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return response()->json(['errors' => 'Erro ao remover cotação.']);
         }
     }
 
     public function selecionarFornecedor()
     {
+        $motivos = [
+            'Menor Valor',
+            'Melhor Condição de Pagamento',
+            'Melhor Negociação',
+            'Melhor Prazo de Entrega',
+            'Qualidade Superior do Produto/Serviço',
+            'Disponibilidade Imediata em Estoque',
+            'Único Fornecedor Disponível',
+            'Melhor Suporte Técnico / Pós-venda',
+            'Prazo de Garantia',
+            'Relacionamento Comercial',
+        ];
+
         $input = $this->request->validate([
             'id_solicitacao' => 'required|integer',
             'id_cotacao'     => 'required|integer',
-            'ds_motivo'      => 'required|string|max:500',
+            'ds_motivo'      => ['required', 'string', \Illuminate\Validation\Rule::in($motivos)],
         ], [
             'id_cotacao.required' => 'Selecione a cotação vencedora.',
             'ds_motivo.required'  => 'O motivo da escolha é obrigatório.',
-            'ds_motivo.max'       => 'O motivo deve ter no máximo 500 caracteres.',
+            'ds_motivo.in'        => 'Selecione um motivo válido da lista.',
         ]);
 
         try {
@@ -111,7 +162,7 @@ class CotacaoComprasController extends Controller
                 $input['ds_motivo']
             );
             return response()->json(['success' => 'Fornecedor selecionado com sucesso!']);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return response()->json(['errors' => 'Erro ao selecionar fornecedor.']);
         }
     }
@@ -123,11 +174,13 @@ class CotacaoComprasController extends Controller
             'cd_fornecedor'         => 'required|integer',
             'nr_prazo_entrega'      => 'required|integer|min:1',
             'ds_condicao_pagamento' => 'required|string|max:200',
-            'cd_formapagto'         => 'required|string|in:BL,DI,CH,PX',
+            'cd_formapagto'         => 'required|string|in:BL,DI,CH,PX,CC',
             'vl_total'              => 'required|numeric|min:0.01',
             'ds_observacao'         => 'nullable|string|max:500',
+            'doc_orcamento'         => 'nullable|file|mimes:pdf|max:10240',
         ], [
             'cd_fornecedor.required'         => 'Selecione o fornecedor.',
+            'cd_fornecedor.integer'         => 'Selecione o fornecedor.',
             'nr_prazo_entrega.required'      => 'Informe o prazo de entrega.',
             'nr_prazo_entrega.min'           => 'O prazo deve ser de pelo menos 1 dia.',
             'ds_condicao_pagamento.required' => 'Informe a condição de pagamento.',
@@ -136,6 +189,8 @@ class CotacaoComprasController extends Controller
             'vl_total.required'              => 'Informe o valor total.',
             'vl_total.numeric'               => 'O valor total deve ser numérico.',
             'vl_total.min'                   => 'O valor total deve ser maior que zero.',
+            'doc_orcamento.mimes'            => 'O orçamento deve ser um arquivo PDF.',
+            'doc_orcamento.max'              => 'O PDF não pode ultrapassar 10MB.',
         ]);
     }
 }

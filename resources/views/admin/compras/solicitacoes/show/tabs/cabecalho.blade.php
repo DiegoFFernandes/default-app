@@ -125,13 +125,13 @@
     @endif
 
     {{-- Timeline de aprovação --}}
-    @if(count($etapas) > 0 || in_array($solicitacao->ST_SOLICITACAO, ['ANA', 'APR', 'APC', 'REP', 'CAN']))
+    @if(count($etapas) > 0 || in_array($solicitacao->ST_SOLICITACAO, ['ANA', 'APR', 'APC', 'REP', 'CAN', 'FIN']))
     @php $todasAprovadas = count($etapas) > 0 && collect($etapas)->every(fn($e) => $e->ST_ETAPA === 'APR'); @endphp
     <hr class="mt-1 mb-2">
     <h6 class="text-muted mb-2"><i class="fas fa-stream mr-1"></i> Fluxo de Aprovação</h6>
     <div class="timeline timeline-inverse">
 
-        @if(in_array($solicitacao->ST_SOLICITACAO, ['ANA', 'APR', 'APC', 'REP', 'CAN']))
+        @if(in_array($solicitacao->ST_SOLICITACAO, ['ANA', 'APR', 'APC', 'REP', 'CAN', 'FIN']))
         <div>
             <i class="fas fa-search bg-info"></i>
             <div class="timeline-item">
@@ -184,6 +184,20 @@
                 </h3>
             </div>
         </div>
+        @if($solicitacao->ST_SOLICITACAO === 'FIN')
+        <div>
+            <i class="fas fa-flag-checkered bg-success"></i>
+            <div class="timeline-item">
+                <h3 class="timeline-header">
+                    <span class="text-success font-weight-bold">
+                        <i class="fas fa-check-circle mr-1"></i> Compra Finalizada
+                    </span>
+                </h3>
+            </div>
+        </div>
+        @else
+        <div><i class="fas fa-clock bg-gray"></i></div>
+        @endif
         @else
         <div><i class="fas fa-clock bg-gray"></i></div>
         @endif

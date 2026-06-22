@@ -11,9 +11,10 @@
             'RAS' => ['secondary', 'Rascunho'],
             'ANA' => ['info',      'Em Análise de Compra'],
             'APR' => ['warning',   'Em Aprovação'],
-            'APC' => ['success',   'Aprovada para Compra'],
+            'APC' => ['primary',   'Aprovada para Compra'],
             'REP' => ['danger',    'Reprovada'],
             'CAN' => ['dark',      'Cancelada'],
+            'FIN' => ['success',   'Finalizada'],
         ];
 
         [$cor, $label] = $statusMap[$solicitacao->ST_SOLICITACAO] ?? ['secondary', $solicitacao->ST_SOLICITACAO];

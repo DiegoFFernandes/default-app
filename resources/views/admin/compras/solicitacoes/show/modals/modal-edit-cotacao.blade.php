@@ -30,6 +30,7 @@
                         <option value="DI">Dinheiro</option>
                         <option value="CH">Cheque</option>
                         <option value="PX">Pix</option>
+                        <option value="CC">Cartão de Crédito</option>
                     </select>
                 </div>
                 <div class="form-group mb-2">
@@ -39,6 +40,18 @@
                 <div class="form-group mb-2">
                     <label class="mb-1"><small>Observação</small></label>
                     <input type="text" class="form-control form-control-sm" id="edit_ds_obs" maxlength="500">
+                </div>
+                <div class="form-group mb-0">
+                    <label class="mb-1"><small>Orçamento PDF <span class="text-muted">(deixe em branco para manter o atual)</span></small></label>
+                    <div id="edit_doc_atual" class="mb-1" style="display:none">
+                        <a id="edit_doc_link" href="#" target="_blank" class="text-info small">
+                            <i class="fas fa-file-pdf mr-1"></i>Ver orçamento atual
+                        </a>
+                    </div>
+                    <div class="custom-file custom-file-sm">
+                        <input type="file" class="custom-file-input" id="edit_doc_orcamento" accept="application/pdf">
+                        <label class="custom-file-label" for="edit_doc_orcamento">Selecionar novo PDF...</label>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

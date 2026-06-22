@@ -13,7 +13,7 @@
         </thead>
         <tbody>
             @php
-                $pagtoMap = ['BL' => 'Boleto', 'DI' => 'Dinheiro', 'CH' => 'Cheque', 'PX' => 'Pix'];
+                $pagtoMap = ['BL' => 'Boleto', 'DI' => 'Dinheiro', 'CH' => 'Cheque', 'PX' => 'Pix', 'CC' => 'Cartão de Crédito'];
             @endphp
             @forelse($cotacoes as $cot)
             <tr class="{{ $cot->ST_SELECIONADA === 'S' ? 'table-success font-weight-bold' : '' }}">

@@ -17,6 +17,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Solicitações
         Route::get('solicitacoes',                [SolicitacaoComprasController::class, 'index'])->name('compras.solicitacoes.index');
+        Route::get('solicitacoes/kanban',         [SolicitacaoComprasController::class, 'kanban'])->name('compras.solicitacoes.kanban');
         Route::get('get-solicitacoes',            [SolicitacaoComprasController::class, 'list'])->name('compras.solicitacoes.list');
         Route::get('solicitacoes/nova',           [SolicitacaoComprasController::class, 'create'])->name('compras.solicitacoes.create');
         Route::post('solicitacoes',               [SolicitacaoComprasController::class, 'store'])->name('compras.solicitacoes.store');
@@ -27,9 +28,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('solicitacoes/{id}/submeter',  [SolicitacaoComprasController::class, 'submeter'])->name('compras.solicitacoes.submeter')->whereNumber('id');
         Route::post('solicitacoes/{id}/cancelar',      [SolicitacaoComprasController::class, 'cancelar'])->name('compras.solicitacoes.cancelar')->whereNumber('id');
         Route::post('solicitacoes/{id}/enviar-analise', [SolicitacaoComprasController::class, 'enviarAnalise'])->name('compras.solicitacoes.enviar-analise')->whereNumber('id');
+        Route::post('solicitacoes/{id}/finalizar',     [SolicitacaoComprasController::class, 'finalizar'])->name('compras.solicitacoes.finalizar')->whereNumber('id');
         Route::get('solicitacoes/{id}/exportar-excel',  [SolicitacaoComprasController::class, 'exportarExcel'])->name('compras.solicitacoes.exportar-excel')->whereNumber('id');
 
         // Itens
+        Route::get('solicitacoes/{id}/itens-tooltip', [SolicitacaoComprasController::class, 'itensTooltip'])->name('compras.solicitacoes.itens-tooltip')->whereNumber('id');
         Route::get('get-itens/{idSolicitacao}', [SolicitacaoComprasController::class, 'listItens'])->name('compras.itens.list');
         Route::post('itens',                    [SolicitacaoComprasController::class, 'storeItem'])->name('compras.itens.store');
         Route::put('itens/{id}',               [SolicitacaoComprasController::class, 'updateItem'])->name('compras.itens.update');

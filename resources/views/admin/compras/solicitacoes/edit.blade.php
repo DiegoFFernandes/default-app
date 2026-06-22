@@ -602,27 +602,53 @@ $(document).ready(function () {
         language: { url: '{{ asset('vendor/datatables/pt-br.json') }}' },
     });
 
+    $('#doc_orcamento').on('change', function () {
+        const name = this.files[0] ? this.files[0].name : 'Selecionar PDF...';
+        $(this).next('.custom-file-label').text(name);
+    });
+
     $('#btn-add-cot').click(function () {
-        $.post('{{ route('compras.cotacoes.store') }}', {
-            _token:                token,
-            id_solicitacao:        idSolicitacao,
-            cd_fornecedor:         $('#cd_fornecedor').val(),
-            nr_prazo_entrega:      $('#nr_prazo').val(),
-            ds_condicao_pagamento: $('#ds_condicao').val(),
-            cd_formapagto:         $('#cd_formapagto').val(),
-            vl_total:              toFloat($('#vl_total_cot').val()),
-            ds_observacao:         $('#ds_obs_cot').val(),
-        }, function (res) {
-            if (res.errors) {
-                Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
-            } else {
-                dtCotacoes.ajax.reload();
-                reloadCotacoesSelect();
-                $('#cd_fornecedor').val(null).trigger('change');
-                $('#nr_prazo, #ds_condicao, #vl_total_cot, #ds_obs_cot').val('');
-                $('#cd_formapagto').val('');
-            }
+        const fd = new FormData();
+        fd.append('_token',                token);
+        fd.append('id_solicitacao',        idSolicitacao);
+        fd.append('cd_fornecedor',         $('#cd_fornecedor').val());
+        fd.append('nr_prazo_entrega',      $('#nr_prazo').val());
+        fd.append('ds_condicao_pagamento', $('#ds_condicao').val());
+        fd.append('cd_formapagto',         $('#cd_formapagto').val());
+        fd.append('vl_total',              toFloat($('#vl_total_cot').val()));
+        fd.append('ds_observacao',         $('#ds_obs_cot').val());
+        const file = $('#doc_orcamento')[0].files[0];
+        if (file) fd.append('doc_orcamento', file);
+
+        $.ajax({
+            url:         '{{ route('compras.cotacoes.store') }}',
+            method:      'POST',
+            data:        fd,
+            processData: false,
+            contentType: false,
+            beforeSend: function () {
+                Swal.fire({ title: 'Salvando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+            },
+            success: function (res) {
+                Swal.close();
+                if (res.errors) {
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
+                } else {
+                    dtCotacoes.ajax.reload();
+                    reloadCotacoesSelect();
+                    $('#cd_fornecedor').val(null).trigger('change');
+                    $('#nr_prazo, #ds_condicao, #vl_total_cot, #ds_obs_cot').val('');
+                    $('#cd_formapagto').val('');
+                    $('#doc_orcamento').val('');
+                    $('#doc_orcamento').next('.custom-file-label').text('Selecionar PDF...');
+                }
+            },
         }).fail(handleValidationError);
+    });
+
+    $('#edit_doc_orcamento').on('change', function () {
+        const name = this.files[0] ? this.files[0].name : 'Selecionar novo PDF...';
+        $(this).next('.custom-file-label').text(name);
     });
 
     $('body').on('click', '.btn-edit-cot', function () {
@@ -635,24 +661,43 @@ $(document).ready(function () {
         $('#edit_vl_total').val(String(btn.data('vl')).replace('.', ','));
         $('#edit_ds_obs').val(btn.data('obs'));
         $('#edit_cd_fornecedor').empty().append(new Option(btn.data('nm'), btn.data('fornecedor'), true, true)).trigger('change');
+        // PDF atual
+        if (btn.data('doc') == '1') {
+            $('#edit_doc_atual').show();
+            $('#edit_doc_link').attr('href', btn.data('docurl') || '#');
+        } else {
+            $('#edit_doc_atual').hide();
+        }
+        $('#edit_doc_orcamento').val('');
+        $('#edit_doc_orcamento').next('.custom-file-label').text('Selecionar novo PDF...');
         $('#modal-edit-cot').modal('show');
     });
 
     $('#btn-save-edit-cot').click(function () {
         const id = $('#edit_id_cotacao').val();
-        $.post('/compras/cotacoes/' + id + '/update', {
-            _token:                token,
-            id_solicitacao:        $('#edit_id_sol_cot').val(),
-            cd_fornecedor:         $('#edit_cd_fornecedor').val(),
-            nr_prazo_entrega:      $('#edit_nr_prazo').val(),
-            ds_condicao_pagamento: $('#edit_ds_condicao').val(),
-            cd_formapagto:         $('#edit_cd_formapagto').val(),
-            vl_total:              toFloat($('#edit_vl_total').val()),
-            ds_observacao:         $('#edit_ds_obs').val(),
-        }, function (res) {
-            if (res.errors) Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
-            else { $('#modal-edit-cot').modal('hide'); dtCotacoes.ajax.reload(); reloadCotacoesSelect(); }
-        });
+        const fd = new FormData();
+        fd.append('_token',                token);
+        fd.append('id_solicitacao',        $('#edit_id_sol_cot').val());
+        fd.append('cd_fornecedor',         $('#edit_cd_fornecedor').val());
+        fd.append('nr_prazo_entrega',      $('#edit_nr_prazo').val());
+        fd.append('ds_condicao_pagamento', $('#edit_ds_condicao').val());
+        fd.append('cd_formapagto',         $('#edit_cd_formapagto').val());
+        fd.append('vl_total',              toFloat($('#edit_vl_total').val()));
+        fd.append('ds_observacao',         $('#edit_ds_obs').val());
+        const file = $('#edit_doc_orcamento')[0].files[0];
+        if (file) fd.append('doc_orcamento', file);
+
+        $.ajax({
+            url:         '/compras/cotacoes/' + id + '/update',
+            method:      'POST',
+            data:        fd,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.errors) Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
+                else { $('#modal-edit-cot').modal('hide'); dtCotacoes.ajax.reload(); reloadCotacoesSelect(); }
+            },
+        }).fail(handleValidationError);
     });
 
     $('body').on('click', '.btn-delete-cot', function () {
@@ -695,7 +740,7 @@ $(document).ready(function () {
 
     $('#btn-submeter').click(function () {
         Swal.fire({
-            title: 'Enviar para aprovação?',
+            title: 'Enviar para aprovação de ossada?',
             text: 'Após enviada, os responsáveis serão notificados!',
             icon: 'question',
             showCancelButton: true,

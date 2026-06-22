@@ -25,6 +25,7 @@ class CompraCotacao extends Model
                 C.DS_OBSERVACAO,
                 C.ST_SELECIONADA,
                 C.DS_MOTIVO_ESCOLHA,
+                C.DOC_ORCAMENTO,
                 C.DT_COTACAO
             FROM COMPRA_COTACAO C
             INNER JOIN PESSOA P ON P.CD_PESSOA = C.CD_FORNECEDOR
@@ -47,7 +48,8 @@ class CompraCotacao extends Model
                 C.VL_TOTAL,
                 C.DS_OBSERVACAO,
                 C.ST_SELECIONADA,
-                C.DS_MOTIVO_ESCOLHA
+                C.DS_MOTIVO_ESCOLHA,
+                C.DOC_ORCAMENTO
             FROM COMPRA_COTACAO C
             INNER JOIN PESSOA P ON P.CD_PESSOA = C.CD_FORNECEDOR
             WHERE C.ID_COTACAO = :id
@@ -82,11 +84,11 @@ class CompraCotacao extends Model
             INSERT INTO COMPRA_COTACAO (
                 ID_COTACAO, ID_SOLICITACAO, CD_FORNECEDOR,
                 NR_PRAZO_ENTREGA, DS_CONDICAO_PAGAMENTO, CD_FORMAPAGTO,
-                VL_TOTAL, DS_OBSERVACAO, ST_SELECIONADA, DT_COTACAO
+                VL_TOTAL, DS_OBSERVACAO, DOC_ORCAMENTO, ST_SELECIONADA, DT_COTACAO
             ) VALUES (
                 :id, :id_solicitacao, :cd_fornecedor,
                 :nr_prazo, :ds_condicao, :cd_formapagto,
-                :vl_total, :ds_observacao, 'N', CURRENT_TIMESTAMP
+                :vl_total, :ds_observacao, :doc_orcamento, 'N', CURRENT_TIMESTAMP
             )
         ", [
             'id'             => $id,
@@ -97,6 +99,7 @@ class CompraCotacao extends Model
             'cd_formapagto'  => $data['cd_formapagto'],
             'vl_total'       => $data['vl_total'],
             'ds_observacao'  => \Helper::ToIso($data['ds_observacao'] ?? null),
+            'doc_orcamento'  => $data['doc_orcamento'] ?? null,
         ]);
 
         return $id;
@@ -104,6 +107,22 @@ class CompraCotacao extends Model
 
     public function updateData(int $id, array $data)
     {
+        $hasDoc = !empty($data['doc_orcamento']);
+
+        $params = [
+            'cd_fornecedor' => $data['cd_fornecedor'],
+            'nr_prazo'      => $data['nr_prazo_entrega'],
+            'ds_condicao'   => \Helper::ToIso($data['ds_condicao_pagamento']),
+            'cd_formapagto' => $data['cd_formapagto'],
+            'vl_total'      => $data['vl_total'],
+            'ds_observacao' => \Helper::ToIso($data['ds_observacao'] ?? null),
+            'id'            => $id,
+        ];
+
+        if ($hasDoc) {
+            $params['doc_orcamento'] = $data['doc_orcamento'];
+        }
+
         DB::connection('firebird')->statement("
             UPDATE COMPRA_COTACAO SET
                 CD_FORNECEDOR         = :cd_fornecedor,
@@ -112,16 +131,9 @@ class CompraCotacao extends Model
                 CD_FORMAPAGTO         = :cd_formapagto,
                 VL_TOTAL              = :vl_total,
                 DS_OBSERVACAO         = :ds_observacao
+                " . ($hasDoc ? ', DOC_ORCAMENTO = :doc_orcamento' : '') . "
             WHERE ID_COTACAO = :id
-        ", [
-            'cd_fornecedor' => $data['cd_fornecedor'],
-            'nr_prazo'      => $data['nr_prazo_entrega'],
-            'ds_condicao'   => \Helper::ToIso($data['ds_condicao_pagamento']),
-            'cd_formapagto' => $data['cd_formapagto'],
-            'vl_total'      => $data['vl_total'],
-            'ds_observacao' => \Helper::ToIso($data['ds_observacao'] ?? null),
-            'id'            => $id,
-        ]);
+        ", $params);
     }
 
     public function selecionarFornecedor(int $idSolicitacao, int $idCotacao, ?string $motivo)

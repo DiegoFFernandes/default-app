@@ -23,11 +23,12 @@ class CompraSolicitacao extends Model
                 S.DT_SOLICITACAO,
                 S.DS_JUSTIFICATIVA,
                 S.ST_SOLICITACAO,
+                S.ST_URGENCIA,
                 S.VL_TOTAL,
-                CC.DS_CENTROCUSTO,
+                COALESCE(CC.DS_CENTROCUSTO, '-') AS DS_CENTROCUSTO,
                 S.DT_REGISTRO
             FROM COMPRA_SOLICITACAO S
-            INNER JOIN COMPRA_CENTROCUSTO CC ON (CC.CD_EMPRESA = S.CD_EMPRESA AND CC.CD_CENTROCUSTO = S.CD_CENTROCUSTO)
+            LEFT JOIN COMPRA_CENTROCUSTO CC ON (CC.CD_EMPRESA = S.CD_EMPRESA AND CC.CD_CENTROCUSTO = S.CD_CENTROCUSTO)
             INNER JOIN EMPRESA E ON E.CD_EMPRESA = S.CD_EMPRESA
             ";
         $params = [];
@@ -44,17 +45,31 @@ class CompraSolicitacao extends Model
 
     public function getCounts($cdUsuario = null)
     {
-        $where  = $cdUsuario ? 'WHERE CD_USUARIO_SOLICITANTE = :cd_usuario' : '';
+        return $this->getStats($cdUsuario)->map(fn($r) => $r->QT ?? 0);
+    }
+
+    public function getStats($cdUsuario = null): \Illuminate\Support\Collection
+    {
+        $where  = $cdUsuario ? 'WHERE S.CD_USUARIO_SOLICITANTE = :cd_usuario' : '';
         $params = $cdUsuario ? ['cd_usuario' => $cdUsuario] : [];
 
         $rows = DB::connection('firebird')->select("
-            SELECT ST_SOLICITACAO, COUNT(*) QT
-            FROM COMPRA_SOLICITACAO
+            SELECT
+                S.ST_SOLICITACAO,
+                COUNT(*) QT,
+                COALESCE(SUM(COALESCE(S.VL_TOTAL, C.VL_TOTAL, 0)), 0) VL_TOTAL,
+                SUM(CASE WHEN S.ST_URGENCIA = 'I' THEN 1 ELSE 0 END) QT_I,
+                SUM(CASE WHEN S.ST_URGENCIA = 'U' THEN 1 ELSE 0 END) QT_U,
+                SUM(CASE WHEN S.ST_URGENCIA = 'N' THEN 1 ELSE 0 END) QT_N
+            FROM COMPRA_SOLICITACAO S
+            LEFT JOIN COMPRA_COTACAO C
+                   ON C.ID_SOLICITACAO = S.CD_SOLICITACAO
+                  AND C.ST_SELECIONADA = 'S'
             $where
-            GROUP BY ST_SOLICITACAO
+            GROUP BY S.ST_SOLICITACAO
         ", $params);
 
-        return collect($rows)->pluck('QT', 'ST_SOLICITACAO');
+        return collect($rows)->keyBy('ST_SOLICITACAO');
     }
 
     public function findById(int $id)

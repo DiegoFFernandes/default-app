@@ -45,9 +45,46 @@ class SolicitacaoComprasController extends Controller
         $title_page = 'Solicitações de Compra';
         $user_auth  = $this->user;
         $uri        = $this->request->route()->uri();
-        $counts     = $this->solicitacao->getCounts($this->user->id);
 
-        return view('admin.compras.solicitacoes.index', compact('title_page', 'user_auth', 'uri', 'counts'));
+        $isSolicitante = $this->user->can('solicitacao-compra-criar')
+            && !$this->user->can('solicitacao-compra-gerenciar')
+            && !$this->user->can('solicitacao-compra-aprovar');
+
+        $stats  = $this->solicitacao->getStats($isSolicitante ? $this->user->id : null);
+        $counts = $stats->map(fn($r) => $r->QT ?? 0);
+
+        return view('admin.compras.solicitacoes.index', compact('title_page', 'user_auth', 'uri', 'counts', 'stats'));
+    }
+
+    public function kanban()
+    {
+        $title_page = 'Kanban — Solicitações de Compra';
+        $user_auth  = $this->user;
+        $uri        = $this->request->route()->uri();
+
+        $isSolicitante = $this->user->can('solicitacao-compra-criar')
+            && !$this->user->can('solicitacao-compra-gerenciar')
+            && !$this->user->can('solicitacao-compra-aprovar');
+
+        $data = $this->solicitacao->getAll($isSolicitante ? $this->user->id : null);
+
+        $userIds = collect($data)->pluck('CD_USUARIO_SOLICITANTE')->unique()->filter();
+        $users   = \App\Models\User::whereIn('id', $userIds)->pluck('name', 'id');
+
+        $colunas = [
+            'RAS' => ['secondary', 'fa-file-alt',      'Rascunho'],
+            'ANA' => ['info',      'fa-search',         'Em Análise'],
+            'APR' => ['warning',   'fa-clock',          'Em Aprovação'],
+            'APC' => ['primary',   'fa-check-circle',   'Aprovada'],
+            'REP' => ['danger',    'fa-times-circle',   'Reprovada'],
+            'FIN' => ['success',   'fa-flag-checkered', 'Finalizada'],
+        ];
+
+        $grupos = collect($data)->groupBy('ST_SOLICITACAO');
+
+        return view('admin.compras.solicitacoes.kanban', compact(
+            'title_page', 'user_auth', 'uri', 'colunas', 'grupos', 'users'
+        ));
     }
 
     public function list()
@@ -68,9 +105,10 @@ class SolicitacaoComprasController extends Controller
                     'RAS' => ['secondary', 'Rascunho'],
                     'ANA' => ['info',      'Em Análise'],
                     'APR' => ['warning',   'Em Aprovação'],
-                    'APC' => ['success',   'Aprovada'],
+                    'APC' => ['primary',   'Compra Aprovada'],
                     'REP' => ['danger',    'Reprovada'],
                     'CAN' => ['dark',      'Cancelada'],
+                    'FIN' => ['success',   'Compra Finalizada'],
                 ];
                 [$color, $label] = $map[$row->ST_SOLICITACAO] ?? ['secondary', $row->ST_SOLICITACAO];
                 return "<span class=\"badge badge-{$color} badge-status\">{$label}</span>";
@@ -91,6 +129,11 @@ class SolicitacaoComprasController extends Controller
                     $btn .= '<button data-id="' . $row->CD_SOLICITACAO . '"
                                 class="btn btn-danger btn-xs btn-delete" title="Excluir Rascunho">
                                 <i class="fas fa-trash"></i></button>';
+                }
+                if ($row->ST_SOLICITACAO === 'APC') {
+                    $btn .= '<button data-id="' . $row->CD_SOLICITACAO . '"
+                                class="btn btn-success btn-xs btn-finalizar" title="Finalizar Compra">
+                                <i class="fas fa-flag-checkered"></i></button>';
                 }
                 return $btn;
             })
@@ -230,6 +273,26 @@ class SolicitacaoComprasController extends Controller
         }
     }
 
+    public function finalizar(int $id)
+    {
+        $solicitacao = $this->solicitacao->findById((int) $id);
+
+        if (!$solicitacao) {
+            return response()->json(['errors' => 'Solicitação não encontrada.']);
+        }
+
+        if ($solicitacao->ST_SOLICITACAO !== 'APC') {
+            return response()->json(['errors' => 'Apenas solicitações Aprovadas para Compra podem ser finalizadas.']);
+        }
+
+        try {
+            $this->solicitacao->updateStatus((int) $id, 'FIN');
+            return response()->json(['success' => 'Compra finalizada com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'Erro ao finalizar: ' . $e->getMessage()]);
+        }
+    }
+
     public function cancelar($id)
     {
         try {
@@ -259,6 +322,18 @@ class SolicitacaoComprasController extends Controller
     }
 
     // --- Itens ---
+
+    public function itensTooltip(int $id)
+    {
+        $itens = $this->solicitacaoItem->getBySolicitacao($id);
+        return response()->json(
+            collect($itens)->map(fn($i) => [
+                'ds_item'    => $i->DS_ITEM,
+                'qt_item'    => number_format((float) $i->QT_ITEM, 3, ',', '.'),
+                'ds_unidade' => $i->DS_UNIDADE,
+            ])->values()
+        );
+    }
 
     public function listItens($idSolicitacao)
     {

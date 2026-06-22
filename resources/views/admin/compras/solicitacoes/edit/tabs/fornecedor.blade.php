@@ -14,10 +14,34 @@
             </div>
         </div>
         <div class="col-md-7">
+            @php $motivoAtual = collect($cotacoes ?? [])->firstWhere('ST_SELECIONADA', 'S')->DS_MOTIVO_ESCOLHA ?? ''; @endphp
             <div class="form-group mb-2">
                 <label class="mb-1"><small>Motivo da Escolha <span class="text-danger">*</span></small></label>
-                <input type="text" class="form-control form-control-sm" id="ds_motivo_escolha" maxlength="500"
-                    value="{{ collect($cotacoes ?? [])->firstWhere('ST_SELECIONADA', 'S')->DS_MOTIVO_ESCOLHA ?? '' }}">
+                <select class="form-control form-control-sm" id="ds_motivo_escolha">
+                    <option value="">Selecione</option>
+                    @php
+                        $motivos = [
+                            'Menor Valor',
+                            'Melhor Condição de Pagamento',
+                            'Melhor Negociação',
+                            'Melhor Prazo de Entrega',
+                            'Qualidade Superior do Produto/Serviço',
+                            'Disponibilidade Imediata em Estoque',
+                            'Único Fornecedor Disponível',
+                            'Melhor Suporte Técnico / Pós-venda',
+                            'Prazo de Garantia',
+                            'Relacionamento Comercial',
+                        ];
+                    @endphp
+                    @foreach($motivos as $motivo)
+                        <option value="{{ $motivo }}" {{ $motivoAtual === $motivo ? 'selected' : '' }}>
+                            {{ $motivo }}
+                        </option>
+                    @endforeach
+                    @if($motivoAtual && !in_array($motivoAtual, $motivos))
+                        <option value="{{ $motivoAtual }}" selected>{{ $motivoAtual }}</option>
+                    @endif
+                </select>
             </div>
         </div>
     </div>
@@ -28,6 +52,7 @@
             </button>
         </div>
     </div>
+    @if(isset($solicitacao) && $solicitacao->ST_SOLICITACAO === 'ANA')
     <div class="row">
         <div class="col-md-12 pt-3 text-center">
             <button id="btn-submeter" class="btn btn-primary btn-sm">
@@ -35,4 +60,5 @@
             </button>
         </div>
     </div>
+    @endif
 </div>

@@ -1,3 +1,19 @@
+<style>
+    .custom-file-sm .custom-file-input,
+    .custom-file-sm .custom-file-label {
+        height: calc(1.5em + 0.5rem + 2px);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        padding: 0.25rem 0.5rem;
+    }
+    .custom-file-sm .custom-file-label::after {
+        height: calc(1.5em + 0.5rem);
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        content: "Buscar Orçamento";
+    }
+</style>
 <div class="tab-pane fade" id="pane-cotacoes" role="tabpanel">
     <div class="row mt-1 mb-1">
         <div class="col-md-4">
@@ -29,6 +45,7 @@
                     <option value="DI">Dinheiro</option>
                     <option value="CH">Cheque</option>
                     <option value="PX">Pix</option>
+                    <option value="CC">Cartão de Credito</option>
                 </select>
             </div>
         </div>
@@ -38,10 +55,19 @@
                 <input type="text" class="form-control form-control-sm money-mask" id="vl_total_cot" placeholder="0,00">
             </div>
         </div>
-        <div class="col-md-1">
+        <div class="col-md-3">
             <div class="form-group mb-2">
                 <label class="mb-1"><small>Obs.</small></label>
                 <input type="text" class="form-control form-control-sm" id="ds_obs_cot" maxlength="500">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group mb-2">
+                <label class="mb-1"><small>Orçamento PDF <span class="text-danger">*</span></small></label>
+                <div class="custom-file custom-file-sm">
+                    <input type="file" class="custom-file-input" id="doc_orcamento" accept="application/pdf">
+                    <label class="custom-file-label" for="doc_orcamento">Selecionar PDF...</label>
+                </div>
             </div>
         </div>
     </div>
