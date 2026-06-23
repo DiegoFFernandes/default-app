@@ -13,7 +13,9 @@ Route::middleware(['auth', 'can:ver-despesas'])->group(function () {
         Route::get('veiculos',           [DespesaController::class, 'searchVeiculos'])->name('despesa.veiculos');
         Route::get('pessoas',            [DespesaController::class, 'searchPessoas'])->name('despesa.pessoas');
         Route::get('connectcar/revisar',  [DespesaController::class, 'revisarConnectCar'])->name('despesa.connectcar.revisar');
-        Route::post('connectcar/importar', [DespesaController::class, 'importarConnectCar'])->name('despesa.connectcar.importar');
+        Route::post('connectcar/importar',       [DespesaController::class, 'importarConnectCar'])->name('despesa.connectcar.importar');
+        Route::post('connectcar/veiculos-batch',   [DespesaController::class, 'batchVeiculosConnectCar'])->name('despesa.connectcar.veiculos-batch');
+        Route::post('connectcar/importar-firebird', [DespesaController::class, 'importarConnectCarFirebird'])->name('despesa.connectcar.importar-firebird');
         Route::put('{id}',               [DespesaController::class, 'update'])->name('despesa.update')->whereNumber('id');
         Route::post('{id}/toggle-visto', [DespesaController::class, 'toggleVisto'])->name('despesa.toggle-visto')->whereNumber('id');
     });

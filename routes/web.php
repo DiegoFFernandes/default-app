@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\EmpresaController;
 use App\Http\Controllers\Admin\FormaPagmentoController;
+use App\Http\Controllers\Admin\HistoricoController;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\ItemController;
 use App\Http\Controllers\Admin\PedidoPneuController;
+use App\Http\Controllers\Admin\TipoContaController;
 use App\Http\Controllers\Auth\LoginController;
 
 use Illuminate\Support\Facades\Artisan;
@@ -46,6 +49,12 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 
 Route::middleware('auth')->group(function () {
+    Route::prefix('firebird')->group(function () {
+        Route::get('empresas',    [EmpresaController::class,   'index'])->name('firebird.empresas');
+        Route::get('tipos-conta', [TipoContaController::class, 'index'])->name('firebird.tipos-conta');
+        Route::get('historicos',  [HistoricoController::class, 'index'])->name('firebird.historicos');
+    });
+
     Route::prefix('formas-pagamento')->group(function () {
         Route::get('get-cond-pagamento', [FormaPagmentoController::class, 'condicaoPagamento'])->name('get-cond-pagamento');
         Route::get('get-form-pagamento', [FormaPagmentoController::class, 'formaPagamento'])->name('get-form-pagamento');

@@ -5,68 +5,40 @@
 @section('content')
     <section class="content">
         <div class="content-fluid">
-            <div class="row">
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-primary">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </span>
-
-                        <div class="info-box-content">
-                            <span class="info-box-text">Total Bloqueadas</span>
-
-                            <span class="info-box-number">
-                                <span id="qtd-bloqueadas">0</span>
-                                <small class="text-muted"> itens</small>
-                            </span>
-
-                            <div>
-                                <small class="text-muted">Total:</small>
-                                <strong id="valor-bloqueadas">R$ 0,00</strong>
+            <div class="row mb-2">
+                <div class="col-12 col-sm-4 col-md-3 mb-2">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-title"><i class="fas fa-file-invoice-dollar"></i> Total Bloqueadas</div>
+                        <div class="stat-value"><span id="qtd-bloqueadas">0</span> <small style="font-size:.7rem;font-weight:400;">Contas</small></div>
+                        <div class="stat-rows">
+                            <div class="stat-row">
+                                <span class="stat-row-label">Valor</span>
+                                <span class="stat-row-val" id="valor-bloqueadas">R$ 0,00</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-info">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </span>
-
-                        <div class="info-box-content">
-                            <span class="info-box-text">Aguardando Análise</span>
-
-                            <span class="info-box-number">
-                                <span id="qtd-aguardando-analise">0</span>
-                                <small class="text-muted"> itens</small>
-                            </span>
-
-                            <div>
-                                <small class="text-muted">Total:</small>
-                                <strong id="valor-aguardando-analise">R$ 0,00</strong>
+                <div class="col-12 col-sm-4 col-md-3 mb-2">
+                    <div class="stat-card stat-info">
+                        <div class="stat-title"><i class="fas fa-clock"></i> Aguardando Análise</div>
+                        <div class="stat-value"><span id="qtd-aguardando-analise">0</span> <small style="font-size:.7rem;font-weight:400;">Contas</small></div>
+                        <div class="stat-rows">
+                            <div class="stat-row">
+                                <span class="stat-row-label">Valor</span>
+                                <span class="stat-row-val" id="valor-aguardando-analise">R$ 0,00</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box">
-                        <span class="info-box-icon bg-warning">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Pendentes Bloqueadas</span>
-
-
-                            <span class="info-box-number">
-                                <span id="qtd-pendentes-bloqueadas">0</span>
-                                <small class="text-muted"> itens</small>
-                            </span>
-
-                            <div>
-                                <small class="text-muted">Total:</small>
-                                <strong id="valor-pendentes-bloqueadas">R$ 0,00</strong>
+                <div class="col-12 col-sm-4 col-md-3 mb-2">
+                    <div class="stat-card stat-warning">
+                        <div class="stat-title"><i class="fas fa-exclamation-triangle"></i> Pendentes Bloqueadas</div>
+                        <div class="stat-value"><span id="qtd-pendentes-bloqueadas">0</span> <small style="font-size:.7rem;font-weight:400;">Contas</small></div>
+                        <div class="stat-rows">
+                            <div class="stat-row">
+                                <span class="stat-row-label">Valor</span>
+                                <span class="stat-row-val" id="valor-pendentes-bloqueadas">R$ 0,00</span>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -74,7 +46,7 @@
 
             <div class="card collapsed-card">
                 <div class="card-header">
-                    <h3 class="card-title">Filtros</h3>
+                    <h3 class="card-title"><i class="fas fa-filter mr-1 text-muted"></i> Filtros</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
                             <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
@@ -85,18 +57,18 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-2 mb-1">
-                            <input id="filtro-empresa" type="text" class="form-control"
+                            <input id="filtro-empresa" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Empresa">
                         </div>
                         <div class="col-md-4 mb-1">
-                            <input id="filtro-nome" type="text" class="form-control" placeholder="Filtrar por Pessoa">
+                            <input id="filtro-nome" type="text" class="form-control form-control-sm" placeholder="Filtrar por Pessoa">
                         </div>
                         <div class="col-md-2 mb-1">
-                            <input id="filtro-docto" type="text" class="form-control"
+                            <input id="filtro-docto" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Documento">
                         </div>
                         <div class="col-md-2 mb-1">
-                            <input id="filtro-data" type="text" class="form-control"
+                            <input id="filtro-data" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Vencimento">
                         </div>
                     </div>
@@ -121,7 +93,7 @@
                             <table class="table stripe compact" id="table-contas-bloqueadas-pendentes" style="width:100%;">
                                 <thead>
                                     <tr>
-                                        <th></th>
+                                        <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos" style="margin:0;"></th>
                                         <th>#</th>
                                         <th>Emp</th>
                                         <th>Pessoa</th>
@@ -141,7 +113,7 @@
                             <table class="table stripe compact" id="table-contas-bloqueadas-vistos" style="width:100%;">
                                 <thead>
                                     <tr>
-                                        <th></th>
+                                        <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos" style="margin:0;"></th>
                                         <th>#</th>
                                         <th>Emp</th>
                                         <th>Pessoa</th>
@@ -177,7 +149,34 @@
     </section>
 @stop
 @section('css')
+    <style>
+        .stat-card { background:#fff; border:1px solid rgba(0,0,0,.09); border-left:4px solid; border-radius:4px; padding:10px 12px; height:100%; position:relative; }
+        .stat-card .stat-title { font-size:.68rem; text-transform:uppercase; letter-spacing:.4px; color:#6c757d; display:flex; align-items:center; gap:5px; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .stat-card .stat-title i { font-size:.7rem; }
+        .stat-card .stat-value { font-size:1rem; font-weight:700; word-break:break-all; line-height:1.3; }
+        .stat-card .stat-rows { margin-top:1px; }
+        .stat-card .stat-row { display:flex; justify-content:space-between; align-items:baseline; font-size:.71rem; padding:2px 0; border-top:1px solid rgba(0,0,0,.05); }
+        .stat-card .stat-row-label { color:#6c757d; flex-shrink:0; }
+        .stat-card .stat-row-val { font-weight:600; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:58%; }
+        .stat-primary { border-left-color:#007bff; } .stat-primary .stat-title i,.stat-primary .stat-value { color:#007bff; }
+        .stat-info    { border-left-color:#17a2b8; } .stat-info .stat-title i,.stat-info .stat-value    { color:#17a2b8; }
+        .stat-warning { border-left-color:#e0a800; } .stat-warning .stat-title i,.stat-warning .stat-value { color:#c89100; }
 
+        /* --- Header --- */
+        table.dataTable thead tr {
+            background-color: #444B53;
+            color: #ffffff;
+        }
+
+        table.dataTable thead th {
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: .3px;
+            padding: 8px 10px;
+            border-bottom: 2px solid #2d3238 !important;
+            white-space: nowrap;
+        }
+    </style>
 @stop
 @section('js')
     <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
@@ -399,22 +398,23 @@
 
 
         function loadData(status, dsLiberacao) {
-            var rows = tableContas.rows({
-                selected: true
-            }).data().toArray();
-
             var contas = [];
 
-            if (rows.length > 0) {
-                rows.forEach(function(row) {
-                    contas.push({
-                        nr_lancamento: row.NR_LANCAMENTO,
-                        cd_empresa: row.CD_EMPRESA,
-                        status: status,
-                        ds_liberacao: row.DS_LIBERACAO,
-                    });
+            tableContas.rows().nodes().to$().each(function() {
+                if ($(this).find('.dt-row-checkbox-contas').is(':checked')) {
+                    var row = tableContas.row(this).data();
+                    if (row) {
+                        contas.push({
+                            nr_lancamento: row.NR_LANCAMENTO,
+                            cd_empresa: row.CD_EMPRESA,
+                            status: status,
+                            ds_liberacao: row.DS_LIBERACAO,
+                        });
+                    }
+                }
+            });
 
-                });
+            if (contas.length > 0) {
                 $.ajax({
                     method: "post",
                     url: "{{ route('contas-bloqueadas.update') }}",
@@ -466,10 +466,14 @@
             } else {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Selecione ao menos uma conta para aprovar ou manter bloqueada!',
-                    showConfirmButton: false,
-                    timer: 2000
+                    title: 'Nenhuma conta selecionada',
+                    text: 'Selecione pelo menos 1 conta para continuar.',
+                    confirmButtonText: 'Ok',
+                    customClass: {
+                        confirmButton: 'btn btn-warning',
+                    },
                 });
+                return;
             }
         };
 
@@ -526,13 +530,23 @@
                 serverSide: false,
                 scrollX: true,
                 scrollY: '50vh',
-                select: {
-                    style: 'multi',
-                },
                 ajax: {
                     url: '{{ route('contas-bloqueadas.list') }}',
                     data: {
                         st_visto: status,
+                    },
+                    beforeSend: function() {
+                        window._swalContasTimer = setTimeout(function() {
+                            Swal.fire({
+                                title: 'Carregando contas...',
+                                allowOutsideClick: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+                        }, 400);
+                    },
+                    complete: function() {
+                        clearTimeout(window._swalContasTimer);
+                        Swal.close();
                     },
                     dataSrc: function(json) {
                         $('#qtd-bloqueadas').text(json.qtd_bloqueadas);
@@ -550,8 +564,18 @@
                 },
                 columns: [{
                         data: null,
-                        "width": "1%",
-                        render: DataTable.render.select(),
+                        width: "30px",
+                        orderable: false,
+                        searchable: false,
+                        className: "text-center",
+                        render: function(data, type, row) {
+                            if (type === 'display') {
+                                return '<input type="checkbox" class="dt-row-checkbox-contas" data-lancamento="' +
+                                    row.NR_LANCAMENTO + '" data-empresa="' + row.CD_EMPRESA +
+                                    '" aria-label="Selecionar linha" style="margin:0;">';
+                            }
+                            return '';
+                        },
                     },
                     {
                         data: 'actions',
@@ -603,7 +627,13 @@
                 ],
                 columnDefs: [{
                     targets: [7, 8],
-                    render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                    render: function(data, type, row) {
+                        if (!data) return '';
+                        var d = new Date(data);
+                        if (isNaN(d)) return data;
+                        return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-
+                            2) + '/' + d.getFullYear();
+                    }
                 }, {
                     targets: [6],
                     render: $.fn.dataTable.render.number('.', ',', 2),
@@ -617,6 +647,7 @@
                 }
 
             });
+
             return tableContas;
         };
 
@@ -667,7 +698,13 @@
                 ],
                 columnDefs: [{
                         targets: [2, 3],
-                        render: $.fn.dataTable.render.moment('DD/MM/YYYY')
+                        render: function(data, type, row) {
+                            if (!data) return '';
+                            var d = new Date(data);
+                            if (isNaN(d)) return data;
+                            return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-
+                                2) + '/' + d.getFullYear();
+                        }
                     },
                     {
                         targets: [4],
@@ -680,5 +717,22 @@
 
             });
         };
+
+        // Select all — usa API DataTables para acessar os nós reais das linhas
+        $(document).on('click', '.dt-select-all-contas', function(e) {
+            e.stopPropagation();
+            var checked = $(this).is(':checked');
+            tableContas.rows().nodes().to$().find('.dt-row-checkbox-contas').prop('checked', checked);
+        });
+
+        // Checkbox individual — atualiza estado do select-all
+        $(document).on('click', '.dt-row-checkbox-contas', function(e) {
+            e.stopPropagation();
+            var total = tableContas.rows().count();
+            var selected = tableContas.rows().nodes().to$().find('.dt-row-checkbox-contas:checked').length;
+            $(this).closest('.dataTables_wrapper').find('.dt-select-all-contas').prop('checked', total > 0 && total === selected);
+        });
+
+        $('link[href*="custom_datatables"]').remove();
     </script>
 @stop

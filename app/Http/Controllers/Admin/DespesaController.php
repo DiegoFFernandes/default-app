@@ -7,6 +7,7 @@ use App\Models\Comprovante;
 use App\Models\ComprovanteFoto;
 use App\Models\Pessoa;
 use App\Models\User;
+use App\Models\Contas;
 use App\Models\Veiculo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -210,11 +211,119 @@ class DespesaController extends Controller
             compact('title_page', 'uri', 'user_auth'));
     }
 
+    public function batchVeiculosConnectCar()
+    {
+        $placas = array_values(array_unique(array_filter(
+            (array) $this->request->input('placas', [])
+        )));
+
+        return response()->json(Veiculo::findByPlacas($placas));
+    }
+
     public function importarConnectCar()
     {
-        // TODO: implementar mapeamento e persistência no comprovante
-        return redirect()->route('despesa.index')
-            ->with('success', 'Importação realizada com sucesso.');
+        $headers = json_decode($this->request->input('headers', '[]'), true);
+        $rows    = json_decode($this->request->input('rows',    '[]'), true);
+
+        if (empty($rows)) {
+            return redirect()->route('despesa.connectcar.revisar')
+                ->with('error', 'Nenhum registro recebido para importação.');
+        }
+
+        // Índices das colunas no array filtrado (ordem após filtrarColunas)
+        // 0 = placa | 1 = data | 2 = tipo transação | 3 = valor
+        $IDX_PLACA  = 0;
+        $IDX_DATA   = 1;
+        $IDX_TIPO   = 2;
+        $IDX_VALOR  = 3;
+
+        // 1. Extrai placas únicas e busca veículos no Firebird com UMA query
+        $placas   = array_unique(array_filter(array_column($rows, $IDX_PLACA)));
+        $veiculos = Veiculo::findByPlacas(array_values($placas)); // mapa placa => dados
+
+        // 2. Persiste cada linha no comprovante
+        $importados = 0;
+        $erros      = 0;
+
+        foreach ($rows as $row) {
+            try {
+                $placa     = trim($row[$IDX_PLACA]  ?? '');
+                $dtRaw     = trim($row[$IDX_DATA]   ?? '');
+                $tipo      = trim($row[$IDX_TIPO]   ?? '');
+                $valorRaw  = $row[$IDX_VALOR] ?? 0;
+
+                $veiculo      = $veiculos[$placa] ?? null;
+                $cdMotorista  = $veiculo['cd_motorista'] ?? null;
+
+                $valor = abs((float) str_replace(',', '.', $valorRaw));
+
+                // Tenta parsear a data — ConnectCar usa dd/mm/yyyy ou yyyy-mm-dd
+                try {
+                    $dtDespesa = Carbon::createFromFormat('d/m/Y', $dtRaw)->format('Y-m-d');
+                } catch (\Exception) {
+                    $dtDespesa = Carbon::parse($dtRaw)->format('Y-m-d');
+                }
+
+                $this->comprovante->create([
+                    'cd_user_lanc'  => $this->user->id,
+                    'tp_despesa'    => 'PED',
+                    'nm_solicitante'=> null,
+                    'vl_consumido'  => $valor,
+                    'ds_observacao' => $tipo,
+                    'st_visto'      => 'N',
+                    'dt_despesa'    => $dtDespesa,
+                    'nr_placa'      => $placa,
+                    'km'            => null,
+                    'cd_pessoa'     => null,
+                ]);
+
+                $importados++;
+            } catch (\Exception) {
+                $erros++;
+            }
+        }
+
+        $msg = "Importação concluída: {$importados} registro(s) importado(s).";
+        if ($erros > 0) {
+            $msg .= " {$erros} linha(s) com erro foram ignoradas.";
+        }
+
+        return redirect()->route('despesa.index')->with('success', $msg);
+    }
+
+    public function importarConnectCarFirebird()
+    {
+        $rows = (array) $this->request->input('rows', []);
+
+        if (empty($rows)) {
+            return response()->json(['error' => 'Nenhum registro para importar.'], 422);
+        }
+
+        try {
+            $resultado = Contas::importarLote($rows, [
+                'cd_empresa'    => (int)    $this->request->input('cd_empresa'),
+                'cd_pessoa'     => (int)    $this->request->input('cd_pessoa'),
+                'cd_tipoconta'  => (int)    $this->request->input('cd_tipoconta'),
+                'cd_historico'  => (int)    $this->request->input('cd_historico'),
+                'cd_formapagto' => (string) $this->request->input('cd_forma_pagto'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error'   => true,
+                'message' => 'Falha na transação Firebird: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        $importados = $resultado['importados'];
+        $erros      = $resultado['erros'];
+
+        return response()->json([
+            'success'    => true,
+            'importados' => $importados,
+            'erros'      => $erros,
+            'message'    => $importados . ' registro(s) importado(s) com sucesso.'
+                . (count($erros) ? ' ' . count($erros) . ' erro(s).' : ''),
+        ]);
     }
 
     public function searchPessoas()
