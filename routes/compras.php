@@ -15,6 +15,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('search-fornecedor-compra', [SolicitacaoComprasController::class, 'searchFornecedor'])->name('compras.search-fornecedor');
         Route::get('search-veiculo',           [SolicitacaoComprasController::class, 'searchVeiculos'])->name('compras.search-veiculo');
 
+        Route::get('centros-by-empresa',         [ConfigComprasController::class, 'getCentrosByEmpresa'])->name('compras.centros.by-empresa');
+
+
         // Solicitações
         Route::get('solicitacoes',                [SolicitacaoComprasController::class, 'index'])->name('compras.solicitacoes.index');
         Route::get('solicitacoes/kanban',         [SolicitacaoComprasController::class, 'kanban'])->name('compras.solicitacoes.kanban');
@@ -54,7 +57,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('aprovacoes',          [AprovacaoComprasController::class, 'index'])->name('compras.aprovacoes.index');
             Route::get('get-aprovacoes',      [AprovacaoComprasController::class, 'list'])->name('compras.aprovacoes.list');
             Route::post('aprovacoes/aprovar', [AprovacaoComprasController::class, 'aprovar'])->name('compras.aprovacoes.aprovar');
-            Route::post('aprovacoes/reprovar',[AprovacaoComprasController::class, 'reprovar'])->name('compras.aprovacoes.reprovar');
+            Route::post('aprovacoes/reprovar', [AprovacaoComprasController::class, 'reprovar'])->name('compras.aprovacoes.reprovar');
         });
 
         // Configuração
@@ -69,7 +72,6 @@ Route::middleware(['auth'])->group(function () {
             Route::post('aprovadores/reordenar',     [ConfigComprasController::class, 'reordenarAprovadores'])->name('compras.configuracao.reordenar-aprovadores');
             Route::delete('aprovadores/{id}',        [ConfigComprasController::class, 'destroyAprovador'])->name('compras.configuracao.destroy-aprovador');
             Route::get('get-centros',                [ConfigComprasController::class, 'listCentros'])->name('compras.configuracao.list-centros');
-            Route::get('centros-by-empresa',         [ConfigComprasController::class, 'getCentrosByEmpresa'])->name('compras.centros.by-empresa');
             Route::get('saldo-ciclo',                [ConfigComprasController::class, 'getSaldoCiclo'])->name('compras.saldo-ciclo');
             Route::get('centros-tipos',              [ConfigComprasController::class, 'getCentrosTipos'])->name('compras.centros.tipos');
             Route::post('centros',                   [ConfigComprasController::class, 'storeCentro'])->name('compras.configuracao.store-centro');

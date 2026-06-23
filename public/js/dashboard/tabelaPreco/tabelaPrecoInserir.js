@@ -82,7 +82,11 @@ $(document).on("click", "#btn-associar", function () {
                 title: "Itens adicionados à prévia com sucesso!",
                 showConfirmButton: false,
                 timer: 2000,
+                toast: true,
+                position: 'top-end',
+                timerProgressBar: true,
             });
+
             $("#desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
         },
     });
@@ -318,6 +322,9 @@ $(document).on("click", "#btn-add-modal", function () {
                 title: "Itens adicionados à prévia com sucesso!",
                 showConfirmButton: false,
                 timer: 2000,
+                toast: true,
+                position: 'top-end',
+                timerProgressBar: true,
             });
         },
         complete: function () {

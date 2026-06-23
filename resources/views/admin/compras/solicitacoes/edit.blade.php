@@ -477,7 +477,11 @@ $(document).ready(function () {
         language: { url: '{{ asset('vendor/datatables/pt-br.json') }}' },
     });
 
-    @if(!$idSolicitacao || $solicitacao->ST_SOLICITACAO === 'RAS')
+    $('#table-itens').on('draw.dt', function () {
+        $('#tab-itens .badge').text(dtItens.rows().count());
+    });
+
+    @if(!$idSolicitacao || $solicitacao->ST_SOLICITACAO === 'RAS' || ($solicitacao->ST_SOLICITACAO === 'ANA' && auth()->user()->can('solicitacao-compra-gerenciar')))
     $('#btn-add-item').click(function () {
         $.post('{{ route('compras.itens.store') }}', {
             _token:         token,
@@ -600,6 +604,10 @@ $(document).ready(function () {
         ],
         pageLength: 10,
         language: { url: '{{ asset('vendor/datatables/pt-br.json') }}' },
+    });
+
+    $('#table-cotacoes').on('draw.dt', function () {
+        $('#tab-cotacoes .badge').text(dtCotacoes.rows().count());
     });
 
     $('#doc_orcamento').on('change', function () {
