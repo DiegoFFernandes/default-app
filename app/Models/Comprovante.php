@@ -14,10 +14,13 @@ class Comprovante extends Model
     protected $fillable = [
         'cd_user_lanc',
         'cd_pessoa',
+        'nm_solicitante',
         'tp_despesa',
         'vl_consumido',
         'ds_observacao',
         'st_visto',
+        'st_importado_fb',
+        'st_arquivo',
         'dt_despesa',
         'km',
         'nr_placa',

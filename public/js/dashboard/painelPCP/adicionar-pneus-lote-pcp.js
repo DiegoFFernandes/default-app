@@ -51,10 +51,6 @@ $(document).on("submit", "#form-adicionar-pneus-lote-pcp", function (e) {
         processing: false,
         serverSide: false,
         scrollY: "400px",
-        select: {
-            style: "multi",
-            selector: "td:first-child",
-        },
         language: {
             url: window.routes.languageDatatables,
         },
@@ -69,10 +65,17 @@ $(document).on("submit", "#form-adicionar-pneus-lote-pcp", function (e) {
         columns: [
             {
                 data: null,
-                width: "1%",
-                className: "pl-3 pr-3 text-center",
-                render: DataTable.render.select(),
+                width: "30px",
+                className: "text-center",
                 orderable: false,
+                searchable: false,
+                title: '<input type="checkbox" class="dt-select-all-pcp-lote" title="Selecionar todos" style="margin:0;">',
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        return '<input type="checkbox" class="dt-row-checkbox-pcp-lote" data-ordem="' + row.NR_ORDEM + '" aria-label="Selecionar linha" style="margin:0;">';
+                    }
+                    return '';
+                },
             },
             {
                 data: "NR_PEDIDO",
@@ -86,7 +89,7 @@ $(document).on("submit", "#form-adicionar-pneus-lote-pcp", function (e) {
                 name: "ID",
                 title: "Ordem",
                 width: "5%",
-                className: "text-center",
+                className: "text-center no-wrap",
             },
             {
                 data: "DS_ITEM",
@@ -110,7 +113,39 @@ $(document).on("submit", "#form-adicionar-pneus-lote-pcp", function (e) {
         order: [[10, "asc"]],
     });
 
+    selectedPcpLoteIds.clear();
+    $('#tabela-adicionar-pneus-lote-pcp .dt-select-all-pcp-lote').prop('checked', false);
+
     $("#div-tabela-adicionar-pneus-lote-pcp").show();
+});
+
+var selectedPcpLoteIds = new Set();
+
+// Select all
+$(document).on('click', '.dt-select-all-pcp-lote', function(e) {
+    e.stopPropagation();
+    var tabela = $("#tabela-adicionar-pneus-lote-pcp").DataTable();
+    var checked = $(this).is(':checked');
+    selectedPcpLoteIds.clear();
+    tabela.rows().nodes().to$().find('.dt-row-checkbox-pcp-lote').prop('checked', checked);
+    if (checked) {
+        tabela.rows().data().each(function(row) { selectedPcpLoteIds.add(row.NR_ORDEM); });
+    }
+});
+
+// Checkbox individual
+$(document).on('click', '.dt-row-checkbox-pcp-lote', function(e) {
+    e.stopPropagation();
+    var ordem = $(this).data('ordem');
+    if (!ordem) return;
+    if ($(this).is(':checked')) {
+        selectedPcpLoteIds.add(ordem);
+    } else {
+        selectedPcpLoteIds.delete(ordem);
+    }
+    var tabela = $("#tabela-adicionar-pneus-lote-pcp").DataTable();
+    var total = tabela.rows().count();
+    $('.dt-select-all-pcp-lote').prop('checked', total > 0 && selectedPcpLoteIds.size === total);
 });
 
 $(document).on("click", "#btn-salvar-pneus-lote-pcp", function (e) {
@@ -118,15 +153,7 @@ $(document).on("click", "#btn-salvar-pneus-lote-pcp", function (e) {
 
     let bandaConsumir = $("#bandas-consumir").DataTable();
 
-    let tabela = $("#tabela-adicionar-pneus-lote-pcp").DataTable();
-    let pneusSelecionados = tabela
-        .rows({
-            selected: true,
-        })
-        .data()
-        .toArray();
-
-    if (pneusSelecionados.length === 0) {
+    if (selectedPcpLoteIds.size === 0) {
         Swal.fire({
             icon: "warning",
             title: "Nenhum pneu selecionado",
@@ -135,7 +162,7 @@ $(document).on("click", "#btn-salvar-pneus-lote-pcp", function (e) {
         return;
     }
 
-    let idsOrdens = pneusSelecionados.map((pneu) => pneu.NR_ORDEM);
+    let idsOrdens = Array.from(selectedPcpLoteIds);
     let cd_empresa = $("#empresa-adicionar-lote-pcp").val();
     let nr_lote = $("#nrlote-adicionar-lote-pcp").val();
 

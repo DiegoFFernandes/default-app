@@ -162,6 +162,22 @@
         .stat-info    { border-left-color:#17a2b8; } .stat-info .stat-title i,.stat-info .stat-value    { color:#17a2b8; }
         .stat-warning { border-left-color:#e0a800; } .stat-warning .stat-title i,.stat-warning .stat-value { color:#c89100; }
 
+        /* --- Coluna checkbox --- */
+        td.text-center:has(.dt-row-checkbox-contas),
+        th:has(.dt-select-all-contas) {
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
+            padding: 4px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        .dt-row-checkbox-contas,
+        .dt-select-all-contas {
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
         /* --- Header --- */
         table.dataTable thead tr {
             background-color: #444B53;

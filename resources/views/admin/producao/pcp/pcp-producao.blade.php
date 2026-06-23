@@ -44,6 +44,18 @@
         .badge-atrasado-danger    { --blink-color: #f8d7da; }
         .badge-atrasado-warning   { --blink-color: #fff3cd; }
         .badge-atrasado-dias-purple { --blink-color: #d6b3ff; }
+
+        td:has(.dt-row-checkbox-lote-pcp),
+        td:has(.dt-row-checkbox-pcp),
+        th:has(.dt-select-all-lote-pcp),
+        th:has(.dt-select-all-pcp) {
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
+            padding: 4px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
     </style>
 @stop
 
@@ -118,16 +130,17 @@
 
             let columns = [{
                     data: null,
-                    width: "1%",
-                    className: 'pl-3 pr-3 text-center',
-                    render: function(data, type, row, meta) {
+                    width: "30px",
+                    className: 'text-center',
+                    orderable: false,
+                    searchable: false,
+                    title: '<input type="checkbox" class="dt-select-all-pcp" title="Selecionar todos" style="margin:0;">',
+                    render: function(data, type, row) {
                         if (type === 'display') {
-                            var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
-                            return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
+                            return '<input type="checkbox" class="dt-row-checkbox-pcp" data-op="' + row.NR_OP + '" aria-label="Selecionar linha" style="margin:0;">';
                         }
                         return '';
                     },
-                    orderable: false
                 },
                 {
                     data: 'actions',
@@ -220,10 +233,6 @@
                 processing: false,
                 serverSide: false,
                 scrollY: '400px',
-                select: {
-                    style: 'multi',
-                    selector: 'td:first-child'
-                },
                 language: {
                     url: window.routes.languageDatatables,
                 },
@@ -346,6 +355,30 @@
                     [2, 'asc']
                 ]
             });
+
         }
+
+        // Select all
+        $(document).on('click', '.dt-select-all-pcp', function(e) {
+            e.stopPropagation();
+            var checked = this.checked;
+            var $wrapper = $(this).closest('.dataTables_wrapper');
+            if (!$wrapper.length || !$wrapper.attr('id')) return;
+            var tableId = $wrapper.attr('id').replace('_wrapper', '');
+            var tabela = $('#' + tableId).DataTable();
+            tabela.rows().nodes().to$().find('.dt-row-checkbox-pcp').prop('checked', checked);
+        });
+
+        // Checkbox individual
+        $(document).on('click', '.dt-row-checkbox-pcp', function(e) {
+            e.stopPropagation();
+            var $wrapper = $(this).closest('.dataTables_wrapper');
+            if (!$wrapper.length || !$wrapper.attr('id')) return;
+            var tableId = $wrapper.attr('id').replace('_wrapper', '');
+            var tabela = $('#' + tableId).DataTable();
+            var total = tabela.rows().count();
+            var checkedCount = tabela.rows().nodes().to$().find('.dt-row-checkbox-pcp').filter(function() { return this.checked; }).length;
+            $wrapper.find('.dt-select-all-pcp').prop('checked', total > 0 && checkedCount === total);
+        });
     </script>
 @stop

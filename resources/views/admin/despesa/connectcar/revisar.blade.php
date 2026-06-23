@@ -18,9 +18,9 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link disabled" id="link-tab-mescla" data-toggle="pill"
+                                <a class="nav-link" id="link-tab-mescla" data-toggle="pill"
                                    href="#tab-mescla" role="tab">
-                                    <i class="fas fa-code-branch mr-1"></i> Pré-visualização da Mescla
+                                    <i class="fas fa-code-branch mr-1"></i> Aguardando Importação
                                 </a>
                             </li>
                         </ul>
@@ -188,6 +188,7 @@
                                                     <option value="">Todos</option>
                                                     <option value="Encontrado">Encontrado</option>
                                                     <option value="Não encontrado">Não encontrado</option>
+                                                    <option value="Já importado">Já importado</option>
                                                 </select>
                                             </div>
                                             <div class="col-12 col-md-1 mb-2">
@@ -374,8 +375,11 @@
 <script>
 (function () {
     const ROUTES = {
-        token:            "{{ csrf_token() }}",
-        veiculosBatch:    "{{ route('despesa.connectcar.veiculos-batch') }}",
+        token:               "{{ csrf_token() }}",
+        importarMysql:       "{{ route('despesa.connectcar.importar') }}",
+        comprovantesParaMescla: "{{ route('despesa.connectcar.comprovantes-mescla') }}",
+        verificarHash:       "{{ route('despesa.connectcar.verificar-hash') }}",
+        veiculosBatch:       "{{ route('despesa.connectcar.veiculos-batch') }}",
         importarFirebird: "{{ route('despesa.connectcar.importar-firebird') }}",
         empresas:         "{{ route('firebird.empresas') }}",
         tiposConta:       "{{ route('firebird.tipos-conta') }}",
@@ -399,10 +403,19 @@
     // ── Estado ─────────────────────────────────────────────────────────────────
     let dadosCarregados   = [];
     let headersCarregados = [];
+    let hashArquivo       = null;
+    let nomeArquivo       = null;
     let dt                = null;
     let dtMescla          = null;
-    let rowsSelecionados  = [];
     let dadosMescla       = [];
+
+    // ── SHA-256 via Web Crypto API ─────────────────────────────────────────────
+    async function calcularHashArquivo(file) {
+        const buffer      = await file.arrayBuffer();
+        const hashBuffer  = await crypto.subtle.digest("SHA-256", buffer);
+        const hashArray   = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
 
     // ── Modal upload ───────────────────────────────────────────────────────────
     function abrirModalUpload() {
@@ -421,56 +434,7 @@
     });
     $("#link-tab-mescla").on("shown.bs.tab", function () {
         $("#btn-abrir-upload").addClass("d-none");
-        if (!dtMescla && dadosMescla.length > 0) {
-            dtMescla = $("#tabela-mescla-connectcar").DataTable({
-                data: dadosMescla,
-                columns: [
-                    // 0 — checkbox (só habilitado se achado=true, inicia desmarcado)
-                    { data: null, orderable: false, searchable: false, className: "text-center", width: "40px",
-                      render: (_, __, row) => row.achado
-                        ? '<input type="checkbox" class="chk-mescla">'
-                        : '<input type="checkbox" class="chk-mescla" disabled title="Placa não encontrada no Firebird">' },
-                    // 1
-                    { data: "placa",         title: "Placa" },
-                    // 2
-                    { data: "marcaModelo",   title: "Marca / Modelo" },
-                    // 3
-                    { data: "cdMotorista",   title: "Cód.", className: "text-center" },
-                    // 4
-                    { data: "nmMotorista",   title: "Motorista" },
-                    // 5
-                    { data: "dataFormatada", title: "Data" },
-                    // 6
-                    { data: "tipo",          title: "Tipo" },
-                    // 7
-                    { data: "valor",         title: "Valor", className: "text-right",
-                      render: (v, type) => type === "display"
-                        ? v.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : v },
-                    // 8
-                    { data: "achado",        title: "Status", className: "text-center",
-                      render: (v) => v
-                        ? '<span class="badge badge-success">Encontrado</span>'
-                        : '<span class="badge badge-warning">Não encontrado</span>' },
-                ],
-                rowCallback: function (row, rowData) {
-                    if (!rowData.achado) $(row).addClass("table-warning");
-                },
-                footerCallback: function () {
-                    const api   = this.api();
-                    const total = api.column(7, { search: "applied" }).data()
-                        .reduce((s, v) => s + v, 0);
-                    $(api.column(7).footer()).html(
-                        "Total: <strong>" + total.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + "</strong>"
-                    );
-                },
-                initComplete: function () {
-                    atualizarContadorMescla();
-                },
-                paging: false, ordering: false, searching: true, info: false,
-                scrollY: "380px", scrollX: true, scrollCollapse: true, dom: "t",
-                language: { url: ROUTES.dtLanguage },
-            });
-        }
+        carregarMescla();
     });
 
     // ── Checkboxes Tab 2 (Mescla) ─────────────────────────────────────────────
@@ -534,26 +498,69 @@
     });
 
     // ── Seleção de arquivo ─────────────────────────────────────────────────────
-    $("#arquivo-connectcar").on("change", function () {
+    $("#arquivo-connectcar").on("change", async function () {
         const file = this.files[0];
         $("#erro-upload").addClass("d-none").text("");
         $("#btn-processar-arquivo").prop("disabled", true);
+        hashArquivo = null;
+        nomeArquivo = null;
+
         if (!file) return;
+
         const ext = file.name.split(".").pop().toLowerCase();
         if (!["xlsx", "xls"].includes(ext)) {
             $("#erro-upload").removeClass("d-none").text("Formato inválido. Use .xlsx ou .xls.");
             return;
         }
+
         $(".custom-file-label[for='arquivo-connectcar']").text(file.name);
+        nomeArquivo = file.name;
+
+        try {
+            hashArquivo = await calcularHashArquivo(file);
+        } catch (e) {
+            // Hash opcional — não bloqueia o fluxo
+        }
+
         $("#btn-processar-arquivo").prop("disabled", false);
     });
 
     // ── Processar arquivo ──────────────────────────────────────────────────────
-    $("#btn-processar-arquivo").on("click", function () {
+    $("#btn-processar-arquivo").on("click", async function () {
         const file = $("#arquivo-connectcar")[0].files[0];
         if (!file) return;
 
         const $btn = $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Processando...');
+
+        // Verifica hash antes de processar
+        if (hashArquivo) {
+            try {
+                const verificacao = await $.ajax({
+                    url:  ROUTES.verificarHash,
+                    type: "POST",
+                    data: { _token: ROUTES.token, hash: hashArquivo },
+                });
+
+                if (verificacao.existe) {
+                    $btn.prop("disabled", false).html('<i class="fas fa-cogs mr-1"></i> Processar');
+                    Swal.fire({
+                        icon:  "warning",
+                        title: "Arquivo já importado",
+                        html:  "<table class='table table-sm text-left mt-2'>"
+                             + "<tr><td class='text-muted'>Arquivo</td><td><strong>" + verificacao.nm_arquivo + "</strong></td></tr>"
+                             + "<tr><td class='text-muted'>Importado por</td><td><strong>" + verificacao.importado_por + "</strong></td></tr>"
+                             + "<tr><td class='text-muted'>Data</td><td><strong>" + verificacao.importado_em + "</strong></td></tr>"
+                             + "<tr><td class='text-muted'>Registros</td><td><strong>" + verificacao.total_registros + "</strong></td></tr>"
+                             + "<tr><td class='text-muted'>Período</td><td><strong>" + (verificacao.dt_referencia_inicio || "—") + " → " + (verificacao.dt_referencia_fim || "—") + "</strong></td></tr>"
+                             + "</table>",
+                        confirmButtonText: "Entendido",
+                    });
+                    return;
+                }
+            } catch (e) {
+                // Se a verificação falhar, permite continuar (não bloqueia)
+            }
+        }
 
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -585,11 +592,9 @@
                 headersCarregados = headers;
                 dadosCarregados   = data;
 
-                // Volta Tab 2 para disabled ao recarregar arquivo
-                $("#link-tab-mescla").addClass("disabled");
                 $("#link-tab-importar").tab("show");
-
                 $("#modal-upload-connectcar").modal("hide");
+
                 renderTabela(headers, data);
 
             } catch (err) {
@@ -703,38 +708,43 @@
     });
 
     // ── Pré-visualizar Mescla ─────────────────────────────────────────────────
-    $("#btn-previsualizar-mescla").on("click", function () {
-        rowsSelecionados = [];
+    $("#btn-previsualizar-mescla").on("click", async function () {
+        const linhasSelecionadas = [];
         todosOsNos().each(function () {
             if ($(this).find(".chk-linha").is(":checked")) {
-                rowsSelecionados.push(dadosCarregados[parseInt($(this).data("index"))]);
+                linhasSelecionadas.push(dadosCarregados[parseInt($(this).data("index"))]);
             }
         });
 
-        if (!rowsSelecionados.length) {
+        if (!linhasSelecionadas.length) {
             Swal.fire("Atenção", "Selecione ao menos um registro para pré-visualizar.", "warning");
             return;
         }
 
-        const $btn = $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Buscando veículos...');
+        const $btn = $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Salvando...');
 
-        const placas = [...new Set(rowsSelecionados.map(r => String(r[IDX_PLACA]).trim()).filter(Boolean))];
+        try {
+            // Salva as linhas selecionadas no MySQL com st_arquivo = 'S'
+            await $.ajax({
+                url:         ROUTES.importarMysql,
+                type:        "POST",
+                contentType: "application/json",
+                data:        JSON.stringify({
+                    _token:       ROUTES.token,
+                    rows:         linhasSelecionadas,
+                    hash_arquivo: hashArquivo,
+                    nm_arquivo:   nomeArquivo,
+                }),
+            });
 
-        $.ajax({
-            url:  ROUTES.veiculosBatch,
-            type: "POST",
-            data: { _token: ROUTES.token, placas: placas },
-            success: function (mapa) {
-                renderMescla(rowsSelecionados, mapa);
-                $("#link-tab-mescla").removeClass("disabled").tab("show");
-                $btn.prop("disabled", false).html('<i class="fas fa-code-branch mr-1"></i> Pré-visualizar Mescla');
-            },
-            error: function (xhr) {
-                console.error("[CC-Mescla] AJAX error:", xhr.status, xhr.responseText);
-                Swal.fire("Erro", "Não foi possível buscar os veículos no Firebird.", "error");
-                $btn.prop("disabled", false).html('<i class="fas fa-code-branch mr-1"></i> Pré-visualizar Mescla');
-            },
-        });
+            // shown.bs.tab cuida do carregarMescla() ao mudar de tab
+            $("#link-tab-mescla").tab("show");
+
+        } catch (err) {
+            Swal.fire("Erro", "Não foi possível salvar os registros.", "error");
+        }
+
+        $btn.prop("disabled", false).html('<i class="fas fa-code-branch mr-1"></i> Pré-visualizar Mescla');
     });
 
     // ── Preparar dados Tab 2 (Mescla) — DataTable inicializado em shown.bs.tab ──
@@ -745,26 +755,31 @@
         let totalValor = 0, encontrados = 0, naoEncontrados = 0;
 
         rows.forEach(function (row) {
-            const placa    = String(row[IDX_PLACA]  ?? "").trim();
-            const dataFmt  = String(row[IDX_DATA]   ?? "").trim();
-            const tipo     = String(row[IDX_TIPO]   ?? "").trim();
-            const valorRaw = row[IDX_VALOR] ?? 0;
-            const valor    = Math.abs(parseFloat(String(valorRaw).replace(",", ".")) || 0);
-            totalValor    += valor;
+            // row vem do MySQL: { id, nr_placa, dt_despesa (YYYY-MM-DD), ds_observacao, vl_consumido, st_importado_fb }
+            const placa = String(row.nr_placa || "").trim();
+            const valor = Math.abs(parseFloat(row.vl_consumido) || 0);
+            totalValor += valor;
 
-            const veiculo = mapa[placa];
-            const achado  = !!veiculo;
+            // Converte YYYY-MM-DD → dd/mm/yyyy para exibição
+            const [yyyy, mm, dd] = String(row.dt_despesa || "").split("-");
+            const dataFormatada  = dd && mm && yyyy ? dd + "/" + mm + "/" + yyyy : row.dt_despesa || "";
+
+            const veiculo  = mapa[placa];
+            const achado   = !!veiculo;
+            const importado = row.st_importado_fb === "S";
             achado ? encontrados++ : naoEncontrados++;
 
             dadosMescla.push({
+                comprovante_id: row.id,
                 placa,
-                marcaModelo:  achado ? (veiculo.marca + " " + veiculo.modelo).trim() || "—" : "—",
-                cdMotorista:  achado ? (veiculo.cd_motorista ?? "—") : "—",
-                nmMotorista:  achado ? (veiculo.nm_motorista || "—") : "—",
-                dataFormatada: dataFmt,
-                tipo,
+                marcaModelo:   achado ? (veiculo.marca + " " + veiculo.modelo).trim() || "—" : "—",
+                cdMotorista:   achado ? (veiculo.cd_motorista ?? "—") : "—",
+                nmMotorista:   achado ? (veiculo.nm_motorista || "—") : "—",
+                dataFormatada,
+                tipo:          row.ds_observacao || "—",
                 valor,
                 achado,
+                importado,
             });
         });
 
@@ -781,12 +796,108 @@
         $("#filtro-mescla-motorista, #filtro-mescla-tipo").val("");
         $("#filtro-mescla-status").val("");
         $("#area-tabela-mescla, #resumo-mescla, #footer-tab2, #card-filtros-mescla").removeClass("d-none");
-        // DataTable inicializado em shown.bs.tab para garantir dimensões corretas
+
+        if (dtMescla) { dtMescla.destroy(); dtMescla = null; }
+
+        dtMescla = $("#tabela-mescla-connectcar").DataTable({
+            data: dadosMescla,
+            columns: [
+                { data: null, orderable: false, searchable: false, className: "text-center", width: "40px",
+                  render: (_, __, row) => {
+                    if (row.importado) return '<input type="checkbox" class="chk-mescla" disabled title="Já importado para o Firebird">';
+                    if (!row.achado)   return '<input type="checkbox" class="chk-mescla" disabled title="Placa não encontrada no Firebird">';
+                    return '<input type="checkbox" class="chk-mescla">';
+                  }},
+                { data: "placa",         title: "Placa" },
+                { data: "marcaModelo",   title: "Marca / Modelo" },
+                { data: "cdMotorista",   title: "Cód.", className: "text-center" },
+                { data: "nmMotorista",   title: "Motorista" },
+                { data: "dataFormatada", title: "Data" },
+                { data: "tipo",          title: "Tipo" },
+                { data: "valor",         title: "Valor", className: "text-right",
+                  render: (v, type) => type === "display"
+                    ? v.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : v },
+                { data: null, title: "Status", className: "text-center",
+                  render: (_, __, row) => row.importado
+                    ? '<span class="badge badge-secondary">Já importado</span>'
+                    : row.achado
+                        ? '<span class="badge badge-success">Encontrado</span>'
+                        : '<span class="badge badge-warning">Não encontrado</span>' },
+            ],
+            rowCallback: function (row, rowData) {
+                if (rowData.importado)    $(row).addClass("table-secondary");
+                else if (!rowData.achado) $(row).addClass("table-warning");
+            },
+            footerCallback: function () {
+                const api   = this.api();
+                const total = api.column(7, { search: "applied" }).data().reduce((s, v) => s + v, 0);
+                $(api.column(7).footer()).html(
+                    "Total: <strong>" + total.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + "</strong>"
+                );
+            },
+            initComplete: function () { atualizarContadorMescla(); },
+            paging: false, ordering: false, searching: true, info: false,
+            scrollY: "380px", scrollX: true, scrollCollapse: true, dom: "t",
+            language: { url: ROUTES.dtLanguage },
+        });
     }
 
-    // ── Voltar para Tab 1 ─────────────────────────────────────────────────────
+    // ── Carrega Tab 2 do MySQL + Firebird (chamada ao mostrar a tab) ──────────
+    async function carregarMescla() {
+        if (dtMescla) { dtMescla.destroy(); dtMescla = null; }
+        dadosMescla = [];
+
+        $("#area-tabela-mescla, #resumo-mescla, #footer-tab2, #card-filtros-mescla").addClass("d-none");
+        $("#tabela-mescla-connectcar tbody").html(
+            '<tr><td colspan="9" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando registros...</td></tr>'
+        );
+        $("#area-tabela-mescla").removeClass("d-none");
+
+        try {
+            const comprovantes = await $.getJSON(ROUTES.comprovantesParaMescla);
+
+            if (!comprovantes.length) {
+                $("#tabela-mescla-connectcar tbody").html(
+                    '<tr><td colspan="9" class="text-center py-4 text-muted">Nenhum registro encontrado.</td></tr>'
+                );
+                return;
+            }
+
+            const placas = [...new Set(comprovantes.map(c => String(c.nr_placa || "").trim()).filter(Boolean))];
+            const mapa   = await $.ajax({ url: ROUTES.veiculosBatch, type: "POST", data: { _token: ROUTES.token, placas } });
+
+            renderMescla(comprovantes, mapa);
+        } catch (err) {
+            $("#tabela-mescla-connectcar tbody").html(
+                '<tr><td colspan="9" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i> Erro ao carregar registros.</td></tr>'
+            );
+        }
+    }
+
+    // ── Limpa Tab 1 completamente ao voltar (evita duplicatas no MySQL) ────────
+    function resetTab1() {
+        if (dt) { dt.destroy(); dt = null; }
+        dadosCarregados   = [];
+        headersCarregados = [];
+        hashArquivo       = null;
+        nomeArquivo       = null;
+
+        $("#arquivo-connectcar").val("");
+        $(".custom-file-label[for='arquivo-connectcar']").text("Nenhum arquivo selecionado");
+        $("#area-vazia").removeClass("d-none");
+        $("#btn-abrir-upload").addClass("d-none");
+        $("#card-filtros-cc, #toolbar-selecao, #area-tabela, #footer-tab1").addClass("d-none");
+        $("#filtro-cc-placa, #filtro-cc-data, #filtro-cc-tipo, #filtro-cc-valor").val("");
+    }
+
+    // ── Voltar para Tab 1 (botão + clique direto na tab) ─────────────────────
     $("#btn-voltar-tab1").on("click", function () {
+        resetTab1();
         $("#link-tab-importar").tab("show");
+    });
+
+    $("#link-tab-importar").on("click", function () {
+        if (dadosMescla.length) resetTab1();
     });
 
     // ── Select2 — inicialização dos três selects do modal ────────────────────
@@ -981,6 +1092,7 @@
     $("#btn-executar-importacao-fb").on("click", function () {
         const cdEmpresa      = $("#select-empresa-fb").val();
         const cdPessoa       = $("#select-motorista-fb").val();
+        const nmMotorista    = $("#select-motorista-fb option:selected").text().trim();
         const cdTipoConta    = $("#select-tipoconta-fb").val();
         const cdHistorico    = $("#select-historico-fb").val();
         const cdFormaPagto   = $("#select-forma-pagamento-fb").val();
@@ -1014,13 +1126,14 @@
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
-                _token:          ROUTES.token,
-                cd_empresa:      cdEmpresa,
-                cd_pessoa:       cdPessoa,
-                cd_tipoconta:    cdTipoConta,
-                cd_historico:    cdHistorico,
-                cd_forma_pagto:  cdFormaPagto,
-                rows:            rows,
+                _token:         ROUTES.token,
+                cd_empresa:     cdEmpresa,
+                cd_pessoa:      cdPessoa,
+                nm_motorista:   nmMotorista,
+                cd_tipoconta:   cdTipoConta,
+                cd_historico:   cdHistorico,
+                cd_forma_pagto: cdFormaPagto,
+                rows:           rows,
             }),
             success: function (resp) {
                 $("#modal-importar-firebird").modal("hide");
@@ -1036,23 +1149,16 @@
                               + "</ul>"
                             : ""),
                 }).then(function () {
-                    // Desabilita Tab 2 e volta para Tab 1 após importação bem-sucedida
-                    if (!temErros) {
-                        dtMescla = null;
-                        dadosMescla = [];
-                        rowsSelecionados = [];
-                        $("#link-tab-mescla").addClass("disabled");
-                        $("#link-tab-importar").tab("show");
-                    }
+                    carregarMescla();
                 });
-
-                $btn.prop("disabled", false).html('<i class="fas fa-check mr-1"></i> Importar para Firebird');
             },
             error: function (xhr) {
                 const msg = xhr.responseJSON && xhr.responseJSON.message
                     ? xhr.responseJSON.message
                     : "Não foi possível processar a importação.";
                 Swal.fire("Erro", msg, "error");
+            },
+            complete: function () {
                 $btn.prop("disabled", false).html('<i class="fas fa-check mr-1"></i> Importar para Firebird');
             },
         });

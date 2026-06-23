@@ -185,15 +185,12 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
         processing: false,
         serverSide: false,
         destroy: true,
+        autoWidth: false,
         scrollY: "400px",
         scrollCollapse: true,
         pagingType: "simple",
         language: {
             url: window.routes.languageDatatables,
-        },
-        select: {
-            style: "multi",
-            selector: "td:first-child",
         },
         ajax: {
             url: window.routes.detalhesPneusLotePcp,
@@ -207,58 +204,57 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
         columns: [
             {
                 data: null,
-                width: "1%",
-                className: "pl-3 pr-3 text-center",
-                render: function(data, type, row, meta) {
+                width: "30px",
+                className: "text-center",
+                orderable: false,
+                searchable: false,
+                title: '<input type="checkbox" class="dt-select-all-lote-pcp" title="Selecionar todos" style="margin:0;">',
+                render: function(data, type, row) {
                     if (type === 'display') {
-                        var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
-                        return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
+                        return '<input type="checkbox" class="dt-row-checkbox-lote-pcp" data-op="' + row.NR_ORDEM + '" aria-label="Selecionar linha" style="margin:0;">';
                     }
                     return '';
                 },
-                orderable: false,
             },
             {
                 data: "IDEMPRESA",
                 name: "IDEMPRESA",
                 title: "Emp.",
                 className: "no-wrap text-center",
-                width: "5%",
+               
             },
             {
                 data: "NM_PESSOA",
                 name: "NM_PESSOA",
                 title: "Cliente",
-                className: "no-wrap text-center",
-                width: "20%",
+                className: "no-wrap text-center",               
             },
             {
                 data: "NR_PEDIDO",
                 name: "NR_PEDIDO",
                 title: "Pedido",
                 className: "no-wrap text-center",
-                width: "5%",
+               
             },
             {
                 data: "NR_OP",
                 name: "NR_OP",
                 title: "Ordem",
                 className: "no-wrap text-center",
-                width: "5%",
+               
             },
             {
                 data: "DS_ITEM",
                 name: "DS_ITEM",
                 title: "Serviço",
-                className: "no-wrap text-center",
-                width: "20%",
+                className: "no-wrap text-center",               
             },
             {
                 data: "STORDEM",
                 name: "STORDEM",
                 title: "Status",
                 className: "no-wrap text-center",
-                width: "5%",
+               
             },
         ],
         order: [[1, "asc"]],
@@ -325,12 +321,15 @@ $(document).on(
         let tabelaLotePcp = $("#lote-pcp").DataTable();
         let bandaConsumir = $("#bandas-consumir").DataTable();
 
-        let selectedRows = tabelaPneusLotePcp
-            .rows({
-                selected: true,
-            })
-            .data()
-            .toArray();
+        let selectedOpsRemover = [];
+        $(tabelaPneusLotePcp.table().container()).find('.dt-row-checkbox-lote-pcp').filter(function() {
+            return this.checked;
+        }).each(function() {
+            selectedOpsRemover.push(String($(this).data('op')));
+        });
+        let selectedRows = tabelaPneusLotePcp.rows().data().toArray().filter(function(row) {
+            return selectedOpsRemover.includes(String(row.NR_ORDEM));
+        });
 
         if (selectedRows.length === 0) {
             Swal.fire({
@@ -350,7 +349,7 @@ $(document).on(
                 rowData.ST_EXAMEINICIAL === "S"
             ) {
                 possuiFinalizados = true;
-                return false; // interrompe o loop
+                return false;
             }
         });
 
@@ -388,12 +387,15 @@ $(document).on(
         let tabelaLotePcp = $("#lote-pcp").DataTable();
         let bandaConsumir = $("#bandas-consumir").DataTable();
 
-        let selectedRows = tabelaPneusLotePcp
-            .rows({
-                selected: true,
-            })
-            .data()
-            .toArray();
+        let selectedOpsTransferir = [];
+        $(tabelaPneusLotePcp.table().container()).find('.dt-row-checkbox-lote-pcp').filter(function() {
+            return this.checked;
+        }).each(function() {
+            selectedOpsTransferir.push(String($(this).data('op')));
+        });
+        let selectedRows = tabelaPneusLotePcp.rows().data().toArray().filter(function(row) {
+            return selectedOpsTransferir.includes(String(row.NR_ORDEM));
+        });
 
         if (selectedRows.length === 0) {
             Swal.fire({
@@ -453,3 +455,20 @@ $(document).on(
             .modal("show");
     },
 );
+
+// Select all — #table-pneus-lote-pcp
+$(document).on('click', '.dt-select-all-lote-pcp', function(e) {
+    e.stopPropagation();
+    var checked = this.checked;
+    var tabela = $("#table-pneus-lote-pcp").DataTable();
+    tabela.rows().nodes().to$().find('.dt-row-checkbox-lote-pcp').prop('checked', checked);
+});
+
+// Checkbox individual — #table-pneus-lote-pcp
+$(document).on('click', '.dt-row-checkbox-lote-pcp', function(e) {
+    e.stopPropagation();
+    var tabela = $("#table-pneus-lote-pcp").DataTable();
+    var total = tabela.rows().count();
+    var checkedCount = $(tabela.table().container()).find('.dt-row-checkbox-lote-pcp').filter(function() { return this.checked; }).length;
+    $('.dt-select-all-lote-pcp').prop('checked', total > 0 && checkedCount === total);
+});

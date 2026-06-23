@@ -9,14 +9,16 @@ $(document).on("click", ".btn-remover-pneus-lote", function () {
 
 $(document).on("click", ".btn-remover-todos-pneus-lote-pcp", function () {
     let cd_empresa = $(this).data("cd_empresa");
-    let tabela = $("#pneus-lote-pcp-" + cd_empresa).DataTable();
+    let tableId = "pneus-lote-pcp-" + cd_empresa;
+    let tabela = $("#" + tableId).DataTable();
 
-    let selectedRows = tabela
-        .rows({
-            selected: true,
-        })
-        .data()
-        .toArray();
+    let selectedOps = [];
+    $('#' + tableId).closest('.dataTables_wrapper').find('.dt-row-checkbox-pcp:checked').each(function() {
+        selectedOps.push(String($(this).data('op')));
+    });
+    let selectedRows = tabela.rows().data().toArray().filter(function(row) {
+        return selectedOps.includes(String(row.NR_OP));
+    });
 
     removerOrdensLotePCP(selectedRows, tabela);
 });

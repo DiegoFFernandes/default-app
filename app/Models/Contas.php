@@ -16,10 +16,11 @@ class Contas
      */
     public static function importarLote(array $rows, array $opcoes): array
     {
-        $importados = 0;
-        $erros      = [];
+        $importados    = 0;
+        $erros         = [];
+        $idsImportados = [];
 
-        DB::connection('firebird')->transaction(function () use ($rows, $opcoes, &$importados, &$erros) {
+        DB::connection('firebird')->transaction(function () use ($rows, $opcoes, &$importados, &$erros, &$idsImportados) {
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
             foreach ($rows as $row) {
@@ -47,6 +48,10 @@ class Contas
                         'vl_documento'  => (float) ($row['valor'] ?? 0),
                     ]);
 
+                    if (!empty($row['comprovante_id'])) {
+                        $idsImportados[] = (int) $row['comprovante_id'];
+                    }
+
                     $importados++;
                 } catch (\Exception $e) {
                     $erros[] = ($row['placa'] ?? '?') . ': ' . $e->getMessage();
@@ -54,7 +59,7 @@ class Contas
             }
         });
 
-        return compact('importados', 'erros');
+        return compact('importados', 'erros', 'idsImportados');
     }
 
     /**

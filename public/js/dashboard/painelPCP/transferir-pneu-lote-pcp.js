@@ -60,15 +60,20 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
             showConfirmButton: true,
             confirmButtonText: "OK",
         });
-        return;
+        return $.when();
     }
 
-    let selectedRows = tabela
-        .rows({
-            selected: true,
-        })
-        .data()
-        .toArray();
+    var tableId = $(tabela.table().node()).attr('id');
+    var cbClass = tableId === 'table-pneus-lote-pcp' ? '.dt-row-checkbox-lote-pcp' : '.dt-row-checkbox-pcp';
+    var idField = tableId === 'table-pneus-lote-pcp' ? 'NR_ORDEM' : 'NR_OP';
+
+    let selectedOps = [];
+    $(tabela.table().container()).find(cbClass).filter(function() { return this.checked; }).each(function() {
+        selectedOps.push(String($(this).data('op')));
+    });
+    let selectedRows = tabela.rows().data().toArray().filter(function(row) {
+        return selectedOps.includes(String(row[idField]));
+    });
 
     if (selectedRows.length === 0) {
         Swal.fire({
@@ -83,7 +88,7 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
             },
         });
         $("#modal-transferir-lote-pcp").modal("hide");
-        return;
+        return $.when();
     }
 
     return $.ajax({

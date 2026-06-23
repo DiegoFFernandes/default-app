@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Comprovante;
 use App\Models\ComprovanteFoto;
+use App\Models\Contas;
+use App\Models\ImportacaoTerceiro;
 use App\Models\Pessoa;
 use App\Models\User;
-use App\Models\Contas;
 use App\Models\Veiculo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -220,80 +221,123 @@ class DespesaController extends Controller
         return response()->json(Veiculo::findByPlacas($placas));
     }
 
-    public function importarConnectCar()
+    public function getComprovantesParaMescla()
     {
-        $headers = json_decode($this->request->input('headers', '[]'), true);
-        $rows    = json_decode($this->request->input('rows',    '[]'), true);
+        $query = $this->comprovante
+            ->where('tp_despesa', 'PED')
+            ->where('st_arquivo', 'S');
 
-        if (empty($rows)) {
-            return redirect()->route('despesa.connectcar.revisar')
-                ->with('error', 'Nenhum registro recebido para importação.');
+        if (!$this->user->can('ver-status-despesas')) {
+            $query->where('cd_user_lanc', $this->user->id);
         }
 
-        // Índices das colunas no array filtrado (ordem após filtrarColunas)
-        // 0 = placa | 1 = data | 2 = tipo transação | 3 = valor
-        $IDX_PLACA  = 0;
-        $IDX_DATA   = 1;
-        $IDX_TIPO   = 2;
-        $IDX_VALOR  = 3;
+        return response()->json(
+            $query->orderBy('dt_despesa')->get(['id', 'nr_placa', 'dt_despesa', 'ds_observacao', 'vl_consumido', 'st_importado_fb'])
+        );
+    }
 
-        // 1. Extrai placas únicas e busca veículos no Firebird com UMA query
-        $placas   = array_unique(array_filter(array_column($rows, $IDX_PLACA)));
-        $veiculos = Veiculo::findByPlacas(array_values($placas)); // mapa placa => dados
+    public function verificarHashConnectCar()
+    {
+        $hash = trim($this->request->input('hash', ''));
 
-        // 2. Persiste cada linha no comprovante
-        $importados = 0;
-        $erros      = 0;
+        if (!$hash) {
+            return response()->json(['existe' => false]);
+        }
+
+        $importacao = ImportacaoTerceiro::porHash($hash);
+
+        if (!$importacao) {
+            return response()->json(['existe' => false]);
+        }
+
+        return response()->json([
+            'existe'               => true,
+            'nm_arquivo'           => $importacao->nm_arquivo,
+            'total_registros'      => $importacao->total_registros,
+            'dt_referencia_inicio' => $importacao->dt_referencia_inicio?->format('d/m/Y'),
+            'dt_referencia_fim'    => $importacao->dt_referencia_fim?->format('d/m/Y'),
+            'importado_por'        => $importacao->user->name ?? '—',
+            'importado_em'         => $importacao->created_at->format('d/m/Y H:i'),
+        ]);
+    }
+
+    public function importarConnectCar()
+    {
+        $rows       = $this->request->input('rows', []);
+        $hash       = trim($this->request->input('hash_arquivo', ''));
+        $nmArquivo  = trim($this->request->input('nm_arquivo', ''));
+
+        if (empty($rows)) {
+            return response()->json(['error' => 'Nenhum registro recebido.'], 422);
+        }
+
+        // 0 = placa | 1 = data | 2 = tipo | 3 = valor
+        $IDX_PLACA = 0;
+        $IDX_DATA  = 1;
+        $IDX_TIPO  = 2;
+        $IDX_VALOR = 3;
+
+        $ids   = [];
+        $datas = [];
 
         foreach ($rows as $row) {
             try {
-                $placa     = trim($row[$IDX_PLACA]  ?? '');
-                $dtRaw     = trim($row[$IDX_DATA]   ?? '');
-                $tipo      = trim($row[$IDX_TIPO]   ?? '');
-                $valorRaw  = $row[$IDX_VALOR] ?? 0;
+                $placa    = trim($row[$IDX_PLACA] ?? '');
+                $dtRaw    = trim($row[$IDX_DATA]  ?? '');
+                $tipo     = trim($row[$IDX_TIPO]  ?? '');
+                $valor    = abs((float) str_replace(',', '.', $row[$IDX_VALOR] ?? 0));
 
-                $veiculo      = $veiculos[$placa] ?? null;
-                $cdMotorista  = $veiculo['cd_motorista'] ?? null;
-
-                $valor = abs((float) str_replace(',', '.', $valorRaw));
-
-                // Tenta parsear a data — ConnectCar usa dd/mm/yyyy ou yyyy-mm-dd
                 try {
                     $dtDespesa = Carbon::createFromFormat('d/m/Y', $dtRaw)->format('Y-m-d');
                 } catch (\Exception) {
                     $dtDespesa = Carbon::parse($dtRaw)->format('Y-m-d');
                 }
 
-                $this->comprovante->create([
-                    'cd_user_lanc'  => $this->user->id,
-                    'tp_despesa'    => 'PED',
-                    'nm_solicitante'=> null,
-                    'vl_consumido'  => $valor,
-                    'ds_observacao' => $tipo,
-                    'st_visto'      => 'N',
-                    'dt_despesa'    => $dtDespesa,
-                    'nr_placa'      => $placa,
-                    'km'            => null,
-                    'cd_pessoa'     => null,
+                $datas[] = $dtDespesa;
+
+                $comprovante = $this->comprovante->create([
+                    'cd_user_lanc'    => $this->user->id,
+                    'tp_despesa'      => 'PED',
+                    'vl_consumido'    => $valor,
+                    'ds_observacao'   => $tipo,
+                    'st_visto'        => 'N',
+                    'st_importado_fb' => 'N',
+                    'st_arquivo'      => 'S',
+                    'dt_despesa'      => $dtDespesa,
+                    'nr_placa'        => $placa,
                 ]);
 
-                $importados++;
+                $ids[] = $comprovante->id;
             } catch (\Exception) {
-                $erros++;
+                $ids[] = null;
             }
         }
 
-        $msg = "Importação concluída: {$importados} registro(s) importado(s).";
-        if ($erros > 0) {
-            $msg .= " {$erros} linha(s) com erro foram ignoradas.";
+        // Registra o hash assim que o arquivo é processado (independente do Firebird)
+        if ($hash) {
+            sort($datas);
+            try {
+                ImportacaoTerceiro::registrar([
+                    'hash_arquivo'         => $hash,
+                    'nm_arquivo'           => $nmArquivo ?: 'desconhecido',
+                    'cd_empresa'           => null,
+                    'cd_usuario'           => $this->user->id,
+                    'total_registros'      => count(array_filter($ids)),
+                    'dt_referencia_inicio' => $datas[0]                ?? null,
+                    'dt_referencia_fim'    => end($datas) ?: null,
+                ]);
+            } catch (\Exception) {
+                // Hash duplicado ou erro não-crítico — não aborta o processamento
+            }
         }
 
-        return redirect()->route('despesa.index')->with('success', $msg);
+        return response()->json(['success' => true, 'ids' => $ids]);
     }
 
     public function importarConnectCarFirebird()
     {
-        $rows = (array) $this->request->input('rows', []);
+        $rows       = (array)  $this->request->input('rows', []);
+        $cdEmpresa  = (int)    $this->request->input('cd_empresa');
 
         if (empty($rows)) {
             return response()->json(['error' => 'Nenhum registro para importar.'], 422);
@@ -301,7 +345,7 @@ class DespesaController extends Controller
 
         try {
             $resultado = Contas::importarLote($rows, [
-                'cd_empresa'    => (int)    $this->request->input('cd_empresa'),
+                'cd_empresa'    => $cdEmpresa,
                 'cd_pessoa'     => (int)    $this->request->input('cd_pessoa'),
                 'cd_tipoconta'  => (int)    $this->request->input('cd_tipoconta'),
                 'cd_historico'  => (int)    $this->request->input('cd_historico'),
@@ -314,14 +358,25 @@ class DespesaController extends Controller
             ], 500);
         }
 
-        $importados = $resultado['importados'];
-        $erros      = $resultado['erros'];
+        $importados    = $resultado['importados'];
+        $erros         = $resultado['erros'];
+        $idsImportados = $resultado['idsImportados'] ?? [];
+
+        if (!empty($idsImportados)) {
+            $this->comprovante->whereIn('id', $idsImportados)->update([
+                'st_importado_fb' => 'S',
+                'st_visto'        => 'S',
+                'cd_pessoa'       => (int) $this->request->input('cd_pessoa'),
+                'nm_solicitante'  => trim($this->request->input('nm_motorista', '')),
+            ]);
+        }
 
         return response()->json([
-            'success'    => true,
-            'importados' => $importados,
-            'erros'      => $erros,
-            'message'    => $importados . ' registro(s) importado(s) com sucesso.'
+            'success'        => true,
+            'importados'     => $importados,
+            'erros'          => $erros,
+            'ids_importados' => $idsImportados,
+            'message'        => $importados . ' registro(s) importado(s) com sucesso.'
                 . (count($erros) ? ' ' . count($erros) . ' erro(s).' : ''),
         ]);
     }
