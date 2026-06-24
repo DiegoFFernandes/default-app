@@ -2,6 +2,16 @@ var table_carcaca_itens;
 var itensCarcacaTable = [];
 var selectedIds = new Set();
 
+function updateCarcacasBadge() {
+    var count = selectedIds.size;
+    var $badge = $(".carcacas-count-badge");
+    if (count > 0) {
+        $badge.text(count + " selecionada" + (count > 1 ? "s" : "")).show();
+    } else {
+        $badge.hide();
+    }
+}
+
 initSelect2Pessoa("#pessoa", window.routes.searchPessoa, "#modal-criar-pedido");
 
 $("#btn-add-carcaca").on("click", function () {
@@ -74,6 +84,7 @@ function initTableCarcaca() {
         table_carcaca_itens.destroy();
     }
     selectedIds.clear();
+    updateCarcacasBadge();
 
     let columns = [
         {
@@ -298,7 +309,7 @@ function renderNivel3(Nivel4Key) {
         </li>`;
 }
 
-function deleteOrDown(status, id) {
+function deleteOrDown(status, id, clearOnSuccess = false) {
     const config = verificaStatus(status);
 
     Swal.fire({
@@ -325,6 +336,10 @@ function deleteOrDown(status, id) {
                         $("#modal-add-carcaca").modal("hide");
                         $("#estoque-carcacas").DataTable().ajax.reload();
                         $("#estoque-carcacas-baixas").DataTable().ajax.reload();
+                        if (clearOnSuccess) {
+                            selectedIds.clear();
+                            updateCarcacasBadge();
+                        }
                         Swal.fire({
                             icon: "success",
                             title: config.swalSuccessText,
@@ -557,6 +572,7 @@ $(document).on("click", ".dt-row-checkbox", function (e) {
     } else {
         selectedIds.delete(id);
     }
+    updateCarcacasBadge();
 });
 
 $(document).on("click", "#btn-baixar-todos", function () {
@@ -571,7 +587,7 @@ $(document).on("click", "#btn-baixar-todos", function () {
         return;
     }
 
-    deleteOrDown("B", id);
+    deleteOrDown("B", id, true);
 });
 
 $(document).on("click", "#btn-transferir-todos", function () {
@@ -606,6 +622,8 @@ $(document).on("click", "#btn-transferir-carcaca", function () {
             if (response.success) {
                 $("#modal-transferir-carcaca").modal("hide");
                 $("#estoque-carcacas").DataTable().ajax.reload();
+                selectedIds.clear();
+                updateCarcacasBadge();
                 Swal.fire({
                     icon: "success",
                     title: "Carcaças transferidas com sucesso!",
@@ -764,6 +782,8 @@ $(document).on("click", "#btn-confirmar-pedido", function () {
                 $(".loading-card").addClass("invisible");
                 $("#modal-criar-pedido").modal("hide");
                 $("#estoque-carcacas").DataTable().ajax.reload();
+                selectedIds.clear();
+                updateCarcacasBadge();
                 Swal.fire({
                     icon: "success",
                     title:
