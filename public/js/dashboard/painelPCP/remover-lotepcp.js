@@ -13,12 +13,16 @@ $(document).on("click", ".btn-remover-todos-pneus-lote-pcp", function () {
     let tabela = $("#" + tableId).DataTable();
 
     let selectedOps = [];
-    $('#' + tableId).closest('.dataTables_wrapper').find('.dt-row-checkbox-pcp:checked').each(function() {
+    $(tabela.table().container()).find('.dt-row-checkbox-pcp').filter(function() {
+        return this.checked;
+    }).each(function() {
         selectedOps.push(String($(this).data('op')));
     });
     let selectedRows = tabela.rows().data().toArray().filter(function(row) {
-        return selectedOps.includes(String(row.NR_OP));
+        return selectedOps.includes(String(row.NR_ORDEM));
     });
+
+    console.log(selectedRows);
 
     removerOrdensLotePCP(selectedRows, tabela);
 });
@@ -107,6 +111,11 @@ function confirmRemoverPneusLote(
                             showConfirmButton: true,
                             confirmButtonText: "OK",
                         });
+                        var tId = $(tabelaPrincipal.table().node()).attr('id');
+                        if (tId && tId.startsWith('pneus-lote-pcp-')) {
+                            $(tabelaPrincipal.table().container()).find('.dt-row-checkbox-pcp, .dt-select-all-pcp').prop('checked', false);
+                            $('#pcp-count-badge-' + tId.replace('pneus-lote-pcp-', '')).hide();
+                        }
                         tabelaPrincipal.ajax.reload();
 
                         tabelasRelacionadas.forEach(

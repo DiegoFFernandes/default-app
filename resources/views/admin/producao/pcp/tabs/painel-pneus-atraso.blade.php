@@ -8,18 +8,19 @@
             </table>
         </div>
         @if (auth()->user()->hasPermissionTo('editar-pneus-lote-pcp'))
-            <div class="card-footer">
-                <div class="pt-1">
-                    <button class="btn btn-danger btn-xs mb-1 btn-remover-todos-pneus-lote-pcp"
+            <div class="card-footer py-2">
+                <div class="d-flex align-items-center" style="gap:6px;">
+                    <button class="btn btn-danger btn-xs btn-remover-todos-pneus-lote-pcp"
                         data-cd_empresa="{{ $emp->CD_EMPRESA }}">
-                        <i class="fa fa-trash"></i>
-                        Remover Todos
+                        <i class="fa fa-trash"></i> Remover Todos
                     </button>
-                    <button class="btn btn-primary btn-xs mb-1 btn-transferir-todos-pneus-lote-pcp"
+                    <button class="btn btn-primary btn-xs btn-transferir-todos-pneus-lote-pcp"
                         data-cd_empresa="{{ $emp->CD_EMPRESA }}">
-                        <i class="fa fa-exchange-alt"></i>
-                        Transferir Todos
+                        <i class="fa fa-exchange-alt"></i> Transferir Todos
                     </button>
+                    <span class="badge badge-warning pcp-count-badge"
+                          id="pcp-count-badge-{{ $emp->CD_EMPRESA }}"
+                          style="display:none; font-size:0.8rem;"></span>
                 </div>
             </div>
         @endif

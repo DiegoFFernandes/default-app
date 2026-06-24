@@ -456,19 +456,32 @@ $(document).on(
     },
 );
 
+function updateLotePcpBadge(count) {
+    var $badge = $('#pcp-count-badge-lote-pcp');
+    if (count > 0) {
+        $badge.text(count + ' selecionado' + (count > 1 ? 's' : '')).show();
+    } else {
+        $badge.hide();
+    }
+}
+
 // Select all — #table-pneus-lote-pcp
 $(document).on('click', '.dt-select-all-lote-pcp', function(e) {
     e.stopPropagation();
     var checked = this.checked;
     var tabela = $("#table-pneus-lote-pcp").DataTable();
-    tabela.rows().nodes().to$().find('.dt-row-checkbox-lote-pcp').prop('checked', checked);
+    var filteredRows = tabela.rows({ search: 'applied' });
+    filteredRows.nodes().to$().find('.dt-row-checkbox-lote-pcp').prop('checked', checked);
+    var checkedCount = checked ? filteredRows.count() : $(tabela.table().container()).find('.dt-row-checkbox-lote-pcp').filter(function() { return this.checked; }).length;
+    updateLotePcpBadge(checkedCount);
 });
 
 // Checkbox individual — #table-pneus-lote-pcp
 $(document).on('click', '.dt-row-checkbox-lote-pcp', function(e) {
     e.stopPropagation();
     var tabela = $("#table-pneus-lote-pcp").DataTable();
-    var total = tabela.rows().count();
+    var filteredCount = tabela.rows({ search: 'applied' }).count();
     var checkedCount = $(tabela.table().container()).find('.dt-row-checkbox-lote-pcp').filter(function() { return this.checked; }).length;
-    $('.dt-select-all-lote-pcp').prop('checked', total > 0 && checkedCount === total);
+    $('.dt-select-all-lote-pcp').prop('checked', filteredCount > 0 && checkedCount === filteredCount);
+    updateLotePcpBadge(checkedCount);
 });

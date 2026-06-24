@@ -115,22 +115,36 @@ $(document).on("submit", "#form-adicionar-pneus-lote-pcp", function (e) {
 
     selectedPcpLoteIds.clear();
     $('#tabela-adicionar-pneus-lote-pcp .dt-select-all-pcp-lote').prop('checked', false);
+    $('#pcp-count-badge-adicionar').hide();
 
     $("#div-tabela-adicionar-pneus-lote-pcp").show();
 });
 
 var selectedPcpLoteIds = new Set();
 
-// Select all
+function updateAdicionarLoteBadge() {
+    var count = selectedPcpLoteIds.size;
+    var $badge = $('#pcp-count-badge-adicionar');
+    if (count > 0) {
+        $badge.text(count + ' selecionado' + (count > 1 ? 's' : '')).show();
+    } else {
+        $badge.hide();
+    }
+}
+
+// Select all — opera apenas nas linhas visíveis (filtro ativo)
 $(document).on('click', '.dt-select-all-pcp-lote', function(e) {
     e.stopPropagation();
     var tabela = $("#tabela-adicionar-pneus-lote-pcp").DataTable();
-    var checked = $(this).is(':checked');
-    selectedPcpLoteIds.clear();
-    tabela.rows().nodes().to$().find('.dt-row-checkbox-pcp-lote').prop('checked', checked);
+    var checked = this.checked;
+    var filteredRows = tabela.rows({ search: 'applied' });
+    // Desmarca as linhas filtradas do Set antes de recalcular
+    filteredRows.data().each(function(row) { selectedPcpLoteIds.delete(row.NR_ORDEM); });
+    filteredRows.nodes().to$().find('.dt-row-checkbox-pcp-lote').prop('checked', checked);
     if (checked) {
-        tabela.rows().data().each(function(row) { selectedPcpLoteIds.add(row.NR_ORDEM); });
+        filteredRows.data().each(function(row) { selectedPcpLoteIds.add(row.NR_ORDEM); });
     }
+    updateAdicionarLoteBadge();
 });
 
 // Checkbox individual
@@ -138,14 +152,16 @@ $(document).on('click', '.dt-row-checkbox-pcp-lote', function(e) {
     e.stopPropagation();
     var ordem = $(this).data('ordem');
     if (!ordem) return;
-    if ($(this).is(':checked')) {
+    if (this.checked) {
         selectedPcpLoteIds.add(ordem);
     } else {
         selectedPcpLoteIds.delete(ordem);
     }
     var tabela = $("#tabela-adicionar-pneus-lote-pcp").DataTable();
-    var total = tabela.rows().count();
-    $('.dt-select-all-pcp-lote').prop('checked', total > 0 && selectedPcpLoteIds.size === total);
+    var filteredCount = tabela.rows({ search: 'applied' }).count();
+    var checkedCount = $(tabela.table().container()).find('.dt-row-checkbox-pcp-lote').filter(function() { return this.checked; }).length;
+    $('.dt-select-all-pcp-lote').prop('checked', filteredCount > 0 && checkedCount === filteredCount);
+    updateAdicionarLoteBadge();
 });
 
 $(document).on("click", "#btn-salvar-pneus-lote-pcp", function (e) {

@@ -16,14 +16,14 @@
                 </table>
             </div>
             @if (auth()->user()->hasPermissionTo('editar-pneus-lote-pcp'))
-                <div class="modal-footer">
-                    <button class="btn btn-danger btn-xs mb-1 btn-remover-todos-pneus-lote-pcp-detalhes">
-                        <i class="fa fa-trash"></i>
-                        Remover Todos
+                <div class="modal-footer d-flex align-items-center justify-content-end" style="gap:6px;">
+                    <span class="badge badge-warning" id="pcp-count-badge-lote-pcp"
+                        style="display:none; font-size:0.8rem;"></span>
+                    <button class="btn btn-danger btn-xs btn-remover-todos-pneus-lote-pcp-detalhes">
+                        <i class="fa fa-trash"></i> Remover Todos
                     </button>
-                    <button class="btn btn-primary btn-xs mb-1 btn-transferir-todos-pneus-lote-pcp-detalhes">
-                        <i class="fa fa-exchange-alt"></i>
-                        Transferir Todos
+                    <button class="btn btn-primary btn-xs btn-transferir-todos-pneus-lote-pcp-detalhes">
+                        <i class="fa fa-exchange-alt"></i> Transferir Todos
                     </button>
                 </div>
             @endif

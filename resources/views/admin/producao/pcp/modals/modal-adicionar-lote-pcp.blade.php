@@ -54,7 +54,7 @@
                     </div>
 
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer">                   
                     <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal">Fechar</button>
                     <button type="submit" class="btn btn-primary btn-xs" id="btn-adicionar-lote-pcp">Salvar</button>
                 </div>

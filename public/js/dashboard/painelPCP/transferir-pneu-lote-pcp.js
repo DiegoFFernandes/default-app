@@ -63,17 +63,29 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
         return $.when();
     }
 
-    var tableId = $(tabela.table().node()).attr('id');
-    var cbClass = tableId === 'table-pneus-lote-pcp' ? '.dt-row-checkbox-lote-pcp' : '.dt-row-checkbox-pcp';
-    var idField = tableId === 'table-pneus-lote-pcp' ? 'NR_ORDEM' : 'NR_OP';
+    var tableId = $(tabela.table().node()).attr("id");
+    var cbClass =
+        tableId === "table-pneus-lote-pcp"
+            ? ".dt-row-checkbox-lote-pcp"
+            : ".dt-row-checkbox-pcp";
+    var idField = "NR_ORDEM";
 
     let selectedOps = [];
-    $(tabela.table().container()).find(cbClass).filter(function() { return this.checked; }).each(function() {
-        selectedOps.push(String($(this).data('op')));
-    });
-    let selectedRows = tabela.rows().data().toArray().filter(function(row) {
-        return selectedOps.includes(String(row[idField]));
-    });
+    $(tabela.table().container())
+        .find(cbClass)
+        .filter(function () {
+            return this.checked;
+        })
+        .each(function () {
+            selectedOps.push(String($(this).data("op")));
+        });
+    let selectedRows = tabela
+        .rows()
+        .data()
+        .toArray()
+        .filter(function (row) {
+            return selectedOps.includes(String(row[idField]));
+        });
 
     if (selectedRows.length === 0) {
         Swal.fire({
@@ -94,6 +106,15 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
     return $.ajax({
         type: "POST",
         url: window.routes.transferirPneusLotePcp,
+        beforeSend: function () {
+            Swal.fire({
+                title: "Transferindo pneus no lote...",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+        },
         data: {
             _token: window.routes.token,
             empresa: cd_empresa,
@@ -101,6 +122,7 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
             ordens_producao: selectedRows,
         },
         success: function (response) {
+            Swal.close();
             if (response.success) {
                 Swal.fire({
                     icon: "success",
@@ -114,6 +136,17 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
                     },
                 });
                 $("#modal-transferir-lote-pcp").modal("hide");
+                // Zera checkboxes e badge do contador
+                $(tabela.table().container())
+                    .find(cbClass)
+                    .prop("checked", false);
+                $(tabela.table().container())
+                    .find(".dt-select-all-pcp, .dt-select-all-lote-pcp")
+                    .prop("checked", false);
+                if (tableId !== "table-pneus-lote-pcp") {
+                    var empresa = tableId.replace("pneus-lote-pcp-", "");
+                    $("#pcp-count-badge-" + empresa).hide();
+                }
                 tabela.ajax.reload(); // recarrega a tabela sem resetar a paginação
             } else {
                 Swal.fire({
@@ -130,6 +163,7 @@ function confirmTransferenciaPneus(cd_empresa, nr_lote_novo, tabela) {
             }
         },
         error: function (xhr, status, error) {
+            Swal.close();
             Swal.fire({
                 icon: "error",
                 title: "Erro na requisição.",

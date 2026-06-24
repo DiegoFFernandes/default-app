@@ -60,13 +60,15 @@
                         </div>
                     </div>
                     <div class="card-footer p-1">
-                        <div class="col-md-12 text-right">
-                            <button type="submit" class="btn btn-warning btn-xs w-10" id="btn-salvar-pneus-lote-pcp">
+                        <div class="d-flex align-items-center justify-content-end" style="gap:8px;">
+                            <span class="badge badge-warning" id="pcp-count-badge-adicionar"
+                                style="display:none; font-size:0.8rem;"></span>
+                            <button type="submit" class="btn btn-warning btn-xs" id="btn-salvar-pneus-lote-pcp">
                                 Adicionar ao Lote</button>
                         </div>
                     </div>
                 </div>
-            </div>        
+            </div>
 
         </div>
     </div>

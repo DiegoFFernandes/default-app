@@ -5,10 +5,7 @@ $(document).on("click", "#tab-substituir-comissao", function () {
 });
 
 $(document).on("click", "#btn-substituir-comissao", function () {
-    var pedidosSelecionados = tableSubstituirComissao
-        .rows({ selected: true })
-        .data()
-        .toArray();
+    var pedidosSelecionados = getComissaoSelecionados();
 
     if (pedidosSelecionados.length === 0) {
         Swal.fire({
@@ -65,10 +62,7 @@ $(document).on("click", "#btn-substituir-comissao", function () {
 });
 
 $(document).on("click", "#btn-manter-comissao", function () {
-    var pedidosSelecionados = tableSubstituirComissao
-        .rows({ selected: true })
-        .data()
-        .toArray();
+    var pedidosSelecionados = getComissaoSelecionados();
 
     if (pedidosSelecionados.length === 0) {
         Swal.fire({
@@ -124,6 +118,48 @@ $(document).on("click", "#btn-manter-comissao", function () {
     });
 });
 
+function updateComissaoBadge() {
+    if (!tableSubstituirComissao) return;
+    var count = $(tableSubstituirComissao.table().container()).find('.dt-row-checkbox-comissao').filter(function() { return this.checked; }).length;
+    var $badge = $('.comissao-count-badge');
+    if (count > 0) {
+        $badge.text(count + ' selecionado' + (count > 1 ? 's' : '')).show();
+    } else {
+        $badge.hide();
+    }
+}
+
+function getComissaoSelecionados() {
+    var lancamentos = [];
+    $(tableSubstituirComissao.table().container()).find('.dt-row-checkbox-comissao').filter(function() {
+        return this.checked;
+    }).each(function() {
+        lancamentos.push(String($(this).data('lancamento')));
+    });
+    return tableSubstituirComissao.rows().data().toArray().filter(function(row) {
+        return lancamentos.includes(String(row.NR_LANCAMENTO));
+    });
+}
+
+// Select all
+$(document).on('click', '.dt-select-all-comissao', function(e) {
+    e.stopPropagation();
+    var checked = this.checked;
+    if (!tableSubstituirComissao) return;
+    tableSubstituirComissao.rows().nodes().to$().find('.dt-row-checkbox-comissao').prop('checked', checked);
+    updateComissaoBadge();
+});
+
+// Checkbox individual
+$(document).on('click', '.dt-row-checkbox-comissao', function(e) {
+    e.stopPropagation();
+    if (!tableSubstituirComissao) return;
+    var total = tableSubstituirComissao.rows().count();
+    var checkedCount = $(tableSubstituirComissao.table().container()).find('.dt-row-checkbox-comissao').filter(function() { return this.checked; }).length;
+    $('.dt-select-all-comissao').prop('checked', total > 0 && checkedCount === total);
+    updateComissaoBadge();
+});
+
 function initTableSubstituirComissao() {
     // if (!$.fn.DataTable.isDataTable("#table-substituir-comissao")) {
     $("#table-substituir-comissao").DataTable().clear().destroy();
@@ -140,17 +176,23 @@ function initTableSubstituirComissao() {
         language: {
             url: window.routes.languageDatatables,
         },
-        select: {
-            style: "multi",
-        },
         ajax: {
             url: window.routes.pedidosComissaoAutomatica,
         },
         columns: [
             {
                 data: null,
-                width: "1%",
-                render: DataTable.render.select(),
+                width: "30px",
+                orderable: false,
+                searchable: false,
+                className: "text-center",
+                title: '<input type="checkbox" class="dt-select-all-comissao" title="Selecionar todos" style="margin:0;">',
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        return '<input type="checkbox" class="dt-row-checkbox-comissao" data-lancamento="' + row.NR_LANCAMENTO + '" aria-label="Selecionar linha" style="margin:0;">';
+                    }
+                    return '';
+                },
             },
             {
                 data: "CD_EMPRESA",

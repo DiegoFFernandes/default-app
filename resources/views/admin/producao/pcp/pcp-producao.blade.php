@@ -134,10 +134,10 @@
                     className: 'text-center',
                     orderable: false,
                     searchable: false,
-                    title: '<input type="checkbox" class="dt-select-all-pcp" title="Selecionar todos" style="margin:0;">',
+                    title: '<input type="checkbox" class="dt-select-all-pcp" data-table="' + idTabela + '" title="Selecionar todos" style="margin:0;">',
                     render: function(data, type, row) {
                         if (type === 'display') {
-                            return '<input type="checkbox" class="dt-row-checkbox-pcp" data-op="' + row.NR_OP + '" aria-label="Selecionar linha" style="margin:0;">';
+                            return '<input type="checkbox" class="dt-row-checkbox-pcp" data-op="' + row.NR_ORDEM + '" aria-label="Selecionar linha" style="margin:0;">';
                         }
                         return '';
                     },
@@ -358,27 +358,45 @@
 
         }
 
-        // Select all
+        function updatePcpBadge(tableId, checkedCount) {
+            var empresa = tableId.replace('pneus-lote-pcp-', '');
+            var $badge = $('#pcp-count-badge-' + empresa);
+            if (checkedCount > 0) {
+                $badge.text(checkedCount + ' selecionado' + (checkedCount > 1 ? 's' : '')).show();
+            } else {
+                $badge.hide();
+            }
+        }
+
+        function getTableIdFromCheckbox($el) {
+            // Com scrollY: checkbox → td → tr → tbody → table#id (dentro do scrollBody)
+            var $t = $el.closest('table[id^="pneus-lote-pcp-"]');
+            return $t.length ? $t.attr('id') : null;
+        }
+
+        // Select all — opera apenas nas linhas visíveis (filtro ativo)
         $(document).on('click', '.dt-select-all-pcp', function(e) {
             e.stopPropagation();
             var checked = this.checked;
-            var $wrapper = $(this).closest('.dataTables_wrapper');
-            if (!$wrapper.length || !$wrapper.attr('id')) return;
-            var tableId = $wrapper.attr('id').replace('_wrapper', '');
+            var tableId = $(this).data('table');
+            if (!tableId) return;
             var tabela = $('#' + tableId).DataTable();
-            tabela.rows().nodes().to$().find('.dt-row-checkbox-pcp').prop('checked', checked);
+            var filteredRows = tabela.rows({ search: 'applied' });
+            filteredRows.nodes().to$().find('.dt-row-checkbox-pcp').prop('checked', checked);
+            var checkedCount = checked ? filteredRows.count() : $(tabela.table().container()).find('.dt-row-checkbox-pcp').filter(function() { return this.checked; }).length;
+            updatePcpBadge(tableId, checkedCount);
         });
 
         // Checkbox individual
         $(document).on('click', '.dt-row-checkbox-pcp', function(e) {
             e.stopPropagation();
-            var $wrapper = $(this).closest('.dataTables_wrapper');
-            if (!$wrapper.length || !$wrapper.attr('id')) return;
-            var tableId = $wrapper.attr('id').replace('_wrapper', '');
+            var tableId = getTableIdFromCheckbox($(this));
+            if (!tableId) return;
             var tabela = $('#' + tableId).DataTable();
-            var total = tabela.rows().count();
-            var checkedCount = tabela.rows().nodes().to$().find('.dt-row-checkbox-pcp').filter(function() { return this.checked; }).length;
-            $wrapper.find('.dt-select-all-pcp').prop('checked', total > 0 && checkedCount === total);
+            var filteredCount = tabela.rows({ search: 'applied' }).count();
+            var checkedCount = $(tabela.table().container()).find('.dt-row-checkbox-pcp').filter(function() { return this.checked; }).length;
+            $(tabela.table().container()).find('.dt-select-all-pcp').prop('checked', filteredCount > 0 && checkedCount === filteredCount);
+            updatePcpBadge(tableId, checkedCount);
         });
     </script>
 @stop
