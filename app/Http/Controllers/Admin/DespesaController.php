@@ -186,16 +186,17 @@ class DespesaController extends Controller
             ->get()
             ->map(function ($c) use ($tipos) {
                 return [
-                    'id'            => $c->id,
-                    'nm_usuario'    => $c->user->name ?? '-',
-                    'tp_despesa'    => $c->tp_despesa,
-                    'nm_despesa'    => $tipos[$c->tp_despesa] ?? $c->tp_despesa,
-                    'vl_consumido'  => number_format($c->vl_consumido, 2, ',', '.'),
-                    'ds_observacao' => $c->ds_observacao ?? '-',
-                    'st_visto'      => $c->st_visto,
-                    'dt_despesa'    => Carbon::parse($c->dt_despesa)->format('d/m/Y'),
-                    'fotos'         => $c->fotos->map(fn($f) => asset('storage/' . $f->path))->values(),
-                    'created_at'    => $c->created_at->format('d/m/Y H:i'),
+                    'id'             => $c->id,
+                    'nm_usuario'     => $c->user->name ?? '-',
+                    'nm_solicitante' => $c->nm_solicitante ?? '—',
+                    'tp_despesa'     => $c->tp_despesa,
+                    'nm_despesa'     => $tipos[$c->tp_despesa] ?? $c->tp_despesa,
+                    'vl_consumido'   => number_format($c->vl_consumido, 2, ',', '.'),
+                    'ds_observacao'  => $c->ds_observacao ?? '-',
+                    'st_visto'       => $c->st_visto,
+                    'dt_despesa'     => Carbon::parse($c->dt_despesa)->format('d/m/Y'),
+                    'fotos'          => $c->fotos->map(fn($f) => asset('storage/' . $f->path))->values(),
+                    'created_at'     => $c->created_at->format('d/m/Y H:i'),
                 ];
             });
 
@@ -225,14 +226,31 @@ class DespesaController extends Controller
     {
         $query = $this->comprovante
             ->where('tp_despesa', 'PED')
-            ->where('st_arquivo', 'S');
+            ->where('st_arquivo', 'S')
+            ->where('st_importado_fb', 'N');
 
         if (!$this->user->can('ver-status-despesas')) {
             $query->where('cd_user_lanc', $this->user->id);
         }
 
         return response()->json(
-            $query->orderBy('dt_despesa')->get(['id', 'nr_placa', 'dt_despesa', 'ds_observacao', 'vl_consumido', 'st_importado_fb'])
+            $query->orderBy('dt_despesa')->get(['id', 'nr_placa', 'dt_despesa', 'ds_observacao', 'vl_consumido'])
+        );
+    }
+
+    public function getComprovantesImportados()
+    {
+        $query = $this->comprovante
+            ->where('tp_despesa', 'PED')
+            ->where('st_arquivo', 'S')
+            ->where('st_importado_fb', 'S');
+
+        if (!$this->user->can('ver-status-despesas')) {
+            $query->where('cd_user_lanc', $this->user->id);
+        }
+
+        return response()->json(
+            $query->orderBy('dt_despesa')->get(['id', 'nr_placa', 'dt_despesa', 'ds_observacao', 'vl_consumido', 'nm_solicitante'])
         );
     }
 

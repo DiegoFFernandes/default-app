@@ -13,7 +13,8 @@ Route::middleware(['auth', 'can:ver-despesas'])->group(function () {
         Route::get('veiculos',           [DespesaController::class, 'searchVeiculos'])->name('despesa.veiculos');
         Route::get('pessoas',            [DespesaController::class, 'searchPessoas'])->name('despesa.pessoas');
         Route::get('connectcar/revisar',             [DespesaController::class, 'revisarConnectCar'])->name('despesa.connectcar.revisar');
-        Route::get('connectcar/comprovantes-mescla', [DespesaController::class, 'getComprovantesParaMescla'])->name('despesa.connectcar.comprovantes-mescla');
+        Route::get('connectcar/comprovantes-mescla',     [DespesaController::class, 'getComprovantesParaMescla'])->name('despesa.connectcar.comprovantes-mescla');
+        Route::get('connectcar/comprovantes-importados', [DespesaController::class, 'getComprovantesImportados'])->name('despesa.connectcar.comprovantes-importados');
         Route::post('connectcar/importar',           [DespesaController::class, 'importarConnectCar'])->name('despesa.connectcar.importar');
         Route::post('connectcar/veiculos-batch',    [DespesaController::class, 'batchVeiculosConnectCar'])->name('despesa.connectcar.veiculos-batch');
         Route::post('connectcar/verificar-hash',    [DespesaController::class, 'verificarHashConnectCar'])->name('despesa.connectcar.verificar-hash');

@@ -19,17 +19,18 @@ function initDataTable() {
         serverSide: false,
         ajax: { url: window.routes.getComprovantes, type: "GET" },
         language: { url: window.routes.languageDatatables },
-        order: [[2, "desc"]],
+        order: [[3, "desc"]],
         columns: [
-            { data: "nm_usuario", title: "Usuário" },
-            { data: "tp_despesa", title: "Tipo", render: renderTipo },
+            { data: "nm_usuario",     title: "Usuário" },
+            { data: "nm_solicitante", title: "Solicitante", defaultContent: "—" },
+            { data: "tp_despesa",     title: "Tipo", render: renderTipo },
             {
                 data: "vl_consumido",
                 title: "Valor",
                 render: (d) => "R$ " + d,
                 className: "text-right",
             },
-            { data: "dt_despesa", title: "Data", className: "text-center" },
+            { data: "dt_despesa",    title: "Data", className: "text-center" },
             { data: "ds_observacao", title: "Observação" },
             {
                 data: "st_visto",
@@ -784,20 +785,24 @@ function initFiltros() {
         tabelaComprovantes.column(0).search(this.value).draw();
     });
 
-    $("#filtro-tipo").on("change", function () {
+    $("#filtro-solicitante").on("keyup", function () {
         tabelaComprovantes.column(1).search(this.value).draw();
     });
 
+    $("#filtro-tipo").on("change", function () {
+        tabelaComprovantes.column(2).search(this.value).draw();
+    });
+
     $("#filtro-visto").on("change", function () {
-        tabelaComprovantes.column(5).search(this.value).draw();
+        tabelaComprovantes.column(6).search(this.value).draw();
     });
 
     $("#filtro-data").on("keyup", function () {
-        tabelaComprovantes.column(3).search(this.value).draw();
+        tabelaComprovantes.column(4).search(this.value).draw();
     });
 
     $("#btn-limpar-filtros").on("click", function () {
-        $("#filtro-usuario, #filtro-data").val("");
+        $("#filtro-usuario, #filtro-solicitante, #filtro-data").val("");
         $("#filtro-tipo, #filtro-visto").val("");
         tabelaComprovantes.columns().search("").draw();
     });

@@ -2,6 +2,10 @@
 
 @section('title', 'Importar Pedágio — ConnectCar')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/info-box-custom.css') }}?v={{ time() }}">
+@endsection
+
 @section('content')
     <section class="content">
         <div class="row">
@@ -21,6 +25,12 @@
                                 <a class="nav-link" id="link-tab-mescla" data-toggle="pill"
                                    href="#tab-mescla" role="tab">
                                     <i class="fas fa-code-branch mr-1"></i> Aguardando Importação
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="link-tab-importados" data-toggle="pill"
+                                   href="#tab-importados" role="tab">
+                                    <i class="fas fa-check-circle mr-1"></i> Importados
                                 </a>
                             </li>
                         </ul>
@@ -47,7 +57,7 @@
                                     <i class="fas fa-file-excel fa-3x mb-3 text-success"></i>
                                     <p class="mb-0">Nenhum arquivo carregado.</p>
                                     <p class="small">Clique em <strong>Carregar arquivo</strong> para selecionar o Excel do ConnectCar.</p>
-                                    <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-abrir-upload-empty">
+                                    <button type="button" class="btn btn-sm btn-success mt-2" id="btn-abrir-upload-empty">
                                         <i class="fas fa-upload mr-1"></i> Carregar arquivo
                                     </button>
                                 </div>
@@ -127,7 +137,7 @@
                                 <div id="resumo-mescla" class="px-3 pt-3 pb-2 d-none">
                                     <div class="row text-center">
                                         <div class="col-4">
-                                            <div class="info-box shadow-none border mb-2">
+                                            <div class="info-box info-box-custom">
                                                 <span class="info-box-icon bg-primary"><i class="fas fa-list"></i></span>
                                                 <div class="info-box-content">
                                                     <span class="info-box-text small">Registros</span>
@@ -136,7 +146,7 @@
                                             </div>
                                         </div>
                                         <div class="col-4">
-                                            <div class="info-box shadow-none border mb-2">
+                                            <div class="info-box info-box-custom">
                                                 <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
                                                 <div class="info-box-content">
                                                     <span class="info-box-text small">Placas encontradas</span>
@@ -145,10 +155,10 @@
                                             </div>
                                         </div>
                                         <div class="col-4">
-                                            <div class="info-box shadow-none border mb-2">
+                                            <div class="info-box info-box-custom">
                                                 <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
                                                 <div class="info-box-content">
-                                                    <span class="info-box-text small">Não encontradas</span>
+                                                    <span class="info-box-text small">Veiculos não encontradas</span>
                                                     <span class="info-box-number" id="resumo-nao-encontrados">0</span>
                                                 </div>
                                             </div>
@@ -188,7 +198,6 @@
                                                     <option value="">Todos</option>
                                                     <option value="Encontrado">Encontrado</option>
                                                     <option value="Não encontrado">Não encontrado</option>
-                                                    <option value="Já importado">Já importado</option>
                                                 </select>
                                             </div>
                                             <div class="col-12 col-md-1 mb-2">
@@ -244,6 +253,98 @@
                                     <button type="button" class="btn btn-sm btn-success" id="btn-confirmar-importacao">
                                         <i class="fas fa-database mr-1"></i> Confirmar Importação
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ── TAB 3: Importados ────────────────────────────────────── --}}
+                        <div class="tab-pane fade" id="tab-importados" role="tabpanel">
+                            <div class="card-body p-0">
+
+                                {{-- Resumo --}}
+                                <div id="resumo-importados" class="px-3 pt-3 pb-2 d-none">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="info-box info-box-custom">
+                                                <span class="info-box-icon bg-primary"><i class="fas fa-list"></i></span>
+                                                <div class="info-box-content">
+                                                    <span class="info-box-text small">Registros</span>
+                                                    <span class="info-box-number" id="resumo-imp-total">0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-box info-box-custom">
+                                                <span class="info-box-icon bg-secondary"><i class="fas fa-dollar-sign"></i></span>
+                                                <div class="info-box-content">
+                                                    <span class="info-box-text small">Total</span>
+                                                    <span class="info-box-number" id="resumo-imp-valor">0,00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Filtros importados --}}
+                                <div id="card-filtros-importados" class="card mx-3 mt-0 mb-0 d-none">
+                                    <div class="card-header py-2">
+                                        <h6 class="card-title pt-2 small"><i class="fas fa-filter mr-1"></i> Filtros</h6>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm" data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body py-2">
+                                        <div class="row align-items-end">
+                                            <div class="col-12 col-md-2 mb-2">
+                                                <label class="small mb-1">Placa</label>
+                                                <select id="filtro-imp-placa" class="form-control form-control-sm">
+                                                    <option value="">Todas</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-4 mb-2">
+                                                <label class="small mb-1">Motorista</label>
+                                                <input type="text" id="filtro-imp-motorista" class="form-control form-control-sm" placeholder="Nome...">
+                                            </div>
+                                            <div class="col-12 col-md-5 mb-2">
+                                                <label class="small mb-1">Tipo</label>
+                                                <input type="text" id="filtro-imp-tipo" class="form-control form-control-sm" placeholder="Passagem...">
+                                            </div>
+                                            <div class="col-12 col-md-1 mb-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary w-100" id="btn-limpar-filtros-imp" title="Limpar">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Tabela importados --}}
+                                <div id="area-tabela-importados" class="px-3 pb-3 d-none">
+                                    <table class="table table-sm table-bordered table-hover mb-0 compact" id="tabela-importados-connectcar">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <th>Placa</th>
+                                                <th>Marca / Modelo</th>
+                                                <th>Motorista</th>
+                                                <th>Data</th>
+                                                <th>Tipo</th>
+                                                <th class="text-right">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot class="thead-light">
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th class="text-right font-weight-bold"></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -377,7 +478,8 @@
     const ROUTES = {
         token:               "{{ csrf_token() }}",
         importarMysql:       "{{ route('despesa.connectcar.importar') }}",
-        comprovantesParaMescla: "{{ route('despesa.connectcar.comprovantes-mescla') }}",
+        comprovantesParaMescla:   "{{ route('despesa.connectcar.comprovantes-mescla') }}",
+        comprovantesImportados:   "{{ route('despesa.connectcar.comprovantes-importados') }}",
         verificarHash:       "{{ route('despesa.connectcar.verificar-hash') }}",
         veiculosBatch:       "{{ route('despesa.connectcar.veiculos-batch') }}",
         importarFirebird: "{{ route('despesa.connectcar.importar-firebird') }}",
@@ -408,6 +510,8 @@
     let dt                = null;
     let dtMescla          = null;
     let dadosMescla       = [];
+    let dtImportados      = null;
+    let dadosImportados   = [];
 
     // ── SHA-256 via Web Crypto API ─────────────────────────────────────────────
     async function calcularHashArquivo(file) {
@@ -435,6 +539,10 @@
     $("#link-tab-mescla").on("shown.bs.tab", function () {
         $("#btn-abrir-upload").addClass("d-none");
         carregarMescla();
+    });
+    $("#link-tab-importados").on("shown.bs.tab", function () {
+        $("#btn-abrir-upload").addClass("d-none");
+        carregarImportados();
     });
 
     // ── Checkboxes Tab 2 (Mescla) ─────────────────────────────────────────────
@@ -752,7 +860,9 @@
         if (dtMescla) { dtMescla.destroy(); dtMescla = null; }
 
         dadosMescla = [];
-        let totalValor = 0, encontrados = 0, naoEncontrados = 0;
+        let totalValor = 0;
+        const placasEncontradas    = new Set();
+        const placasNaoEncontradas = new Set();
 
         rows.forEach(function (row) {
             // row vem do MySQL: { id, nr_placa, dt_despesa (YYYY-MM-DD), ds_observacao, vl_consumido, st_importado_fb }
@@ -764,10 +874,12 @@
             const [yyyy, mm, dd] = String(row.dt_despesa || "").split("-");
             const dataFormatada  = dd && mm && yyyy ? dd + "/" + mm + "/" + yyyy : row.dt_despesa || "";
 
-            const veiculo  = mapa[placa];
-            const achado   = !!veiculo;
-            const importado = row.st_importado_fb === "S";
-            achado ? encontrados++ : naoEncontrados++;
+            const veiculo = mapa[placa];
+            const achado  = !!veiculo;
+
+            if (placa) {
+                achado ? placasEncontradas.add(placa) : placasNaoEncontradas.add(placa);
+            }
 
             dadosMescla.push({
                 comprovante_id: row.id,
@@ -779,13 +891,12 @@
                 tipo:          row.ds_observacao || "—",
                 valor,
                 achado,
-                importado,
             });
         });
 
         $("#resumo-total").text(rows.length);
-        $("#resumo-encontrados").text(encontrados);
-        $("#resumo-nao-encontrados").text(naoEncontrados);
+        $("#resumo-encontrados").text(placasEncontradas.size);
+        $("#resumo-nao-encontrados").text(placasNaoEncontradas.size);
 
         // Popula o select de placa com as placas únicas encontradas na tabela
         const placasUnicas = [...new Set(dadosMescla.map(d => d.placa).filter(Boolean))].sort();
@@ -804,8 +915,7 @@
             columns: [
                 { data: null, orderable: false, searchable: false, className: "text-center", width: "40px",
                   render: (_, __, row) => {
-                    if (row.importado) return '<input type="checkbox" class="chk-mescla" disabled title="Já importado para o Firebird">';
-                    if (!row.achado)   return '<input type="checkbox" class="chk-mescla" disabled title="Placa não encontrada no Firebird">';
+                    if (!row.achado) return '<input type="checkbox" class="chk-mescla" disabled title="Placa não encontrada no Firebird">';
                     return '<input type="checkbox" class="chk-mescla">';
                   }},
                 { data: "placa",         title: "Placa" },
@@ -818,15 +928,12 @@
                   render: (v, type) => type === "display"
                     ? v.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : v },
                 { data: null, title: "Status", className: "text-center",
-                  render: (_, __, row) => row.importado
-                    ? '<span class="badge badge-secondary">Já importado</span>'
-                    : row.achado
-                        ? '<span class="badge badge-success">Encontrado</span>'
-                        : '<span class="badge badge-warning">Não encontrado</span>' },
+                  render: (_, __, row) => row.achado
+                    ? '<span class="badge badge-success">Encontrado</span>'
+                    : '<span class="badge badge-warning">Não encontrado</span>' },
             ],
             rowCallback: function (row, rowData) {
-                if (rowData.importado)    $(row).addClass("table-secondary");
-                else if (!rowData.achado) $(row).addClass("table-warning");
+                if (!rowData.achado) $(row).addClass("table-warning");
             },
             footerCallback: function () {
                 const api   = this.api();
@@ -836,7 +943,7 @@
                 );
             },
             initComplete: function () { atualizarContadorMescla(); },
-            paging: false, ordering: false, searching: true, info: false,
+            paging: false, ordering: true, searching: true, info: false,
             scrollY: "380px", scrollX: true, scrollCollapse: true, dom: "t",
             language: { url: ROUTES.dtLanguage },
         });
@@ -870,6 +977,115 @@
         } catch (err) {
             $("#tabela-mescla-connectcar tbody").html(
                 '<tr><td colspan="9" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i> Erro ao carregar registros.</td></tr>'
+            );
+        }
+    }
+
+    // ── Tab 3: Importados ─────────────────────────────────────────────────────
+    function renderImportados(rows, mapa) {
+        if (dtImportados) { dtImportados.destroy(); dtImportados = null; }
+        dadosImportados = [];
+        let totalValor = 0;
+
+        rows.forEach(function (row) {
+            const placa  = String(row.nr_placa || "").trim();
+            const valor  = Math.abs(parseFloat(row.vl_consumido) || 0);
+            totalValor  += valor;
+
+            const [yyyy, mm, dd] = String(row.dt_despesa || "").split("-");
+            const dataFormatada  = dd && mm && yyyy ? dd + "/" + mm + "/" + yyyy : row.dt_despesa || "";
+
+            const veiculo    = mapa[placa];
+            const marcaModelo = veiculo ? (veiculo.marca + " " + veiculo.modelo).trim() || "—" : "—";
+
+            dadosImportados.push({
+                placa,
+                marcaModelo,
+                nmMotorista:   row.nm_solicitante || "—",
+                dataFormatada,
+                tipo:          row.ds_observacao || "—",
+                valor,
+            });
+        });
+
+        $("#resumo-imp-total").text(rows.length);
+        $("#resumo-imp-valor").text(totalValor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }));
+
+        const placasUnicas = [...new Set(dadosImportados.map(d => d.placa).filter(Boolean))].sort();
+        const $selPlaca = $("#filtro-imp-placa").html('<option value="">Todas</option>');
+        placasUnicas.forEach(p => $selPlaca.append($("<option>", { value: p, text: p })));
+
+        $("#filtro-imp-motorista, #filtro-imp-tipo").val("");
+        $("#resumo-importados, #card-filtros-importados, #area-tabela-importados").removeClass("d-none");
+
+        dtImportados = $("#tabela-importados-connectcar").DataTable({
+            data: dadosImportados,
+            columns: [
+                { data: "placa",         title: "Placa" },
+                { data: "marcaModelo",   title: "Marca / Modelo" },
+                { data: "nmMotorista",   title: "Motorista" },
+                { data: "dataFormatada", title: "Data" },
+                { data: "tipo",          title: "Tipo" },
+                { data: "valor",         title: "Valor", className: "text-right",
+                  render: (v, type) => type === "display"
+                    ? v.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : v },
+            ],
+            rowCallback: function (row) { $(row).addClass("table-secondary"); },
+            footerCallback: function () {
+                const api   = this.api();
+                const total = api.column(5, { search: "applied" }).data().reduce((s, v) => s + v, 0);
+                $(api.column(5).footer()).html(
+                    "Total: <strong>" + total.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + "</strong>"
+                );
+            },
+            paging: false, ordering: false, searching: true, info: false,
+            scrollY: "380px", scrollX: true, scrollCollapse: true, dom: "t",
+            language: { url: ROUTES.dtLanguage },
+        });
+
+        // Filtros
+        $("#filtro-imp-placa").off("change").on("change", function () {
+            dtImportados.column(0).search($(this).val()).draw();
+        });
+        $("#filtro-imp-motorista").off("input").on("input", function () {
+            dtImportados.column(2).search($(this).val()).draw();
+        });
+        $("#filtro-imp-tipo").off("input").on("input", function () {
+            dtImportados.column(4).search($(this).val()).draw();
+        });
+        $("#btn-limpar-filtros-imp").off("click").on("click", function () {
+            $("#filtro-imp-placa").val("").trigger("change");
+            $("#filtro-imp-motorista, #filtro-imp-tipo").val("").trigger("input");
+        });
+    }
+
+    async function carregarImportados() {
+        if (dtImportados) { dtImportados.destroy(); dtImportados = null; }
+        dadosImportados = [];
+
+        $("#resumo-importados, #card-filtros-importados").addClass("d-none");
+        $("#area-tabela-importados").removeClass("d-none");
+        $("#tabela-importados-connectcar tbody").html(
+            '<tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando registros...</td></tr>'
+        );
+
+        try {
+            const registros = await $.getJSON(ROUTES.comprovantesImportados);
+
+            if (!registros.length) {
+                $("#tabela-importados-connectcar tbody").html(
+                    '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro importado ainda.</td></tr>'
+                );
+                return;
+            }
+
+            const placas = [...new Set(registros.map(r => String(r.nr_placa || "").trim()).filter(Boolean))];
+            const mapa   = await $.ajax({ url: ROUTES.veiculosBatch, type: "POST", data: { _token: ROUTES.token, placas } });
+
+            renderImportados(registros, mapa);
+        } catch (err) {
+            $("#tabela-importados-connectcar tbody").html(
+                '<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i> Erro ao carregar registros.</td></tr>'
             );
         }
     }

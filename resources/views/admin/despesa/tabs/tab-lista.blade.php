@@ -95,9 +95,13 @@
             </div>
             <div class="card-body py-2 px-2">
                 <div class="row">
-                    <div class="col-12 col-sm-6 col-md-3 mb-1" id="col-filtro-usuario">
+                    <div class="col-12 col-sm-6 col-md-2 mb-1" id="col-filtro-usuario">
                         <input id="filtro-usuario" type="text" class="form-control form-control-sm"
                             placeholder="Usuário">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3 mb-1">
+                        <input id="filtro-solicitante" type="text" class="form-control form-control-sm"
+                            placeholder="Solicitante">
                     </div>
                     <div class="col-6 col-sm-4 col-md-2 mb-1">
                         <select id="filtro-tipo" class="form-control form-control-sm">
@@ -119,7 +123,7 @@
                         <input id="filtro-data" type="text" class="form-control form-control-sm"
                             placeholder="dd/mm/aaaa">
                     </div>
-                    <div class="col-6 col-sm-4 col-md-2 mb-1 d-flex align-items-center">
+                    <div class="col-6 col-sm-4 col-md-1 mb-1 d-flex align-items-center">
                         <button type="button" class="btn btn-xs btn-secondary btn-block" id="btn-limpar-filtros">
                             <i class="fas fa-times mr-1"></i> Limpar
                         </button>
