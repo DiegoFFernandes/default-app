@@ -75,35 +75,35 @@ class NotasVendedorDivergencia extends Model
 
     public function updateItemVendedorNota(array $notas)
     {
-
         return DB::transaction(function () use ($notas) {
 
             $retorno = [];
 
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
-            foreach ($notas as $nota) {
+            $unique = collect($notas)
+                ->unique(fn($n) => $n['CD_EMPRESA'] . '_' . $n['NR_LANCAMENTO'])
+                ->values();
+
+            foreach ($unique as $nota) {
                 $query = "
                     UPDATE ITEMNOTAVENDEDOR
                     SET CD_VENDEDOR = :cd_vendedor
-                    WHERE NR_LANCAMENTO = :nr_lancamento           
+                    WHERE NR_LANCAMENTO = :nr_lancamento
                         AND CD_EMPRESA = :cd_empresa
-                        
-                    RETURNING
-                    CD_EMPRESA,
-                    NR_LANCAMENTO,                    
-                    CD_VENDEDOR    
                 ";
 
-                $resultado = DB::connection('firebird')->select($query, [
-                    'cd_vendedor' => $nota['CD_VENDEDOR'],
+                DB::connection('firebird')->statement($query, [
+                    'cd_vendedor'   => $nota['CD_VENDEDOR'],
                     'nr_lancamento' => $nota['NR_LANCAMENTO'],
-                    'cd_empresa' => $nota['CD_EMPRESA']
+                    'cd_empresa'    => $nota['CD_EMPRESA'],
                 ]);
 
-                if (!empty($resultado)) {
-                    $retorno[] = $resultado[0];
-                }
+                $retorno[] = (object) [
+                    'CD_EMPRESA'    => $nota['CD_EMPRESA'],
+                    'NR_LANCAMENTO' => $nota['NR_LANCAMENTO'],
+                    'CD_VENDEDOR'   => $nota['CD_VENDEDOR'],
+                ];
             }
 
             return $retorno;

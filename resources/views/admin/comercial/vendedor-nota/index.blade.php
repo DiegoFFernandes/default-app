@@ -109,10 +109,11 @@
                         Swal.fire({
                             icon: 'success',
                             text: response.message,
+                        }).then(function() {
+                            $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor, .dt-select-all-vendedor').prop('checked', false);
+                            updateVendedorNotaBadge(0);
+                            tableNotasVendedorDivergentes.ajax.reload();
                         });
-                        $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor, .dt-select-all-vendedor').prop('checked', false);
-                        updateVendedorNotaBadge(0);
-                        tableNotasVendedorDivergentes.ajax.reload();
                     } else {
                         Swal.fire({
                             icon: 'error',
