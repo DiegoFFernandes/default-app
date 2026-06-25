@@ -57,9 +57,7 @@
         });
 
         $(document).on("click", "#btn-alterar-vendedor", function() {
-            const selectedData = tableNotasVendedorDivergentes.rows({
-                selected: true
-            }).data().toArray();
+            const selectedData = getVendedorNotaSelecionados();
 
             if (selectedData.length === 0) {
                 Swal.fire({
@@ -112,6 +110,8 @@
                             icon: 'success',
                             text: response.message,
                         });
+                        $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor, .dt-select-all-vendedor').prop('checked', false);
+                        updateVendedorNotaBadge(0);
                         tableNotasVendedorDivergentes.ajax.reload();
                     } else {
                         Swal.fire({
@@ -121,16 +121,13 @@
                                 'Ocorreu um erro ao tentar alterar o vendedor das notas selecionadas.',
                         });
                     }
-
                 }
             });
 
         });
 
         $(document).on("click", "#btn-manter-vendedor", function() {
-            const selectedData = tableNotasVendedorDivergentes.rows({
-                selected: true
-            }).data().toArray();
+            const selectedData = getVendedorNotaSelecionados();
 
             if (selectedData.length === 0) {
                 Swal.fire({
@@ -243,40 +240,82 @@
                 Swal.close();
             });
 
+
+
+
+        function updateVendedorNotaBadge(count) {
+            var $badge = $('#vendedor-nota-count-badge');
+            if (count > 0) {
+                $badge.text(count + ' selecionada' + (count > 1 ? 's' : '')).show();
+            } else {
+                $badge.hide();
+            }
+        }
+
+        function getVendedorNotaSelecionados() {
+            var lancamentos = [];
+            $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor').filter(function() {
+                return this.checked;
+            }).each(function() {
+                lancamentos.push(String($(this).data('lancamento')));
+            });
+            return tableNotasVendedorDivergentes.rows().data().toArray().filter(function(row) {
+                return lancamentos.includes(String(row.NR_LANCAMENTO));
+            });
+        }
+
+        $(document).on('click', '.dt-select-all-vendedor', function(e) {
+            e.stopPropagation();
+            var checked = this.checked;
+            if (!tableNotasVendedorDivergentes) return;
+            var filteredRows = tableNotasVendedorDivergentes.rows({ search: 'applied' });
+            filteredRows.nodes().to$().find('.dt-row-checkbox-vendedor').prop('checked', checked);
+            var checkedCount = checked ? filteredRows.count() : 0;
+            updateVendedorNotaBadge(checkedCount);
+        });
+
+        $(document).on('click', '.dt-row-checkbox-vendedor', function(e) {
+            e.stopPropagation();
+            if (!tableNotasVendedorDivergentes) return;
+            var filteredCount = tableNotasVendedorDivergentes.rows({ search: 'applied' }).count();
+            var checkedCount = $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor').filter(function() { return this.checked; }).length;
+            $('.dt-select-all-vendedor').prop('checked', filteredCount > 0 && checkedCount === filteredCount);
+            updateVendedorNotaBadge(checkedCount);
+        });
+
         function initTableNotasVendedorDivergentes() {
             tableNotasVendedorDivergentes = $('#table-notas-vendedores-divergentes').DataTable({
                 processing: false,
                 serverSide: false,
                 searching: true,
-                detroy: true,
+                destroy: true,
+                autoWidth: false,
                 pagingType: "simple",
                 pageLength: 100,
-                scrollY: "400px",
+                scrollY: "300px",
                 scrollCollapse: true,
-                select: {
-                    style: 'multi',
-                    selector: 'td:first-child'
-                },
                 language: {
                     url: window.routes.languageDatatables
                 },
                 ajax: window.routes.notaVendedorDivergentes,
                 columns: [{
                         data: null,
-                        width: "1%",
-                        className: 'pl-3 pr-3 text-center',
-                        render: function(data, type, row, meta) {
+                        width: "30px",
+                        className: 'text-center',
+                        orderable: false,
+                        searchable: false,
+                        title: '<input type="checkbox" class="dt-select-all-vendedor" title="Selecionar todos" style="margin:0;">',
+                        render: function(data, type, row) {
                             if (type === 'display') {
-                                var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
-                                return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
+                                return '<input type="checkbox" class="dt-row-checkbox-vendedor" data-lancamento="' + row.NR_LANCAMENTO + '" aria-label="Selecionar linha" style="margin:0;">';
                             }
                             return '';
-                        },
-                        orderable: false
+                        }
                     },
                     {
                         data: 'actions',
                         name: 'actions',
+                        width: "50px",
                         title: 'Ações',
                         className: 'text-center',
                         orderable: false
@@ -340,7 +379,8 @@
                         className: 'texto-curto'
 
                     },
-                ],               
+                ],
+                "order": [2, 'desc'],
                 drawCallback: function(settings) {
                     let grupoAtual = null;
                     let alternador = false;
@@ -370,6 +410,7 @@
                     });
                 }
             });
+
         }
     </script>
 @stop

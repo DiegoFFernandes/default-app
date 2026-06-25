@@ -2,7 +2,7 @@
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="tab-inserir" data-toggle="tab" href="#pedidos-bloqueados"
-                role="tab">Notas Emitidas</a>
+                role="tab">Notas Divergentes por Vendedor</a>
         </li>        
     </ul>
 </div>

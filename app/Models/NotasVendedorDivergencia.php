@@ -59,7 +59,7 @@ class NotasVendedorDivergencia extends Model
 
         WHERE NOTA.ST_NOTA NOT IN ('C', 'E', 'B')
             AND NOTA.TP_NOTA = 'S'
-            AND NOTA.DT_EMISSAO >= '01.02.2026'
+            AND NOTA.DT_EMISSAO >= '01.03.2026'
             AND IIF(INV.CD_VENDEDOR = COALESCE(NOTA.CD_VENDEDOR, EP.CD_VENDEDOR), 'TRUE', 'FALSE') = 'FALSE'
             AND I.CD_MOVIMENTACAO NOT IN (75)
             --AND I.CD_EMPRESA = 1 
