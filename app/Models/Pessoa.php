@@ -23,13 +23,22 @@ class Pessoa extends Model
 
     public function FindPessoaJunsoftAll($search, $cd_tipopessoa = null)
     {
-        $query = "select first 10 p.cd_pessoa id, 
-                    p.cd_pessoa||'-'||p.nm_pessoa nm_pessoa, p.nr_cnpjcpf, 
-                    p.ds_email, tp.cd_tipopessoa, tp.ds_tipopessoa, ep.nr_celular, ep.cd_vendedor
-                    from pessoa p
-                    inner join tipopessoa tp on (tp.cd_tipopessoa = p.cd_tipopessoa)
-                    inner join enderecopessoa ep on (ep.cd_pessoa = p.cd_pessoa)
-                    where p.st_ativa = 'S'";
+        $query = "
+            SELECT FIRST 10
+                P.CD_PESSOA ID,
+                P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+                P.NR_CNPJCPF,
+                P.DS_EMAIL,
+                TP.CD_TIPOPESSOA,
+                TP.DS_TIPOPESSOA,
+                EP.NR_CELULAR,
+                EP.CD_VENDEDOR
+            FROM PESSOA P
+            INNER JOIN TIPOPESSOA TP ON (TP.CD_TIPOPESSOA = P.CD_TIPOPESSOA)
+            INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA)
+            WHERE
+                P.ST_ATIVA = 'S'   
+        ";
 
         if (isset($cd_tipopessoa)) {
             $query .= " and p.cd_tipopessoa in ($cd_tipopessoa) ";

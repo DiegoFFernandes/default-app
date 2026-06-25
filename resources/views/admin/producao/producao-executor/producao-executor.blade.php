@@ -17,16 +17,16 @@
                                 aria-orientation="vertical">
                                 <a class="nav-link active" id="tab-servicos-ativos" data-toggle="pill"
                                     href="#painel-ativos">
-                                    Serviços Aprovados
+                                    <i class="fas fa-check-circle mr-1"></i> Serviços Aprovados
                                 </a>
                                 <a class="nav-link" id="tab-servicos-recusados" data-toggle="pill" href="#painel-recusados">
-                                    Serviços Recusados
+                                    <i class="fas fa-ban mr-1"></i> Serviços Recusados
                                 </a>
                                 <a class="nav-link" id="tab-retrabalhos" data-toggle="pill" href="#painel-retrabalhos">
-                                    Retrabalhos
+                                    <i class="fas fa-redo-alt mr-1"></i> Retrabalhos
                                 </a>
                                 <a class="nav-link" id="tab-canceladas" data-toggle="pill" href="#painel-canceladas">
-                                    Canceladas
+                                    <i class="fas fa-times-circle mr-1"></i> Canceladas
                                 </a>
                             </div>
                         </div>
@@ -80,12 +80,6 @@
             border-right: none !important;
         }
 
-        #nav-tabs-servicos .nav-link.active {
-            background-color: #e9f2ff;
-            color: #0d6efd;
-            font-weight: 600;
-        }
-
         .nav-tabs .nav-link {
             color: #6c757d;
             padding: 6px 12px;
@@ -94,29 +88,82 @@
         }
 
         .nav-tabs .nav-link:hover {
-            color: #000;
+            color: #343a40;
+            background-color: #f8f9fa;
         }
 
         .nav-tabs .nav-link.active {
-            /* color: #0d6efd; */
             font-weight: 600;
+            color: #343a40;
             border-bottom: 2px solid #0d6efd;
             background: transparent;
         }
 
         #tabs-principais .nav-link.active {
             font-weight: 600;
-            border-right: 2px solid #0d6efd;
-            background: transparent
+            border-right: 3px solid #0d6efd;
+            border-bottom: none;
+            background: #e9f2ff;
+            color: #0d6efd;
+            border-radius: 4px 0 0 4px;
         }
 
-        #nav-tabs-setores .nav-link {
-            padding: 5px 8px;
-            font-size: 12px;
-        }
-
-        #nav-tabs-setores .nav-item {
+        .nav-tabs-setores .nav-item {
             margin-right: 2px;
+        }
+
+        .nav-tabs-setores .nav-link {
+            padding: 5px 10px;
+            font-size: 11px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tabs-setores .nav-link i {
+            font-size: 11px;
+        }
+
+        .nav-tabs-setores .nav-link:hover {
+            color: #343a40;
+            background-color: #f0f4ff;
+        }
+
+        .nav-tabs-setores .nav-link.active {
+            font-weight: 600;
+            color: #0d6efd;
+            background-color: #e9f2ff;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+
+        .nav-tabs-resumo .nav-link {
+            padding: 6px 14px;
+            font-size: 12px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tabs-resumo .nav-link i {
+            font-size: 11px;
+        }
+
+        .nav-tabs-resumo .nav-link:hover {
+            color: #343a40;
+            background-color: #f0f4ff;
+        }
+
+        .nav-tabs-resumo .nav-link.active {
+            font-weight: 600;
+            color: #28a745;
+            background-color: #eafaf1;
+            border-color: #dee2e6 #dee2e6 #fff;
         }
 
         @media (max-width: 767.98px) {
@@ -132,6 +179,12 @@
     </style>
 @stop
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
     <script id="details-item-pedido" type="text/x-handlebars-template">
         @verbatim
@@ -206,8 +259,6 @@
         // Clique nas tabs principais para mostrar a subtab correspondente e atualizar a tabela
         $('#tabs-principais .nav-link').on('shown.bs.tab', function(e) {
             const estado = getEstadoAtual();
-
-            console.log(estado);
 
             $('#tab-exame-inicial-' + estado.idPainel).tab('show');
 
@@ -431,24 +482,16 @@
                                     columns: [1, 2, 3, 6]
                                 },
                                 title: "Relatório " + retornaDsPainel(painel) + " - Executor x Etapa " +
-                                    retornarNomeTabela(
-                                        nomeTabela),
+                                    retornarNomeTabela(nomeTabela) + " - " + dtinicio + " a " + dtfim,
                                 footer: true
                             },
                             {
-                                extend: "print",
+                                extend: "pdfHtml5",
                                 title: "Relatório " + retornaDsPainel(painel) + " - Executor x Etapa " +
-                                    retornarNomeTabela(
-                                        nomeTabela),
+                                    retornarNomeTabela(nomeTabela) + " - " + dtinicio + " a " + dtfim,
                                 footer: true,
                                 exportOptions: {
                                     columns: [1, 2, 3, 6]
-                                },
-                                customize: function(win) {
-                                    $(win.document.body)
-                                        .find("h1")
-                                        .css("font-size", "12pt")
-                                        .css("color", "#333");
                                 },
                             },
                         ],
@@ -518,7 +561,10 @@
                         name: 'DT_FIM',
                         title: 'Finalização',
                         className: 'text-center',
-                        render: $.fn.dataTable.render.moment('DD/MM/YYYY'),
+                        render: function(data, type) {
+                            if (type === 'display' && data) return moment(data).format('DD/MM/YYYY');
+                            return data;
+                        },
                         "width": '2%',
                     },
                 ],
@@ -551,7 +597,7 @@
             });
 
             setTimeout(() => {
-                tabela.columns.adjust().draw();
+                tabela.columns.adjust();
             }, 100)
         }
 
@@ -611,7 +657,10 @@
                         name: 'DT_FIM',
                         title: 'Data de Cancelamento',
                         className: 'text-center',
-                        render: $.fn.dataTable.render.moment('DD/MM/YYYY'),
+                        render: function(data, type) {
+                            if (type === 'display' && data) return moment(data).format('DD/MM/YYYY');
+                            return data;
+                        },
                         "width": '2%',
                     },
                 ],
@@ -673,7 +722,10 @@
                 name: 'DT_FIM',
                 title: 'Finalização',
                 className: 'text-nowrap',
-                render: $.fn.dataTable.render.moment('YYYY-MM-DD HH:mm:ss', 'DD/MM/YYYY HH:mm:ss'),
+                render: function(data, type) {
+                    if (type === 'display' && data) return moment(data, 'YYYY-MM-DD HH:mm:ss').format('DD/MM/YYYY HH:mm:ss');
+                    return data;
+                },
             }, {
                 data: 'ST_RETRABALHO',
                 name: 'ST_RETRABALHO',
@@ -700,21 +752,15 @@
                                 exportOptions: {
                                     columns: [1, 2, 3, 5]
                                 },
-                                title: "Relatório Executor x Etapa",
+                                title: "Relatório Executor x Etapa - " + dt_inicio + " a " + dt_fim,
                                 footer: true
                             },
                             {
-                                extend: "print",
-                                title: "Relatório Executor x Etapa",
+                                extend: "pdfHtml5",
+                                title: "Relatório Executor x Etapa - " + dt_inicio + " a " + dt_fim,
                                 footer: true,
                                 exportOptions: {
                                     columns: [1, 2, 3, 5]
-                                },
-                                customize: function(win) {
-                                    $(win.document.body)
-                                        .find("h1")
-                                        .css("font-size", "12pt")
-                                        .css("color", "#333");
                                 },
                             },
                         ],
@@ -860,7 +906,7 @@
                     className: 'text-truncate'
                 }],
                 order: [
-                    [10, 'asc']
+                    [2, 'asc']
                 ]
 
             });

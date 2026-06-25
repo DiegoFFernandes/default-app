@@ -11,7 +11,6 @@ Route::middleware(['auth', 'can:ver-despesas'])->group(function () {
         Route::post('store',             [DespesaController::class, 'store'])->name('despesa.store');
         Route::get('get-comprovantes',   [DespesaController::class, 'getComprovantes'])->name('despesa.get');
         Route::get('veiculos',           [DespesaController::class, 'searchVeiculos'])->name('despesa.veiculos');
-        Route::get('pessoas',            [DespesaController::class, 'searchPessoas'])->name('despesa.pessoas');
         Route::get('connectcar/revisar',             [DespesaController::class, 'revisarConnectCar'])->name('despesa.connectcar.revisar');
         Route::get('connectcar/comprovantes-mescla',     [DespesaController::class, 'getComprovantesParaMescla'])->name('despesa.connectcar.comprovantes-mescla');
         Route::get('connectcar/comprovantes-importados', [DespesaController::class, 'getComprovantesImportados'])->name('despesa.connectcar.comprovantes-importados');

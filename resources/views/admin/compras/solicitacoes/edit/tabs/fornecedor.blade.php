@@ -52,7 +52,7 @@
             </button>
         </div>
     </div>
-    @if(isset($solicitacao) && $solicitacao->ST_SOLICITACAO === 'ANA')
+    @if(isset($solicitacao) && in_array($solicitacao->ST_SOLICITACAO, ['RAS', 'ANA']))
     <div class="row">
         <div class="col-md-12 pt-3 text-center">
             <button id="btn-submeter" class="btn btn-primary btn-sm">

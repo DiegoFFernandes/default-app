@@ -13,6 +13,7 @@ use App\Models\CompraParamEmpresa;
 use App\Models\Empresa;
 use App\Models\Veiculo;
 use App\Services\CompraFluxoService;
+use App\Services\WppConnectService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -32,7 +33,8 @@ class SolicitacaoComprasController extends Controller
         protected CompraFluxoService    $fluxoService,
         protected Empresa               $empresa,
         protected CompraParamEmpresa    $paramEmpresa,
-        protected CompraCentroCusto     $centroCusto
+        protected CompraCentroCusto     $centroCusto,
+        protected WppConnectService     $wpp
     ) {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -267,6 +269,24 @@ class SolicitacaoComprasController extends Controller
 
         try {
             $this->solicitacao->enviarAnalise((int) $id);
+
+            try {
+                $sol       = $this->solicitacao->findById((int) $id);
+                $comprador = $this->paramEmpresa->getCompradorByEmpresa((int) $sol->CD_EMPRESA);
+
+                if ($comprador && !empty($comprador->NR_CELULAR)) {
+                    $this->wpp->notificarComprador(
+                        (int) $id,
+                        $sol->NM_EMPRESA,
+                        $this->user->name,
+                        $comprador->NR_CELULAR,
+                        $itens
+                    );
+                }
+            } catch (\Throwable) {
+                // notificação falhou mas não impede o fluxo
+            }
+
             return response()->json(['success' => 'Solicitação enviada para análise de compra!']);
         } catch (\Exception $e) {
             return response()->json(['errors' => $e->getMessage()]);

@@ -88,14 +88,58 @@
                 $('#btn-novo-centro').toggle(href === '#pane-centro');
             });
 
+            // ---- Cotações: responsável pela compra (Select2 AJAX) ----
+            $('.select2-pessoa-compra').each(function() {
+                const $el = $(this);
+                $el.select2({
+                    theme: 'bootstrap4',
+                    ajax: {
+                        url: '{{ route('pessoa.search') }}',
+                        dataType: 'json',
+                        delay: 300,
+                        data: params => ({ q: params.term }),
+                        processResults: data => ({ results: data }),
+                    },
+                    minimumInputLength: 2,
+                    placeholder: 'Buscar responsável...',
+                    allowClear: true,
+                    width: '100%',
+                });
+                const cdPessoa = $el.data('cd');
+                const nmPessoa = $el.data('nm');
+                if (cdPessoa && nmPessoa) {
+                    $el.append(new Option(nmPessoa, cdPessoa, true, true)).trigger('change');
+                }
+
+                $el.on('select2:select', function(e) {
+                    const nr = e.params.data.nr_celular || '';
+                    const $celular = $el.closest('div.d-flex').find('small.text-muted');
+                    if (nr) {
+                        if ($celular.length) {
+                            $celular.html('<i class="fas fa-mobile-alt mr-1"></i>' + nr);
+                        } else {
+                            $el.closest('div.d-flex').append('<small class="text-muted text-nowrap"><i class="fas fa-mobile-alt mr-1"></i>' + nr + '</small>');
+                        }
+                    } else {
+                        $celular.remove();
+                    }
+                });
+
+                $el.on('select2:clear', function() {
+                    $el.closest('div.d-flex').find('small.text-muted').remove();
+                });
+            });
+
             // ---- Cotações mínimas ----
             $('body').on('click', '.btn-salvar-qtd-fornec', function() {
                 const cdEmpresa = $(this).data('empresa');
                 const qtd       = $('.input-qtd-fornec[data-empresa="' + cdEmpresa + '"]').val();
+                const cdPessoa  = $('.select2-pessoa-compra[data-empresa="' + cdEmpresa + '"]').val() || null;
                 $.post('{{ route('compras.configuracao.update-qtd-fornec') }}', {
-                    _token:          token,
-                    cd_empresa:      cdEmpresa,
-                    qtd_fornec_cot:  qtd,
+                    _token:           token,
+                    cd_empresa:       cdEmpresa,
+                    qtd_fornec_cot:   qtd,
+                    cd_pessoa_compra: cdPessoa,
                 }, function(res) {
                     if (res.errors) {
                         Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });

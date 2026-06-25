@@ -286,8 +286,9 @@ class ConfigComprasController extends Controller
     public function updateQtdFornecCot()
     {
         $input = $this->request->validate([
-            'cd_empresa'    => 'required|integer',
-            'qtd_fornec_cot' => 'required|integer|min:1|max:99',
+            'cd_empresa'      => 'required|integer',
+            'qtd_fornec_cot'  => 'required|integer|min:1|max:99',
+            'cd_pessoa_compra' => 'nullable|integer',
         ], [
             'qtd_fornec_cot.required' => 'Informe a quantidade mínima.',
             'qtd_fornec_cot.integer'  => 'A quantidade deve ser um número inteiro.',
@@ -296,7 +297,8 @@ class ConfigComprasController extends Controller
         ]);
 
         try {
-            $this->paramEmpresa->updateQtdFornecCot($input['cd_empresa'], $input['qtd_fornec_cot']);
+            $cdPessoa = isset($input['cd_pessoa_compra']) ? (int) $input['cd_pessoa_compra'] : null;
+            $this->paramEmpresa->updateCotacoesParam($input['cd_empresa'], $input['qtd_fornec_cot'], $cdPessoa);
             return response()->json(['success' => 'Parâmetro atualizado!']);
         } catch (\Exception $e) {
             return response()->json(['errors' => 'Erro ao atualizar parâmetro.']);

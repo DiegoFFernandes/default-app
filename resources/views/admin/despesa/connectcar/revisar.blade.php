@@ -487,7 +487,7 @@
         tiposConta:       "{{ route('firebird.tipos-conta') }}",
         historicos:       "{{ route('firebird.historicos') }}",
         formasPagamento:  "{{ route('get-form-pagamento') }}",
-        searchPessoas:    "{{ route('despesa.pessoas') }}",
+        searchPessoas:    "{{ route('pessoa.search') }}",
         dtLanguage:       "{{ asset('vendor/datatables/pt-BR.json') }}",
     };
 

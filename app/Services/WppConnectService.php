@@ -238,6 +238,81 @@ class WppConnectService
         }
     }
 
+    public function notificarComprador(
+        int    $idSolicitacao,
+        string $nmEmpresa,
+        string $nmSolicitante,
+        string $nrCelular,
+        array  $itens = []
+    ): void {
+        $link = rtrim(config('app.url'), '/') . "/compras/solicitacoes/{$idSolicitacao}";
+
+        $linhas = [
+            "🛒 *Nova Solicitação de Compra #{$idSolicitacao}*",
+            "",
+            "🏢 *Empresa:* {$nmEmpresa}",
+            "👤 *Solicitante:* {$nmSolicitante}",
+        ];
+
+        if (!empty($itens)) {
+            $linhas[] = "";
+            $linhas[] = "*Itens:*";
+            foreach ($itens as $item) {
+                $linhas[] = "• {$item->QT_ITEM}x {$item->DS_ITEM}";
+            }
+        }
+
+        $linhas[] = "";
+        $linhas[] = "Acesse o sistema para iniciar a análise:";
+        $linhas[] = $link;
+
+        $this->sendText($nrCelular, implode("\n", $linhas));
+    }
+
+    public function notificarCompradorAprovacao(
+        int    $idSolicitacao,
+        string $nmEmpresa,
+        float  $vlTotal,
+        string $nrCelular
+    ): void {
+        $link = rtrim(config('app.url'), '/') . "/compras/solicitacoes/{$idSolicitacao}";
+
+        $mensagem = implode("\n", [
+            "✅ *Solicitação #{$idSolicitacao} Aprovada!*",
+            "",
+            "🏢 *Empresa:* {$nmEmpresa}",
+            "💰 *Valor Total:* R$ " . number_format($vlTotal, 2, ',', '.'),
+            "",
+            "Todas as etapas de aprovação foram concluídas.",
+            "Você pode prosseguir com a compra.",
+            "",
+            $link,
+        ]);
+
+        $this->sendText($nrCelular, $mensagem);
+    }
+
+    public function notificarCompradorReprovacao(
+        int    $idSolicitacao,
+        string $nmEmpresa,
+        string $obs,
+        string $nrCelular
+    ): void {
+        $link = rtrim(config('app.url'), '/') . "/compras/solicitacoes/{$idSolicitacao}";
+
+        $mensagem = implode("\n", [
+            "❌ *Solicitação #{$idSolicitacao} Reprovada*",
+            "",
+            "🏢 *Empresa:* {$nmEmpresa}",
+            "📝 *Motivo:* {$obs}",
+            "",
+            "Acesse o sistema para mais detalhes:",
+            $link,
+        ]);
+
+        $this->sendText($nrCelular, $mensagem);
+    }
+
     public function reenviarDisparo(WppDisparo $disparo): void
     {
         $newToken = Str::random(32);

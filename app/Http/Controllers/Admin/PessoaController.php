@@ -55,6 +55,7 @@ class PessoaController extends Controller
         }
         return response()->json(['errors' => 'Houve algum erro ao vincular!']);
     }
+    
     public function _validate($request)
     {
         return $request->validate(
@@ -70,6 +71,7 @@ class PessoaController extends Controller
             ]
         );
     }
+
     public function list()
     {
         // $empresa = $this->empresa->CarregaEmpresa($this->user->conexao);
@@ -86,6 +88,7 @@ class PessoaController extends Controller
             ->rawColumns(['Actions'])
             ->make(true);
     }
+
     public function update()
     {
         $this->request['cd_cadusuario'] = $this->user->id;
@@ -93,9 +96,33 @@ class PessoaController extends Controller
         
         return $this->pessoa->updateData($this->request);
     }
+
     public function destroy()
     {
         $this->pessoa->destroyData($this->request->id);
         return response()->json(['success' => 'Excluido com sucesso!']);
+    }
+
+    public function searchPessoas()
+    {
+        $q = trim($this->request->get('q', ''));
+
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        try {
+            $results = $this->pessoa->FindPessoaJunsoftAll($q);
+
+            return response()->json(array_map(function ($r) {
+                return [
+                    'id'        => $r->ID,
+                    'text'      => $r->NM_PESSOA,
+                    'nr_celular' => $r->NR_CELULAR ?? '',
+                ];
+            }, $results));
+        } catch (\Exception) {
+            return response()->json([]);
+        }
     }
 }

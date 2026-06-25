@@ -32,8 +32,8 @@ class CompraFluxoService
             return ['errors' => 'Solicitação não encontrada.'];
         }
 
-        if ($solicitacao->ST_SOLICITACAO !== 'ANA') {
-            return ['errors' => 'Apenas solicitações em Análise de Compra podem ser enviadas para aprovação.'];
+        if (!in_array($solicitacao->ST_SOLICITACAO, ['RAS', 'ANA'])) {
+            return ['errors' => 'Apenas solicitações em Rascunho ou Análise de Compra podem ser enviadas para aprovação.'];
         }
 
         $itens = $this->solicitacaoItem->getBySolicitacao($id);

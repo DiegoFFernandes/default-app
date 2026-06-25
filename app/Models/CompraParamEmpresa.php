@@ -13,9 +13,29 @@ class CompraParamEmpresa extends Model
     public function getAll()
     {
         return DB::connection('firebird')->select("
-            SELECT CD_EMPRESA, ST_USA_CENTROCUSTO, QTD_FORNEC_COT
-            FROM COMPRA_PARAM_EMPRESA
+            SELECT
+                C.CD_EMPRESA,
+                C.ST_USA_CENTROCUSTO,
+                C.QTD_FORNEC_COT,
+                C.CD_PESSOA_COMPRA,
+                P.NM_PESSOA NM_COMPRADOR,
+                EP.NR_CELULAR
+            FROM COMPRA_PARAM_EMPRESA C
+            LEFT JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA_COMPRA)
+            LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA
+                AND EP.CD_ENDERECO = 1) 
         ");
+    }
+
+    public function getCompradorByEmpresa(int $cdEmpresa): ?object
+    {
+        return DB::connection('firebird')->selectOne("
+            SELECT C.CD_PESSOA_COMPRA, P.NM_PESSOA NM_COMPRADOR, EP.NR_CELULAR
+            FROM COMPRA_PARAM_EMPRESA C
+            LEFT JOIN PESSOA P  ON (P.CD_PESSOA  = C.CD_PESSOA_COMPRA)
+            LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA AND EP.CD_ENDERECO = 1)
+            WHERE C.CD_EMPRESA = :cd
+        ", ['cd' => $cdEmpresa]);
     }
 
     public function getMapUsaCentrocusto(): array
@@ -48,5 +68,13 @@ class CompraParamEmpresa extends Model
             UPDATE OR INSERT INTO COMPRA_PARAM_EMPRESA (CD_EMPRESA, QTD_FORNEC_COT)
             VALUES (:cd, :qtd) MATCHING (CD_EMPRESA)
         ", ['cd' => $cdEmpresa, 'qtd' => $qtd]);
+    }
+
+    public function updateCotacoesParam(int $cdEmpresa, int $qtd, ?int $cdPessoa): void
+    {
+        DB::connection('firebird')->statement("
+            UPDATE OR INSERT INTO COMPRA_PARAM_EMPRESA (CD_EMPRESA, QTD_FORNEC_COT, CD_PESSOA_COMPRA)
+            VALUES (:cd, :qtd, :pessoa) MATCHING (CD_EMPRESA)
+        ", ['cd' => $cdEmpresa, 'qtd' => $qtd, 'pessoa' => $cdPessoa]);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\admin\PessoaController;
 use App\Http\Controllers\Admin\EmpresaController;
 use App\Http\Controllers\Admin\FormaPagmentoController;
 use App\Http\Controllers\Admin\HistoricoController;
@@ -64,4 +65,6 @@ Route::middleware('auth')->group(function () {
         Route::get('get-servico-pneu-medida', [ItemController::class, 'servicoPneu'])->name('get-servico-pneu-medida');
         Route::get('search-produto', [ItemController::class, 'searchProduto'])->name('search-product');
     });
+
+    Route::get('search-pessoas', [PessoaController::class, 'searchPessoas'])->name('pessoa.search');
 });

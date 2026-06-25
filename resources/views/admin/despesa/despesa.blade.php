@@ -50,7 +50,7 @@
             languageDatatables: "{{ asset('vendor/datatables/pt-BR.json') }}",
             storeDespesa: "{{ route('despesa.store') }}",
             searchVeiculos: "{{ route('despesa.veiculos') }}",
-            searchPessoas: "{{ route('despesa.pessoas') }}",
+            searchPessoas: "{{ route('pessoa.search') }}",
             revisarConnectCar: "{{ route('despesa.connectcar.revisar') }}",
             getComprovantes: "{{ route('despesa.get') }}",
             updateDespesa: "{{ route('despesa.update', ':id') }}",

@@ -7,7 +7,6 @@ use App\Models\Comprovante;
 use App\Models\ComprovanteFoto;
 use App\Models\Contas;
 use App\Models\ImportacaoTerceiro;
-use App\Models\Pessoa;
 use App\Models\User;
 use App\Models\Veiculo;
 use Carbon\Carbon;
@@ -397,28 +396,6 @@ class DespesaController extends Controller
             'message'        => $importados . ' registro(s) importado(s) com sucesso.'
                 . (count($erros) ? ' ' . count($erros) . ' erro(s).' : ''),
         ]);
-    }
-
-    public function searchPessoas()
-    {
-        $q = trim($this->request->get('q', ''));
-
-        if (strlen($q) < 2) {
-            return response()->json([]);
-        }
-
-        try {
-             $results = (new Pessoa())->FindPessoaJunsoftAll($q);
-
-            return response()->json(array_map(function ($r) {
-                return [
-                    'id'   => $r->ID,
-                    'text' => $r->NM_PESSOA,
-                ];
-            }, $results));
-        } catch (\Exception) {
-            return response()->json([]);
-        }
     }
 
     public function toggleVisto(int $id)
