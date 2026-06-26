@@ -321,45 +321,96 @@ class IAController extends Controller
 
     private function configRelatorioVencidos(array $dados): array
     {
-        $item     = $dados[0] ?? [];
-        $gerentes = (array) ($item['gerentes'] ?? []);
-        $totais   = (array) ($item['totais']   ?? []);
-
-        usort($gerentes, fn($a, $b) => ((float)($b['inadimplencia'] ?? 0)) <=> ((float)($a['inadimplencia'] ?? 0)));
+        $item        = $dados[0] ?? [];
+        $gerentes    = $item['gerentes']     ?? [];
+        $topClientes = $item['top_clientes'] ?? [];
+        $totais      = $item['totais']       ?? [];
 
         $fmt = fn(float $v) => 'R$ ' . number_format($v, 2, ',', '.');
 
+        // Flat lists for cross-hierarchy ranking
+        $todasSupv = [];
+        $todosVend = [];
+
+        foreach ($gerentes as $g) {
+            foreach ($g['supervisores'] ?? [] as $s) {
+                $todasSupv[] = [
+                    'gerente'       => $g['nome']          ?? '',
+                    'supervisor'    => $s['nome']          ?? '',
+                    'inadimplencia' => (float)($s['inadimplencia'] ?? 0),
+                    'cartorio'      => (float)($s['cartorio']      ?? 0),
+                    'saldo'         => (float)($s['saldo']         ?? 0),
+                ];
+                foreach ($s['top_vendedores'] ?? [] as $v) {
+                    $todosVend[] = [
+                        'supervisor'  => $s['nome']            ?? '',
+                        'vendedor'    => $v['nome']            ?? '',
+                        'saldo'       => (float)($v['saldo']   ?? 0),
+                        'qtd_clientes'=> (int)($v['qtd_clientes'] ?? 0),
+                        'em_cartorio' => (int)($v['em_cartorio']  ?? 0),
+                    ];
+                }
+            }
+        }
+
+        usort($gerentes,  fn($a, $b) => ((float)($b['inadimplencia'] ?? 0)) <=> ((float)($a['inadimplencia'] ?? 0)));
+        usort($todasSupv, fn($a, $b) => $b['inadimplencia'] <=> $a['inadimplencia']);
+        usort($todosVend, fn($a, $b) => $b['saldo'] <=> $a['saldo']);
+
         $contexto = [
             'totais' => [
-                'total_atrasados'      => $fmt((float)($totais['atrasados']           ?? 0)),
-                'total_inadimplencia'  => $fmt((float)($totais['inadimplencia']       ?? 0)),
-                'total_cartorio'       => $fmt((float)($totais['cartorio']            ?? 0)),
-                'carteira_ate_60dias'  => $fmt((float)($totais['carteira60dias']      ?? 0)),
-                'carteira_maior_60'    => $fmt((float)($totais['carteiraMaior60']     ?? 0)),
-                'titulos_cartorio'     => (int)($totais['qtd_titulos_cartorio']       ?? 0),
+                'total_atrasados'     => $fmt((float)($totais['atrasados']           ?? 0)),
+                'total_inadimplencia' => $fmt((float)($totais['inadimplencia']       ?? 0)),
+                'total_cartorio'      => $fmt((float)($totais['cartorio']            ?? 0)),
+                'carteira_ate_60dias' => $fmt((float)($totais['carteira60dias']      ?? 0)),
+                'carteira_maior_60'   => $fmt((float)($totais['carteiraMaior60']     ?? 0)),
+                'titulos_cartorio'    => (int)($totais['qtd_titulos_cartorio']       ?? 0),
             ],
-            'gerentes' => array_map(fn($g) => [
+            'top_gerentes' => array_map(fn($g) => [
                 'nome'          => $g['nome']          ?? '',
-                'atrasados'     => $fmt((float)($g['atrasados']    ?? 0)),
+                'saldo'         => $fmt((float)($g['saldo']         ?? 0)),
                 'inadimplencia' => $fmt((float)($g['inadimplencia'] ?? 0)),
-                'cartorio'      => $fmt((float)($g['cartorio']     ?? 0)),
-            ], array_slice($gerentes, 0, 10)),
+                'cartorio'      => $fmt((float)($g['cartorio']      ?? 0)),
+            ], array_slice($gerentes, 0, 5)),
+            'top_supervisores' => array_map(fn($s) => [
+                'gerente'       => $s['gerente'],
+                'supervisor'    => $s['supervisor'],
+                'inadimplencia' => $fmt($s['inadimplencia']),
+                'cartorio'      => $fmt($s['cartorio']),
+                'saldo'         => $fmt($s['saldo']),
+            ], array_slice($todasSupv, 0, 5)),
+            'top_vendedores' => array_map(fn($v) => [
+                'supervisor'  => $v['supervisor'],
+                'vendedor'    => $v['vendedor'],
+                'saldo'       => $fmt($v['saldo']),
+                'qtd_clientes'=> $v['qtd_clientes'],
+                'em_cartorio' => $v['em_cartorio'],
+            ], array_slice($todosVend, 0, 5)),
+            'top_clientes' => array_map(fn($c) => [
+                'cliente'  => $c['cliente']  ?? '',
+                'vendedor' => $c['vendedor'] ?? '',
+                'saldo'    => $fmt((float)($c['saldo']   ?? 0)),
+                'cartorio' => (float)($c['cartorio'] ?? 0) > 0 ? $fmt((float)$c['cartorio']) : null,
+            ], array_slice($topClientes, 0, 10)),
         ];
 
         $instrucoes = "Você é um analista financeiro especializado em gestão de carteira de crédito e cobrança.";
 
         $secoes = "
             📊 VISÃO GERAL
-            - 1 frase: panorama da carteira vencida (total atrasado, inadimplência e títulos em cartório).
+            - 1 frase: panorama da carteira vencida (total atrasado, inadimplência e cartório).
 
-            🏆 GERENTES CRÍTICOS
-            - Liste os gerentes com maior valor em inadimplência: Nome → Valor.
+            🏆 HIERARQUIA CRÍTICA
+            - Top 3 gerentes e top 3 supervisores com maior inadimplência: Nome → Valor.
 
-            ⚖️ CARTÓRIO
-            - Situação dos títulos em cartório/protesto e relevância sobre o total.
+            💼 VENDEDORES EM DESTAQUE
+            - Top 3 vendedores por saldo vencido, indicando quantos clientes em cartório.
+
+            🏢 TOP CLIENTES
+            - Liste os 5 maiores clientes inadimplentes: Nome → Saldo · Cartório (se houver).
 
             💡 AÇÃO PRIORITÁRIA
-            - 1 medida concreta que o gestor financeiro deve tomar agora.
+            - 1 medida concreta e imediata que o gestor financeiro deve tomar.
         ";
 
         return [$instrucoes, $contexto, $secoes];

@@ -215,17 +215,62 @@ function abrirResumoIAVencidos(painelId) {
         Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Carregue os dados antes de gerar o resumo.' });
         return;
     }
+
+    var topClientes = [];
+
+    var gerentes = window.inadGerente.map(function(g) {
+        var supervisores = (g.supervisores || []).map(function(s) {
+            var vendedores = (s.vendedores || []).map(function(v) {
+                (v.clientes || []).forEach(function(c) {
+                    topClientes.push({
+                        cliente:  c.PESSOA,
+                        vendedor: v.nome,
+                        supervisor: s.nome,
+                        saldo:    parseFloat(c.VL_SALDO)    || 0,
+                        cartorio: parseFloat(c.VL_CARTORIO) || 0,
+                    });
+                });
+                return {
+                    nome:         v.nome,
+                    saldo:        parseFloat(v.saldo) || 0,
+                    qtd_clientes: (v.clientes || []).length,
+                    em_cartorio:  (v.clientes || []).filter(function(c) { return parseFloat(c.VL_CARTORIO) > 0; }).length,
+                };
+            });
+            vendedores.sort(function(a, b) { return b.saldo - a.saldo; });
+            return {
+                nome:          s.nome,
+                saldo:         parseFloat(s.saldo)         || 0,
+                inadimplencia: parseFloat(s.inadimplencia) || 0,
+                cartorio:      parseFloat(s.cartorio)      || 0,
+                top_vendedores: vendedores.slice(0, 5),
+            };
+        });
+        supervisores.sort(function(a, b) { return b.inadimplencia - a.inadimplencia; });
+        return {
+            nome:          g.nome,
+            saldo:         parseFloat(g.saldo)         || 0,
+            inadimplencia: parseFloat(g.inadimplencia) || 0,
+            cartorio:      parseFloat(g.cartorio)      || 0,
+            supervisores:  supervisores,
+        };
+    });
+
+    topClientes.sort(function(a, b) { return b.saldo - a.saldo; });
+
     var dados = [{
-        gerentes: window.inadGerente,
+        gerentes:     gerentes,
+        top_clientes: topClientes.slice(0, 10),
         totais: {
-            atrasados:          window.atrasados          || 0,
-            inadimplencia:      window.inadimplencia      || 0,
-            cartorio:           window.cartorio           || 0,
-            carteira60dias:     window.carteira60dias     || 0,
-            carteiraMaior60:    window.carteiraMaior60dias || 0,
+            atrasados:            window.atrasados            || 0,
+            inadimplencia:        window.inadimplencia        || 0,
+            cartorio:             window.cartorio             || 0,
+            carteira60dias:       window.carteira60dias       || 0,
+            carteiraMaior60:      window.carteiraMaior60dias  || 0,
             qtd_titulos_cartorio: window.qtd_titulos_cartorio || 0,
         }
     }];
+
     abrirPainelIA(painelId, dados, 'relatorio_vencidos');
 }
 </script>
