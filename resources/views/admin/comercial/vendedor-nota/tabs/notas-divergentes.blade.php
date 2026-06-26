@@ -1,13 +1,8 @@
 <div class="tab-pane fade show active" id="notas-vendedores-divergentes" role="tabpanel" aria-labelledby="tab-inserir">
     <div class="row">
         <div class="col-md-12 col-12">
-            <div class="card">                
-                <div class="card-body">
-                    <table class="table table-responsive compact table-font-small"
-                        id="table-notas-vendedores-divergentes">
-                    </table>
-                </div>
-                <div class="card-footer py-2">
+            <div class="card">
+                <div class="card-header py-2">
                     <div class="d-flex align-items-center" style="gap:6px;">
                         <button type="button" id="btn-alterar-vendedor" class="btn btn-primary btn-xs">
                             Substituir Vendedor
@@ -19,6 +14,11 @@
                             style="display:none; font-size:0.8rem;"></span>
                     </div>
                 </div>
+                <div class="card-body">
+                    <table class="table compact table-font-small" id="table-notas-vendedores-divergentes">
+                    </table>
+                </div>
+
 
             </div>
         </div>

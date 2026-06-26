@@ -15,7 +15,7 @@ Route::middleware(['auth', 'permission:ver-nota-devolucao'])->group(function () 
 
 
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'permission:ver-notas-vendedor-divergente'])->group(function () {
     Route::prefix('nota')->group(function () {
         Route::get('nota-vendedor-divergentes', [NotaVendedorDivergenteController::class, 'index'])->name('nota-vendedor-divergentes.index');
         Route::get('get-nota-vendedor-divergentes', [NotaVendedorDivergenteController::class, 'getNotasVendedorDivergentes'])->name('get-nota-vendedor-divergentes');

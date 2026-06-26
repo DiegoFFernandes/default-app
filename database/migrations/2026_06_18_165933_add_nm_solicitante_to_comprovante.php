@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('comprovante', 'nm_solicitante')) {
+            return;
+        }
+
         Schema::table('comprovante', function (Blueprint $table) {
             $table->string('nm_solicitante', 255)->nullable()->after('cd_pessoa');
         });

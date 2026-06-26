@@ -314,3 +314,17 @@ function inicializaSelect2Lista(config) {
         },
     });
 }
+
+function erroCarregamento(mensagem) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Erro ao carregar',
+        text: mensagem || 'Não foi possível carregar os dados da página.',
+        confirmButtonText: '<i class="fas fa-sync mr-1"></i> Recarregar',
+        showCancelButton: true,
+        cancelButtonText: 'Fechar',
+    }).then(function(result) {
+        if (result.isConfirmed) location.reload();
+    });
+}
+

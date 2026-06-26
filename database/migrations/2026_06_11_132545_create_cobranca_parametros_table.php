@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('cobranca_parametros')) {
+            return;
+        }
+
         Schema::create('cobranca_parametros', function (Blueprint $table) {
             $table->id();
             $table->string('chave', 100)->unique();

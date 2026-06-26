@@ -26,7 +26,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 250px;
+            max-width: 100px;
         }
 
         .grupo-a {
@@ -110,7 +110,9 @@
                             icon: 'success',
                             text: response.message,
                         }).then(function() {
-                            $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor, .dt-select-all-vendedor').prop('checked', false);
+                            $(tableNotasVendedorDivergentes.table().container()).find(
+                                '.dt-row-checkbox-vendedor, .dt-select-all-vendedor').prop(
+                                'checked', false);
                             updateVendedorNotaBadge(0);
                             tableNotasVendedorDivergentes.ajax.reload();
                         });
@@ -269,7 +271,9 @@
             e.stopPropagation();
             var checked = this.checked;
             if (!tableNotasVendedorDivergentes) return;
-            var filteredRows = tableNotasVendedorDivergentes.rows({ search: 'applied' });
+            var filteredRows = tableNotasVendedorDivergentes.rows({
+                search: 'applied'
+            });
             filteredRows.nodes().to$().find('.dt-row-checkbox-vendedor').prop('checked', checked);
             var checkedCount = checked ? filteredRows.count() : 0;
             updateVendedorNotaBadge(checkedCount);
@@ -278,8 +282,13 @@
         $(document).on('click', '.dt-row-checkbox-vendedor', function(e) {
             e.stopPropagation();
             if (!tableNotasVendedorDivergentes) return;
-            var filteredCount = tableNotasVendedorDivergentes.rows({ search: 'applied' }).count();
-            var checkedCount = $(tableNotasVendedorDivergentes.table().container()).find('.dt-row-checkbox-vendedor').filter(function() { return this.checked; }).length;
+            var filteredCount = tableNotasVendedorDivergentes.rows({
+                search: 'applied'
+            }).count();
+            var checkedCount = $(tableNotasVendedorDivergentes.table().container()).find(
+                '.dt-row-checkbox-vendedor').filter(function() {
+                return this.checked;
+            }).length;
             $('.dt-select-all-vendedor').prop('checked', filteredCount > 0 && checkedCount === filteredCount);
             updateVendedorNotaBadge(checkedCount);
         });
@@ -292,7 +301,11 @@
                 destroy: true,
                 autoWidth: false,
                 pagingType: "simple",
-                pageLength: 100,
+                pageLength: -1,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, "Todos"],
+                ],
                 scrollY: "300px",
                 scrollCollapse: true,
                 language: {
@@ -308,7 +321,9 @@
                         title: '<input type="checkbox" class="dt-select-all-vendedor" title="Selecionar todos" style="margin:0;">',
                         render: function(data, type, row) {
                             if (type === 'display') {
-                                return '<input type="checkbox" class="dt-row-checkbox-vendedor" data-lancamento="' + row.NR_LANCAMENTO + '" aria-label="Selecionar linha" style="margin:0;">';
+                                return '<input type="checkbox" class="dt-row-checkbox-vendedor" data-lancamento="' +
+                                    row.NR_LANCAMENTO +
+                                    '" aria-label="Selecionar linha" style="margin:0;">';
                             }
                             return '';
                         }
@@ -334,7 +349,7 @@
                     {
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',
-                        title: 'Empresa',
+                        title: 'Emp.',
                         className: 'text-center'
                     },
                     {
@@ -358,7 +373,8 @@
                     {
                         data: 'CD_ITEM',
                         name: 'CD_ITEM',
-                        title: 'Item',
+                        title: 'Cód.Item',
+                        visible: false,
                         className: 'texto-curto'
                     },
                     {
@@ -403,6 +419,9 @@
                             'grupo-b'); // Adiciona a classe de grupo com base no alternador
                     });
                 },
+                initComplete: function() {
+                    this.api().columns.adjust();
+                },
                 error: function(xhr, status, error) {
                     Swal.fire({
                         icon: 'error',
@@ -412,6 +431,9 @@
                 }
             });
 
+            $(window).on('resize', function() {
+                tableNotasVendedorDivergentes.columns.adjust();
+            });
         }
     </script>
 @stop

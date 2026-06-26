@@ -476,7 +476,7 @@ return [
             'text' => 'Faturamento',
             'icon' => 'nav-icon fas fa-file-invoice-dollar',
             'url' => '#',
-            'can' => ['ver-produzidos-sem-faturar', 'ver-analise-faturamento', 'ver-nota-devolucao'],
+            'can' => ['ver-produzidos-sem-faturar', 'ver-analise-faturamento', 'ver-nota-devolucao', 'ver-notas-vendedor-divergente'],
             'submenu' => [
                 [
                     'text' => 'Produzidos S/ Faturar',
@@ -497,6 +497,11 @@ return [
                     'text' => 'Pedidos Alterados',
                     'route' => 'pedidos-alterados-valor',
                     'can' => ['ver-pedidos-alterados-valor'],
+                ],
+                [
+                    'text' => 'Nf Vendedor Divergente',
+                    'route' => 'pedidos-alterados-valor',
+                    'can' => ['ver-notas-vendedor-divergente'],
                 ]
             ]
         ],

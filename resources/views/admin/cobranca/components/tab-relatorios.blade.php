@@ -3,7 +3,12 @@
         <div class="card card-secondary card-outline mb-4">
             <div class="card-header">
                 <h5 class="card-title">Inadimplência Mensal</h5>
-                <div class="float-right">
+                <div class="float-right d-flex align-items-center" style="gap:4px;">
+                    <button class="btn btn-info btn-xs btn-hover"
+                            onclick="abrirResumoIATabela('{{ $tabela_mensal }}', 'painel-resumo-ia-{{ $tabela_mensal }}')"
+                            title="Gerar resumo com IA">
+                        <i class="fas fa-robot mr-1"></i>Resumo IA
+                    </button>
                     <button class="btn btn-secondary btn-xs btn-hover btn-toggle-chart">
                         <i class="fas fa-chart-bar mr-1"></i>Gráfico
                     </button>
@@ -97,6 +102,11 @@
                         class="form-control form-control-sm input-busca input-busca-cliente"
                         style="width:145px; font-size:0.78rem;"
                         placeholder="Buscar Cliente...">
+                    <button class="btn btn-info btn-xs btn-hover"
+                            onclick="abrirResumoIAVencidos('painel-resumo-ia-vencidos-{{ $treeAccordionGerente }}')"
+                            title="Gerar resumo com IA">
+                        <i class="fas fa-robot mr-1"></i>Resumo IA
+                    </button>
                 </div>
             </div>
             <div class="card-body p-2" id="{{ $card_inadimplencia }}">
@@ -174,3 +184,49 @@
         </div>
     </div>
 </div>
+
+@include('admin.ia.resumo-painel', [
+    'painelId' => 'painel-resumo-ia-' . $tabela_mensal,
+    'titulo'   => 'Resumo IA — Inadimplência Mensal',
+])
+
+@include('admin.ia.resumo-painel', [
+    'painelId' => 'painel-resumo-ia-vencidos-' . $treeAccordionGerente,
+    'titulo'   => 'Resumo IA — Relatório Vencidos',
+])
+
+@once
+<script>
+function abrirResumoIATabela(tabelaId, painelId) {
+    if (!$.fn.DataTable.isDataTable('#' + tabelaId)) {
+        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Carregue os dados antes de gerar o resumo.' });
+        return;
+    }
+    var dados = $('#' + tabelaId).DataTable().data().toArray();
+    if (!dados.length) {
+        Swal.fire({ icon: 'info', title: 'Sem dados', text: 'Nenhum dado disponível para resumir.' });
+        return;
+    }
+    abrirPainelIA(painelId, dados, 'inadimplencia_mensal');
+}
+
+function abrirResumoIAVencidos(painelId) {
+    if (!window.inadGerente || !window.inadGerente.length) {
+        Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Carregue os dados antes de gerar o resumo.' });
+        return;
+    }
+    var dados = [{
+        gerentes: window.inadGerente,
+        totais: {
+            atrasados:          window.atrasados          || 0,
+            inadimplencia:      window.inadimplencia      || 0,
+            cartorio:           window.cartorio           || 0,
+            carteira60dias:     window.carteira60dias     || 0,
+            carteiraMaior60:    window.carteiraMaior60dias || 0,
+            qtd_titulos_cartorio: window.qtd_titulos_cartorio || 0,
+        }
+    }];
+    abrirPainelIA(painelId, dados, 'relatorio_vencidos');
+}
+</script>
+@endonce

@@ -96,7 +96,7 @@ class WppConnectService
     // Envio de mensagens
     // -------------------------------------------------------
 
-    public function sendText(string $phone, string $message): array
+    public function sendText(string $phone, string $message, string $referenciaTipo = '', int $referenciaId = null): array
     {
         $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
             'phone'   => $this->formatPhone($phone),
@@ -104,7 +104,7 @@ class WppConnectService
         ]);
 
         $this->logResponse('sendText', $phone, $response);
-        $this->registrarDisparo($phone, $message, $response);
+        $this->registrarDisparo($phone, $message, $response, $referenciaTipo, $referenciaId);
 
         return $response->json() ?? [];
     }
@@ -355,19 +355,26 @@ class WppConnectService
         return $digits;
     }
 
-    private function registrarDisparo(string $phone, string $mensagem, \Illuminate\Http\Client\Response $response): void
-    {
+    private function registrarDisparo(
+        string $phone,
+        string $mensagem,
+        \Illuminate\Http\Client\Response $response,
+        string $referenciaTipo = '',
+        ?int   $referenciaId   = null
+    ): void {
         try {
             $sucesso = $response->successful() && ($response->json('status') === 'success');
 
             WppDisparo::create([
-                'user_id'     => Auth::id() ?? 1,
-                'phone'       => preg_replace('/\D/', '', $phone),
-                'mensagem'    => $mensagem,
-                'status'      => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
-                'erro'        => $sucesso ? null : substr($response->body(), 0, 500),
-                'dt_envio'    => $sucesso ? now() : null,
-                'dt_registro' => now(),
+                'user_id'        => Auth::id() ?? 1,
+                'phone'          => preg_replace('/\D/', '', $phone),
+                'mensagem'       => $mensagem,
+                'status'         => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
+                'erro'           => $sucesso ? null : substr($response->body(), 0, 500),
+                'referencia_tipo' => $referenciaTipo ?: null,
+                'referencia_id'   => $referenciaId,
+                'dt_envio'       => $sucesso ? now() : null,
+                'dt_registro'    => now(),
             ]);
         } catch (\Throwable $e) {
             Log::error('WppConnect: falha ao registrar disparo', ['error' => $e->getMessage()]);

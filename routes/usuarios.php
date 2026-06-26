@@ -43,6 +43,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
             Route::get('list', [PermissionController::class, 'listRolePermission'])->name('usuario.permission-role.list');
             Route::get('get-roles', [PermissionController::class, 'getRoles'])->name('usuario.permission-role.get-roles');
             Route::get('get-permissions', [PermissionController::class, 'getPermissions'])->name('usuario.permission-role.get-permissions');
+            Route::post('criar', [PermissionController::class, 'createAndAssign'])->name('usuario.permission-role.create');
             Route::post('atribuir', [PermissionController::class, 'assign'])->name('usuario.permission-role.assign');
             Route::post('atualizar', [PermissionController::class, 'updatePermission'])->name('usuario.permission-role.update');
             Route::delete('remover', [PermissionController::class, 'removePermissions'])->name('usuario.permission-role.remove');

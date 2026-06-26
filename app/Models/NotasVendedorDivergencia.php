@@ -91,6 +91,7 @@ class NotasVendedorDivergencia extends Model
                     SET CD_VENDEDOR = :cd_vendedor
                     WHERE NR_LANCAMENTO = :nr_lancamento
                         AND CD_EMPRESA = :cd_empresa
+                        AND CD_TIPO = 1
                 ";
 
                 DB::connection('firebird')->statement($query, [

@@ -67,6 +67,21 @@ class PermissionController extends Controller
         return response()->json(Permission::orderBy('name')->get(['id', 'name']));
     }
 
+    public function createAndAssign(Request $request)
+    {
+        $request->validate([
+            'role_name'   => 'required|string|max:100|unique:roles,name',
+            'permissions' => 'required|array',
+        ], [
+            'role_name.unique' => 'Já existe uma função com esse nome.',
+        ]);
+
+        $role = Role::create(['name' => $request->role_name, 'guard_name' => 'web']);
+        $role->syncPermissions($request->permissions);
+
+        return response()->json(['success' => true, 'message' => 'Função "' . $role->name . '" criada com sucesso!']);
+    }
+
     public function assign(Request $request)
     {
         $request->validate([

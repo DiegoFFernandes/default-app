@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('comprovante', function (Blueprint $table) {
-            $table->integer('km')->nullable()->after('ds_observacao');
-            $table->string('nr_placa', 10)->nullable()->after('km');
+            if (!Schema::hasColumn('comprovante', 'km')) {
+                $table->integer('km')->nullable()->after('ds_observacao');
+            }
+            if (!Schema::hasColumn('comprovante', 'nr_placa')) {
+                $table->string('nr_placa', 10)->nullable()->after('km');
+            }
         });
     }
 
