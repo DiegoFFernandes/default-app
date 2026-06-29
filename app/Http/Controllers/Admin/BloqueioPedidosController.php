@@ -154,99 +154,135 @@ class BloqueioPedidosController extends Controller
     }
     public function getPedidoAcompanhar()
     {
-        $dados = $this->request->data;
-        $tela = $this->request->tela ?? '';
-        $cd_regiao = "";
-        $empresa = 0;
+        // ── DataTables server-side params ────────────────────────────────────
+        $draw   = intval($this->request->input('draw', 1));
+        $start  = intval($this->request->input('start', 0));
+        $length = intval($this->request->input('length', 50));
+        $search = trim($this->request->input('search.value', ''));
+        $colIdx = intval($this->request->input('order.0.column', 7));
+        $dir    = strtoupper($this->request->input('order.0.dir', 'desc')) === 'ASC' ? 'ASC' : 'DESC';
 
-        if ($this->user->hasRole('admin|gerente comercial')) {
-            $cd_regiao = "";
-            $empresa = 0;
-        } elseif ($this->user->hasRole('gerente unidade')) {
-            $cd_regiao = "";
+        $columnMap = [
+            1  => 'PP.IDEMPRESA',
+            2  => 'PP.ID',
+            3  => 'PPM.IDPEDIDOMOVEL',
+            4  => 'PC.NM_PESSOA',
+            7  => 'PP.DTEMISSAO',
+            8  => 'PP.DTENTREGA',
+            9  => 'PP.STPEDIDO',
+            10 => 'TP.DSTIPOPEDIDO',
+        ];
+        $orderBy = $columnMap[$colIdx] ?? 'PP.DTEMISSAO';
+
+        // ── Filtros por perfil do usuário ─────────────────────────────────────
+        $empresa    = 0;
+        $cd_regiao  = '';
+        $cd_pessoa  = 0;
+        $cd_vendedor = 0;
+
+        if ($this->user->hasRole('gerente unidade')) {
             $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
-                ->pluck('cd_empresa')
-                ->implode(',');
-        } else if ($this->user->hasRole('cliente')) {
+                ->pluck('cd_empresa')->implode(',');
+        } elseif ($this->user->hasRole('cliente')) {
             $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
-                ->pluck('cd_pessoa')
-                ->implode(',');
-        } else if ($this->user->hasRole('vendedor')) {
+                ->pluck('cd_pessoa')->implode(',');
+        } elseif ($this->user->hasRole('vendedor')) {
             $cd_vendedor = $this->vendedorComercial->findVendedorUser($this->user->id)
-                ->pluck('cd_vendedorcomercial')
-                ->implode(',');
+                ->pluck('cd_vendedorcomercial')->implode(',');
         }
-        // verifica se o usuario logado é supervisor, se sim ele filtra somente os dados dele
+
         $supervisor = $this->supervisorComercial->getCdSupervisor();
 
-        if (!empty($this->request->data['regiao'])) {
-            $cd_regiao = implode(',', $this->request->data['regiao']);
+        $regiao = $this->request->input('regiao', []);
+        if (!empty($regiao)) {
+            $cd_regiao = is_array($regiao) ? implode(',', $regiao) : $regiao;
         }
 
-        if ($supervisor == null) {
-            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao,  0, $dados, $cd_pessoa ?? 0, $cd_vendedor ?? 0);
-        } else {
-            $pedidos = $this->acompanha->ListPedidoPneu(0,  $cd_regiao,  $supervisor, $dados, $cd_pessoa ?? 0, $cd_vendedor ?? 0);
-        }
+        // ── Filtros do formulário (enviados pelo data: function(d) do DT) ────
+        $dados = [
+            'cd_empresa'  => $this->request->input('cd_empresa', 0),
+            'nm_cliente'  => $this->request->input('nm_cliente', ''),
+            'nm_vendedor' => $this->request->input('nm_vendedor', ''),
+            'pedido_palm' => $this->request->input('pedido_palm', ''),
+            'pedido'      => $this->request->input('pedido', ''),
+            'grupo_item'  => (array) $this->request->input('grupo_item', [0]),
+            'dt_inicial'  => $this->request->input('dt_inicial', 0),
+            'dt_final'    => $this->request->input('dt_final', 0),
+            'idvendedor'  => '',
+            'nr_fogo'     => $this->request->input('nr_fogo', ''),
+            'nr_serie'    => $this->request->input('nr_serie', ''),
+            'nr_dot'      => $this->request->input('nr_dot', ''),
+        ];
 
-        // verifica se cd_empresa e nullo ou e igual a 7
-        if ($this->request->filled('cd_empresa') && $dados['cd_empresa'] == '7') {
-            foreach ($pedidos as $pedido) {
-                $pedido->CD_EMPRESA = '7';
+        // Supervisor: força empresa = 0 (vê todas)
+        $empresaFinal    = $supervisor ? 0      : $empresa;
+        $supervisorFinal = $supervisor ?? 0;
+
+        $result = $this->acompanha->ListPedidoPneuPaginated(
+            $empresaFinal, $cd_regiao, $supervisorFinal, $dados,
+            $cd_pessoa, $cd_vendedor,
+            $start, $length, $orderBy, $dir, $search
+        );
+
+        // ── Transformação das linhas (substitui Yajra addColumn / setRowClass)
+        $isCatanduvaAgro = ($dados['cd_empresa'] == '7');
+
+        $data = array_map(function ($d) use ($isCatanduvaAgro) {
+            if ($isCatanduvaAgro) {
+                $d->CD_EMPRESA = '7';
             }
-        }
 
-        return DataTables::of($pedidos)
-            ->addColumn('actions', function ($d) use ($tela) {
-                $dataAttrs = [
-                    'empresa' => $d->NM_EMPRESA,
-                    'pedido' => $d->ID,
-                    'pedido_palm' => $d->IDPEDIDOMOVEL,
-                    'cd_empresa' => $d->CD_EMPRESA,
-                    'nm_pessoa' => $d->PESSOA,
-                    'nm_vendedor' => $d->NM_VENDEDOR,
-                    'forma_pagamento' => $d->DS_FORMAPAGTO,
-                    'cond_pagamento' => $d->DS_CONDPAGTO,
-                    'observacao' => $d->DSOBSERVACAO,
-                    'status' => $d->STPEDIDO,
-                    'dt_emissao' => $d->DTEMISSAO,
-                    'dt_entrega' => $d->DTENTREGAPED,
-                    'dt_sincronizacao' => $d->DHSINCRONIZACAO,
-                    'dt_registro_palm' => $d->DTREGISTROPALM,
-                    'ds_motivo' => $d->MOTIVO,
-                    'ds_bloqueio' => $d->DSBLOQUEIO,
-                    'ds_liberacao_anterior' => $d->DSLIBERACAOANTERIOR,
-                ];
+            $dataAttrs = [
+                'empresa'               => $d->NM_EMPRESA,
+                'pedido'                => $d->ID,
+                'pedido_palm'           => $d->IDPEDIDOMOVEL,
+                'cd_empresa'            => $d->CD_EMPRESA,
+                'nm_pessoa'             => $d->PESSOA,
+                'nm_vendedor'           => $d->NM_VENDEDOR,
+                'forma_pagamento'       => $d->DS_FORMAPAGTO,
+                'cond_pagamento'        => $d->DS_CONDPAGTO,
+                'observacao'            => $d->DSOBSERVACAO,
+                'status'                => $d->STPEDIDO,
+                'dt_emissao'            => $d->DTEMISSAO,
+                'dt_entrega'            => $d->DTENTREGAPED,
+                'dt_sincronizacao'      => $d->DHSINCRONIZACAO,
+                'dt_registro_palm'      => $d->DTREGISTROPALM,
+                'ds_motivo'             => $d->MOTIVO,
+                'ds_bloqueio'           => $d->DSBLOQUEIO,
+                'ds_liberacao_anterior' => $d->DSLIBERACAOANTERIOR,
+            ];
 
-                $dataString = collect($dataAttrs)
-                    ->map(function ($value, $key) {
-                        return 'data-' . $key . '="' . $value . '"';
-                    })->implode(' ');
+            $dataString = collect($dataAttrs)
+                ->map(fn($v, $k) => 'data-' . $k . '="' . htmlspecialchars($v ?? '', ENT_QUOTES) . '"')
+                ->implode(' ');
 
-                $btn = "";
+            $d->actions = '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> '
+                        . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
 
-                $btn .= '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> ';
+            $d->QTD_FINALIZADAS = '<span class="badge badge-secondary">'
+                                . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
 
-                $btn .=  '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+            $stpedido = trim($d->STPEDIDO ?? '');
+            if ($stpedido === 'ATENDIDO') {
+                $d->DT_RowClass = 'bg-green';
+            } elseif ($stpedido === 'EM PRODUCAO') {
+                $d->DT_RowClass = 'bg-yellow';
+            } elseif (in_array($stpedido, ['BLOQUEADO', 'SCPC'])) {
+                $d->DT_RowClass = 'bg-red';
+            } else {
+                $d->DT_RowClass = '';
+            }
 
-                return $btn;
-            })
-            ->setRowClass(function ($p) {
-                if ($p->STPEDIDO == "ATENDIDO        ") {
-                    return 'bg-green';
-                } elseif ($p->STPEDIDO == "EM PRODUCAO     ") {
-                    return 'bg-yellow';
-                } elseif ($p->STPEDIDO == "BLOQUEADO       ") {
-                    return 'bg-red';
-                } elseif ($p->STPEDIDO == "SCPC            ") {
-                    return 'bg-red';
-                }
-            })
-            ->editColumn('QTD_FINALIZADAS', function ($d) {
-                return '<span class="badge badge-secondary">' . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
-            })
-            ->rawColumns(['actions', 'QTD_FINALIZADAS'])
-            ->make();
+            return $d;
+        }, $result['data']);
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => intval($result['total']),
+            'recordsFiltered' => intval($result['filtered']),
+            'data'            => $data,
+            'totais'          => $result['totais'],
+        ]);
     }
     public function getItemPedidoAcompanhar()
     {

@@ -67,6 +67,32 @@ div.dt-info {
     font-size: 13px;
 }
 
+/* --- DataTables processing overlay --- */
+div.dt-processing {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+    padding: 14px 28px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: #495057 !important;
+    min-width: 160px !important;
+    text-align: center !important;
+}
+div.dt-processing > div:last-child,
+div.dt-processing > div:nth-child(2) {
+    display: none !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    visibility: hidden !important;
+}
+div.dt-processing > div:last-child > div {
+    display: none !important;
+    animation: none !important;
+}
+
 div.dt-search label {
     font-size: 13px;
 }

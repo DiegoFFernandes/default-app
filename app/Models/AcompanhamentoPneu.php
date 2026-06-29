@@ -215,6 +215,197 @@ class AcompanhamentoPneu extends Model
             return Helper::ConvertFormatText($data);
         });
     }
+    public function ListPedidoPneuPaginated(
+        $empresa, $cd_regiao, $supervisor, $data,
+        $cd_pessoa, $cd_vendedor,
+        $start, $length, $orderBy, $dir, $search
+    ) {
+        if (is_null($data)) {
+            $pedido = $pedido_palm = $nm_cliente = $nm_vendedor = $idvendedor = '';
+            $nr_fogo = $nr_serie = $nr_dot = '';
+            $grupo_item = 0;
+            $inicioData = $fimData = 0;
+        } else {
+            $empresa     = ($data['cd_empresa'] == 7) ? 6 : $data['cd_empresa'];
+            $pedido      = $data['pedido']      ?? '';
+            $pedido_palm = $data['pedido_palm'] ?? '';
+            $nm_cliente  = $data['nm_cliente']  ?? '';
+            $nm_vendedor = $data['nm_vendedor'] ?? '';
+            $idvendedor  = $data['idvendedor']  ?? '';
+            $inicioData  = $data['dt_inicial']  ?? 0;
+            $fimData     = $data['dt_final']    ?? 0;
+            $nr_fogo     = $data['nr_fogo']     ?? '';
+            $nr_serie    = $data['nr_serie']    ?? '';
+            $nr_dot      = $data['nr_dot']      ?? '';
+            $grupo_arr   = array_filter((array)($data['grupo_item'] ?? []), fn($g) => intval($g) > 0);
+            $grupo_item  = !empty($grupo_arr) ? implode(',', $grupo_arr) : 0;
+        }
+
+        $dataEmissao = $this->getDataFiltroEmissao($inicioData, $fimData);
+        $caseNome    = Empresa::buildCaseNome('PP.IDEMPRESA');
+
+        $joins = "
+            FROM PEDIDOPNEU PP
+            INNER JOIN TIPOPEDIDOPNEU TP   ON (TP.ID  = PP.IDTIPOPEDIDO)
+            INNER JOIN ITEMPEDIDOPNEU IPP  ON (IPP.idpedidopneu = PP.id)
+            INNER JOIN PNEU                ON (PNEU.ID = IPP.IDPNEU)
+            LEFT  JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
+            INNER JOIN ITEM                ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
+            INNER JOIN PESSOA PC           ON (PC.CD_PESSOA  = PP.IDPESSOA)
+            INNER JOIN PESSOA V            ON (V.CD_PESSOA   = PP.IDVENDEDOR)
+            LEFT  JOIN VENDEDOR            ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
+            INNER JOIN CONDPAGTO           ON (CONDPAGTO.CD_CONDPAGTO  = PP.IDCONDPAGTO)
+            INNER JOIN FORMAPAGTO          ON (FORMAPAGTO.CD_FORMAPAGTO = PP.CDFORMAPAGTO)
+            LEFT  JOIN ENDERECOPESSOA EP   ON (EP.CD_PESSOA = PC.CD_PESSOA AND EP.CD_ENDERECO = PP.IDENDERECO)
+            LEFT  JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
+        ";
+
+        $where = $dataEmissao
+            . (($cd_regiao   != '')  ? " AND EP.cd_regiaocomercial IN ($cd_regiao)"       : '')
+            . (($empresa     != 0)   ? " AND PP.IDEMPRESA IN ($empresa)"                  : '')
+            . (($pedido      != '')  ? " AND PP.ID IN ($pedido)"                          : '')
+            . (($pedido_palm != '')  ? " AND PPM.IDPEDIDOMOVEL IN ($pedido_palm)"         : '')
+            . (($nm_cliente  != '')  ? " AND PC.NM_PESSOA LIKE '%$nm_cliente%'"           : '')
+            . (($nm_vendedor != '')  ? " AND V.NM_PESSOA LIKE '%$nm_vendedor%'"           : '')
+            . (($idvendedor  != '')  ? " AND PP.IDVENDEDOR IN ($idvendedor)"              : '')
+            . (($grupo_item  != 0)   ? " AND ITEM.CD_GRUPO IN ($grupo_item)"              : '')
+            . (($supervisor  != 0)   ? " AND VENDEDOR.CD_VENDEDORGERAL IN ($supervisor)"  : '')
+            . (($cd_pessoa   != 0)   ? " AND PP.IDPESSOA IN ($cd_pessoa)"                 : '')
+            . (($cd_vendedor != 0)   ? " AND PP.IDVENDEDOR IN ($cd_vendedor)"             : '')
+            . (($nr_fogo     != '')  ? " AND PNEU.NRFOGO = '$nr_fogo'"                   : '')
+            . (($nr_serie    != '')  ? " AND PNEU.NRSERIE = '$nr_serie'"                 : '')
+            . (($nr_dot      != '')  ? " AND PNEU.NRDOT = '$nr_dot'"                     : '')
+            . " AND PP.STPEDIDO <> 'C'";
+
+        $whereSearch = '';
+        if (!empty($search)) {
+            $s = addslashes($search);
+            $whereSearch = " AND (
+                PC.NM_PESSOA CONTAINING '$s'
+                OR CAST(PP.ID AS VARCHAR(20)) CONTAINING '$s'
+                OR CAST(PPM.IDPEDIDOMOVEL AS VARCHAR(20)) CONTAINING '$s'
+                OR V.NM_PESSOA CONTAINING '$s'
+                OR TP.DSTIPOPEDIDO CONTAINING '$s'
+                OR (LPAD(TRIM(CAST(EXTRACT(DAY   FROM PP.DTEMISSAO) AS VARCHAR(2))), 2, '0') || '/' ||
+                    LPAD(TRIM(CAST(EXTRACT(MONTH FROM PP.DTEMISSAO) AS VARCHAR(2))), 2, '0') || '/' ||
+                    CAST(EXTRACT(YEAR FROM PP.DTEMISSAO) AS VARCHAR(4))) CONTAINING '$s'
+                OR (LPAD(TRIM(CAST(EXTRACT(DAY   FROM PP.DTENTREGA) AS VARCHAR(2))), 2, '0') || '/' ||
+                    LPAD(TRIM(CAST(EXTRACT(MONTH FROM PP.DTENTREGA) AS VARCHAR(2))), 2, '0') || '/' ||
+                    CAST(EXTRACT(YEAR FROM PP.DTENTREGA) AS VARCHAR(4))) CONTAINING '$s'
+                OR (CASE
+                    WHEN PP.STPEDIDO = 'B' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+                    WHEN PC.ST_SCPC  = 'S' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+                    WHEN PP.STPEDIDO = 'A'                  THEN 'ATENDIDO'
+                    WHEN PC.ST_SCPC  = 'S'                  THEN 'BLOQUEADO'
+                    WHEN PP.STPEDIDO = 'C'                  THEN 'CANCELADO'
+                    WHEN PP.STPEDIDO = 'T'                  THEN 'EM PRODUCAO'
+                    WHEN PP.STPEDIDO = 'N'                  THEN 'AGUARDANDO'
+                    WHEN PP.STPEDIDO = 'B'                  THEN 'BLOQUEADO'
+                    WHEN PP.STPEDIDO = 'P'                  THEN 'PRODUCAO PARCIAL'
+                    ELSE PP.STPEDIDO END) CONTAINING '$s'
+            )";
+        }
+
+        // 1. Total sem busca DT (recordsTotal)
+        $sqlTotal   = "SELECT COUNT(DISTINCT PP.ID) AS CNT $joins WHERE $where";
+        $totalCount = DB::connection('firebird')->select($sqlTotal)[0]->CNT ?? 0;
+
+        // 2. Count filtrado + totais por status (recordsFiltered + info-boxes)
+        $sqlTotais = "
+            SELECT
+                COUNT(DISTINCT PP.ID) AS TOTAL,
+                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'A' THEN PP.ID END) AS ATENDIDO,
+                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'T' THEN PP.ID END) AS EM_PRODUCAO,
+                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'B' OR PC.ST_SCPC = 'S' THEN PP.ID END) AS BLOQUEADO,
+                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'N' THEN PP.ID END) AS AGUARDANDO,
+                COUNT(DISTINCT CASE WHEN (PP.STPEDIDO = 'B' AND TP.ID IN (2)) OR (PC.ST_SCPC = 'S' AND TP.ID IN (2)) THEN PP.ID END) AS GARANTIA
+            $joins WHERE $where $whereSearch
+        ";
+        $totaisRow     = DB::connection('firebird')->select($sqlTotais)[0] ?? null;
+        $filteredCount = $totaisRow->TOTAL       ?? 0;
+        $totais = [
+            'atendido'    => $totaisRow->ATENDIDO    ?? 0,
+            'em_producao' => $totaisRow->EM_PRODUCAO ?? 0,
+            'bloqueado'   => $totaisRow->BLOQUEADO   ?? 0,
+            'aguardando'  => $totaisRow->AGUARDANDO  ?? 0,
+            'garantia'    => $totaisRow->GARANTIA    ?? 0,
+        ];
+
+        // 3. Query paginada com ROWS (Firebird)
+        $from = $start + 1;
+        $to   = $start + $length;
+
+        $stpedidoExpr = "CASE
+            WHEN PP.STPEDIDO = 'B' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+            WHEN PC.ST_SCPC  = 'S' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+            WHEN PP.STPEDIDO = 'A'                  THEN 'ATENDIDO'
+            WHEN PC.ST_SCPC  = 'S'                  THEN 'BLOQUEADO'
+            WHEN PP.STPEDIDO = 'C'                  THEN 'CANCELADO'
+            WHEN PP.STPEDIDO = 'T'                  THEN 'EM PRODUCAO'
+            WHEN PP.STPEDIDO = 'N'                  THEN 'AGUARDANDO'
+            WHEN PP.STPEDIDO = 'B'                  THEN 'BLOQUEADO'
+            WHEN PP.STPEDIDO = 'P'                  THEN 'PRODUCAO PARCIAL'
+            ELSE PP.STPEDIDO END";
+
+        $sqlData = "
+            SELECT
+                PP.IDEMPRESA CD_EMPRESA,
+                {$caseNome}  AS NM_EMPRESA,
+                PP.ID,
+                PPM.IDPEDIDOMOVEL,
+                PP.IDVENDEDOR,
+                CAST(PP.IDPESSOA || ' - ' || PC.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) PESSOA,
+                PP.IDVENDEDOR || ' - ' || V.NM_PESSOA NM_VENDEDOR,
+                EP.CD_REGIAOCOMERCIAL,
+                PPM.DTREGISTROPALM,
+                PP.DHSINCRONIZACAO,
+                CAST(PP.DHSINCRONIZACAO AS TIME) AS HR_SINCRONIZACAO,
+                PP.DTEMISSAO,
+                PP.DTENTREGA DTENTREGAPED,
+                $stpedidoExpr STPEDIDO,
+                TP.DSTIPOPEDIDO,
+                COUNT(IPP.id) QTDPNEUS,
+                COUNT(CASE WHEN OPR.STORDEM = 'F' THEN 1 END) QTD_FINALIZADAS,
+                CAST(SUM(IPP.VLUNITARIO) / COUNT(IPP.ID) AS DECIMAL(12,2)) VALOR_MEDIO,
+                FORMAPAGTO.DS_FORMAPAGTO,
+                CONDPAGTO.DS_CONDPAGTO,
+                CASE
+                    WHEN PP.TP_BLOQUEIO = 'F' AND PP.STPEDIDO = 'B' THEN 'FINANCEIRO'
+                    WHEN PC.ST_SCPC = 'S'                            THEN 'SCPC'
+                    WHEN PP.TP_BLOQUEIO = 'C' AND PP.STPEDIDO = 'B' THEN 'COMERCIAL'
+                    WHEN PP.TP_BLOQUEIO = 'A' AND PP.STPEDIDO = 'B' THEN 'AMBOS'
+                    ELSE 'LIBERADO'
+                END MOTIVO,
+                PP.DSOBSERVACAO,
+                PP.DSBLOQUEIO,
+                PC.ST_SCPC,
+                PP.DSLIBERACAOANTERIOR
+            $joins
+            WHERE $where $whereSearch
+            GROUP BY
+                PP.IDEMPRESA, PP.ID, PPM.IDPEDIDOMOVEL,
+                PP.IDPESSOA, PC.NM_PESSOA,
+                PP.IDVENDEDOR, V.NM_PESSOA,
+                EP.CD_REGIAOCOMERCIAL,
+                PP.DTEMISSAO, PP.DTENTREGA,
+                PPM.DTREGISTROPALM, PP.HREMISSAO,
+                PP.STPEDIDO, PP.TP_BLOQUEIO,
+                TP.DSTIPOPEDIDO, TP.ID,
+                FORMAPAGTO.DS_FORMAPAGTO, CONDPAGTO.DS_CONDPAGTO,
+                PP.DSOBSERVACAO, PP.DSBLOQUEIO,
+                PC.ST_SCPC, PP.DHSINCRONIZACAO, PP.DSLIBERACAOANTERIOR
+            ORDER BY $orderBy $dir
+            ROWS $from TO $to
+        ";
+
+        return [
+            'total'    => $totalCount,
+            'filtered' => $filteredCount,
+            'data'     => Helper::ConvertFormatText(DB::connection('firebird')->select($sqlData)),
+            'totais'   => $totais,
+        ];
+    }
+
     public function ItemPedidoPneu($pedido, $dadosPneus)
     {
         $nr_fogo = $dadosPneus['nr_fogo'] ?? '';
@@ -468,9 +659,7 @@ class AcompanhamentoPneu extends Model
     private function getDataFiltroEmissao($inicioData, $fimData)
     {
         if (config('app.dev_mode')) {
-            return "PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE";
-
-            return "PP.DTEMISSAO BETWEEN '04.02.2025' AND '05.02.2025'";
+            return "PP.DTEMISSAO BETWEEN '$inicioData' AND '$fimData'";
         }
 
         if ($inicioData != 0) {

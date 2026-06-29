@@ -242,8 +242,9 @@
                             </div>
                             <div class="tab-pane fade" id="bloqueio-pedido" role="tabpanel">
                                 <div class="card collapsed-card mb-4">
-                                    <div class="card-header">
-                                        <h3 class="card-title mt-2">Filtros:</h3>
+                                    <div class="card-header pt-2 pb-2">
+                                        <h3 class="card-title mt-2"><i class="fas fa-filter mr-1 text-muted"></i> Filtros
+                                        </h3>
                                         <div class="card-tools">
                                             <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                                 <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
@@ -369,6 +370,19 @@
     </script>
     <script src="{{ asset('js/dashboard/coletaEmpresa/modal-detalhes-pedidos.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
+
+        /*Faz o navbar já abrir collapse*/
+        function collapseMenu() {
+            $('[data-widget="pushmenu"]').PushMenu('collapse');
+        }
+
+        $(window).on('load resize', function() {
+            setTimeout(() => {
+                collapseMenu();
+            }, 50);
+        });
+        /*Fim bloco abrir collapse*/
+
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-br.json') }}",
             getItemPedidoAcompanhar: "{{ route('get-item-pedido-acompanhar') }}"
@@ -381,9 +395,8 @@
         var tableBloqueio;
         var inicioData = 0;
         var fimData = 0;
-        var dados;
 
-        var dtInicio = moment().subtract(30, 'days').startOf('day').format('DD.MM.YYYY');
+        var dtInicio = moment().subtract(60, 'days').startOf('day').format('DD.MM.YYYY');
         var dtFim = moment().subtract(0, 'days').endOf('day').format('DD.MM.YYYY');
 
         var datasSelecionadas = initDateRangePicker('#daterange', dtInicio, dtFim);
@@ -397,6 +410,7 @@
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
         });
+
         $('#bloqueio').click(function() {
             //Rever essa rotina atualiza caso o usuario voltar para aba bloqueio
             $('#bloqueio-pedidos').DataTable().destroy();
@@ -404,18 +418,13 @@
                 language: {
                     url: "{{ asset('vendor/datatables/pt-br.json') }}",
                 },
+                processing: '<i class="fas fa-circle-notch fa-spin mr-2 text-primary"></i>Carregando...',
                 pagingType: "simple",
-                processing: false,
+                processing: true,
                 serverSide: false,
                 pageLength: 100,
                 ajax: {
-                    url: "{{ route('get-bloqueio-pedidos') }}",
-                    beforeSend() {
-                        $("#bloqueio-pedido .info-loading.loading-card").removeClass("invisible");
-                    },
-                    complete() {
-                        $("#bloqueio-pedido .info-loading.loading-card").addClass("invisible");
-                    },
+                    url: "{{ route('get-bloqueio-pedidos') }}"
                 },
                 columns: [{
                         data: 'action',
@@ -547,7 +556,19 @@
 
         $('#pedido-acompanhar').DataTable().destroy();
 
-        table = initTableAcompanhar(dados);
+        table = initTableAcompanhar();
+
+        // Atualiza os info-boxes com os totais por status vindos do backend
+        $('#pedido-acompanhar').on('xhr.dt', function(e, settings, json) {
+            if (json && json.totais) {
+                var t = json.totais;
+                $('.finalizados').text(t.atendido ?? 0);
+                $('.producao').text(t.em_producao ?? 0);
+                $('.bloqueados').text(t.bloqueado ?? 0);
+                $('.aguardando').text(t.aguardando ?? 0);
+                $('.garantias').text(t.garantia ?? 0);
+            }
+        });
 
         $('#pedido-acompanhar tbody').on('click', '.details-control', function() {
             var tr = $(this).closest('tr');
@@ -574,63 +595,49 @@
         });
 
         $('#searchRegiao').click(function() {
-            $('#pedido-acompanhar').DataTable().destroy();
-
             var dtInicio = datasSelecionadas.getInicio();
             var dtFim = datasSelecionadas.getFim();
-
             $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
-
-            dados = {
-                cd_empresa: $('#cd_empresa').val(),
-                nm_cliente: $('#nm_cliente').val(),
-                nm_vendedor: $('#nm_vendedor').val(),
-                pedido_palm: $('#pedido_palm').val(),
-                pedido: $('#pedido').val(),
-                grupo_item: $('#grupo_item').val(),
-                cd_regiaocomercial: $('#cd_regiaocomercial').val(),
-                dt_inicial: dtInicio,
-                dt_final: dtFim,
-                regiao: $('#cd_regiaocomercial').val(),
-                idvendedor: '',
-                nr_dot: $('#nr_dot').val(),
-                nr_serie: $('#nr_serie').val(),
-                nr_fogo: $('#nr_fogo').val(),
-            };
-
-            initTableAcompanhar(dados);
+            table.ajax.reload();
         });
 
-        function initTableAcompanhar(dados) {
+        function initTableAcompanhar() {
 
             table = $('#pedido-acompanhar').DataTable({
+
                 language: {
-                    url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
+                    url: "{{ asset('vendor/datatables/pt-br.json') }}",
+                    processing: '<i class="fas fa-circle-notch fa-spin mr-2 text-primary"></i>Carregando...',
                 },
-                pagingType: "simple",
-                processing: false,
-                serverSide: false,
-                pageLength: 25,
-                // scrollX: true,
+                pagingType: "simple_numbers",
+                processing: true,
+                serverSide: true,
+                searchDelay: 1500,
+                pageLength: 50,
+                scrollY: "400px",
                 scrollCollapse: true,
                 ajax: {
                     url: "{{ route('get-pedido-acompanhar') }}",
-                    data: {
-                        data: dados,
-                        tela: 'acompanhamento'
+                    data: function(d) {
+                        d.cd_empresa = $('#cd_empresa').val();
+                        d.nm_cliente = $('#nm_cliente').val();
+                        d.nm_vendedor = $('#nm_vendedor').val();
+                        d.pedido_palm = $('#pedido_palm').val();
+                        d.pedido = $('#pedido').val();
+                        d.grupo_item = $('#grupo_item').val();
+                        d.regiao = $('#cd_regiaocomercial').val();
+                        d.dt_inicial = datasSelecionadas.getInicio();
+                        d.dt_final = datasSelecionadas.getFim();
+                        d.nr_fogo = $('#nr_fogo').val();
+                        d.nr_serie = $('#nr_serie').val();
+                        d.nr_dot = $('#nr_dot').val();
                     },
-                    beforeSend: function() {
-                        window._swalLoadingTimer = setTimeout(function() {
-                            Swal.fire({
-                                title: 'Carregando os pedidos...',
-                                allowOutsideClick: false,
-                                didOpen: () => { Swal.showLoading(); }
-                            });
-                        }, 400);
-                    },
-                    complete: function() {
-                        clearTimeout(window._swalLoadingTimer);
-                        Swal.close();
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao carregar os pedidos',
+                            text: 'Por favor, tente novamente.',
+                        });
                     }
                 },
                 columns: [{
@@ -714,36 +721,16 @@
                 ],
 
                 "order": [7, 'desc'],
-                footerCallback: function(row, data, start, end, display) {
-
-                    let finalizados = data.filter(item => item.STPEDIDO === "ATENDIDO        ").length;
-                    let producao = data.filter(item => item.STPEDIDO === "EM PRODUCAO     ").length;
-                    let bloqueados = data.filter(item => item.STPEDIDO === "BLOQUEADO       ").length;
-                    let aguardando = data.filter(item => item.STPEDIDO === "AGUARDANDO      ").length;
-                    let canceladas = data.filter(item => item.STPEDIDO === "CANCELADO       ").length;
-                    let garantias = data.filter(item => item.STPEDIDO === "BLOQ. GARANTIA  ").length;
-
-                    $('.finalizados').text(finalizados);
-                    $('.producao').text(producao);
-                    $('.bloqueados').text(bloqueados);
-                    $('.aguardando').text(aguardando);
-                    $('.canceladas').text(canceladas);
-                    $('.garantias').text(garantias);
-                },
-                error: function(xhr, error, thrown) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erro ao carregar os pedidos',
-                        text: 'Ocorreu um erro ao carregar os pedidos. Por favor, tente novamente.',
-                    });
-                }
             });
+
+            // Remove os dots animados do processing (fallback JS além do CSS)
+            $('#pedido-acompanhar').closest('.dt-container')
+                .find('.dt-processing > div:last-child').remove();
+
             return table;
         }
 
         function initTable(tableId, data) {
-
-            console.log(data);
             table_item_pedido = $('#' + tableId).DataTable({
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json",
@@ -855,25 +842,8 @@
             });
         });
 
-        table.on('draw.dt', function() {
-
-            let dadosFiltrados = table.rows({
-                filter: 'applied'
-            }).data().toArray();
-
-            let finalizados = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "ATENDIDO").length;
-            let producao = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "EM PRODUCAO").length;
-            let bloqueados = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "BLOQUEADO").length;
-            let aguardando = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "AGUARDANDO").length;
-            let canceladas = dadosFiltrados.filter(item => item.STPEDIDO.trim() === "CANCELADO").length;
-
-            $('.finalizados').text(finalizados);
-            $('.producao').text(producao);
-            $('.bloqueados').text(bloqueados);
-            $('.aguardando').text(aguardando);
-            $('.canceladas').text(canceladas);
-
-        });
+        // Contadores de status: serão alimentados pelo backend no Passo 2
+        // via campo extra na resposta JSON (ex: json.totais)
 
         $('#i-finalizados').click(function() {
             table.search('ATENDIDO').draw();
