@@ -500,7 +500,7 @@ return [
                 ],
                 [
                     'text' => 'Nf Vendedor Divergente',
-                    'route' => 'pedidos-alterados-valor',
+                    'route' => 'nota-vendedor-divergentes.index',
                     'can' => ['ver-notas-vendedor-divergente'],
                 ]
             ]

@@ -9,7 +9,8 @@
                 <div class="col-12 col-sm-4 col-md-3 mb-2">
                     <div class="stat-card stat-primary">
                         <div class="stat-title"><i class="fas fa-file-invoice-dollar"></i> Total Bloqueadas</div>
-                        <div class="stat-value"><span id="qtd-bloqueadas">0</span> <small style="font-size:.7rem;font-weight:400;">Contas</small></div>
+                        <div class="stat-value"><span id="qtd-bloqueadas">0</span> <small
+                                style="font-size:.7rem;font-weight:400;">Contas</small></div>
                         <div class="stat-rows">
                             <div class="stat-row">
                                 <span class="stat-row-label">Valor</span>
@@ -21,7 +22,8 @@
                 <div class="col-12 col-sm-4 col-md-3 mb-2">
                     <div class="stat-card stat-info">
                         <div class="stat-title"><i class="fas fa-clock"></i> Aguardando Análise</div>
-                        <div class="stat-value"><span id="qtd-aguardando-analise">0</span> <small style="font-size:.7rem;font-weight:400;">Contas</small></div>
+                        <div class="stat-value"><span id="qtd-aguardando-analise">0</span> <small
+                                style="font-size:.7rem;font-weight:400;">Contas</small></div>
                         <div class="stat-rows">
                             <div class="stat-row">
                                 <span class="stat-row-label">Valor</span>
@@ -33,7 +35,8 @@
                 <div class="col-12 col-sm-4 col-md-3 mb-2">
                     <div class="stat-card stat-warning">
                         <div class="stat-title"><i class="fas fa-exclamation-triangle"></i> Pendentes Bloqueadas</div>
-                        <div class="stat-value"><span id="qtd-pendentes-bloqueadas">0</span> <small style="font-size:.7rem;font-weight:400;">Contas</small></div>
+                        <div class="stat-value"><span id="qtd-pendentes-bloqueadas">0</span> <small
+                                style="font-size:.7rem;font-weight:400;">Contas</small></div>
                         <div class="stat-rows">
                             <div class="stat-row">
                                 <span class="stat-row-label">Valor</span>
@@ -61,7 +64,8 @@
                                 placeholder="Filtrar por Empresa">
                         </div>
                         <div class="col-md-4 mb-1">
-                            <input id="filtro-nome" type="text" class="form-control form-control-sm" placeholder="Filtrar por Pessoa">
+                            <input id="filtro-nome" type="text" class="form-control form-control-sm"
+                                placeholder="Filtrar por Pessoa">
                         </div>
                         <div class="col-md-2 mb-1">
                             <input id="filtro-docto" type="text" class="form-control form-control-sm"
@@ -93,7 +97,8 @@
                             <table class="table stripe compact" id="table-contas-bloqueadas-pendentes" style="width:100%;">
                                 <thead>
                                     <tr>
-                                        <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos" style="margin:0;"></th>
+                                        <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos"
+                                                style="margin:0;"></th>
                                         <th>#</th>
                                         <th>Emp</th>
                                         <th>Pessoa</th>
@@ -113,7 +118,8 @@
                             <table class="table stripe compact" id="table-contas-bloqueadas-vistos" style="width:100%;">
                                 <thead>
                                     <tr>
-                                        <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos" style="margin:0;"></th>
+                                        <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos"
+                                                style="margin:0;"></th>
                                         <th>#</th>
                                         <th>Emp</th>
                                         <th>Pessoa</th>
@@ -150,17 +156,94 @@
 @stop
 @section('css')
     <style>
-        .stat-card { background:#fff; border:1px solid rgba(0,0,0,.09); border-left:4px solid; border-radius:4px; padding:10px 12px; height:100%; position:relative; }
-        .stat-card .stat-title { font-size:.68rem; text-transform:uppercase; letter-spacing:.4px; color:#6c757d; display:flex; align-items:center; gap:5px; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .stat-card .stat-title i { font-size:.7rem; }
-        .stat-card .stat-value { font-size:1rem; font-weight:700; word-break:break-all; line-height:1.3; }
-        .stat-card .stat-rows { margin-top:1px; }
-        .stat-card .stat-row { display:flex; justify-content:space-between; align-items:baseline; font-size:.71rem; padding:2px 0; border-top:1px solid rgba(0,0,0,.05); }
-        .stat-card .stat-row-label { color:#6c757d; flex-shrink:0; }
-        .stat-card .stat-row-val { font-weight:600; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:58%; }
-        .stat-primary { border-left-color:#007bff; } .stat-primary .stat-title i,.stat-primary .stat-value { color:#007bff; }
-        .stat-info    { border-left-color:#17a2b8; } .stat-info .stat-title i,.stat-info .stat-value    { color:#17a2b8; }
-        .stat-warning { border-left-color:#e0a800; } .stat-warning .stat-title i,.stat-warning .stat-value { color:#c89100; }
+        .stat-card {
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, .09);
+            border-left: 4px solid;
+            border-radius: 4px;
+            padding: 10px 12px;
+            height: 100%;
+            position: relative;
+        }
+
+        .stat-card .stat-title {
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-card .stat-title i {
+            font-size: .7rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 1rem;
+            font-weight: 700;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .stat-card .stat-rows {
+            margin-top: 1px;
+        }
+
+        .stat-card .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: .71rem;
+            padding: 2px 0;
+            border-top: 1px solid rgba(0, 0, 0, .05);
+        }
+
+        .stat-card .stat-row-label {
+            color: #6c757d;
+            flex-shrink: 0;
+        }
+
+        .stat-card .stat-row-val {
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 58%;
+        }
+
+        .stat-primary {
+            border-left-color: #007bff;
+        }
+
+        .stat-primary .stat-title i,
+        .stat-primary .stat-value {
+            color: #007bff;
+        }
+
+        .stat-info {
+            border-left-color: #17a2b8;
+        }
+
+        .stat-info .stat-title i,
+        .stat-info .stat-value {
+            color: #17a2b8;
+        }
+
+        .stat-warning {
+            border-left-color: #e0a800;
+        }
+
+        .stat-warning .stat-title i,
+        .stat-warning .stat-value {
+            color: #c89100;
+        }
 
         /* --- Coluna checkbox --- */
         td.text-center:has(.dt-row-checkbox-contas),
@@ -172,6 +255,7 @@
             text-align: center !important;
             vertical-align: middle !important;
         }
+
         .dt-row-checkbox-contas,
         .dt-select-all-contas {
             cursor: pointer;
@@ -556,7 +640,9 @@
                             Swal.fire({
                                 title: 'Carregando contas...',
                                 allowOutsideClick: false,
-                                didOpen: () => { Swal.showLoading(); }
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
                             });
                         }, 400);
                     },
@@ -642,18 +728,19 @@
                     },
                 ],
                 columnDefs: [{
-                    targets: [7, 8],
-                    render: function(data, type, row) {
-                        if (!data) return '';
-                        var d = new Date(data);
-                        if (isNaN(d)) return data;
-                        return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-
-                            2) + '/' + d.getFullYear();
+                        targets: [7, 8],
+                        render: function(data, type, row) {
+                            if (!data) return '';
+                            var parts = data.substring(0, 10).split('-');
+                            if (parts.length !== 3) return data;
+                            return parts[2] + '/' + parts[1] + '/' + parts[0];
+                        }
+                    },
+                    {
+                        targets: [6],
+                        render: $.fn.dataTable.render.number('.', ',', 2),
                     }
-                }, {
-                    targets: [6],
-                    render: $.fn.dataTable.render.number('.', ',', 2),
-                }],
+                ],
                 order: [
                     [2, 'asc']
                 ],
@@ -716,10 +803,9 @@
                         targets: [2, 3],
                         render: function(data, type, row) {
                             if (!data) return '';
-                            var d = new Date(data);
-                            if (isNaN(d)) return data;
-                            return ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-
-                                2) + '/' + d.getFullYear();
+                            var parts = data.substring(0, 10).split('-');
+                            if (parts.length !== 3) return data;
+                            return parts[2] + '/' + parts[1] + '/' + parts[0];
                         }
                     },
                     {
@@ -746,7 +832,8 @@
             e.stopPropagation();
             var total = tableContas.rows().count();
             var selected = tableContas.rows().nodes().to$().find('.dt-row-checkbox-contas:checked').length;
-            $(this).closest('.dataTables_wrapper').find('.dt-select-all-contas').prop('checked', total > 0 && total === selected);
+            $(this).closest('.dataTables_wrapper').find('.dt-select-all-contas').prop('checked', total > 0 &&
+                total === selected);
         });
 
         $('link[href*="custom_datatables"]').remove();
