@@ -144,7 +144,13 @@ class LiberaOrdemComercial extends Model
                         ELSE 'S'
                     END ST_TABELA,
                     --BORRACHEIRO
-                    COALESCE(IPBB.VL_COMISSAO, 0) VL_BORRACHEIRO
+                    COALESCE(IPBB.VL_COMISSAO, 0) VL_BORRACHEIRO,
+                    'Ult. Fat.: '||
+                    LPAD(CAST(EXTRACT(DAY   FROM RUF.R_DT_EMISSAO) AS VARCHAR(2)), 2, '0') || '/' ||
+                    LPAD(CAST(EXTRACT(MONTH FROM RUF.R_DT_EMISSAO) AS VARCHAR(2)), 2, '0') || '/' ||
+                    CAST(EXTRACT(YEAR FROM RUF.R_DT_EMISSAO) AS VARCHAR(4)) ||
+                    COALESCE(' - Tabela: ' || RUF.R_DS_TABPRECO, '') INFO_FAT,
+                    COALESCE(RUF.R_VL_UNITARIO, '-') R_VL_UNITARIO
                 FROM PEDIDOPNEU PP
                 INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
                 LEFT JOIN ITEMPEDIDOPNEUBORRACHEIRO IPB ON (IPB.IDITEMPEDIDOPNEU = IPP.ID
@@ -167,6 +173,8 @@ class LiberaOrdemComercial extends Model
 
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
                 INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
+
+                LEFT JOIN RETORNA_ULTIMOFATURAMENTO(PP.IDPESSOA, IPP.IDSERVICOPNEU) RUF ON (1 = 1)
             WHERE
                 PP.STPEDIDO IN ('B')
                 AND PP.IDTIPOPEDIDO = 1

@@ -1,7 +1,8 @@
 <div class="tab-pane fade show active" id="pedidos-bloqueados" role="tabpanel" aria-labelledby="tab-inserir">
     <div class="card collapsed-card mb-4">
-        <div class="card-header">
-            <h3 class="card-title mt-2">Filtros:</h3>
+        <div class="card-header pt-2 pb-2">
+            <h3 class="card-title mt-2"><i class="fas fa-filter mr-1 text-muted"></i> Filtros
+            </h3>
             <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse">
                     <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->

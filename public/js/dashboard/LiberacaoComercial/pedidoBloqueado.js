@@ -526,6 +526,11 @@ function initTable(tableId, data) {
                 name: "CD_TABPRECO",
                 title: "Tabela",
                 className: "text-center",
+                createdCell: function (td, cellData, rowData) {
+                    if (rowData.DS_TABPRECO) {
+                        $(td).attr("title", rowData.DS_TABPRECO);
+                    }
+                },
             },
             {
                 data: "VL_VENDA",
@@ -534,6 +539,22 @@ function initTable(tableId, data) {
                 // width: '2%',
                 render: $.fn.dataTable.render.number(".", ",", 2),
                 title: "Venda",
+            },
+            {
+                data: "R_VL_UNITARIO",
+                name: "R_VL_UNITARIO",
+                className: "text-center",
+                // width: '2%',
+                render: $.fn.dataTable.render.number(".", ",", 2),
+                title: "Ult. Fat.",
+                createdCell: function (td, cellData, rowData) {
+                    if (rowData.INFO_FAT) {
+                        $(td).attr("title", rowData.INFO_FAT);
+                    }
+                    $(td).css("background-color", "#adeb89");
+                    $(td).css("color", "#000");
+                    $(td).css("font-weight", "bold");
+                },
             },
             {
                 data: "VL_PRECO",
@@ -605,7 +626,7 @@ function initTable(tableId, data) {
                 className: "dt-right",
             },
             {
-                targets: [3, 7],
+                targets: [3, 8],
                 createdCell: function (td, cellData, rowData, row, col) {
                     $(td).css("background-color", "#E2E5E8");
                     $(td).css("color", "#000");
@@ -613,7 +634,7 @@ function initTable(tableId, data) {
                 },
             },
             {
-                targets: 8,
+                targets: 9,
                 createdCell: function (td, cellData, rowData, row, col) {
                     $(td).css("background-color", "#ebe489");
                     $(td).css("color", "#000");
@@ -679,7 +700,7 @@ function renderizarCards(data, containerId) {
                                 </div>
                             </div>  
                         
-                            <div class="col-8 col-md-8">
+                            <div class="col-4 col-md-4">
                                 <div class="form-group mb-0">    
                                     <label>Venda</label>                                
                                     <input type="number"
@@ -691,6 +712,18 @@ function renderizarCards(data, containerId) {
                                         />
                                 </div>
                             </div>
+
+                            <div class="col-4 col-md-4">
+                                <div class="form-group mb-0">    
+                                    <label>Ult. Fat.</label>                                
+                                    <input type="number"
+                                        class="form-control form-control-sm input-ultimo-fat"
+                                        style="width: 100px;"
+                                        value="${parseFloat(item.R_VL_UNITARIO).toFixed(2)}" readonly                                             
+                                        
+                                        />
+                                </div>
+                            </div>
                             <div class="col-4 col-md-4">
                                 <div class="form-group mb-0">
                                     <label>Tabela</label>
@@ -699,7 +732,7 @@ function renderizarCards(data, containerId) {
                                         value="${parseFloat(item.VL_PRECO).toFixed(2)}" readonly/>
                                 </div>  
                             </div>  
-                            <div class="col-8 col-md-8">
+                            <div class="col-4 col-md-4">
                             <div class="form-group mb-0">
                                 <label>Comissão</label>
                                 <input type="number"

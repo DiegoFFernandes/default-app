@@ -129,8 +129,11 @@ class LiberaOrdemComissaoController extends Controller
 
         return DataTables::of($data)
             ->addColumn('actions', function ($d) {
-                return '<span class="btn-detalhes details-control mr-2"><i class="fa fa-plus-circle"></i></span> ' . $d->EMP;
-            })            
+                return '<div class="d-flex align-items-center" style="white-space:nowrap;gap:4px">
+                            <span class="btn-detalhes details-control"><i class="fa fa-plus-circle fa-lg text-primary"></i></span>
+                            <small class="font-weight-bold">' . $d->EMP . '</small>
+                        </div>';
+            })
             ->setRowClass(function ($d) {
                 return $d->ST_COMERCIAL == 'G' ? 'bg-warning' : '';
             })
