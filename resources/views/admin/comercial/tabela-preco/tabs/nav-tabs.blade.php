@@ -25,6 +25,12 @@
                     <span class="d-none d-sm-inline">Divergências</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-item-faltante" data-toggle="tab" href="#painel-item-faltante" role="tab">
+                    <i class="fas fa-search-minus mr-1"></i>
+                    <span class="d-none d-sm-inline">Itens Faltantes</span>
+                </a>
+            </li>
         @endif
     </ul>
 </div>

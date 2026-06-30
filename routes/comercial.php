@@ -70,6 +70,7 @@ Route::middleware(['auth', 'role:admin|diretoria|gerente comercial|usuario comer
         Route::post('deletar-tabela-preco', [TabelaPrecoController::class, 'deletarTabelaPreco'])->name('deletar-tabela-preco');
         Route::post('cancelar-vinculo', [TabelaPrecoController::class, 'cancelarVinculo'])->name('cancelar-vinculo');
         Route::get('divergencia-tabela-preco', [TabelaPrecoController::class, 'divergenciaTabelaPreco'])->name('divergencia-tabela-preco');
+        Route::get('item-faltante-tabela-preco', [TabelaPrecoController::class, 'clienteTabelaItemFaltante'])->name('item-faltante-tabela-preco');
     });
 });
 
@@ -124,6 +125,7 @@ Route::middleware(['permission:ver-pedidos-coletados-acompanhamento|ver-pedidos-
     Route::get('movimento/acompanha-pedidos', [BloqueioPedidosController::class, 'index'])->name('bloqueio-pedidos');
     Route::get('movimento/get-bloqueio-pedidos', [BloqueioPedidosController::class, 'getBloqueioPedido'])->name('get-bloqueio-pedidos');
     Route::get('movimento/get-pedidos', [BloqueioPedidosController::class, 'getPedidoAcompanhar'])->name('get-pedido-acompanhar');
+    Route::get('movimento/get-pedidos-cliente', [BloqueioPedidosController::class, 'getPedidoCliente'])->name('get-pedido-cliente');
     Route::get('movimento/get-item-pedidos', [BloqueioPedidosController::class, 'getItemPedidoAcompanhar'])->name('get-item-pedido-acompanhar');
     Route::get('movimento/get-detalhe-item-pedidos/{id}', [BloqueioPedidosController::class, 'getDetalheItemPedidoAcompanhar'])->name('get-detalhe-item-pedido');
 });

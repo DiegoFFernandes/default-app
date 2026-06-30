@@ -19,6 +19,8 @@
 
                             @include('admin.comercial.tabela-preco.tabs.painel-divergencia')
 
+                            @include('admin.comercial.tabela-preco.tabs.painel-item-faltante')
+
                         </div>
                     </div>
                 </div>
@@ -82,6 +84,24 @@
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
+        }
+
+        /* Oculta botões internos do DataTables — exports via card-tools */
+        #tabela-item-faltante_wrapper .dt-buttons {
+            display: none !important;
+        }
+
+        /* Agrupamento visual por cliente — tabela itens faltantes */
+        #tabela-item-faltante tbody tr.grupo-a td {
+            background-color: #ffffff !important;
+        }
+
+        #tabela-item-faltante tbody tr.grupo-b td {
+            background-color: #eef3fb !important;
+        }
+
+        #tabela-item-faltante tbody tr.grupo-inicio td {
+            border-top: 2px solid #6c757d !important;
         }
 
         @media (max-width: 768px) {
@@ -204,6 +224,7 @@
             deleteTabelaPreco: "{{ route('deletar-tabela-preco') }}",
             cancelarVinculo: "{{ route('cancelar-vinculo') }}",
             divergenciaTabelaPreco: "{{ route('divergencia-tabela-preco') }}",
+            itemFaltanteTabelaPreco: "{{ route('item-faltante-tabela-preco') }}",
             csrfToken: '{{ csrf_token() }}'
         };
 
@@ -220,6 +241,7 @@
     <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoCadastradas.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoAssociadas.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoDivergencias.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/tabelaPreco/tabelaPrecoItemFaltante.js') }}?v={{ time() }}"></script>
 
     <script>
         //Aguarda Click para buscar os detalhes da tabela de preço

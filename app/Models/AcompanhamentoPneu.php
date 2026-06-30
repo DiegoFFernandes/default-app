@@ -216,9 +216,17 @@ class AcompanhamentoPneu extends Model
         });
     }
     public function ListPedidoPneuPaginated(
-        $empresa, $cd_regiao, $supervisor, $data,
-        $cd_pessoa, $cd_vendedor,
-        $start, $length, $orderBy, $dir, $search
+        $empresa,
+        $cd_regiao,
+        $supervisor,
+        $data,
+        $cd_pessoa,
+        $cd_vendedor,
+        $start,
+        $length,
+        $orderBy,
+        $dir,
+        $search
     ) {
         if (is_null($data)) {
             $pedido = $pedido_palm = $nm_cliente = $nm_vendedor = $idvendedor = '';
@@ -659,7 +667,7 @@ class AcompanhamentoPneu extends Model
     private function getDataFiltroEmissao($inicioData, $fimData)
     {
         if (config('app.dev_mode')) {
-            return "PP.DTEMISSAO BETWEEN '$inicioData' AND '$fimData'";
+            return "PP.DTEMISSAO BETWEEN '03.04.2026' AND '03.04.2026'";
         }
 
         if ($inicioData != 0) {

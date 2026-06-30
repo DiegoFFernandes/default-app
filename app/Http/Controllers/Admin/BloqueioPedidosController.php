@@ -152,6 +152,82 @@ class BloqueioPedidosController extends Controller
             ->rawColumns(['action'])
             ->make();
     }
+    public function getPedidoCliente()
+    {
+        $dados = $this->request->input('data', []);
+
+        $empresa    = 0;
+        $cd_regiao  = '';
+        $cd_pessoa  = 0;
+        $cd_vendedor = 0;
+
+        if ($this->user->hasRole('gerente unidade')) {
+            $empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
+                ->pluck('cd_empresa')->implode(',');
+        } elseif ($this->user->hasRole('cliente')) {
+            $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
+                ->pluck('cd_pessoa')->implode(',');
+        } elseif ($this->user->hasRole('vendedor')) {
+            $cd_vendedor = $this->vendedorComercial->findVendedorUser($this->user->id)
+                ->pluck('cd_vendedorcomercial')->implode(',');
+        }
+
+        $supervisor = $this->supervisorComercial->getCdSupervisor();
+
+        if ($supervisor == null) {
+            $pedidos = $this->acompanha->ListPedidoPneu($empresa, $cd_regiao, 0, $dados, $cd_pessoa, $cd_vendedor);
+        } else {
+            $pedidos = $this->acompanha->ListPedidoPneu(0, $cd_regiao, $supervisor, $dados, $cd_pessoa, $cd_vendedor);
+        }
+
+        $data = array_map(function ($d) use ($dados) {
+            $dataAttrs = [
+                'empresa'               => $d->NM_EMPRESA,
+                'pedido'                => $d->ID,
+                'pedido_palm'           => $d->IDPEDIDOMOVEL,
+                'cd_empresa'            => $d->CD_EMPRESA,
+                'nm_pessoa'             => $d->PESSOA,
+                'nm_vendedor'           => $d->NM_VENDEDOR,
+                'forma_pagamento'       => $d->DS_FORMAPAGTO,
+                'cond_pagamento'        => $d->DS_CONDPAGTO,
+                'observacao'            => $d->DSOBSERVACAO,
+                'status'                => $d->STPEDIDO,
+                'dt_emissao'            => $d->DTEMISSAO,
+                'dt_entrega'            => $d->DTENTREGAPED,
+                'dt_sincronizacao'      => $d->DHSINCRONIZACAO,
+                'dt_registro_palm'      => $d->DTREGISTROPALM,
+                'ds_motivo'             => $d->MOTIVO,
+                'ds_bloqueio'           => $d->DSBLOQUEIO,
+                'ds_liberacao_anterior' => $d->DSLIBERACAOANTERIOR,
+            ];
+
+            $dataString = collect($dataAttrs)
+                ->map(fn($v, $k) => 'data-' . $k . '="' . htmlspecialchars($v ?? '', ENT_QUOTES) . '"')
+                ->implode(' ');
+
+            $d->actions = '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> '
+                        . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+
+            $d->QTD_FINALIZADAS = '<span class="badge badge-secondary">'
+                                . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
+
+            $stpedido = trim($d->STPEDIDO ?? '');
+            if ($stpedido === 'ATENDIDO') {
+                $d->DT_RowClass = 'bg-green';
+            } elseif ($stpedido === 'EM PRODUCAO') {
+                $d->DT_RowClass = 'bg-yellow';
+            } elseif (in_array($stpedido, ['BLOQUEADO', 'SCPC'])) {
+                $d->DT_RowClass = 'bg-red';
+            } else {
+                $d->DT_RowClass = '';
+            }
+
+            return $d;
+        }, $pedidos);
+
+        return response()->json(['data' => $data]);
+    }
+
     public function getPedidoAcompanhar()
     {
         // ── DataTables server-side params ────────────────────────────────────
@@ -308,6 +384,7 @@ class BloqueioPedidosController extends Controller
         return DataTables::of($detalhe_ordem)
             ->make();
     }
+
     public function coletaGeral()
     {
         $title_page   = 'Pedidos Geral';
@@ -357,6 +434,7 @@ class BloqueioPedidosController extends Controller
             'empresa'
         ));
     }
+    
     public function getColetaGeralRegiao()
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -395,6 +473,7 @@ class BloqueioPedidosController extends Controller
             ->rawColumns(['actions'])
             ->make();
     }
+    
     public function getQtdColeta()
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();

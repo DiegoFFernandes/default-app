@@ -525,4 +525,69 @@ class TabPreco extends Model
 
         return Helper::ConvertFormatText($data);
     }
+
+    public function clienteTabelaItemFaltante()
+    {
+        $query = "
+           SELECT DISTINCT
+                NOTA.CD_PESSOA,
+                PESSOA.NM_PESSOA,
+                I.CD_TABPRECO TABELA_FATURADA,
+                P.CD_TABPRECO,
+
+                ITEM.CD_ITEM,
+                ITEM.DS_ITEM,
+
+                I.VL_UNITARIO,
+
+                CASE
+                WHEN P.CD_TABPRECO IS NOT NULL THEN 'SIM POSSUI'
+                ELSE 'NÃO POSSUI'
+                END POSSUI_TABELA,
+
+                CASE
+                WHEN ITP.CD_ITEM IS NOT NULL THEN 'SIM POSSUI'
+                ELSE 'NÃO POSSUI'
+                END POSSUI_ITEM_TABELA,
+
+                RVN.R_CD_VENDEDOR,
+                VENDEDOR.NM_PESSOA NM_VENDEDOR,
+
+                V.CD_VENDEDORGERAL,
+                SUPERVISOR.NM_PESSOA NM_SUPERVISOR
+            FROM ITEMNOTA I
+            INNER JOIN NOTA ON (NOTA.CD_EMPRESA = I.CD_EMPRESA
+                AND I.NR_LANCAMENTO = NOTA.NR_LANCAMENTO
+                AND NOTA.CD_SERIE = I.CD_SERIE
+                AND NOTA.TP_NOTA = I.TP_NOTA)
+            INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = NOTA.CD_PESSOA)
+
+            LEFT JOIN PARMTABPRECO P ON (P.CD_PESSOA = NOTA.CD_PESSOA)
+            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = P.CD_TABPRECO
+                AND ITP.CD_ITEM = I.CD_ITEM)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = I.CD_ITEM)
+
+            LEFT JOIN RETORNA_VENDEDORNOTA(NOTA.CD_EMPRESA, NOTA.NR_LANCAMENTO, NOTA.TP_NOTA, NOTA.CD_SERIE) RVN ON (1 = 1)
+
+            LEFT JOIN PESSOA VENDEDOR ON (VENDEDOR.CD_PESSOA = RVN.R_CD_VENDEDOR)
+
+            LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = RVN.R_CD_VENDEDOR)
+
+            LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
+
+            WHERE NOTA.DT_EMISSAO >= '01.04.2026'
+                AND P.CD_TABPRECO IS NOT NULL
+                AND ITEM.CD_SUBGRUPO NOT IN (10211)
+                AND ITP.CD_ITEM IS NULL
+                AND NOTA.ST_NOTA NOT IN ('C', 'E')
+                AND NOTA.CD_SERIE = 'F3'
+                --I.NR_LANCAMENTO = 255588
+
+            ORDER BY NOTA.CD_PESSOA        
+        ";
+
+        $data = DB::connection('firebird')->select($query);
+
+        return Helper::ConvertFormatText($data);
+    }
 }

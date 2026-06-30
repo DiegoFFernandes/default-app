@@ -433,6 +433,7 @@
                 }
             });
         }
+
         //Função para inicializar a tabela de coleta geral por região
         function initTableColetaGeralRegiao(empresaId, tableId, inicio, fim, tipo) {
 
@@ -677,6 +678,8 @@
 
         function initTablePedidoCliente(tableId, data) {
 
+            alert('aqui');
+
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
             const grupo_item = grupoItem(data.CD_EMPRESA);
@@ -706,7 +709,7 @@
                 searching: false,
                 scrollX: true,
                 ajax: {
-                    url: "{{ route('get-pedido-acompanhar') }}",
+                    url: "{{ route('get-pedido-cliente') }}",
                     data: {
                         data: dados
                     }

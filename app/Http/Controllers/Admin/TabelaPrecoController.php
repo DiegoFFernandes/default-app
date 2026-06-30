@@ -583,8 +583,26 @@ class TabelaPrecoController extends Controller
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
                 return '
-                <button class="btn btn-xs btn-secondary btn-block btn-ver-itens-divergencia mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button> 
+                <button class="btn btn-xs btn-secondary btn-block btn-ver-itens-divergencia mb-1" data-nm_tabela="' . $row->DS_TABPRECO . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Itens</button>
                 <button class="btn btn-xs btn-secondary btn-cancelar-vinculo" data-cd_pessoa="' . $row->CD_PESSOA . '" data-cd_tabela="' . $row->CD_TABPRECO . '">Cancelar Vinculo</button>';
+            })
+            ->make(true);
+    }
+
+    public function clienteTabelaItemFaltante()
+    {
+        $data = $this->tabela->clienteTabelaItemFaltante();
+
+        return DataTables::of($data)
+            ->addColumn('action', function ($row) {
+                return '<button class="btn btn-xs btn-warning btn-alterar-valor-item-faltante"
+                    data-cd_tabpreco="' . $row->CD_TABPRECO . '"
+                    data-cd_item="' . $row->CD_ITEM . '"
+                    data-nm_pessoa="' . htmlspecialchars($row->NM_PESSOA, ENT_QUOTES) . '"
+                    data-ds_item="' . htmlspecialchars($row->DS_ITEM, ENT_QUOTES) . '"
+                    data-vl_unitario="' . $row->VL_UNITARIO . '">
+                    <i class="fas fa-edit"></i> Alterar Valor
+                </button>';
             })
             ->make(true);
     }
