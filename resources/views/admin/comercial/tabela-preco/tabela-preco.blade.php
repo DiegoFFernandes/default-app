@@ -225,6 +225,11 @@
             cancelarVinculo: "{{ route('cancelar-vinculo') }}",
             divergenciaTabelaPreco: "{{ route('divergencia-tabela-preco') }}",
             itemFaltanteTabelaPreco: "{{ route('item-faltante-tabela-preco') }}",
+            adicionarItensItemFaltante: "{{ route('adicionar-itens-item-faltante') }}",
+            ignorarItemTabPreco: "{{ route('ignorar-item-tabpreco') }}",
+            ignorarItensItemFaltante: "{{ route('ignorar-itens-item-faltante') }}",
+            getParametrosItemFaltante: "{{ route('parametros-item-faltante') }}",
+            saveParametrosItemFaltante: "{{ route('parametros-item-faltante.save') }}",
             csrfToken: '{{ csrf_token() }}'
         };
 

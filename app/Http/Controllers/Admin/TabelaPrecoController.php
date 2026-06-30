@@ -10,6 +10,8 @@ use App\Models\ItemTabPreco;
 use App\Models\Pessoa;
 use App\Models\SupervisorComercial;
 use App\Models\TabPreco;
+use App\Models\ParmNota;
+use App\Models\Parametro;
 use App\Models\User;
 use App\Services\ServiceFiltroGrupoSubgrupo;
 use App\Services\UserRoleFilterService;
@@ -589,19 +591,95 @@ class TabelaPrecoController extends Controller
             ->make(true);
     }
 
+    public function getParametrosItemFaltante()
+    {
+        $parmNota = new ParmNota();
+        $saved    = Parametro::get('item-faltante', 'cd_serie', 'F3');
+
+        return response()->json([
+            'series'   => $parmNota->getSeriesNota(),
+            'cd_serie' => array_filter(array_map('trim', explode(',', $saved))),
+        ]);
+    }
+
+    public function saveParametrosItemFaltante()
+    {
+        $series = $this->request->input('cd_serie', []);
+
+        if (empty($series)) {
+            return response()->json(['success' => false, 'message' => 'Selecione pelo menos uma série.']);
+        }
+
+        try {
+            Parametro::set('item-faltante', 'cd_serie', implode(',', $series), auth()->id());
+
+            return response()->json(['success' => true, 'message' => 'Parâmetro salvo com sucesso.']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao salvar: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function adicionarItensItemFaltante()
+    {
+        $itens = $this->request->input('itens', []);
+
+        if (empty($itens)) {
+            return response()->json(['success' => false, 'message' => 'Nenhum item selecionado.']);
+        }
+
+        try {
+            $this->tabela->adicionarItensItemFaltante($itens);
+
+            return response()->json([
+                'success' => true,
+                'message' => count($itens) . ' item(ns) adicionado(s) na tabela de preço com sucesso!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao salvar os itens: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function clienteTabelaItemFaltante()
     {
-        $data = $this->tabela->clienteTabelaItemFaltante();
+        // Verifica as permissões do usuario e inclui na variavel filtro
+        $service = new UserRoleFilterService(
+            $this->user,
+            $this->area,
+            $this->supervisorComercial,
+            $this->gerenteUnidade,
+            null
+        );
+
+        $filtros = $service->getFiltros();
+
+        // 9 - RECUSADAS
+        $subgrupoRcs = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
+        $data = $this->tabela->clienteTabelaItemFaltante($filtros['cd_regiao'], $subgrupoRcs['data']);
 
         return DataTables::of($data)
             ->addColumn('action', function ($row) {
-                return '<button class="btn btn-xs btn-warning btn-alterar-valor-item-faltante"
+                return '
+                <button class="btn btn-xs btn-warning btn-alterar-valor-item-faltante" title="Alterar Valor"
                     data-cd_tabpreco="' . $row->CD_TABPRECO . '"
                     data-cd_item="' . $row->CD_ITEM . '"
                     data-nm_pessoa="' . htmlspecialchars($row->NM_PESSOA, ENT_QUOTES) . '"
                     data-ds_item="' . htmlspecialchars($row->DS_ITEM, ENT_QUOTES) . '"
                     data-vl_unitario="' . $row->VL_UNITARIO . '">
-                    <i class="fas fa-edit"></i> Alterar Valor
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-xs btn-danger btn-ignorar-item-tabpreco" title="Não Incluir"
+                    data-cd_tabpreco="' . $row->CD_TABPRECO . '"
+                    data-cd_item="' . $row->CD_ITEM . '"
+                    data-cd_pessoa="' . $row->CD_PESSOA . '"
+                    data-ds_item="' . htmlspecialchars($row->DS_ITEM, ENT_QUOTES) . '">
+                    <i class="fas fa-ban"></i>
                 </button>';
             })
             ->make(true);

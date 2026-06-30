@@ -6,6 +6,7 @@ use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\Parametro;
 
 class TabPreco extends Model
 {
@@ -330,12 +331,7 @@ class TabPreco extends Model
                 DB::connection('firebird')->statement($queryDelete);
 
                 foreach ($itensTabela as $item) {
-                    $queryItem = "
-                        UPDATE OR INSERT INTO ITEMTABPRECO (CD_TABPRECO, CD_ITEM, VL_PRECO, DT_REGISTRO, ST_CALCACRESCIMO, ST_CALCFLEX)
-                        VALUES ($item->CD_TABELA, $item->ID, $item->VALOR, CURRENT_TIMESTAMP, 'S', 'S')
-                        MATCHING (CD_TABPRECO, CD_ITEM)
-                    ";
-                    DB::connection('firebird')->statement($queryItem);
+                    $this->upsertItemTabPreco($item->CD_TABELA, $item->ID, $item->VALOR);
                 }
 
                 // Após importar os itens, atualizar o status de importação na tabela temporária, para 'V' (VINCULAR CLIENTE)
@@ -526,12 +522,54 @@ class TabPreco extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function clienteTabelaItemFaltante()
+    private function upsertItemIgnorarTabPreco(int $cd_tabpreco, int $cd_item, int $cd_pessoa): void
     {
+        $query = "
+            UPDATE OR INSERT INTO ITEMTABPRECO_IGNORAR (CD_TABPRECO, CD_ITEM, CD_PESSOA, DT_REGISTRO)
+            VALUES ($cd_tabpreco, $cd_item, $cd_pessoa, CURRENT_TIMESTAMP)
+            MATCHING (CD_TABPRECO, CD_ITEM)
+        ";
+        DB::connection('firebird')->statement($query);
+    }
+
+    public function ignorarItemTabPreco(int $cd_tabpreco, int $cd_item, int $cd_pessoa): void
+    {
+        DB::transaction(function () use ($cd_tabpreco, $cd_item, $cd_pessoa) {
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+            $this->upsertItemIgnorarTabPreco($cd_tabpreco, $cd_item, $cd_pessoa);
+        });
+    }
+
+    private function upsertItemTabPreco(int $cd_tabpreco, int $cd_item, float $vl_preco): void
+    {
+        $query = "
+            UPDATE OR INSERT INTO ITEMTABPRECO (CD_TABPRECO, CD_ITEM, VL_PRECO, DT_REGISTRO, ST_CALCACRESCIMO, ST_CALCFLEX)
+            VALUES ($cd_tabpreco, $cd_item, $vl_preco, CURRENT_TIMESTAMP, 'S', 'S')
+            MATCHING (CD_TABPRECO, CD_ITEM)
+        ";
+        DB::connection('firebird')->statement($query);
+    }
+
+    public function adicionarItensItemFaltante(array $itens): void
+    {
+        DB::transaction(function () use ($itens) {
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+            foreach ($itens as $item) {
+                $this->upsertItemTabPreco((int) $item['cd_tabpreco'], (int) $item['cd_item'], (float) $item['vl_unitario']);
+            }
+        });
+    }
+
+    public function clienteTabelaItemFaltante($cd_regiao, $subgrupoRcs)
+    {
+        $saved   = Parametro::get('item-faltante', 'cd_serie', 'F3');
+        $series  = array_filter(array_map('trim', explode(',', $saved)));
+        $cdSerie = implode(',', array_map(fn($s) => "'$s'", $series));
+
         $query = "
            SELECT DISTINCT
                 NOTA.CD_PESSOA,
-                PESSOA.NM_PESSOA,
+                NOTA.CD_PESSOA||'-'||PESSOA.NM_PESSOA NM_PESSOA,
                 I.CD_TABPRECO TABELA_FATURADA,
                 P.CD_TABPRECO,
 
@@ -550,7 +588,7 @@ class TabPreco extends Model
                 ELSE 'NÃO POSSUI'
                 END POSSUI_ITEM_TABELA,
 
-                RVN.R_CD_VENDEDOR,
+                COALESCE(RVN.R_CD_VENDEDOR, NOTA.CD_VENDEDOR) CD_VENDEDOR,
                 VENDEDOR.NM_PESSOA NM_VENDEDOR,
 
                 V.CD_VENDEDORGERAL,
@@ -569,21 +607,26 @@ class TabPreco extends Model
 
             LEFT JOIN RETORNA_VENDEDORNOTA(NOTA.CD_EMPRESA, NOTA.NR_LANCAMENTO, NOTA.TP_NOTA, NOTA.CD_SERIE) RVN ON (1 = 1)
 
-            LEFT JOIN PESSOA VENDEDOR ON (VENDEDOR.CD_PESSOA = RVN.R_CD_VENDEDOR)
+            LEFT JOIN PESSOA VENDEDOR ON (VENDEDOR.CD_PESSOA = COALESCE(RVN.R_CD_VENDEDOR, NOTA.CD_VENDEDOR))
 
-            LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = RVN.R_CD_VENDEDOR)
+            LEFT JOIN VENDEDOR V ON (V.CD_VENDEDOR = COALESCE(RVN.R_CD_VENDEDOR, NOTA.CD_VENDEDOR))
 
             LEFT JOIN PESSOA SUPERVISOR ON (SUPERVISOR.CD_PESSOA = V.CD_VENDEDORGERAL)
 
+            LEFT JOIN ITEMTABPRECO_IGNORAR ITG ON (ITG.CD_TABPRECO = P.CD_TABPRECO
+                AND ITG.CD_ITEM = I.CD_ITEM
+                AND ITG.CD_PESSOA = PESSOA.CD_PESSOA)
+
             WHERE NOTA.DT_EMISSAO >= '01.04.2026'
+                " . (!empty($cd_regiao) ? " AND V.CD_VENDEDORGERAL IN ({$cd_regiao}) " : "") . "
                 AND P.CD_TABPRECO IS NOT NULL
-                AND ITEM.CD_SUBGRUPO NOT IN (10211)
+                AND ITEM.CD_SUBGRUPO NOT IN ($subgrupoRcs)
                 AND ITP.CD_ITEM IS NULL
                 AND NOTA.ST_NOTA NOT IN ('C', 'E')
-                AND NOTA.CD_SERIE = 'F3'
-                --I.NR_LANCAMENTO = 255588
+                AND NOTA.CD_SERIE IN ($cdSerie)
+                AND ITG.CD_ITEM IS NULL
 
-            ORDER BY NOTA.CD_PESSOA        
+            ORDER BY NOTA.CD_PESSOA
         ";
 
         $data = DB::connection('firebird')->select($query);

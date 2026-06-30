@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ColetaController;
 use App\Http\Controllers\Admin\ComissaoController;
 use App\Http\Controllers\Admin\GerenteUnidadeController;
 use App\Http\Controllers\admin\TabelaPrecoController;
+use App\Http\Controllers\admin\TabelaPrecoIgnorarController;
 use App\Http\Controllers\Admin\VendedorBorrachariaController;
 use Illuminate\Support\Facades\Route;
 
@@ -71,6 +72,11 @@ Route::middleware(['auth', 'role:admin|diretoria|gerente comercial|usuario comer
         Route::post('cancelar-vinculo', [TabelaPrecoController::class, 'cancelarVinculo'])->name('cancelar-vinculo');
         Route::get('divergencia-tabela-preco', [TabelaPrecoController::class, 'divergenciaTabelaPreco'])->name('divergencia-tabela-preco');
         Route::get('item-faltante-tabela-preco', [TabelaPrecoController::class, 'clienteTabelaItemFaltante'])->name('item-faltante-tabela-preco');
+        Route::get('parametros-item-faltante', [TabelaPrecoController::class, 'getParametrosItemFaltante'])->name('parametros-item-faltante');
+        Route::post('parametros-item-faltante', [TabelaPrecoController::class, 'saveParametrosItemFaltante'])->name('parametros-item-faltante.save');
+        Route::post('adicionar-itens-item-faltante', [TabelaPrecoController::class, 'adicionarItensItemFaltante'])->name('adicionar-itens-item-faltante');
+        Route::post('ignorar-item-tabpreco', [TabelaPrecoIgnorarController::class, 'ignorarItemTabPreco'])->name('ignorar-item-tabpreco');
+        Route::post('ignorar-itens-item-faltante', [TabelaPrecoIgnorarController::class, 'ignorarItensItemFaltante'])->name('ignorar-itens-item-faltante');
     });
 });
 

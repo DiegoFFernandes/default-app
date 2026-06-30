@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use App\Models\CobrancaParametro;
+use App\Models\Parametro;
 use Carbon\Carbon;
 
 class Cobranca extends Model
@@ -389,7 +389,7 @@ class Cobranca extends Model
             return "AND CONTAS.CD_FORMAPAGTO IN ('CC', 'CH')";
         }
 
-        $saved  = CobrancaParametro::get('inadimplencia_formapagto', 'BL,CC,CH,DB,DF,DI,TL,TC,CN');
+        $saved  = Parametro::get('cobranca', 'inadimplencia_formapagto', 'BL,CC,CH,DB,DF,DI,TL,TC,CN');
         $codes  = collect(explode(',', $saved))
             ->map(fn($c) => "'" . trim($c) . "'")
             ->implode(', ');

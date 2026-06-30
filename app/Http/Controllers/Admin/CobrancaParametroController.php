@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\CobrancaParametro;
+use App\Models\Parametro;
 use App\Models\FormaPagamento;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,7 +26,7 @@ class CobrancaParametroController extends Controller
     {
         $codigos = $this->codigosValidos();
         $default = implode(',', $codigos);
-        $valor   = CobrancaParametro::get('inadimplencia_formapagto', $default);
+        $valor   = Parametro::get('cobranca', 'inadimplencia_formapagto', $default);
 
         return response()->json([
             'formapagto' => array_values(array_filter(explode(',', $valor))),
@@ -42,7 +42,8 @@ class CobrancaParametroController extends Controller
             'formapagto.*' => Rule::in($codigos),
         ]);
 
-        CobrancaParametro::set(
+        Parametro::set(
+            'cobranca',
             'inadimplencia_formapagto',
             implode(',', $request->formapagto),
             auth()->id()

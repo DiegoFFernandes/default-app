@@ -678,8 +678,6 @@
 
         function initTablePedidoCliente(tableId, data) {
 
-            alert('aqui');
-
             const inicio = $('#click-dt-inicio-' + data.CD_EMPRESA).val();
             const fim = $('#click-dt-fim-' + data.CD_EMPRESA).val();
             const grupo_item = grupoItem(data.CD_EMPRESA);
