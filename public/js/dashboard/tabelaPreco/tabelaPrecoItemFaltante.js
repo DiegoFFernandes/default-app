@@ -80,6 +80,7 @@ function initTableItemFaltanteTabelaPreco(routes) {
             {
                 data: "action",
                 name: "action",
+                width: '60px',
                 title: "#",
                 className: "text-center",
                 orderable: false,
