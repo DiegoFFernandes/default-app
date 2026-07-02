@@ -625,6 +625,7 @@ class TabPreco extends Model
                 AND NOTA.ST_NOTA NOT IN ('C', 'E')
                 AND NOTA.CD_SERIE IN ($cdSerie)
                 AND ITG.CD_ITEM IS NULL
+                AND NOTA.TP_NOTA = 'S'
 
             ORDER BY NOTA.CD_PESSOA
         ";
