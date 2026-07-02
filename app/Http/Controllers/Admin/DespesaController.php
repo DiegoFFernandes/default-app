@@ -249,7 +249,7 @@ class DespesaController extends Controller
         }
 
         return response()->json(
-            $query->orderBy('dt_despesa')->get(['id', 'nr_placa', 'dt_despesa', 'ds_observacao', 'vl_consumido', 'nm_solicitante'])
+            $query->orderBy('dt_despesa')->get(['id', 'nr_placa', 'dt_despesa', 'ds_observacao', 'vl_consumido', 'nm_solicitante', 'nr_lancamento'])
         );
     }
 
@@ -377,22 +377,28 @@ class DespesaController extends Controller
 
         $importados    = $resultado['importados'];
         $erros         = $resultado['erros'];
-        $idsImportados = $resultado['idsImportados'] ?? [];
+        $mapa          = $resultado['mapa'] ?? [];
 
-        if (!empty($idsImportados)) {
-            $this->comprovante->whereIn('id', $idsImportados)->update([
-                'st_importado_fb' => 'S',
-                'st_visto'        => 'S',
-                'cd_pessoa'       => (int) $this->request->input('cd_pessoa'),
-                'nm_solicitante'  => trim($this->request->input('nm_motorista', '')),
-            ]);
+        if (!empty($mapa)) {
+            $cdPessoa    = (int)    $this->request->input('cd_pessoa');
+            $nmMotorista = trim($this->request->input('nm_motorista', ''));
+
+            foreach ($mapa as $comprovanteId => $nrLancamento) {
+                $this->comprovante->where('id', $comprovanteId)->update([
+                    'st_importado_fb' => 'S',
+                    'st_visto'        => 'S',
+                    'cd_pessoa'       => $cdPessoa,
+                    'nm_solicitante'  => $nmMotorista,
+                    'nr_lancamento'   => $nrLancamento,
+                ]);
+            }
         }
 
         return response()->json([
             'success'        => true,
             'importados'     => $importados,
             'erros'          => $erros,
-            'ids_importados' => $idsImportados,
+            'ids_importados' => array_keys($mapa),
             'message'        => $importados . ' registro(s) importado(s) com sucesso.'
                 . (count($erros) ? ' ' . count($erros) . ' erro(s).' : ''),
         ]);

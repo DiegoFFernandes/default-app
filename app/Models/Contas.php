@@ -19,8 +19,9 @@ class Contas
         $importados    = 0;
         $erros         = [];
         $idsImportados = [];
+        $mapa          = []; // comprovante_id => nr_lancamento
 
-        DB::connection('firebird')->transaction(function () use ($rows, $opcoes, &$importados, &$erros, &$idsImportados) {
+        DB::connection('firebird')->transaction(function () use ($rows, $opcoes, &$importados, &$erros, &$idsImportados, &$mapa) {
             DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
 
             foreach ($rows as $row) {
@@ -49,7 +50,9 @@ class Contas
                     ]);
 
                     if (!empty($row['comprovante_id'])) {
-                        $idsImportados[] = (int) $row['comprovante_id'];
+                        $comprovanteId           = (int) $row['comprovante_id'];
+                        $idsImportados[]         = $comprovanteId;
+                        $mapa[$comprovanteId]    = $nr;
                     }
 
                     $importados++;
@@ -59,7 +62,7 @@ class Contas
             }
         });
 
-        return compact('importados', 'erros', 'idsImportados');
+        return compact('importados', 'erros', 'idsImportados', 'mapa');
     }
 
     /**

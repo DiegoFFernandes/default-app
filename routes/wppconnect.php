@@ -22,6 +22,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::prefix('wppconnect')->group(function () {
         Route::get('/', [WppConnectController::class, 'index'])->name('wppconnect.index');
         Route::post('start-session', [WppConnectController::class, 'startSession'])->name('wppconnect.start-session');
+        Route::post('start-session-phone', [WppConnectController::class, 'startSessionPhone'])->name('wppconnect.start-session-phone');
+        Route::get('phone-code', [WppConnectController::class, 'phoneCode'])->name('wppconnect.phone-code');
         Route::get('status', [WppConnectController::class, 'status'])->name('wppconnect.status');
         Route::get('qrcode', [WppConnectController::class, 'qrCode'])->name('wppconnect.qrcode');
         Route::get('disparos',          [WppConnectController::class, 'disparos'])->name('wppconnect.disparos');

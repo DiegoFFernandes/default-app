@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\WppDisparo;
 use App\Services\CompraAprovacaoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class WppWebhookController extends Controller
@@ -14,9 +15,27 @@ class WppWebhookController extends Controller
 
     public function handle(Request $request)
     {
-        $body = $request->all();
+        $body  = $request->all();
+        $event = $body['event'] ?? null;
 
-        Log::info('WppConnect webhook recebido', $body);
+        Log::info('WppConnect webhook recebido', ['event' => $event]);
+
+        // Código de pareamento por número de telefone
+        if ($event === 'phoneCode') {
+            $code = $body['phoneCode'] ?? null;
+            if ($code) {
+                Cache::put('wppconnect_phone_code', $code, now()->addMinutes(5));
+                Log::info('WppConnect: phoneCode recebido', ['code' => $code]);
+            }
+            return response()->json(['ok' => true]);
+        }
+
+        // Sessão fechada automaticamente (timeout de login)
+        if ($event === 'status-find' && ($body['status'] ?? null) === 'autocloseCalled') {
+            Cache::forget('wppconnect_phone_code');
+            Log::info('WppConnect: sessão auto-fechada (autocloseCalled)');
+            return response()->json(['ok' => true]);
+        }
 
         // Ignora mensagens enviadas pelo próprio bot
         if ($body['fromMe'] ?? false) {

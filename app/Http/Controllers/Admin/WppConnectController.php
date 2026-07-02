@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\WppDisparo;
 use App\Services\WppConnectService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class WppConnectController extends Controller
 {
@@ -14,6 +16,24 @@ class WppConnectController extends Controller
     public function index()
     {
         return view('admin.wppconnect.index');
+    }
+
+    public function phoneCode(): JsonResponse
+    {
+        $code = Cache::get('wppconnect_phone_code');
+        return response()->json(['code' => $code]);
+    }
+
+    public function startSessionPhone(Request $request): JsonResponse
+    {
+        $request->validate(['phone' => 'required|string|min:10']);
+
+        try {
+            $result = $this->wpp->startSessionWithPhone($request->phone);
+            return response()->json(['success' => true, 'data' => $result]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function startSession(): JsonResponse

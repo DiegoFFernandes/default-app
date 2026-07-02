@@ -21,6 +21,7 @@ class Comprovante extends Model
         'st_visto',
         'st_importado_fb',
         'st_arquivo',
+        'nr_lancamento',
         'dt_despesa',
         'km',
         'nr_placa',

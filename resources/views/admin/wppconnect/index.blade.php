@@ -57,32 +57,90 @@
                                             <h4 class="card-title mb-0">
                                                 <i class="fab fa-whatsapp mr-2"></i>Conectar WhatsApp
                                             </h4>
+                                            <div class="btn-group btn-group-sm mt-2 mb-1" role="group">
+                                                <button type="button" class="btn btn-outline-warning" id="btn-modo-qrcode">
+                                                    <i class="fas fa-qrcode mr-1"></i>QR Code
+                                                </button>
+                                                <button type="button" class="btn btn-warning active" id="btn-modo-phone">
+                                                    <i class="fas fa-mobile-alt mr-1"></i>Número
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="card-body text-center">
 
-                                            <div id="area-loading" class="py-4">
-                                                <div class="spinner-border text-warning" role="status"></div>
-                                                <p class="mt-2 text-muted" id="loading-text">Verificando conexão...</p>
+                                            {{-- Modo QR Code --}}
+                                            <div id="modo-qrcode" style="display:none;">
+                                                <div id="area-loading" class="py-4">
+                                                    <div class="spinner-border text-warning" role="status"></div>
+                                                    <p class="mt-2 text-muted" id="loading-text">Verificando conexão...</p>
+                                                </div>
+
+                                                <div id="area-qrcode" style="display:none;">
+                                                    <p class="text-muted mb-2" style="font-size:13px;">
+                                                        Abra o WhatsApp &rarr; <strong>Dispositivos conectados</strong> &rarr; <strong>Conectar dispositivo</strong>
+                                                    </p>
+                                                    <img id="qrcode-img" src="" alt="QR Code"
+                                                         class="img-fluid rounded border"
+                                                         style="max-width:260px; margin:0 auto; display:block;">
+                                                    <p class="text-muted mt-2" style="font-size:12px;">
+                                                        <i class="fas fa-sync-alt mr-1"></i>QR Code atualiza automaticamente
+                                                    </p>
+                                                </div>
+
+                                                <div id="area-erro" style="display:none;" class="py-3">
+                                                    <i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>
+                                                    <p class="mt-2 text-danger" id="erro-text">Erro ao conectar.</p>
+                                                    <button class="btn btn-warning btn-sm" id="btn-tentar-novamente">
+                                                        <i class="fas fa-redo mr-1"></i>Tentar novamente
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            <div id="area-qrcode" style="display:none;">
-                                                <p class="text-muted mb-2" style="font-size:13px;">
-                                                    Abra o WhatsApp &rarr; <strong>Dispositivos conectados</strong> &rarr; <strong>Conectar dispositivo</strong>
-                                                </p>
-                                                <img id="qrcode-img" src="" alt="QR Code"
-                                                     class="img-fluid rounded border"
-                                                     style="max-width:260px; margin:0 auto; display:block;">
-                                                <p class="text-muted mt-2" style="font-size:12px;">
-                                                    <i class="fas fa-sync-alt mr-1"></i>QR Code atualiza automaticamente
-                                                </p>
-                                            </div>
+                                            {{-- Modo Número --}}
+                                            <div id="modo-phone">
 
-                                            <div id="area-erro" style="display:none;" class="py-3">
-                                                <i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>
-                                                <p class="mt-2 text-danger" id="erro-text">Erro ao conectar.</p>
-                                                <button class="btn btn-warning btn-sm" id="btn-tentar-novamente">
-                                                    <i class="fas fa-redo mr-1"></i>Tentar novamente
-                                                </button>
+                                                <div id="area-phone-form" class="py-3">
+                                                    <p class="text-muted mb-3" style="font-size:13px;">
+                                                        Abra o WhatsApp &rarr; <strong>Aparelhos vinculados</strong> &rarr; <strong>Vincular com número de telefone</strong>
+                                                    </p>
+                                                    <div class="input-group mb-3" style="max-width:280px; margin:0 auto;">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
+                                                        </div>
+                                                        <input type="text" id="input-phone" class="form-control"
+                                                               placeholder="55119XXXXXXXX" maxlength="15">
+                                                    </div>
+                                                    <button class="btn btn-warning" id="btn-gerar-codigo">
+                                                        <i class="fas fa-key mr-1"></i>Gerar Código
+                                                    </button>
+                                                </div>
+
+                                                <div id="area-phone-loading" style="display:none;" class="py-4">
+                                                    <div class="spinner-border text-warning" role="status"></div>
+                                                    <p class="mt-2 text-muted">Gerando código de pareamento...</p>
+                                                </div>
+
+                                                <div id="area-phone-code" style="display:none;" class="py-3">
+                                                    <p class="text-muted mb-2" style="font-size:13px;">
+                                                        Digite este código no WhatsApp:
+                                                    </p>
+                                                    <div class="display-4 font-weight-bold text-warning letter-spacing-lg" id="pairing-code">----</div>
+                                                    <p class="text-muted mt-3" style="font-size:12px;">
+                                                        <i class="fas fa-clock mr-1"></i>O código expira em alguns minutos
+                                                    </p>
+                                                    <button class="btn btn-outline-warning btn-sm mt-1" id="btn-novo-codigo">
+                                                        <i class="fas fa-redo mr-1"></i>Gerar novo código
+                                                    </button>
+                                                </div>
+
+                                                <div id="area-phone-erro" style="display:none;" class="py-3">
+                                                    <i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>
+                                                    <p class="mt-2 text-danger" id="phone-erro-text">Erro ao gerar código.</p>
+                                                    <button class="btn btn-warning btn-sm" id="btn-phone-tentar-novamente">
+                                                        <i class="fas fa-redo mr-1"></i>Tentar novamente
+                                                    </button>
+                                                </div>
+
                                             </div>
 
                                         </div>
@@ -212,13 +270,117 @@ $(document).ready(function () {
 
     $('#btn-tentar-novamente').on('click', function () { iniciarSessao(); });
 
-    mostrarLoading('Verificando conexão...');
+    // ============================================================
+    // MODO NÚMERO DE TELEFONE
+    // ============================================================
+
+    $('#btn-modo-qrcode').on('click', function () {
+        if ($('#btn-modo-qrcode').hasClass('active')) return;
+        $('#btn-modo-qrcode').addClass('active').removeClass('btn-outline-warning').addClass('btn-warning');
+        $('#btn-modo-phone').removeClass('active').addClass('btn-outline-warning').removeClass('btn-warning');
+        pararTimerPhoneCode();
+        $('#modo-phone').hide();
+        $('#modo-qrcode').show();
+        mostrarLoading('Iniciando sessão...');
+        tentativas = 0;
+        iniciarSessao();
+    });
+
+    $('#btn-modo-phone').on('click', function () {
+        $('#btn-modo-phone').addClass('active').removeClass('btn-outline-warning').addClass('btn-warning');
+        $('#btn-modo-qrcode').removeClass('active').addClass('btn-outline-warning').removeClass('btn-warning');
+        pararTimers();
+        $('#modo-qrcode').hide();
+        $('#modo-phone').show();
+        $('#area-phone-form').show();
+        $('#area-phone-loading').hide();
+        $('#area-phone-code').hide();
+        $('#area-phone-erro').hide();
+    });
+
+    let timerPhoneCode = null;
+    const INTERVAL_PHONE_CODE = 3000;
+    const MAX_TENTATIVAS_CODE = 30; // 30 x 3s = 90s aguardando o código
+    let tentativasCode = 0;
+
+    function pararTimerPhoneCode() {
+        clearInterval(timerPhoneCode);
+        timerPhoneCode = null;
+        tentativasCode = 0;
+    }
+
+    function aguardarPhoneCode() {
+        pararTimerPhoneCode();
+        tentativasCode = 0;
+        timerPhoneCode = setInterval(function () {
+            tentativasCode++;
+            $.get('{{ route('wppconnect.phone-code') }}')
+                .done(function (res) {
+                    if (res.code) {
+                        pararTimerPhoneCode();
+                        $('#pairing-code').text(res.code);
+                        $('#area-phone-loading').hide();
+                        $('#area-phone-code').show();
+                        timerStatus = setInterval(function () {
+                            $.get('{{ route('wppconnect.status') }}').done(function (r) {
+                                if (r.connected) {
+                                    pararTimerPhoneCode();
+                                    mostrarConectado(r.data);
+                                }
+                            });
+                        }, INTERVAL_STATUS);
+                    } else if (tentativasCode >= MAX_TENTATIVAS_CODE) {
+                        pararTimerPhoneCode();
+                        $('#area-phone-loading').hide();
+                        $('#phone-erro-text').text('Tempo esgotado. O código não foi gerado.');
+                        $('#area-phone-erro').show();
+                    }
+                });
+        }, INTERVAL_PHONE_CODE);
+    }
+
+    function gerarCodigoPareamento() {
+        const phone = $('#input-phone').val().trim().replace(/\D/g, '');
+        if (phone.length < 10) {
+            Swal.fire('Atenção', 'Informe o número com DDD e DDI (ex: 5511999999999).', 'warning');
+            return;
+        }
+
+        pararTimers();
+        pararTimerPhoneCode();
+        $('#area-phone-form').hide();
+        $('#area-phone-code').hide();
+        $('#area-phone-erro').hide();
+        $('#area-phone-loading').show();
+
+        $.post('{{ route('wppconnect.start-session-phone') }}', {
+            _token: '{{ csrf_token() }}',
+            phone: phone,
+        })
+        .done(function () {
+            aguardarPhoneCode();
+        })
+        .fail(function (xhr) {
+            $('#area-phone-loading').hide();
+            const msg = xhr.responseJSON?.message ?? 'Falha ao iniciar sessão.';
+            $('#phone-erro-text').text(msg);
+            $('#area-phone-erro').show();
+        });
+    }
+
+    $('#btn-gerar-codigo').on('click', gerarCodigoPareamento);
+
+    $('#btn-novo-codigo, #btn-phone-tentar-novamente').on('click', function () {
+        pararTimers();
+        $('#area-phone-code').hide();
+        $('#area-phone-erro').hide();
+        $('#area-phone-form').show();
+    });
+
     $.get('{{ route('wppconnect.status') }}')
         .done(function (res) {
             if (res.connected) mostrarConectado(res.data);
-            else iniciarSessao();
-        })
-        .fail(function () { iniciarSessao(); });
+        });
 
     // ============================================================
     // TAB DISPAROS

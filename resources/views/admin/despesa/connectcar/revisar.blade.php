@@ -325,6 +325,7 @@
                                     <table class="table table-sm table-bordered table-hover mb-0 compact" id="tabela-importados-connectcar">
                                         <thead class="thead-dark">
                                             <tr>
+                                                <th>Nr. Lançamento</th>
                                                 <th>Placa</th>
                                                 <th>Marca / Modelo</th>
                                                 <th>Motorista</th>
@@ -336,6 +337,7 @@
                                         <tbody></tbody>
                                         <tfoot class="thead-light">
                                             <tr>
+                                                <th></th>
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
@@ -999,6 +1001,7 @@
             const marcaModelo = veiculo ? (veiculo.marca + " " + veiculo.modelo).trim() || "—" : "—";
 
             dadosImportados.push({
+                nrLancamento:  row.nr_lancamento || "—",
                 placa,
                 marcaModelo,
                 nmMotorista:   row.nm_solicitante || "—",
@@ -1021,6 +1024,7 @@
         dtImportados = $("#tabela-importados-connectcar").DataTable({
             data: dadosImportados,
             columns: [
+                { data: "nrLancamento",  title: "Nr. Lançamento", className: "text-center" },
                 { data: "placa",         title: "Placa" },
                 { data: "marcaModelo",   title: "Marca / Modelo" },
                 { data: "nmMotorista",   title: "Motorista" },
@@ -1033,8 +1037,8 @@
             rowCallback: function (row) { $(row).addClass("table-secondary"); },
             footerCallback: function () {
                 const api   = this.api();
-                const total = api.column(5, { search: "applied" }).data().reduce((s, v) => s + v, 0);
-                $(api.column(5).footer()).html(
+                const total = api.column(6, { search: "applied" }).data().reduce((s, v) => s + v, 0);
+                $(api.column(6).footer()).html(
                     "Total: <strong>" + total.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + "</strong>"
                 );
             },
@@ -1045,13 +1049,13 @@
 
         // Filtros
         $("#filtro-imp-placa").off("change").on("change", function () {
-            dtImportados.column(0).search($(this).val()).draw();
+            dtImportados.column(1).search($(this).val()).draw();
         });
         $("#filtro-imp-motorista").off("input").on("input", function () {
-            dtImportados.column(2).search($(this).val()).draw();
+            dtImportados.column(3).search($(this).val()).draw();
         });
         $("#filtro-imp-tipo").off("input").on("input", function () {
-            dtImportados.column(4).search($(this).val()).draw();
+            dtImportados.column(5).search($(this).val()).draw();
         });
         $("#btn-limpar-filtros-imp").off("click").on("click", function () {
             $("#filtro-imp-placa").val("").trigger("change");
@@ -1066,7 +1070,7 @@
         $("#resumo-importados, #card-filtros-importados").addClass("d-none");
         $("#area-tabela-importados").removeClass("d-none");
         $("#tabela-importados-connectcar tbody").html(
-            '<tr><td colspan="6" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando registros...</td></tr>'
+            '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando registros...</td></tr>'
         );
 
         try {
@@ -1074,7 +1078,7 @@
 
             if (!registros.length) {
                 $("#tabela-importados-connectcar tbody").html(
-                    '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro importado ainda.</td></tr>'
+                    '<tr><td colspan="7" class="text-center py-4 text-muted">Nenhum registro importado ainda.</td></tr>'
                 );
                 return;
             }
@@ -1085,7 +1089,7 @@
             renderImportados(registros, mapa);
         } catch (err) {
             $("#tabela-importados-connectcar tbody").html(
-                '<tr><td colspan="6" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i> Erro ao carregar registros.</td></tr>'
+                '<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i> Erro ao carregar registros.</td></tr>'
             );
         }
     }

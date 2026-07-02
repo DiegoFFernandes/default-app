@@ -60,6 +60,16 @@ class WppConnectService
         return $response->json();
     }
 
+    public function startSessionWithPhone(string $phone): array
+    {
+        $response = $this->http()
+            ->post("{$this->baseUrl}/api/{$this->session}/start-session", [
+                'phone' => $this->formatPhone($phone),
+            ]);
+
+        return $response->json() ?? [];
+    }
+
     public function statusSession(): array
     {
         $response = $this->http()->get("{$this->baseUrl}/api/{$this->session}/status-session");
