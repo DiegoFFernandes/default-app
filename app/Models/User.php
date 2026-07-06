@@ -24,6 +24,7 @@ class User extends Authenticatable
         'password',
         'empresa',
         'phone',
+        'wpp_lid',
         'cd_tipopessoa',
         'notifications'
     ];

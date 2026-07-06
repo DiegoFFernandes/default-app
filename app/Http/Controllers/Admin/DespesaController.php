@@ -355,10 +355,46 @@ class DespesaController extends Controller
     {
         $rows       = (array)  $this->request->input('rows', []);
         $cdEmpresa  = (int)    $this->request->input('cd_empresa');
+        $dtOverride = trim($this->request->input('dt_override', '')) ?: null;
 
         if (empty($rows)) {
             return response()->json(['error' => 'Nenhum registro para importar.'], 422);
         }
+
+        // Se o usuário informou uma data, atualiza dt_despesa no MySQL antes de ir ao Firebird
+        if ($dtOverride) {
+            $idsRows = array_filter(array_map(fn($r) => (int)($r['comprovante_id'] ?? 0), $rows));
+            if (!empty($idsRows)) {
+                $this->comprovante->whereIn('id', $idsRows)->update(['dt_despesa' => $dtOverride]);
+            }
+            // Propaga a data para cada row para que Contas::importarLote use a data correta
+            $rows = array_map(function ($r) use ($dtOverride) {
+                $r['dataFormatada'] = \Carbon\Carbon::parse($dtOverride)->format('d/m/Y');
+                return $r;
+            }, $rows);
+        }
+
+        // Valida se todas as placas existem no Firebird antes de iniciar a transação
+        $placas = array_values(array_unique(array_filter(
+            array_map(fn($r) => trim(strtoupper($r['placa'] ?? '')), $rows)
+        )));
+
+        $mapaVeiculos   = Veiculo::findByPlacas($placas);
+        $placasInvalidas = array_values(array_filter(
+            $placas, fn($p) => !isset($mapaVeiculos[$p])
+        ));
+
+        if (!empty($placasInvalidas)) {
+            return response()->json([
+                'error'            => true,
+                'message'          => 'Placas não encontradas no Firebird: ' . implode(', ', $placasInvalidas),
+                'placas_invalidas' => $placasInvalidas,
+            ], 422);
+        }
+
+        // O SELECT de findByPlacas() deixa uma transação implícita aberta no PDO Firebird.
+        // Desconectar garante uma conexão limpa para a transação de importarLote().
+        \Illuminate\Support\Facades\DB::connection('firebird')->disconnect();
 
         try {
             $resultado = Contas::importarLote($rows, [
@@ -402,6 +438,32 @@ class DespesaController extends Controller
             'message'        => $importados . ' registro(s) importado(s) com sucesso.'
                 . (count($erros) ? ' ' . count($erros) . ' erro(s).' : ''),
         ]);
+    }
+
+    public function alterarPlacasConnectCar()
+    {
+        $alteracoes = $this->request->input('alteracoes', []);
+
+        if (empty($alteracoes)) {
+            return response()->json(['error' => 'Nenhuma alteração recebida.'], 422);
+        }
+
+        foreach ($alteracoes as $item) {
+            $id    = (int)    ($item['id']    ?? 0);
+            $placa = trim(strtoupper($item['placa'] ?? ''));
+
+            if (!$id || !$placa) continue;
+
+            $query = $this->comprovante->where('id', $id)->where('tp_despesa', 'PED');
+
+            if (!$this->user->can('ver-status-despesas')) {
+                $query->where('cd_user_lanc', $this->user->id);
+            }
+
+            $query->update(['nr_placa' => $placa]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function toggleVisto(int $id)

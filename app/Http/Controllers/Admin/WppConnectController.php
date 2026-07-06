@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\WppDisparo;
+use App\Models\WppLidPendente;
+use App\Models\WppParametro;
 use App\Services\WppConnectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Cache;
 
 class WppConnectController extends Controller
@@ -106,5 +110,120 @@ class WppConnectController extends Controller
         } catch (\Throwable $e) {
             return response()->json(['errors' => 'Falha ao reenviar: ' . $e->getMessage()], 500);
         }
+    }
+
+    // -------------------------------------------------------
+    // Parametrizações
+    // -------------------------------------------------------
+
+    public function parametros(): JsonResponse
+    {
+        // Garante que a permission existe
+        Permission::firstOrCreate(['name' => 'wpp-ia', 'guard_name' => 'web']);
+
+        $usuarios = User::whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'wpp_lid'])
+            ->map(fn($u) => [
+                'id'      => $u->id,
+                'name'    => $u->name,
+                'phone'   => $u->phone,
+                'wpp_lid' => $u->wpp_lid ?? '',
+                'wpp_ia'  => $u->hasPermissionTo('wpp-ia'),
+            ]);
+
+        return response()->json([
+            'wpp_ia_ativo' => (bool) WppParametro::get('wpp_ia_ativo', '0'),
+            'usuarios'     => $usuarios,
+        ]);
+    }
+
+    public function salvarParametro(Request $request, string $chave): JsonResponse
+    {
+        $allowed = ['wpp_ia_ativo'];
+
+        if (! in_array($chave, $allowed)) {
+            return response()->json(['errors' => 'Parâmetro inválido.'], 422);
+        }
+
+        WppParametro::set($chave, $request->boolean('valor') ? '1' : '0');
+
+        return response()->json(['success' => 'Salvo com sucesso!']);
+    }
+
+    public function lidsPendentes(): JsonResponse
+    {
+        $pendentes = WppLidPendente::orderByDesc('updated_at')
+            ->get()
+            ->map(fn($p) => [
+                'lid'          => $p->lid,
+                'pushname'     => $p->pushname ?? '—',
+                'ultimo_texto' => $p->ultimo_texto ?? '',
+                'updated_at'   => $p->updated_at?->format('d/m/Y H:i') ?? '',
+            ]);
+
+        $usuarios = User::whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone']);
+
+        return response()->json(['pendentes' => $pendentes, 'usuarios' => $usuarios]);
+    }
+
+    public function associarLid(Request $request): JsonResponse
+    {
+        $request->validate([
+            'lid'     => ['required', 'string'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        $user = User::find($request->user_id);
+        $user->update(['wpp_lid' => $request->lid]);
+
+        WppLidPendente::where('lid', $request->lid)->delete();
+
+        return response()->json(['success' => "LID associado a {$user->name} com sucesso!"]);
+    }
+
+    public function salvarWppLid(int $id, Request $request): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json(['errors' => 'Usuário não encontrado.'], 404);
+        }
+
+        $request->validate([
+            'wpp_lid' => ['nullable', 'string', 'max:100', "unique:users,wpp_lid,{$id}"],
+        ]);
+
+        $user->update(['wpp_lid' => $request->input('wpp_lid') ?: null]);
+
+        return response()->json(['success' => 'WPP LID salvo com sucesso!', 'wpp_lid' => $user->wpp_lid ?? '']);
+    }
+
+    public function toggleWppIa(int $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (! $user) {
+            return response()->json(['errors' => 'Usuário não encontrado.'], 404);
+        }
+
+        Permission::firstOrCreate(['name' => 'wpp-ia', 'guard_name' => 'web']);
+
+        if ($user->hasPermissionTo('wpp-ia')) {
+            $user->revokePermissionTo('wpp-ia');
+            $ativo = false;
+        } else {
+            $user->givePermissionTo('wpp-ia');
+            $ativo = true;
+        }
+
+        return response()->json([
+            'success' => $ativo ? "{$user->name} habilitado para receber IA via WhatsApp." : "{$user->name} removido do acesso.",
+            'wpp_ia'  => $ativo,
+        ]);
     }
 }

@@ -4,6 +4,9 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/info-box-custom.css') }}?v={{ time() }}">
+    <style>
+        .btn-tool { display: inline-flex !important; align-items: center; justify-content: center; line-height: 1; }
+    </style>
 @endsection
 
 @section('content')
@@ -65,7 +68,7 @@
                                 {{-- Card filtros --}}
                                 <div id="card-filtros-cc" class="card collapsed-card mx-3 mt-3 mb-0 d-none">
                                     <div class="card-header py-2">
-                                        <h6 class="card-title pt-2 small"><i class="fas fa-filter mr-1"></i> Filtros</h6>
+                                        <h6 class="card-title small"><i class="fas fa-filter mr-1"></i> Filtros</h6>
                                         <div class="card-tools">
                                             <button type="button" class="btn btn-tool btn-sm" data-card-widget="collapse">
                                                 <i class="fas fa-plus"></i>
@@ -245,9 +248,14 @@
 
                             {{-- Footer Tab 2 --}}
                             <div class="card-footer d-flex justify-content-between align-items-center d-none" id="footer-tab2">
-                                <button type="button" class="btn btn-sm btn-secondary" id="btn-voltar-tab1">
-                                    <i class="fas fa-arrow-left mr-1"></i> Voltar para Revisão
-                                </button>
+                                <div class="d-flex align-items-center" style="gap:8px;">
+                                    <button type="button" class="btn btn-sm btn-secondary" id="btn-voltar-tab1">
+                                        <i class="fas fa-arrow-left mr-1"></i> Voltar para Revisão
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-warning" id="btn-alterar-placa">
+                                        <i class="fas fa-exchange-alt mr-1"></i> Alterar Placa
+                                    </button>
+                                </div>
                                 <div class="d-flex align-items-center" style="gap:8px;">
                                     <small class="text-muted" id="txt-selecionados-mescla"></small>
                                     <button type="button" class="btn btn-sm btn-success" id="btn-confirmar-importacao">
@@ -382,7 +390,7 @@
                             <select id="select-empresa-fb" class="form-control form-control-sm">
                                 <option value="">Selecione a empresa...</option>
                             </select>
-                            <small class="text-muted">Carregado do Firebird</small>
+                            <small class="text-muted">Carregado do Junsoft</small>
                         </div>
 
                         {{-- Motorista --}}
@@ -393,7 +401,7 @@
                             <select id="select-motorista-fb" class="form-control form-control-sm" style="width:100%;">
                                 <option value="">Digite o nome para buscar...</option>
                             </select>
-                            <small class="text-muted">Pesquise pelo nome no Firebird</small>
+                            <small class="text-muted">Pesquise pelo nome no Junsoft</small>
                         </div>
 
                         {{-- Tipo de Conta --}}
@@ -404,7 +412,7 @@
                             <select id="select-tipoconta-fb" class="form-control form-control-sm">
                                 <option value="">Selecione o tipo de conta...</option>
                             </select>
-                            <small class="text-muted">Carregado do Firebird</small>
+                            <small class="text-muted">Carregado do Junsoft</small>
                         </div>
 
                         {{-- Histórico (carregado conforme Tipo de Conta) --}}
@@ -426,7 +434,16 @@
                             <select id="select-forma-pagamento-fb" class="form-control form-control-sm">
                                 <option value="">Selecione a forma de pagamento...</option>
                             </select>
-                            <small class="text-muted">Carregado do Firebird</small>
+                            <small class="text-muted">Carregado do Junsoft</small>
+                        </div>
+
+                        {{-- Data (opcional: sobrescreve a data de todos os registros) --}}
+                        <div class="col-12 col-md-6 mb-3">
+                            <label class="font-weight-bold small mb-1">
+                                Data <span class="text-muted font-weight-normal">(opcional — sobrescreve todos os registros)</span>
+                            </label>
+                            <input type="date" id="input-data-fb" class="form-control form-control-sm">
+                            <small class="text-muted">Se preenchida, substitui a data de cada lançamento no Portal e no Junsoft.</small>
                         </div>
                     </div>
 
@@ -473,6 +490,39 @@
     </div>
 @stop
 
+{{-- Modal: Alterar Placa --}}
+<div class="modal fade" id="modal-alterar-placa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="fas fa-exchange-alt mr-2"></i> Alterar Placas Não Encontradas</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body p-2">
+                <p class="small text-muted mb-2">Informe a placa correta para cada registro não encontrado no Firebird. Deixe em branco para manter a placa atual.</p>
+                <table class="table table-sm table-bordered mb-0" id="tabela-alterar-placa">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Placa atual</th>
+                            <th>Placa corrigida</th>
+                            <th>Data</th>
+                            <th>Tipo</th>
+                            <th class="text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-alterar-placa"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-warning" id="btn-aplicar-placas">
+                    <i class="fas fa-check mr-1"></i> Aplicar e Recarregar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section('js')
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
@@ -484,7 +534,8 @@
         comprovantesImportados:   "{{ route('despesa.connectcar.comprovantes-importados') }}",
         verificarHash:       "{{ route('despesa.connectcar.verificar-hash') }}",
         veiculosBatch:       "{{ route('despesa.connectcar.veiculos-batch') }}",
-        importarFirebird: "{{ route('despesa.connectcar.importar-firebird') }}",
+        importarFirebird:  "{{ route('despesa.connectcar.importar-firebird') }}",
+        alterarPlacas:     "{{ route('despesa.connectcar.alterar-placas') }}",
         empresas:         "{{ route('firebird.empresas') }}",
         tiposConta:       "{{ route('firebird.tipos-conta') }}",
         historicos:       "{{ route('firebird.historicos') }}",
@@ -916,10 +967,7 @@
             data: dadosMescla,
             columns: [
                 { data: null, orderable: false, searchable: false, className: "text-center", width: "40px",
-                  render: (_, __, row) => {
-                    if (!row.achado) return '<input type="checkbox" class="chk-mescla" disabled title="Placa não encontrada no Firebird">';
-                    return '<input type="checkbox" class="chk-mescla">';
-                  }},
+                  render: (_, __, row) => '<input type="checkbox" class="chk-mescla">' },
                 { data: "placa",         title: "Placa" },
                 { data: "marcaModelo",   title: "Marca / Modelo" },
                 { data: "cdMotorista",   title: "Cód.", className: "text-center" },
@@ -1120,6 +1168,64 @@
         if (dadosMescla.length) resetTab1();
     });
 
+    // ── Alterar Placa ─────────────────────────────────────────────────────────
+    $("#btn-alterar-placa").on("click", function () {
+        const naoEncontradas = dadosMescla.filter(r => !r.achado);
+        if (!naoEncontradas.length) {
+            Swal.fire("Atenção", "Não há placas não encontradas na listagem atual.", "info");
+            return;
+        }
+
+        const $tbody = $("#tbody-alterar-placa").empty();
+        naoEncontradas.forEach(function (row) {
+            $tbody.append(
+                '<tr data-id="' + row.comprovante_id + '">' +
+                    '<td class="align-middle"><code>' + row.placa + '</code></td>' +
+                    '<td><input type="text" class="form-control form-control-sm input-placa-corrigida" ' +
+                         'value="' + row.placa + '" maxlength="10" style="text-transform:uppercase;width:130px;"></td>' +
+                    '<td class="align-middle">' + row.dataFormatada + '</td>' +
+                    '<td class="align-middle">' + row.tipo + '</td>' +
+                    '<td class="align-middle text-right">' + row.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + '</td>' +
+                '</tr>'
+            );
+        });
+
+        $("#modal-alterar-placa").modal("show");
+    });
+
+    $("#btn-aplicar-placas").on("click", function () {
+        const alteracoes = [];
+        $("#tbody-alterar-placa tr").each(function () {
+            const id    = $(this).data("id");
+            const placa = $(this).find(".input-placa-corrigida").val().trim().toUpperCase();
+            if (id && placa) alteracoes.push({ id, placa });
+        });
+
+        if (!alteracoes.length) {
+            Swal.fire("Atenção", "Nenhuma alteração informada.", "warning");
+            return;
+        }
+
+        const $btn = $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Aplicando...');
+
+        $.ajax({
+            url:         ROUTES.alterarPlacas,
+            type:        "POST",
+            contentType: "application/json",
+            data:        JSON.stringify({ _token: ROUTES.token, alteracoes }),
+            success: function () {
+                $("#modal-alterar-placa").modal("hide");
+                carregarMescla();
+            },
+            error: function () {
+                Swal.fire("Erro", "Não foi possível aplicar as alterações.", "error");
+            },
+            complete: function () {
+                $btn.prop("disabled", false).html('<i class="fas fa-check mr-1"></i> Aplicar e Recarregar');
+            },
+        });
+    });
+
     // ── Select2 — inicialização dos três selects do modal ────────────────────
     const $modal = $("#modal-importar-firebird");
 
@@ -1275,6 +1381,7 @@
     $modal.on("hidden.bs.modal", function () {
         $("#select-empresa-fb").val(null).trigger("change");
         $("#select-tipoconta-fb").val(null).trigger("change");
+        $("#input-data-fb").val("");
         $("#select-historico-fb")
             .empty().append('<option value=""></option>')
             .prop("disabled", true).trigger("change");
@@ -1316,6 +1423,7 @@
         const cdTipoConta    = $("#select-tipoconta-fb").val();
         const cdHistorico    = $("#select-historico-fb").val();
         const cdFormaPagto   = $("#select-forma-pagamento-fb").val();
+        const dtOverride     = $("#input-data-fb").val() || null;
         const rows           = $("#modal-importar-firebird").data("rows") || [];
 
         if (!cdEmpresa) {
@@ -1353,6 +1461,7 @@
                 cd_tipoconta:   cdTipoConta,
                 cd_historico:   cdHistorico,
                 cd_forma_pagto: cdFormaPagto,
+                dt_override:    dtOverride,
                 rows:           rows,
             }),
             success: function (resp) {
@@ -1373,10 +1482,23 @@
                 });
             },
             error: function (xhr) {
-                const msg = xhr.responseJSON && xhr.responseJSON.message
-                    ? xhr.responseJSON.message
-                    : "Não foi possível processar a importação.";
-                Swal.fire("Erro", msg, "error");
+                const res = xhr.responseJSON || {};
+                const msg = res.message || "Não foi possível processar a importação.";
+                const placasInv = res.placas_invalidas;
+
+                if (placasInv && placasInv.length) {
+                    Swal.fire({
+                        icon:  "warning",
+                        title: "Placas não encontradas no Firebird",
+                        html:  "<p>" + msg + "</p>"
+                               + "<p class='small text-muted'>Use o botão <strong>Alterar Placa</strong> para corrigir antes de importar.</p>"
+                               + "<ul style='text-align:left;font-size:13px;'>"
+                               + placasInv.map(p => "<li><code>" + p + "</code></li>").join("")
+                               + "</ul>",
+                    });
+                } else {
+                    Swal.fire("Erro", msg, "error");
+                }
             },
             complete: function () {
                 $btn.prop("disabled", false).html('<i class="fas fa-check mr-1"></i> Importar para Firebird');

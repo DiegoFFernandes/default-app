@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PedidoPneu;
+use App\Services\IAService;
 use App\Services\ServiceFiltroGrupoSubgrupo;
 use App\Services\WppConnectService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class IAController extends Controller
 {
@@ -17,7 +17,8 @@ class IAController extends Controller
 
     public function __construct(
         PedidoPneu $pedidoPneu,
-        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo,
+        protected IAService $ia,
     ) {
         $this->pedidoPneu = $pedidoPneu;
         $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
@@ -80,11 +81,7 @@ class IAController extends Controller
                 Pergunta: $pergunta
         ";
 
-        $response = $this->apiChat($prompt);
-
-        $data = $response->json();
-
-        $texto = $data['output'][0]['content'][0]['text'] ?? '{}';
+        $texto = $this->ia->chat($prompt);
 
         // limpa markdown
         $texto = str_replace(['```json', '```'], '', $texto);
@@ -174,9 +171,7 @@ class IAController extends Controller
         $cacheKey = 'resumo_ia_' . md5($intent . json_encode($contexto));
 
         return Cache::remember($cacheKey, now()->addHours(2), function () use ($prompt) {
-            $response = $this->apiChat($prompt);
-            $data     = $response->json();
-            return $data['output'][0]['content'][0]['text'] ?? '';
+            return $this->ia->chat($prompt);
         });
     }
 
@@ -504,27 +499,6 @@ class IAController extends Controller
             'data_fim' => $fim->format('d.m.Y'),
             'tipo_periodo' => $tipoPeriodo
         ];
-    }
-
-    public function apiChat($prompt)
-    {
-        return Http::withHeaders([
-            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
-            'Content-Type' => 'application/json'
-        ])->post('https://api.openai.com/v1/responses', [
-            'model' => 'gpt-4.1-mini',
-            'input' => [
-                [
-                    "role" => "user",
-                    "content" => [
-                        [
-                            "type" => "input_text",
-                            "text" => $prompt
-                        ]
-                    ]
-                ]
-            ]
-        ]);
     }
 
     public function pneusColetados(string $dtInicio, string $dtFim)

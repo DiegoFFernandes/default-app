@@ -23,6 +23,12 @@
                                 <i class="fas fa-paper-plane mr-1"></i> Disparos Automáticos
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-parametros" data-toggle="pill"
+                               href="#pane-parametros" role="tab">
+                                <i class="fas fa-cog mr-1"></i> Parâmetros
+                            </a>
+                        </li>
                     </ul>
                     <div class="card-tools mr-2">
                         <button class="btn btn-success btn-xs d-none" id="btn-atualizar-disparos">
@@ -166,6 +172,108 @@
                                     </tr>
                                 </thead>
                             </table>
+                        </div>
+
+                        {{-- Tab: Parametrizações --}}
+                        <div class="tab-pane fade" id="pane-parametros" role="tabpanel">
+
+                            {{-- Toggle IA ativa --}}
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="card card-outline card-success">
+                                        <div class="card-header">
+                                            <h3 class="card-title">
+                                                <i class="fas fa-robot mr-2"></i>Respostas via IA (WhatsApp)
+                                            </h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="text-muted mb-3" style="font-size:13px;">
+                                                Quando ativado, usuários autorizados podem enviar perguntas de negócio
+                                                via WhatsApp e receber respostas geradas por IA.
+                                            </p>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="toggle-wpp-ia">
+                                                <label class="custom-control-label font-weight-bold" for="toggle-wpp-ia">
+                                                    Ativar IA via WhatsApp
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Usuários autorizados --}}
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card card-outline card-primary">
+                                        <div class="card-header">
+                                            <h3 class="card-title">
+                                                <i class="fas fa-users mr-2"></i>Usuários com acesso à IA via WhatsApp
+                                            </h3>
+                                            <div class="card-tools">
+                                                <span class="text-muted" style="font-size:12px;">
+                                                    Apenas usuários com telefone cadastrado são exibidos
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <table class="table table-sm table-hover mb-0" id="table-parametros-users">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Usuário</th>
+                                                        <th style="width:140px;">Telefone</th>
+                                                        <th style="width:220px;">WPP LID</th>
+                                                        <th style="width:90px;" class="text-center">Status</th>
+                                                        <th style="width:110px;" class="text-center">Ação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-parametros-users">
+                                                    <tr>
+                                                        <td colspan="5" class="text-center py-3">
+                                                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                                                            <span class="ml-2 text-muted">Carregando...</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- LIDs pendentes de associação --}}
+                            <div class="row" id="card-lids-pendentes" style="display:none;">
+                                <div class="col-12">
+                                    <div class="card card-outline card-warning">
+                                        <div class="card-header">
+                                            <h3 class="card-title">
+                                                <i class="fas fa-link mr-2"></i>LIDs detectados — aguardando associação
+                                            </h3>
+                                            <div class="card-tools">
+                                                <span class="text-muted" style="font-size:12px;">
+                                                    Remetentes que enviaram mensagem mas ainda não estão vinculados a um usuário
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <table class="table table-sm table-hover mb-0" id="table-lids-pendentes">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Nome (WhatsApp)</th>
+                                                        <th>LID</th>
+                                                        <th>Última mensagem</th>
+                                                        <th style="width:120px;">Recebido em</th>
+                                                        <th style="width:200px;">Associar a</th>
+                                                        <th style="width:90px;" class="text-center">Ação</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-lids-pendentes"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
@@ -443,13 +551,180 @@ $(document).ready(function () {
     }
 
     $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
-        const isDisparos = $(e.target).attr('href') === '#pane-disparos';
-        $('#btn-atualizar-disparos').toggleClass('d-none', !isDisparos);
-        if (isDisparos) initDisparos();
+        const href = $(e.target).attr('href');
+        $('#btn-atualizar-disparos').toggleClass('d-none', href !== '#pane-disparos');
+        if (href === '#pane-disparos')   initDisparos();
+        if (href === '#pane-parametros') { initParametros(); carregarLidsPendentes(); }
     });
 
     $('#btn-atualizar-disparos').on('click', function () {
         if (dtDisparos) dtDisparos.ajax.reload(null, false);
+    });
+
+    // ============================================================
+    // TAB PARAMETRIZAÇÕES
+    // ============================================================
+
+    let parametrosCarregado = false;
+
+    function initParametros() {
+        if (parametrosCarregado) return;
+        parametrosCarregado = true;
+
+        $.get('{{ route('wppconnect.parametros') }}').done(function (res) {
+            // Toggle IA
+            $('#toggle-wpp-ia').prop('checked', res.wpp_ia_ativo);
+
+            // Tabela de usuários
+            const rows = res.usuarios.map(u => {
+                const badge = u.wpp_ia
+                    ? '<span class="badge badge-success">Ativo</span>'
+                    : '<span class="badge badge-secondary">Inativo</span>';
+                const btn = u.wpp_ia
+                    ? `<button class="btn btn-xs btn-danger btn-toggle-wpp-ia" data-id="${u.id}"><i class="fas fa-times mr-1"></i>Revogar</button>`
+                    : `<button class="btn btn-xs btn-success btn-toggle-wpp-ia" data-id="${u.id}"><i class="fas fa-check mr-1"></i>Liberar</button>`;
+                const lidInput = `<div class="input-group input-group-sm">
+                    <input type="text" class="form-control form-control-sm input-wpp-lid"
+                           data-id="${u.id}" value="${u.wpp_lid || ''}"
+                           placeholder="ex: 177451523166369"
+                           style="font-size:11px;">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary btn-sm btn-salvar-lid" data-id="${u.id}" title="Salvar LID">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </div>
+                </div>`;
+                return `<tr data-id="${u.id}">
+                    <td>${u.name}</td>
+                    <td>${u.phone || '<span class="text-muted">—</span>'}</td>
+                    <td class="td-lid">${lidInput}</td>
+                    <td class="text-center td-status">${badge}</td>
+                    <td class="text-center td-acao">${btn}</td>
+                </tr>`;
+            });
+            $('#tbody-parametros-users').html(rows.join('') || '<tr><td colspan="5" class="text-center text-muted">Nenhum usuário com telefone cadastrado.</td></tr>');
+        }).fail(function () {
+            $('#tbody-parametros-users').html('<tr><td colspan="5" class="text-center text-danger">Erro ao carregar dados.</td></tr>');
+        });
+    }
+
+    // Toggle IA ativo/inativo
+    $(document).on('change', '#toggle-wpp-ia', function () {
+        const ativo = $(this).is(':checked');
+        $.post('{{ url('wppconnect/parametros/wpp_ia_ativo') }}', {
+            _token: '{{ csrf_token() }}',
+            valor: ativo ? 1 : 0,
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+        }).fail(function () {
+            $('#toggle-wpp-ia').prop('checked', !ativo);
+            Swal.fire('Erro', 'Não foi possível salvar o parâmetro.', 'error');
+        });
+    });
+
+    // Toggle permissão por usuário
+    $(document).on('click', '.btn-toggle-wpp-ia', function () {
+        const id  = $(this).data('id');
+        const btn = $(this);
+        btn.prop('disabled', true);
+        $.post('{{ url('wppconnect/usuarios') }}/' + id + '/wpp-ia', {
+            _token: '{{ csrf_token() }}',
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
+            // Atualiza as duas colunas sem recarregar tudo
+            const badge = res.wpp_ia ? '<span class="badge badge-success">Ativo</span>' : '<span class="badge badge-secondary">Inativo</span>';
+            const newBtn = res.wpp_ia
+                ? `<button class="btn btn-sm btn-danger btn-toggle-wpp-ia" data-id="${id}"><i class="fas fa-times mr-1"></i>Revogar</button>`
+                : `<button class="btn btn-sm btn-success btn-toggle-wpp-ia" data-id="${id}"><i class="fas fa-check mr-1"></i>Liberar</button>`;
+            $(`tr[data-id="${id}"] .td-status`).html(badge);
+            $(`tr[data-id="${id}"] .td-acao`).html(newBtn);
+        }).fail(function (xhr) {
+            Swal.fire('Erro', xhr.responseJSON?.errors ?? 'Falha ao alterar permissão.', 'error');
+            btn.prop('disabled', false);
+        });
+    });
+
+    // LIDs pendentes de associação
+    function carregarLidsPendentes() {
+        $.get('{{ route('wppconnect.lids-pendentes') }}')
+        .fail(function (xhr) { console.error('[LIDs pendentes] erro:', xhr.status, xhr.responseText); })
+        .done(function (res) {
+            if (!res.pendentes || !res.pendentes.length) {
+                $('#card-lids-pendentes').hide();
+                return;
+            }
+            $('#card-lids-pendentes').show();
+
+            const selectOpts = res.usuarios.map(u =>
+                `<option value="${u.id}">${u.name} (${u.phone})</option>`
+            ).join('');
+
+            const rows = res.pendentes.map(p => {
+                const texto = p.ultimo_texto
+                    ? `<span title="${p.ultimo_texto}" style="max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.ultimo_texto}</span>`
+                    : '<span class="text-muted">—</span>';
+                return `<tr>
+                    <td><strong>${p.pushname}</strong></td>
+                    <td><code>${p.lid}</code></td>
+                    <td>${texto}</td>
+                    <td>${p.updated_at}</td>
+                    <td>
+                        <select class="form-control form-control-sm select-associar" data-lid="${p.lid}">
+                            <option value="">— selecione —</option>
+                            ${selectOpts}
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-xs btn-warning btn-associar-lid" data-lid="${p.lid}">
+                            <i class="fas fa-link mr-1"></i>Associar
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            $('#tbody-lids-pendentes').html(rows.join(''));
+        });
+    }
+
+    $(document).on('click', '.btn-associar-lid', function () {
+        const lid    = $(this).data('lid');
+        const userId = $(`.select-associar[data-lid="${lid}"]`).val();
+        if (!userId) {
+            Swal.fire('Atenção', 'Selecione o usuário para associar.', 'warning');
+            return;
+        }
+        $.post('{{ route('wppconnect.lids-pendentes.associar') }}', {
+            _token: '{{ csrf_token() }}',
+            lid:     lid,
+            user_id: userId,
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
+            parametrosCarregado = false;
+            initParametros();
+        }).fail(function (xhr) {
+            Swal.fire('Erro', xhr.responseJSON?.errors ?? xhr.responseJSON?.message ?? 'Falha ao associar.', 'error');
+        });
+    });
+
+    // Salvar WPP LID por usuário
+    $(document).on('click', '.btn-salvar-lid', function () {
+        const id  = $(this).data('id');
+        const lid = $(`input.input-wpp-lid[data-id="${id}"]`).val().trim();
+        const btn = $(this);
+        btn.prop('disabled', true);
+        $.post('{{ url('wppconnect/usuarios') }}/' + id + '/wpp-lid', {
+            _token: '{{ csrf_token() }}',
+            wpp_lid: lid,
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+            $(`input.input-wpp-lid[data-id="${id}"]`).val(res.wpp_lid);
+        }).fail(function (xhr) {
+            const msg = xhr.responseJSON?.errors
+                ?? (xhr.responseJSON?.message)
+                ?? 'Falha ao salvar LID.';
+            Swal.fire('Erro', msg, 'error');
+        }).always(function () {
+            btn.prop('disabled', false);
+        });
     });
 
     $('body').on('click', '.btn-reenviar', function () {

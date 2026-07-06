@@ -18,6 +18,7 @@ Route::middleware(['auth', 'can:ver-despesas'])->group(function () {
         Route::post('connectcar/veiculos-batch',    [DespesaController::class, 'batchVeiculosConnectCar'])->name('despesa.connectcar.veiculos-batch');
         Route::post('connectcar/verificar-hash',    [DespesaController::class, 'verificarHashConnectCar'])->name('despesa.connectcar.verificar-hash');
         Route::post('connectcar/importar-firebird', [DespesaController::class, 'importarConnectCarFirebird'])->name('despesa.connectcar.importar-firebird');
+        Route::post('connectcar/alterar-placas',    [DespesaController::class, 'alterarPlacasConnectCar'])->name('despesa.connectcar.alterar-placas');
         Route::put('{id}',               [DespesaController::class, 'update'])->name('despesa.update')->whereNumber('id');
         Route::post('{id}/toggle-visto', [DespesaController::class, 'toggleVisto'])->name('despesa.toggle-visto')->whereNumber('id');
     });
