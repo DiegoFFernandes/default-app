@@ -192,8 +192,8 @@
                                                 via WhatsApp e receber respostas geradas por IA.
                                             </p>
                                             <div class="custom-control custom-switch">
-                                                <input type="checkbox" class="custom-control-input" id="toggle-wpp-ia">
-                                                <label class="custom-control-label font-weight-bold" for="toggle-wpp-ia">
+                                                <input type="checkbox" class="custom-control-input" id="toggle-wppconnect-ia">
+                                                <label class="custom-control-label font-weight-bold" for="toggle-wppconnect-ia">
                                                     Ativar IA via WhatsApp
                                                 </label>
                                             </div>
@@ -573,7 +573,7 @@ $(document).ready(function () {
 
         $.get('{{ route('wppconnect.parametros') }}').done(function (res) {
             // Toggle IA
-            $('#toggle-wpp-ia').prop('checked', res.wpp_ia_ativo);
+            $('#toggle-wppconnect-ia').prop('checked', res.wpp_ia_ativo);
 
             // Tabela de usuários
             const rows = res.usuarios.map(u => {
@@ -581,8 +581,8 @@ $(document).ready(function () {
                     ? '<span class="badge badge-success">Ativo</span>'
                     : '<span class="badge badge-secondary">Inativo</span>';
                 const btn = u.wpp_ia
-                    ? `<button class="btn btn-xs btn-danger btn-toggle-wpp-ia" data-id="${u.id}"><i class="fas fa-times mr-1"></i>Revogar</button>`
-                    : `<button class="btn btn-xs btn-success btn-toggle-wpp-ia" data-id="${u.id}"><i class="fas fa-check mr-1"></i>Liberar</button>`;
+                    ? `<button class="btn btn-xs btn-danger btn-toggle-wppconnect-ia" data-id="${u.id}"><i class="fas fa-times mr-1"></i>Revogar</button>`
+                    : `<button class="btn btn-xs btn-success btn-toggle-wppconnect-ia" data-id="${u.id}"><i class="fas fa-check mr-1"></i>Liberar</button>`;
                 const lidInput = `<div class="input-group input-group-sm">
                     <input type="text" class="form-control form-control-sm input-wpp-lid"
                            data-id="${u.id}" value="${u.wpp_lid || ''}"
@@ -609,7 +609,7 @@ $(document).ready(function () {
     }
 
     // Toggle IA ativo/inativo
-    $(document).on('change', '#toggle-wpp-ia', function () {
+    $(document).on('change', '#toggle-wppconnect-ia', function () {
         const ativo = $(this).is(':checked');
         $.post('{{ url('wppconnect/parametros/wpp_ia_ativo') }}', {
             _token: '{{ csrf_token() }}',
@@ -617,25 +617,25 @@ $(document).ready(function () {
         }).done(function (res) {
             Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
         }).fail(function () {
-            $('#toggle-wpp-ia').prop('checked', !ativo);
+            $('#toggle-wppconnect-ia').prop('checked', !ativo);
             Swal.fire('Erro', 'Não foi possível salvar o parâmetro.', 'error');
         });
     });
 
     // Toggle permissão por usuário
-    $(document).on('click', '.btn-toggle-wpp-ia', function () {
+    $(document).on('click', '.btn-toggle-wppconnect-ia', function () {
         const id  = $(this).data('id');
         const btn = $(this);
         btn.prop('disabled', true);
-        $.post('{{ url('wppconnect/usuarios') }}/' + id + '/wpp-ia', {
+        $.post('{{ url('wppconnect/usuarios') }}/' + id + '/wppconnect-ia', {
             _token: '{{ csrf_token() }}',
         }).done(function (res) {
             Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
             // Atualiza as duas colunas sem recarregar tudo
             const badge = res.wpp_ia ? '<span class="badge badge-success">Ativo</span>' : '<span class="badge badge-secondary">Inativo</span>';
             const newBtn = res.wpp_ia
-                ? `<button class="btn btn-sm btn-danger btn-toggle-wpp-ia" data-id="${id}"><i class="fas fa-times mr-1"></i>Revogar</button>`
-                : `<button class="btn btn-sm btn-success btn-toggle-wpp-ia" data-id="${id}"><i class="fas fa-check mr-1"></i>Liberar</button>`;
+                ? `<button class="btn btn-sm btn-danger btn-toggle-wppconnect-ia" data-id="${id}"><i class="fas fa-times mr-1"></i>Revogar</button>`
+                : `<button class="btn btn-sm btn-success btn-toggle-wppconnect-ia" data-id="${id}"><i class="fas fa-check mr-1"></i>Liberar</button>`;
             $(`tr[data-id="${id}"] .td-status`).html(badge);
             $(`tr[data-id="${id}"] .td-acao`).html(newBtn);
         }).fail(function (xhr) {

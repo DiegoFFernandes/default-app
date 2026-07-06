@@ -150,8 +150,8 @@ class WppWebhookController extends Controller
             Log::debug('WppWebhook[IA]: identificador não encontrado em users', ['identifier' => $phone]);
             return null;
         }
-        if (! $usuario->hasPermissionTo('wpp-ia')) {
-            Log::debug('WppWebhook[IA]: usuário sem permissão wpp-ia', ['user' => $usuario->name]);
+        if (! $usuario->hasPermissionTo('wppconnect-ia')) {
+            Log::debug('WppWebhook[IA]: usuário sem permissão wppconnect-ia', ['user' => $usuario->name]);
             return null;
         }
 

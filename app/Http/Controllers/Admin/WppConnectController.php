@@ -119,7 +119,7 @@ class WppConnectController extends Controller
     public function parametros(): JsonResponse
     {
         // Garante que a permission existe
-        Permission::firstOrCreate(['name' => 'wpp-ia', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'wppconnect-ia', 'guard_name' => 'web']);
 
         $usuarios = User::whereNotNull('phone')
             ->where('phone', '!=', '')
@@ -130,7 +130,7 @@ class WppConnectController extends Controller
                 'name'    => $u->name,
                 'phone'   => $u->phone,
                 'wpp_lid' => $u->wpp_lid ?? '',
-                'wpp_ia'  => $u->hasPermissionTo('wpp-ia'),
+                'wpp_ia'  => $u->hasPermissionTo('wppconnect-ia'),
             ]);
 
         return response()->json([
@@ -211,13 +211,13 @@ class WppConnectController extends Controller
             return response()->json(['errors' => 'Usuário não encontrado.'], 404);
         }
 
-        Permission::firstOrCreate(['name' => 'wpp-ia', 'guard_name' => 'web']);
+        Permission::firstOrCreate(['name' => 'wppconnect-ia', 'guard_name' => 'web']);
 
-        if ($user->hasPermissionTo('wpp-ia')) {
-            $user->revokePermissionTo('wpp-ia');
+        if ($user->hasPermissionTo('wppconnect-ia')) {
+            $user->revokePermissionTo('wppconnect-ia');
             $ativo = false;
         } else {
-            $user->givePermissionTo('wpp-ia');
+            $user->givePermissionTo('wppconnect-ia');
             $ativo = true;
         }
 

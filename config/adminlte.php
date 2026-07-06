@@ -465,7 +465,7 @@ return [
                     'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas'],
                 ],
                 [
-                    'text' => 'Adiant. Despesas',
+                    'text' => 'Controle de Despesas',
                     'route' => 'despesa.index',
                     'icon' => 'far fa-circle nav-icon',
                     'can' => ['ver-despesas'],
