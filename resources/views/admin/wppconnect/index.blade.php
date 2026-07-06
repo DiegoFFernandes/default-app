@@ -294,10 +294,11 @@ $(document).ready(function () {
     // ============================================================
 
     const INTERVAL_STATUS = 4000;
-    const INTERVAL_QRCODE = 20000;
-    let timerStatus = null;
-    let timerQrCode = null;
-    let tentativas  = 0;
+    const INTERVAL_QRCODE = 5000;
+    let timerStatus   = null;
+    let timerQrCode   = null;
+    let tentativas    = 0;
+    let tentativasQr  = 0;
 
     function mostrarLoading(texto) {
         $('#area-loading').show();
@@ -345,10 +346,26 @@ $(document).ready(function () {
             });
     }
 
+    const MAX_TENTATIVAS_QR = 5;
+
     function buscarQrCode() {
+        if (tentativasQr >= MAX_TENTATIVAS_QR) {
+            pararTimers();
+            mostrarErro('QR Code não gerado após ' + MAX_TENTATIVAS_QR + ' tentativas. Verifique se o servidor WppConnect está ativo e tente novamente.');
+            return;
+        }
+        tentativasQr++;
         $.get('{{ route('wppconnect.qrcode') }}')
             .done(function (res) {
-                if (res.success && res.data?.qrcode) mostrarQrCode(res.data.qrcode);
+                if (res.success && res.data?.qrcode) {
+                    tentativasQr = 0;
+                    mostrarQrCode(res.data.qrcode);
+                } else {
+                    mostrarLoading('Aguardando QR Code... (tentativa ' + tentativasQr + ' de ' + MAX_TENTATIVAS_QR + ')');
+                }
+            })
+            .fail(function () {
+                mostrarLoading('Erro ao buscar QR Code (tentativa ' + tentativasQr + ' de ' + MAX_TENTATIVAS_QR + ')');
             });
     }
 
@@ -357,6 +374,7 @@ $(document).ready(function () {
         tentativas = 0;
         $.post('{{ route('wppconnect.start-session') }}', { _token: '{{ csrf_token() }}' })
             .done(function () {
+                tentativasQr = 0;
                 mostrarLoading('Gerando QR Code...');
                 setTimeout(function () {
                     buscarQrCode();
@@ -389,9 +407,14 @@ $(document).ready(function () {
         pararTimerPhoneCode();
         $('#modo-phone').hide();
         $('#modo-qrcode').show();
-        mostrarLoading('Iniciando sessão...');
         tentativas = 0;
-        iniciarSessao();
+        tentativasQr = 0;
+        mostrarLoading('Encerrando sessão anterior...');
+        $.post('{{ route('wppconnect.logout-session') }}', { _token: '{{ csrf_token() }}' })
+            .always(function () {
+                mostrarLoading('Aguardando encerramento...');
+                setTimeout(function () { iniciarSessao(); }, 2000);
+            });
     });
 
     $('#btn-modo-phone').on('click', function () {

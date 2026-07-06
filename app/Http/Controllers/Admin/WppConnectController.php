@@ -40,6 +40,26 @@ class WppConnectController extends Controller
         }
     }
 
+    public function closeSession(): JsonResponse
+    {
+        try {
+            $result = $this->wpp->closeSession();
+            return response()->json(['success' => true, 'data' => $result]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function logoutSession(): JsonResponse
+    {
+        try {
+            $result = $this->wpp->logoutSession();
+            return response()->json(['success' => true, 'data' => $result]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function startSession(): JsonResponse
     {
         try {

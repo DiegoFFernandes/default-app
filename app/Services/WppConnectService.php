@@ -53,6 +53,20 @@ class WppConnectService
     // Sessão
     // -------------------------------------------------------
 
+    public function closeSession(): array
+    {
+        $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/close-session");
+        Cache::forget("wppconnect_token_{$this->session}");
+        return $response->json() ?? [];
+    }
+
+    public function logoutSession(): array
+    {
+        $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/logout-session");
+        Cache::forget("wppconnect_token_{$this->session}");
+        return $response->json() ?? [];
+    }
+
     public function startSession(): array
     {
         $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/start-session");

@@ -22,6 +22,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'permission:ver-wppconnect'])->group(function () {
     Route::prefix('wppconnect')->group(function () {
         Route::get('/',                       [WppConnectController::class, 'index'])->name('wppconnect.index');
+        Route::post('close-session',          [WppConnectController::class, 'closeSession'])->name('wppconnect.close-session');
+        Route::post('logout-session',         [WppConnectController::class, 'logoutSession'])->name('wppconnect.logout-session');
         Route::post('start-session',          [WppConnectController::class, 'startSession'])->name('wppconnect.start-session');
         Route::post('start-session-phone',    [WppConnectController::class, 'startSessionPhone'])->name('wppconnect.start-session-phone');
         Route::get('phone-code',              [WppConnectController::class, 'phoneCode'])->name('wppconnect.phone-code');
