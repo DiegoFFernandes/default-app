@@ -120,7 +120,7 @@ class WppConnectService
     // Envio de mensagens
     // -------------------------------------------------------
 
-    public function sendText(string $phone, string $message, string $referenciaTipo = '', int $referenciaId = null): array
+    public function sendText(string $phone, string $message, string $referenciaTipo = '', int $referenciaId = null, ?int $userId = null): array
     {
         $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
             'phone'   => $this->formatPhone($phone),
@@ -128,7 +128,7 @@ class WppConnectService
         ]);
 
         $this->logResponse('sendText', $phone, $response);
-        $this->registrarDisparo($phone, $message, $response, $referenciaTipo, $referenciaId);
+        $this->registrarDisparo($phone, $message, $response, $referenciaTipo, $referenciaId, $userId);
 
         return $response->json() ?? [];
     }
@@ -236,13 +236,13 @@ class WppConnectService
                 "*Itens:*",
                 $itensTexto,
                 "",
-                "Toque no link para aprovar ou reprovar.",
+                "Toque no link para aprovar ou reprovar:",
+                "🔗 " . $linkAcao,
             ]);
 
-            $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-link-preview", [
-                'phone'   => [$this->formatPhone((string) $user->phone)],
-                'url'     => $linkAcao,
-                'caption' => $caption,
+            $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
+                'phone'   => $this->formatPhone((string) $user->phone),
+                'message' => $caption,
             ]);
 
             $sucesso = $response->successful() && ($response->json('status') === 'success');
@@ -339,23 +339,39 @@ class WppConnectService
 
     public function reenviarDisparo(WppDisparo $disparo): void
     {
-        $newToken = Str::random(32);
-        $linkAcao = rtrim(config('app.url'), '/') . '/compras/acao?token=' . $newToken;
+        $newToken = null;
 
-        $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-link-preview", [
-            'phone'   => [$this->formatPhone($disparo->phone)],
-            'url'     => $linkAcao,
-            'caption' => $disparo->mensagem,
+        if ($disparo->referencia_tipo === 'compra_etapa') {
+            // Mensagem de aprovação: gera novo token e incorpora o link
+            $newToken = Str::random(32);
+            $linkAcao = rtrim(config('app.url'), '/') . '/compras/acao?token=' . $newToken;
+            $mensagem = $disparo->mensagem . "\n\n🔗 " . $linkAcao;
+        } else {
+            // Mensagem de texto simples: reenvia o conteúdo original
+            $mensagem = $disparo->mensagem;
+        }
+
+        $phone = $disparo->phone;
+        if (strlen($phone) > 13) {
+            $phone = User::where('wpp_lid', $phone)->value('phone') ?? $phone;
+        }
+
+        $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
+            'phone'   => $this->formatPhone($phone),
+            'message' => $mensagem,
         ]);
 
         $sucesso = $response->successful() && ($response->json('status') === 'success');
 
-        $disparo->update([
-            'token'    => $newToken,
+        $update = [
             'status'   => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
             'erro'     => $sucesso ? null : substr($response->body(), 0, 500),
             'dt_envio' => $sucesso ? now() : null,
-        ]);
+        ];
+        if ($newToken !== null) {
+            $update['token'] = $newToken;
+        }
+        $disparo->update($update);
 
         if (!$sucesso) {
             throw new \RuntimeException(substr($response->body(), 0, 200));
@@ -384,14 +400,21 @@ class WppConnectService
         string $mensagem,
         \Illuminate\Http\Client\Response $response,
         string $referenciaTipo = '',
-        ?int   $referenciaId   = null
+        ?int   $referenciaId   = null,
+        ?int   $userId         = null
     ): void {
         try {
             $sucesso = $response->successful() && ($response->json('status') === 'success');
 
+            $digits = preg_replace('/\D/', '', $phone);
+            // LIDs têm 15 dígitos; resolve para o telefone real se possível
+            if (strlen($digits) > 13) {
+                $digits = User::where('wpp_lid', $digits)->value('phone') ?? $digits;
+            }
+
             WppDisparo::create([
-                'user_id'        => Auth::id() ?? 1,
-                'phone'          => preg_replace('/\D/', '', $phone),
+                'user_id'        => $userId ?? Auth::id() ?? 1,
+                'phone'          => $digits,
                 'mensagem'       => $mensagem,
                 'status'         => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
                 'erro'           => $sucesso ? null : substr($response->body(), 0, 500),

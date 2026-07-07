@@ -754,7 +754,7 @@ $(document).ready(function () {
         const id = $(this).data('id');
         Swal.fire({
             title: 'Reenviar mensagem?',
-            text: 'Uma nova mensagem será enviada para o aprovador com um novo link de ação.',
+            text: 'Uma nova mensagem será enviada.',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#ffc107',

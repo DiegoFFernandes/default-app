@@ -41,4 +41,8 @@ return [
         'session' => env('WPPCONNECT_SESSION', 'default'),
     ],
 
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+
 ];

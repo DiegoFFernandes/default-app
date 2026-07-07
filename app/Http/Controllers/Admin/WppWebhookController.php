@@ -76,10 +76,17 @@ class WppWebhookController extends Controller
         $cmd    = strtoupper($partes[0] ?? '');
         $token  = $partes[1] ?? '';
 
+        // Se o remetente usou LID, resolve para o telefone real cadastrado no usuário
+        $destinatario = str_ends_with($from, '@lid')
+            ? User::where('wpp_lid', $phone)->first(['id', 'phone'])
+            : User::where('phone', $phone)->first(['id', 'phone']);
+
+        $phoneSend = $destinatario?->phone ?? $phone;
+
         // Respostas automáticas — adicione seus casos aqui
         $resposta = $this->resolverResposta($cmd, $texto, $phone);
         if ($resposta !== null) {
-            $this->wpp->sendText($phone, $resposta);
+            $this->wpp->sendText($phoneSend, $resposta, '', null, $destinatario?->id);
             return response()->json(['ok' => true]);
         }
 
