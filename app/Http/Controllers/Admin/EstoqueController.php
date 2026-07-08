@@ -9,6 +9,7 @@ use App\Models\MedidaPneu;
 use App\Models\ModeloPneu;
 use App\Models\User;
 use App\Services\ServiceEstoqueNegativo;
+use App\Services\ServiceFiltroGrupoSubgrupo;
 use Illuminate\Support\Facades\Validator;
 use Helper;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,7 @@ class EstoqueController extends Controller
     protected MedidaPneu $medidapneu;
     protected ModeloPneu $modelopneu;
     protected ServiceEstoqueNegativo $serviceEstoqueNegativo;
+    protected ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo;
 
     public function __construct(
         Empresa $empresa,
@@ -32,7 +34,8 @@ class EstoqueController extends Controller
         Estoque $estoque,
         MedidaPneu $medidapneu,
         ModeloPneu $modelopneu,
-        ServiceEstoqueNegativo $serviceEstoqueNegativo
+        ServiceEstoqueNegativo $serviceEstoqueNegativo,
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
     ) {
         $this->empresa  = $empresa;
         $this->request = $request;
@@ -41,6 +44,7 @@ class EstoqueController extends Controller
         $this->medidapneu = $medidapneu;
         $this->modelopneu = $modelopneu;
         $this->serviceEstoqueNegativo = $serviceEstoqueNegativo;
+        $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
 
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -440,7 +444,10 @@ class EstoqueController extends Controller
 
     public function getCarcacaCasaProntasTerceiros()
     {
-        $data = $this->estoque->getCarcacasProntasTerceiros();
+        // 12 - PNEUS DA CASA PRONTOS
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(12);
+
+        $data = $this->estoque->getSaldoEstoque($subgrupo['data']);
 
         $arrayCarcacaProntasLocal =  $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DS_MEDIDA', 'DS_DESENHO', 'DSMODELO');
 
@@ -456,6 +463,27 @@ class EstoqueController extends Controller
         ]);
     }
 
+
+    public function getPneusNovos()
+    {
+        // 11 - PNEUS NOVOS
+        $subgrupo = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(11);
+
+        $data = $this->estoque->getSaldoEstoque($subgrupo['data']);
+
+        $arrayCarcacaProntasLocal = $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DS_MEDIDA', 'DS_DESENHO', 'DSMODELO');
+
+        $datatable = Datatables()
+            ->of($data)
+            ->make(true)
+            ->getData();
+
+        return response()->json([
+            'datatable' => $datatable,
+            'total_pneus_novos' => array_sum(array_column($data, 'QTD')),
+            'accordion_data_local_marca' => array_values($arrayCarcacaProntasLocal),
+        ]);
+    }
 
     public function reservarCarcacaCasaPronta()
     {

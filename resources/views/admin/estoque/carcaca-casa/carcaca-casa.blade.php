@@ -19,6 +19,8 @@
                             @include('admin.estoque.carcaca-casa.tabs.painel-carcaca-pronta')
 
                             @include('admin.estoque.carcaca-casa.tabs.painel-carcaca-pronta-terceiros')
+
+                            @include('admin.estoque.carcaca-casa.tabs.painel-pneus-novos')
                         </div>
                     </div>
                 </div>
@@ -94,6 +96,7 @@
             getCarcacaCasaBaixas: "{{ route('get-carcaca-casa-baixas') }}",
             getCarcacaCasaProntas: "{{ route('get-carcaca-casa-prontas') }}",
             getCarcacaCasaProntasTerceiros: "{{ route('get-carcaca-casa-prontas-terceiros') }}",
+            getPneusNovos: "{{ route('get-pneus-novos') }}",
             reservarCarcacaCasaPronta: "{{ route('reservar-carcaca-casa-pronta') }}",
         }
         window.canEdit = @json(!$canEdit);
@@ -101,6 +104,6 @@
 
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/entradasCarcacaEstoque.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaPronta.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaProntaTerceiros.js') }}?v={{ time() }}">
-    </script>
+    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/carcacasCasaProntaTerceiros.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/carcacaCasaEstoque/pneusNovos.js') }}?v={{ time() }}"></script>
 @endsection

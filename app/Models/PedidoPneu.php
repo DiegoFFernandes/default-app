@@ -335,7 +335,7 @@ class PedidoPneu extends Model
     static function getColetaPedidoPneu($dt_inicio = null, $dt_fim = null, $cd_empresa = null)
     {
         $query = "       
-            SELECT                
+            SELECT
                 P.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
                 SP.ID || '-' || SP.DSSERVICO DS_SERVICOPNEU,
                 COUNT(*) QTD,
@@ -343,7 +343,7 @@ class PedidoPneu extends Model
                 IPP.VLUNITARIO * COUNT(IPP.ID) VL_TOTAL,
                 PP.IDVENDEDOR || '-' || V.NM_PESSOA NM_VENDEDOR,
                 CAST(PP.DTEMISSAO AS DATE) DT_EMISSAO,
-
+                PP.IDEMPRESA,
                 DP.DSDESENHO,
                 IPP.IDDESENHOPNEU,
                 ITEM.CD_SUBGRUPO
@@ -360,7 +360,7 @@ class PedidoPneu extends Model
             INNER JOIN PESSOA V ON (V.CD_PESSOA = PP.IDVENDEDOR)
             WHERE
             PP.DTEMISSAO BETWEEN '$dt_inicio' AND '$dt_fim'
-                            AND PP.IDEMPRESA = $cd_empresa
+                            AND PP.IDEMPRESA IN ($cd_empresa)
             GROUP BY P.CD_PESSOA,
                 P.NM_PESSOA,
                 SP.ID,
@@ -369,9 +369,7 @@ class PedidoPneu extends Model
                 IPP.VLUNITARIO,
                 PP.IDVENDEDOR,
                 V.NM_PESSOA,
-                DP.DSDESENHO,
-                IPP.IDDESENHOPNEU,
-                ITEM.CD_SUBGRUPO,
+                PP.IDEMPRESA,
                 DP.DSDESENHO,
                 IPP.IDDESENHOPNEU,
                 ITEM.CD_SUBGRUPO

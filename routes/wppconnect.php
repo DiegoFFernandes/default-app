@@ -43,5 +43,9 @@ Route::middleware(['auth', 'permission:wppconnect-configurar'])->group(function 
         Route::post('usuarios/{id}/wpp-lid',   [WppConnectController::class, 'salvarWppLid'])->name('wppconnect.usuarios.wpp-lid');
         Route::get('lids-pendentes',           [WppConnectController::class, 'lidsPendentes'])->name('wppconnect.lids-pendentes');
         Route::post('lids-pendentes/associar', [WppConnectController::class, 'associarLid'])->name('wppconnect.lids-pendentes.associar');
+        Route::get('ia-intencoes',              [WppConnectController::class, 'iaIntencoes'])->name('wppconnect.ia-intencoes');
+        Route::post('ia-intencoes/{id}/toggle', [WppConnectController::class, 'toggleIntencao'])->name('wppconnect.ia-intencoes.toggle');
+        Route::put('ia-intencoes/{id}/sql',     [WppConnectController::class, 'salvarSqlIntencao'])->name('wppconnect.ia-intencoes.sql');
+        Route::get('ia-intencoes/{id}/previa',  [WppConnectController::class, 'previaIntencao'])->name('wppconnect.ia-intencoes.previa');
     });
 });

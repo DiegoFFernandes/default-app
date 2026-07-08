@@ -29,6 +29,12 @@
                                 <i class="fas fa-cog mr-1"></i> Parâmetros
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tab-ia" data-toggle="pill"
+                               href="#pane-ia" role="tab">
+                                <i class="fas fa-robot mr-1"></i> Contexto IA
+                            </a>
+                        </li>
                     </ul>
                     <div class="card-tools mr-2">
                         <button class="btn btn-success btn-xs d-none" id="btn-atualizar-disparos">
@@ -276,12 +282,108 @@
 
                         </div>
 
+                        {{-- Tab: Contexto IA --}}
+                        <div class="tab-pane fade" id="pane-ia" role="tabpanel">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card card-outline card-info mb-0">
+                                        <div class="card-header">
+                                            <h3 class="card-title">
+                                                <i class="fas fa-robot mr-2"></i>Intenções da IA
+                                            </h3>
+                                            <div class="card-tools">
+                                                <span class="text-muted" style="font-size:12px;">
+                                                    Apenas intenções ativas são enviadas ao GPT como opções de resposta
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <table class="table table-sm table-hover mb-0" id="table-ia-intencoes">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th style="width:80px;">Intenção</th>
+                                                        <th style="width:300px;">Descrição</th>
+                                                        <th style="width:60px;" class="text-center">Status</th>
+                                                        <th style="width:60px;" class="text-center">Ação</th>
+                                                        <th style="width:60px;" class="text-center">SQL</th>
+                                                        <th style="width:60px;" class="text-center">Prévia</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-ia-intencoes">
+                                                    <tr>
+                                                        <td colspan="5" class="text-center py-3">
+                                                            <div class="spinner-border spinner-border-sm text-info"></div>
+                                                            <span class="ml-2 text-muted">Carregando...</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
             </div>
         </div>
     </div>
+
+{{-- Modal: Prévia da Intenção IA --}}
+<div class="modal fade" id="modal-previa-ia" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fab fa-whatsapp text-success mr-2"></i>
+                    Prévia — <span id="previa-nome-intencao"></span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="font-weight-bold mb-1" style="font-size:12px;">Data Início</label>
+                        <input type="date" id="previa-dt-inicio" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="font-weight-bold mb-1" style="font-size:12px;">Data Fim</label>
+                        <input type="date" id="previa-dt-fim" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-info btn-sm w-100" id="btn-gerar-previa">
+                            <i class="fas fa-sync-alt mr-1"></i>Gerar Prévia
+                        </button>
+                    </div>
+                </div>
+
+                <div id="previa-loading" style="display:none;" class="text-center py-4">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <p class="mt-2 text-muted mb-0">Consultando Firebird...</p>
+                </div>
+
+                <div id="previa-erro" style="display:none;" class="alert alert-danger py-2 mb-0"></div>
+
+                <div id="previa-resultado" style="display:none;">
+                    <label class="font-weight-bold mb-1" style="font-size:12px;">
+                        <i class="fab fa-whatsapp text-success mr-1"></i>Texto que chegará no WhatsApp:
+                    </label>
+                    <pre id="previa-texto"
+                         style="background:#e5ddd5; border-radius:8px; padding:16px;
+                                font-family:inherit; font-size:13px; line-height:1.6;
+                                white-space:pre-wrap; max-height:420px; overflow-y:auto;
+                                border:none; color:#1a1a1a;"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </section>
 @endsection
 
@@ -578,11 +680,74 @@ $(document).ready(function () {
         $('#btn-atualizar-disparos').toggleClass('d-none', href !== '#pane-disparos');
         if (href === '#pane-disparos')   initDisparos();
         if (href === '#pane-parametros') { initParametros(); carregarLidsPendentes(); }
+        if (href === '#pane-ia')         carregarIaIntencoes();
     });
 
     $('#btn-atualizar-disparos').on('click', function () {
         if (dtDisparos) dtDisparos.ajax.reload(null, false);
     });
+
+    // ============================================================
+    // MODAL PRÉVIA IA
+    // ============================================================
+
+    let previaIdAtual = null;
+
+    function formatDateInput(date) {
+        return date.toISOString().split('T')[0]; // YYYY-MM-DD
+    }
+
+    $(document).on('click', '.btn-previa-intencao', function () {
+        previaIdAtual = $(this).data('id');
+        const nome    = $(this).data('nome');
+
+        $('#previa-nome-intencao').text(nome);
+
+        // Padrão: primeiro dia do mês até hoje
+        const hoje      = new Date();
+        const primDia   = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        $('#previa-dt-inicio').val(formatDateInput(primDia));
+        $('#previa-dt-fim').val(formatDateInput(hoje));
+
+        $('#previa-loading').hide();
+        $('#previa-resultado').hide();
+        $('#previa-erro').hide();
+
+        $('#modal-previa-ia').modal('show');
+    });
+
+    function gerarPrevia() {
+        if (!previaIdAtual) return;
+
+        const dtInicio = $('#previa-dt-inicio').val();
+        const dtFim    = $('#previa-dt-fim').val();
+
+        if (!dtInicio || !dtFim) {
+            Swal.fire('Atenção', 'Informe as duas datas.', 'warning');
+            return;
+        }
+
+        $('#previa-resultado').hide();
+        $('#previa-erro').hide();
+        $('#previa-loading').show();
+        $('#btn-gerar-previa').prop('disabled', true);
+
+        $.get('{{ url('wppconnect/ia-intencoes') }}/' + previaIdAtual + '/previa', {
+            dt_inicio: dtInicio,
+            dt_fim:    dtFim,
+        }).done(function (res) {
+            $('#previa-texto').text(res.texto);
+            $('#previa-resultado').show();
+        }).fail(function (xhr) {
+            const msg = xhr.responseJSON?.errors ?? 'Erro ao gerar prévia.';
+            $('#previa-erro').text(msg).show();
+        }).always(function () {
+            $('#previa-loading').hide();
+            $('#btn-gerar-previa').prop('disabled', false);
+        });
+    }
+
+    $('#btn-gerar-previa').on('click', gerarPrevia);
 
     // ============================================================
     // TAB PARAMETRIZAÇÕES
@@ -745,6 +910,178 @@ $(document).ready(function () {
                 ?? (xhr.responseJSON?.message)
                 ?? 'Falha ao salvar LID.';
             Swal.fire('Erro', msg, 'error');
+        }).always(function () {
+            btn.prop('disabled', false);
+        });
+    });
+
+    // ============================================================
+    // TAB CONTEXTO IA
+    // ============================================================
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function carregarIaIntencoes() {
+        $('#tbody-ia-intencoes').html(
+            '<tr><td colspan="5" class="text-center py-3">' +
+            '<div class="spinner-border spinner-border-sm text-info"></div>' +
+            '<span class="ml-2 text-muted">Carregando...</span></td></tr>'
+        );
+
+        $.get('{{ url('wppconnect/ia-intencoes') }}')
+            .done(function (res) { renderIaIntencoes(res.data); })
+            .fail(function () {
+                $('#tbody-ia-intencoes').html(
+                    '<tr><td colspan="5" class="text-center text-danger py-3">Erro ao carregar intenções.</td></tr>'
+                );
+            });
+    }
+
+    function renderIaIntencoes(intencoes) {
+        if (!intencoes || !intencoes.length) {
+            $('#tbody-ia-intencoes').html(
+                '<tr><td colspan="5" class="text-center text-muted py-3">Nenhuma intenção cadastrada.</td></tr>'
+            );
+            return;
+        }
+
+        const rows = [];
+        intencoes.forEach(function (item) {
+            const badge = item.ativo
+                ? '<span class="badge badge-success">Ativo</span>'
+                : '<span class="badge badge-secondary">Inativo</span>';
+
+            const btnToggle = item.ativo
+                ? `<button class="btn btn-xs btn-danger btn-toggle-intencao" data-id="${item.id}">
+                       <i class="fas fa-pause mr-1"></i>Desativar
+                   </button>`
+                : `<button class="btn btn-xs btn-success btn-toggle-intencao" data-id="${item.id}">
+                       <i class="fas fa-play mr-1"></i>Ativar
+                   </button>`;
+
+            const btnSql = `<button class="btn btn-xs btn-outline-info btn-ver-sql" data-id="${item.id}">
+                                <i class="fas fa-code mr-1"></i>Ver SQL
+                            </button>`;
+
+            const btnPrevia = item.sql_template
+                ? `<button class="btn btn-xs btn-outline-success btn-previa-intencao"
+                           data-id="${item.id}" data-nome="${escHtml(item.nome)}">
+                       <i class="fas fa-eye mr-1"></i>Prévia
+                   </button>`
+                : `<span class="text-muted" style="font-size:11px;">Sem SQL</span>`;
+
+            rows.push(`<tr data-id="${item.id}">
+                <td><code>${escHtml(item.nome)}</code></td>
+                <td style="max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                    title="${escHtml(item.descricao)}">${escHtml(item.descricao)}</td>
+                <td class="text-center td-intencao-status">${badge}</td>
+                <td class="text-center td-intencao-acao">${btnToggle}</td>
+                <td class="text-center">${btnSql}</td>
+                <td class="text-center">${btnPrevia}</td>
+            </tr>`);
+
+            const alertaSemSql = !item.sql_template
+                ? `<div class="alert alert-warning py-1 mb-2" style="font-size:12px;">
+                       <i class="fas fa-exclamation-triangle mr-1"></i>
+                       SQL não configurado — o WhatsApp não retornará resposta para esta intenção.
+                   </div>`
+                : '';
+
+            rows.push(`<tr class="sql-detail-row d-none" data-id="${item.id}" style="background:#f8f9fa;">
+                <td colspan="6" class="p-3">
+                    ${alertaSemSql}
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            Placeholders disponíveis:
+                            <code>@{{dt_inicio}}</code>
+                            <code>@{{dt_fim}}</code>
+                            <code>@{{cd_empresa}}</code>
+                        </small>
+                    </div>
+                    <textarea class="form-control form-control-sm textarea-sql font-monospace"
+                              data-id="${item.id}"
+                              rows="14"
+                              style="font-family:monospace; font-size:12px; resize:vertical;"
+                              spellcheck="false">${escHtml(item.sql_template || '')}</textarea>
+                    <div class="mt-2 text-right">
+                        <button class="btn btn-sm btn-info btn-salvar-sql" data-id="${item.id}">
+                            <i class="fas fa-save mr-1"></i>Salvar SQL
+                        </button>
+                    </div>
+                </td>
+            </tr>`);
+        });
+
+        $('#tbody-ia-intencoes').html(rows.join(''));
+    }
+
+    // Expandir / recolher SQL
+    $(document).on('click', '.btn-ver-sql', function () {
+        const id      = $(this).data('id');
+        const detail  = $(`.sql-detail-row[data-id="${id}"]`);
+        const visible = !detail.hasClass('d-none');
+
+        // Fecha todos os outros
+        $('.sql-detail-row').addClass('d-none');
+        $('.btn-ver-sql').html('<i class="fas fa-code mr-1"></i>Ver SQL');
+
+        if (!visible) {
+            detail.removeClass('d-none');
+            $(this).html('<i class="fas fa-times mr-1"></i>Fechar');
+        }
+    });
+
+    // Toggle ativo/inativo
+    $(document).on('click', '.btn-toggle-intencao', function () {
+        const id  = $(this).data('id');
+        const btn = $(this);
+        btn.prop('disabled', true);
+
+        $.post('{{ url('wppconnect/ia-intencoes') }}/' + id + '/toggle', {
+            _token: '{{ csrf_token() }}',
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end',
+                        showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+            const badge = res.ativo
+                ? '<span class="badge badge-success">Ativo</span>'
+                : '<span class="badge badge-secondary">Inativo</span>';
+            const newBtn = res.ativo
+                ? `<button class="btn btn-xs btn-danger btn-toggle-intencao" data-id="${id}"><i class="fas fa-pause mr-1"></i>Desativar</button>`
+                : `<button class="btn btn-xs btn-success btn-toggle-intencao" data-id="${id}"><i class="fas fa-play mr-1"></i>Ativar</button>`;
+
+            $(`tr[data-id="${id}"] .td-intencao-status`).html(badge);
+            $(`tr[data-id="${id}"] .td-intencao-acao`).html(newBtn);
+        }).fail(function (xhr) {
+            Swal.fire('Erro', xhr.responseJSON?.errors ?? 'Falha ao alterar status.', 'error');
+            btn.prop('disabled', false);
+        });
+    });
+
+    // Salvar SQL
+    $(document).on('click', '.btn-salvar-sql', function () {
+        const id  = $(this).data('id');
+        const sql = $(`.textarea-sql[data-id="${id}"]`).val();
+        const btn = $(this);
+        btn.prop('disabled', true);
+
+        $.post('{{ url('wppconnect/ia-intencoes') }}/' + id + '/sql', {
+            _token:   '{{ csrf_token() }}',
+            _method:  'PUT',
+            sql_template: sql,
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end',
+                        showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+            // Remove aviso de "sem SQL" se existia
+            $(`.sql-detail-row[data-id="${id}"] .alert-warning`).remove();
+        }).fail(function (xhr) {
+            Swal.fire('Erro', xhr.responseJSON?.errors ?? 'Falha ao salvar SQL.', 'error');
         }).always(function () {
             btn.prop('disabled', false);
         });

@@ -25,6 +25,12 @@
                     <i class="fas fa-handshake mr-1"></i> Prontos em Terceiros
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-pneus-novos" data-toggle="pill" href="#painel-pneus-novos" role="tab"
+                    aria-controls="painel-pneus-novos" aria-selected="false">
+                    <i class="fas fa-box-open mr-1"></i> Pneus Novos
+                </a>
+            </li>
         </ul>
     </div>
 </div>

@@ -388,21 +388,22 @@ class Estoque extends Model
         });
     }
 
-    public function getCarcacasProntasTerceiros()
+    public function getSaldoEstoque($subgrupo)
     {
-        $query = "
-                -- Cambé
+        $apelidos = config('empresas.apelidos');
+
+        $blocos = array_map(function ($idEmpresa) use ($apelidos, $subgrupo) {
+            $nomeLocal = $apelidos[$idEmpresa] ?? 'EMPRESA ' . $idEmpresa;
+
+            return "
                 SELECT
-                    1 IDEMPRESA,
+                    {$idEmpresa} IDEMPRESA,
                     I.CD_ITEM,
                     I.DS_ITEM,
                     M.DS_MARCA DS_MEDIDA,
                     I.CD_SECAO,
                     SECAO.DS_SECAO DS_DESENHO,
-                    CASE
-                            WHEN IL.CD_LOCAL = 1 THEN 'CAMBE'
-                            ELSE L.DS_LOCAL
-                    END LOCAL_ESTOQUE,
+                    CASE WHEN IL.CD_LOCAL = 1 THEN '{$nomeLocal}' ELSE L.DS_LOCAL END LOCAL_ESTOQUE,
                     NULL DS_MODELO,
                     NULL DS_TIPO,
                     R.O_QT_SALDO QTD,
@@ -411,100 +412,12 @@ class Estoque extends Model
                 LEFT JOIN MARCA M ON (M.CD_MARCA = I.CD_MARCA)
                 LEFT JOIN SECAO ON (SECAO.CD_SECAO = I.CD_SECAO)
                 INNER JOIN ITEMLOCAL IL ON (IL.CD_ITEM = I.CD_ITEM)
-                INNER JOIN LOCALESTOQUE L ON (L.CD_TIPOLOCAL = IL.CD_TIPOLOCAL
-                    AND L.CD_LOCAL = IL.CD_LOCAL)
-                LEFT JOIN RETORNA_SALDOESTOQUE(1, I.CD_ITEM, IL.CD_TIPOLOCAL, IL.CD_LOCAL, CURRENT_DATE, NULL) R ON (1 = 1)
-                WHERE
-                    I.CD_SUBGRUPO IN (12016)
-                    AND R.O_QT_SALDO > 0
+                INNER JOIN LOCALESTOQUE L ON (L.CD_TIPOLOCAL = IL.CD_TIPOLOCAL AND L.CD_LOCAL = IL.CD_LOCAL)
+                LEFT JOIN RETORNA_SALDOESTOQUE({$idEmpresa}, I.CD_ITEM, IL.CD_TIPOLOCAL, IL.CD_LOCAL, CURRENT_DATE, NULL) R ON (1 = 1)
+                WHERE I.CD_SUBGRUPO IN ({$subgrupo}) AND R.O_QT_SALDO > 0";
+        }, config('empresas.admin_ids'));
 
-                UNION ALL
-
-                -- Osvaldo Cruz
-                SELECT
-                    3 IDEMPRESA,
-                    I.CD_ITEM,
-                    I.DS_ITEM,
-                    M.DS_MARCA DS_MEDIDA,
-                    I.CD_SECAO,
-                    SECAO.DS_SECAO DS_DESENHO,
-                    CASE
-                        WHEN IL.CD_LOCAL = 1 THEN 'OSVALDO'
-                        ELSE L.DS_LOCAL
-                    END LOCAL_ESTOQUE,
-                    NULL DS_MODELO,
-                    NULL DS_TIPO,
-                    R.O_QT_SALDO QTD,
-                    R.O_VL_SALDO VALOR
-                FROM ITEM I
-                LEFT JOIN MARCA M ON (M.CD_MARCA = I.CD_MARCA)
-                LEFT JOIN SECAO ON (SECAO.CD_SECAO = I.CD_SECAO)
-                INNER JOIN ITEMLOCAL IL ON (IL.CD_ITEM = I.CD_ITEM)
-                INNER JOIN LOCALESTOQUE L ON (L.CD_TIPOLOCAL = IL.CD_TIPOLOCAL
-                    AND L.CD_LOCAL = IL.CD_LOCAL)
-                LEFT JOIN RETORNA_SALDOESTOQUE(3, I.CD_ITEM, IL.CD_TIPOLOCAL, IL.CD_LOCAL, CURRENT_DATE, NULL) R ON (1 = 1)
-                WHERE
-                    I.CD_SUBGRUPO IN (12016)
-                    AND R.O_QT_SALDO > 0
-
-                UNION ALL
-
-                -- Ponta Grossa
-                SELECT
-                    5 IDEMPRESA,
-                    I.CD_ITEM,
-                    I.DS_ITEM,
-                    M.DS_MARCA DS_MEDIDA,
-                    I.CD_SECAO,
-                    SECAO.DS_SECAO DS_DESENHO,
-                    CASE
-                        WHEN IL.CD_LOCAL = 1 THEN 'PONTA GROSSA'
-                        ELSE L.DS_LOCAL
-                    END LOCAL_ESTOQUE,
-                    NULL DS_MODELO,
-                    NULL DS_TIPO,
-                    R.O_QT_SALDO QTD,
-                    R.O_VL_SALDO VALOR
-                FROM ITEM I
-                LEFT JOIN MARCA M ON (M.CD_MARCA = I.CD_MARCA)
-                LEFT JOIN SECAO ON (SECAO.CD_SECAO = I.CD_SECAO)
-                INNER JOIN ITEMLOCAL IL ON (IL.CD_ITEM = I.CD_ITEM)
-                INNER JOIN LOCALESTOQUE L ON (L.CD_TIPOLOCAL = IL.CD_TIPOLOCAL
-                    AND L.CD_LOCAL = IL.CD_LOCAL)
-                LEFT JOIN RETORNA_SALDOESTOQUE(5, I.CD_ITEM, IL.CD_TIPOLOCAL, IL.CD_LOCAL, CURRENT_DATE, NULL) R ON (1 = 1)
-                WHERE
-                    I.CD_SUBGRUPO IN (12016)
-                    AND R.O_QT_SALDO > 0
-
-                UNION ALL
-
-                -- Osvaldo Cruz
-                SELECT
-                    6 IDEMPRESA,
-                    I.CD_ITEM,
-                    I.DS_ITEM,
-                    M.DS_MARCA DS_MEDIDA,
-                    I.CD_SECAO,
-                    SECAO.DS_SECAO DS_DESENHO,
-                    CASE
-                    WHEN IL.CD_LOCAL = 1 THEN 'CATANDUVA'
-                    ELSE L.DS_LOCAL
-                    END LOCAL_ESTOQUE,
-                    NULL DS_MODELO,
-                    NULL DS_TIPO,
-                    R.O_QT_SALDO QTD,
-                    R.O_VL_SALDO VALOR
-                FROM ITEM I
-                LEFT JOIN MARCA M ON (M.CD_MARCA = I.CD_MARCA)
-                LEFT JOIN SECAO ON (SECAO.CD_SECAO = I.CD_SECAO)
-                INNER JOIN ITEMLOCAL IL ON (IL.CD_ITEM = I.CD_ITEM)
-                INNER JOIN LOCALESTOQUE L ON (L.CD_TIPOLOCAL = IL.CD_TIPOLOCAL
-                    AND L.CD_LOCAL = IL.CD_LOCAL)
-                LEFT JOIN RETORNA_SALDOESTOQUE(6, I.CD_ITEM, IL.CD_TIPOLOCAL, IL.CD_LOCAL, CURRENT_DATE, NULL) R ON (1 = 1)
-                WHERE
-                    I.CD_SUBGRUPO IN (12016)
-                    AND R.O_QT_SALDO > 0
-         ";
+        $query = implode("\n\nUNION ALL\n", $blocos);
 
         $data = DB::connection('firebird')->select($query);
 

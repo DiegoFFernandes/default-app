@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\IaIntencao;
 use App\Models\User;
 use App\Models\WppDisparo;
 use App\Models\WppLidPendente;
 use App\Models\WppParametro;
+use App\Services\IAService;
 use App\Services\WppConnectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -221,6 +223,82 @@ class WppConnectController extends Controller
         $user->update(['wpp_lid' => $request->input('wpp_lid') ?: null]);
 
         return response()->json(['success' => 'WPP LID salvo com sucesso!', 'wpp_lid' => $user->wpp_lid ?? '']);
+    }
+
+    // -------------------------------------------------------
+    // Contexto IA
+    // -------------------------------------------------------
+
+    public function iaIntencoes(): JsonResponse
+    {
+        $intencoes = IaIntencao::orderBy('id')->get(['id', 'nome', 'descricao', 'ativo', 'sql_template']);
+        return response()->json(['data' => $intencoes]);
+    }
+
+    public function toggleIntencao(int $id): JsonResponse
+    {
+        $intencao = IaIntencao::find($id);
+
+        if (! $intencao) {
+            return response()->json(['errors' => 'Intenção não encontrada.'], 404);
+        }
+
+        $intencao->update(['ativo' => ! $intencao->ativo, 'updated_at' => now()]);
+
+        $msg = $intencao->ativo
+            ? "Intenção '{$intencao->nome}' ativada."
+            : "Intenção '{$intencao->nome}' desativada.";
+
+        return response()->json(['success' => $msg, 'ativo' => $intencao->ativo]);
+    }
+
+    public function previaIntencao(int $id, Request $request): JsonResponse
+    {
+        $intencao = IaIntencao::find($id);
+
+        if (! $intencao) {
+            return response()->json(['errors' => 'Intenção não encontrada.'], 404);
+        }
+
+        if (! $intencao->sql_template) {
+            return response()->json(['errors' => 'Esta intenção não tem SQL configurado.'], 422);
+        }
+
+        $dtInicio = $request->input('dt_inicio')
+            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('dt_inicio'))->format('d.m.Y')
+            : now()->startOfMonth()->format('d.m.Y');
+
+        $dtFim = $request->input('dt_fim')
+            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('dt_fim'))->format('d.m.Y')
+            : now()->format('d.m.Y');
+
+        $texto = app(IAService::class)->previa($intencao, $dtInicio, $dtFim);
+
+        return response()->json([
+            'texto'     => $texto,
+            'dt_inicio' => $dtInicio,
+            'dt_fim'    => $dtFim,
+        ]);
+    }
+
+    public function salvarSqlIntencao(int $id, Request $request): JsonResponse
+    {
+        $intencao = IaIntencao::find($id);
+
+        if (! $intencao) {
+            return response()->json(['errors' => 'Intenção não encontrada.'], 404);
+        }
+
+        $request->validate([
+            'sql_template' => ['nullable', 'string'],
+        ]);
+
+        $intencao->update([
+            'sql_template' => $request->input('sql_template') ?: null,
+            'updated_at'   => now(),
+        ]);
+
+        return response()->json(['success' => "SQL da intenção '{$intencao->nome}' salvo com sucesso!"]);
     }
 
     public function toggleWppIa(int $id): JsonResponse

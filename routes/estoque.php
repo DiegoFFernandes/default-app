@@ -27,6 +27,9 @@ Route::middleware(['auth', 'permission:ver-estoque'])->group(function () {
         //Carcasas prontas Terceiros
         Route::get('get-carcacas-prontas-terceiros', [EstoqueController::class, 'getCarcacaCasaProntasTerceiros'])->name('get-carcaca-casa-prontas-terceiros');
 
+        //Pneus Novos
+        Route::get('get-pneus-novos', [EstoqueController::class, 'getPneusNovos'])->name('get-pneus-novos');
+
         //Reservar carcaca pronta
         Route::get('reservar-carcaca-pronta', [EstoqueController::class, 'reservarCarcacaCasaPronta'])->name('reservar-carcaca-casa-pronta');
 

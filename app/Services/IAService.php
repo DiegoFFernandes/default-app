@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\PedidoPneu;
+use App\Models\IaIntencao;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -42,11 +43,30 @@ class IAService
 
     /**
      * Classifica a pergunta em uma intent com parâmetros.
+     * Usa apenas as intenções ativas cadastradas no banco.
      * Retorna ['intent' => '...', 'parametros' => [...]] ou [] em caso de falha.
      */
     public function classificarIntent(string $pergunta): array
     {
         $hoje = now()->format('d.m.Y');
+
+        $intentsAtivos = IaIntencao::where('ativo', true)
+            ->orderBy('id')
+            ->get(['nome', 'descricao']);
+
+        if ($intentsAtivos->isEmpty()) {
+            return [];
+        }
+
+        $listaIntents = $intentsAtivos
+            ->map(fn($i) => "- {$i->nome} → {$i->descricao}")
+            ->join("\n");
+
+        $apelidos      = config('empresas.apelidos');
+        $adminIds      = config('empresas.admin_ids');
+        $listaEmpresas = collect($adminIds)
+            ->map(fn($id) => "- \"{$apelidos[$id]}\" ou \"empresa {$id}\" → cd_empresa: {$id}")
+            ->join("\n");
 
         $prompt = <<<PROMPT
                     Você é um classificador de intenções.
@@ -57,11 +77,7 @@ class IAService
                     {"intent": "...", "parametros": {}}
 
                     Possíveis intents:
-                    - faturamento_mensal
-                    - inadimplencia_mensal
-                    - top_clientes
-                    - pedidos_coletados
-                    - pneus_coletados
+                    {$listaIntents}
 
                     REGRAS IMPORTANTES:
 
@@ -84,6 +100,10 @@ class IAService
 
                     6. Para todas as datas responda no formato: dd.mm.aaaa
 
+                    7. Se o usuário mencionar uma empresa específica, adicione cd_empresa nos parametros:
+                    {$listaEmpresas}
+                    Se não mencionar empresa, omita cd_empresa (serão usadas todas).
+
                     Pergunta: {$pergunta}
                     PROMPT;
 
@@ -100,9 +120,18 @@ class IAService
     }
 
     /**
+     * Executa o sql_template de uma intenção e retorna o texto formatado.
+     * Usado para pré-visualização no painel admin.
+     */
+    public function previa(IaIntencao $intencao, string $dtInicio, string $dtFim, ?int $cdEmpresa = null): string
+    {
+        return $this->coletasTexto($dtInicio, $dtFim, $intencao, $cdEmpresa);
+    }
+
+    /**
      * Recebe a pergunta do usuário via WhatsApp, resolve o intent
      * e retorna uma resposta formatada como texto simples.
-     * Retorna null se o intent não for suportado.
+     * Retorna null se o intent não for suportado ou sem SQL configurado.
      */
     public function responderParaWhatsapp(string $pergunta): ?string
     {
@@ -112,14 +141,20 @@ class IAService
             return null;
         }
 
-        $periodo = $this->resolverPeriodo($intent['parametros'] ?? []);
+        $intencao = IaIntencao::where('nome', $intent['intent'])
+            ->where('ativo', true)
+            ->first();
 
-        return match ($intent['intent']) {
-            'pedidos_coletados',
-            'pneus_coletados' => $this->coletasTexto($periodo['inicio'], $periodo['fim']),
+        if (! $intencao || ! $intencao->sql_template) {
+            Log::info('IAService: intent sem SQL ou inativo', ['intent' => $intent['intent'] ?? null]);
+            return null;
+        }
 
-            default => null,
-        };
+        $parametros = $intent['parametros'] ?? [];
+        $periodo    = $this->resolverPeriodo($parametros);
+        $cdEmpresa  = isset($parametros['cd_empresa']) ? (int) $parametros['cd_empresa'] : null;
+
+        return $this->coletasTexto($periodo['inicio'], $periodo['fim'], $intencao, $cdEmpresa);
     }
 
     // -------------------------------------------------------
@@ -161,9 +196,28 @@ class IAService
     // Formatadores de resposta para WhatsApp
     // -------------------------------------------------------
 
-    private function coletasTexto(string $dtInicio, string $dtFim): string
+    private function coletasTexto(string $dtInicio, string $dtFim, IaIntencao $intencao, ?int $cdEmpresa = null): string
     {
-        $dados = PedidoPneu::getColetaPedidoPneu($dtInicio, $dtFim, 1);
+        $adminIds = config('empresas.admin_ids');
+        $empresas = $cdEmpresa && in_array($cdEmpresa, $adminIds)
+            ? (string) $cdEmpresa
+            : implode(',', $adminIds);
+
+        $sql = str_replace(
+            ['{{dt_inicio}}', '{{dt_fim}}', '{{cd_empresa}}'],
+            [$dtInicio,       $dtFim,       $empresas],
+            $intencao->sql_template
+        );
+
+        try {
+            $dados = DB::connection('firebird')->select($sql);
+        } catch (\Throwable $e) {
+            Log::error('IAService: erro ao executar SQL da intenção', [
+                'intencao' => $intencao->nome,
+                'erro'     => $e->getMessage(),
+            ]);
+            return "Ocorreu um erro ao consultar os dados. Tente novamente.";
+        }
 
         if (empty($dados)) {
             $periodo = $dtInicio === $dtFim ? "em *{$dtInicio}*" : "de *{$dtInicio}* a *{$dtFim}*";
@@ -174,7 +228,7 @@ class IAService
         $valorTotal  = array_sum(array_column($dados, 'VL_TOTAL'));
         $qtdClientes = count(array_unique(array_column($dados, 'NM_PESSOA')));
 
-        // Agrupa e ordena por vendedor
+        // Agrupa por vendedor
         $vendedores = [];
         foreach ($dados as $item) {
             $v = $item->NM_VENDEDOR ?? 'Sem Vendedor';
@@ -182,6 +236,18 @@ class IAService
             $vendedores[$v]['valor'] = ($vendedores[$v]['valor'] ?? 0) + (float) $item->VL_TOTAL;
         }
         arsort($vendedores);
+
+        // Agrupa por empresa
+        $apelidos   = config('empresas.apelidos');
+        $apelidoPad = config('empresas.apelido_padrao', 'OUTROS');
+        $porEmpresa = [];
+        foreach ($dados as $item) {
+            $idEmp   = (int) ($item->IDEMPRESA ?? 0);
+            $nmEmp   = $apelidos[$idEmp] ?? $apelidoPad;
+            $porEmpresa[$nmEmp]['qtd']   = ($porEmpresa[$nmEmp]['qtd']   ?? 0) + (int)   $item->QTD;
+            $porEmpresa[$nmEmp]['valor'] = ($porEmpresa[$nmEmp]['valor'] ?? 0) + (float) $item->VL_TOTAL;
+        }
+        uasort($porEmpresa, fn($a, $b) => $b['valor'] <=> $a['valor']);
 
         $periodo = $dtInicio === $dtFim
             ? "em *{$dtInicio}*"
@@ -197,10 +263,16 @@ class IAService
         $linhas[] = "• Valor: *{$fmt($valorTotal)}*";
         $linhas[] = "• Clientes: *{$qtdClientes}*";
         $linhas[] = "";
+        $linhas[] = "🏢 *Por Empresa:*";
+
+        foreach ($porEmpresa as $nmEmp => $e) {
+            $linhas[] = "• {$nmEmp} → {$e['qtd']} pneus · {$fmt($e['valor'])}";
+        }
+
+        $linhas[] = "";
         $linhas[] = "🏆 *Vendedores:*";
 
         foreach (array_slice($vendedores, 0, 5, true) as $nome => $v) {
-            // Remove prefixo "ID-" que vem do Firebird (ex: "12-João Silva")
             $nomeSimples = preg_replace('/^\d+-/', '', $nome);
             $linhas[]    = "• {$nomeSimples} → {$v['qtd']} pneus · {$fmt($v['valor'])}";
         }
