@@ -150,7 +150,7 @@
                                         </div>
                                     </a>
                                 @endhaspermission
-                                @haspermission('ver-estoque')
+                                @haspermission('ver-estoque-carcacas')
                                     <a href="{{ route('carcaca-casa') }}"
                                         class="card card-outline card-dark dashboard-shortcut mb-0">
 

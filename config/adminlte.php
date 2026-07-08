@@ -582,28 +582,26 @@ return [
         ],
         [
             'text' => 'Estoque',
-            'can' => 'ver-estoque',
+            'can' => ['ver-estoque-carcacas', 'ver-estoque-negativo', 'ver-contagem-estoque'],
             'url' => '#',
             'icon' => 'nav-icon far fa-clipboard',
             'submenu' => [
                 [
                     'text' => 'Itens Negativos',
                     'route' => 'estoque-negativo',
-                    'can' => 'ver-estoque',
+                    'can' => 'ver-estoque-negativo',
                 ],
                 [
                     'text' => 'Carcacas Casa',
                     'route' => 'carcaca-casa',
-                    'can' => 'ver-estoque',
+                    'can' => 'ver-estoque-carcacas',
                 ],
                 [
                     'text' => 'Contagem Estoque',
                     'route' => 'entrada-estoque.index',
-                    'can' => 'ver-estoque',
+                    'can' => 'ver-contagem-estoque',
                 ]
             ],
-            // 'label' => 4,
-            // 'label_color' => 'success',
         ],
         [
             'text' => 'Producao',
