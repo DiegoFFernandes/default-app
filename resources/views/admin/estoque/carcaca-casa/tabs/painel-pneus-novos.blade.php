@@ -31,7 +31,7 @@
                     <div class="col-12 col-sm-12 col-md-12">
                         <div class="info-box">
                             <span class="info-box-icon bg-success elevation-1">
-                                <i class="fas fa-tire"></i>
+                                <i class="fas fa-cubes"></i>
                             </span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Total</span>
