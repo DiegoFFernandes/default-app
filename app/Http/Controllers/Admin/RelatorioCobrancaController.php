@@ -408,7 +408,7 @@ class RelatorioCobrancaController extends Controller
     {
         $tela = $this->request->tela;
 
-        if ($this->user->hasRole('admin|cobranca')) {
+        if ($this->user->hasRole('admin|cobranca|diretoria')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
@@ -843,7 +843,7 @@ class RelatorioCobrancaController extends Controller
         $ano = $this->request->ano;
         $tab = $this->request->input('tab');
 
-        if ($this->user->hasRole('admin|cobranca')) {
+        if ($this->user->hasRole('admin|cobranca|diretoria')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
