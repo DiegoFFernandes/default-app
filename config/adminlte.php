@@ -470,6 +470,11 @@ return [
                     'icon' => 'far fa-circle nav-icon',
                     'can' => ['ver-despesas'],
                 ],
+                [
+                    'text' => 'Fluxo de Caixa',
+                    'route' => 'fluxo-caixa.index',
+                    'icon' => 'far fa-circle nav-icon',
+                ],
             ]
         ],
         [

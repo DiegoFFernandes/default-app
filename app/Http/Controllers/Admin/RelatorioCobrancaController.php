@@ -930,7 +930,7 @@ class RelatorioCobrancaController extends Controller
 
     public function relatorioFinanceiroCliente()
     {
-        if ($this->user->hasRole('admin|cobranca')) {
+        if ($this->user->hasRole('admin|cobranca|diretoria')) {
             $gerentes = $this->area->GerenteAll();
         } elseif ($this->user->hasRole('gerente comercial')) {
             //Criar condição caso o usuario for gerente mais não estiver associado no painel

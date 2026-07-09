@@ -4,7 +4,7 @@ use App\Http\Controllers\admin\FaturamentoController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'permission:ver-analise-faturamento'])->group(function () {
     Route::prefix('faturamento')->group(function () {
         Route::get('analise-faturamento', [FaturamentoController::class, 'index'])->name('analise-faturamento.index');
 

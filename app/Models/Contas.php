@@ -66,6 +66,86 @@ class Contas
     }
 
     /**
+     * Lista os lançamentos de CONTAS (a receber ou a pagar) com vencimento no período
+     * informado, para um único CD_TIPOCONTA. Cada tipo de conta tem sua própria condição de
+     * forma de pagamento (ex: tipo 2 do receber filtra BL/DB; outros tipos não filtram), por
+     * isso o método é chamado uma vez por tipo e o resultado é mesclado no controller.
+     *
+     * @param  string $dtInicio         'YYYY-MM-DD'
+     * @param  string $dtFim            'YYYY-MM-DD'
+     * @param  int    $cdTipoConta
+     * @param  string[] $formasPagamento Se vazio, não filtra por CD_FORMAPAGTO
+     * @param  string $prefixoCategoria Prefixo exibido em DS_FORMAPAGTO (ex: "Clientes", "Fornecedores")
+     * @return array
+     */
+    private static function buscarContas(
+        string $dtInicio,
+        string $dtFim,
+        int $cdTipoConta,
+        array $formasPagamento,
+        string $prefixoCategoria
+    ): array {
+        $bindings = [
+            'cd_tipoconta' => $cdTipoConta,
+            'dt_inicio'    => $dtInicio,
+            'dt_fim'       => $dtFim,
+        ];
+
+        $filtroFormaPagto = '';
+        if (!empty($formasPagamento)) {
+            $placeholders = [];
+            foreach (array_values($formasPagamento) as $i => $forma) {
+                $placeholders[]              = ":forma_pagto_{$i}";
+                $bindings["forma_pagto_{$i}"] = $forma;
+            }
+            $filtroFormaPagto = 'AND C.CD_FORMAPAGTO IN (' . implode(', ', $placeholders) . ')';
+        }
+
+        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
+            SELECT
+                C.CD_EMPRESA,
+                C.NR_LANCAMENTO,
+                C.CD_PESSOA,
+                C.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
+
+                C.CD_TIPOCONTA,
+                TC.DS_TIPOCONTA,
+                C.NR_PARCELA,
+                CAST(:prefixo_categoria AS VARCHAR(30)) || ' - ' || FP.DS_FORMAPAGTO DS_FORMAPAGTO,
+
+                C.VL_SALDO,
+
+                C.DT_VENCIMENTO
+            FROM CONTAS C
+            INNER JOIN TIPOCONTA TC ON (TC.CD_TIPOCONTA = C.CD_TIPOCONTA)
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA)
+            LEFT JOIN FORMAPAGTO FP ON (FP.CD_FORMAPAGTO = C.CD_FORMAPAGTO)
+            WHERE C.CD_TIPOCONTA = :cd_tipoconta
+                  AND C.ST_CONTAS IN ('P', 'T')
+                  AND C.DT_VENCIMENTO BETWEEN CAST(:dt_inicio AS DATE) AND CAST(:dt_fim AS DATE)
+                  {$filtroFormaPagto}
+        ", $bindings + ['prefixo_categoria' => $prefixoCategoria]));
+    }
+
+    /**
+     * Lista os lançamentos de contas a receber (clientes) com vencimento no período informado.
+     * @see self::buscarContas()
+     */
+    public static function contasReceber(string $dtInicio, string $dtFim, int $cdTipoConta, array $formasPagamento = []): array
+    {
+        return self::buscarContas($dtInicio, $dtFim, $cdTipoConta, $formasPagamento, 'Clientes');
+    }
+
+    /**
+     * Lista os lançamentos de contas a pagar (fornecedores) com vencimento no período informado.
+     * @see self::buscarContas()
+     */
+    public static function contasPagar(string $dtInicio, string $dtFim, int $cdTipoConta, array $formasPagamento = []): array
+    {
+        return self::buscarContas($dtInicio, $dtFim, $cdTipoConta, $formasPagamento, 'Fornecedores');
+    }
+
+    /**
      * Insere um lançamento em CONTAS e retorna o NR_LANCAMENTO gerado.
      *
      * @param array{

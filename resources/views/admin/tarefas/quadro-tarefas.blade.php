@@ -22,7 +22,7 @@
                     </div>
                 </div>
                 <div class="card-body"
-                    style="background-color: #f4f6f9;>
+                    style="background-color: #f4f6f9;">
                     <!-- Main content -->
                     <section class="content">
                     <div class="container-fluid">
@@ -165,6 +165,8 @@
 @section('js')
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('vendor/adminlte/dist/js/jquery.ui.touch-punch.min.js') }}"></script>
     <script>
         initColunas();
 
@@ -374,6 +376,7 @@
         //abre o modal criar coluna
         $(document).on('click', '.btn-modal-add-coluna', function() {
 
+            $('#colunaId').val('');
             $('#inputNomeColuna').val('');
             $('#inputCorColuna').val('');
             $('#modalColunaTitle').text('Adicionar Coluna');
@@ -488,6 +491,10 @@
 
         });
 
+        function escapeHtml(texto) {
+            return $('<div>').text(texto ?? '').html();
+        }
+
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
             return result ? '#' + result.map(x => {
@@ -525,7 +532,7 @@
                         <div class="col-md-2 col-12 d-flex">
                             <div class="card card-secondary kanban-coluna flex-fill">
                                 <div class="card-header card-header-coluna d-flex align-items-center" style="background-color: #${colunas.color};">
-                                    <h6 class="card-title card-title-coluna mb-0" style="font-size: 14px;">${colunas.nome}</h6>
+                                    <h6 class="card-title card-title-coluna mb-0" style="font-size: 14px;">${escapeHtml(colunas.nome)}</h6>
                                     <div class="card-tools d-flex ml-auto column-actions">
                                         <button class="btn btn-tool btn-add-card" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Adicionar Tarefa">
                                             <i class="fas fa-plus"></i>
@@ -579,16 +586,16 @@
                     id_coluna: colunaId
                 },
                 success: function(cartoes) {
-                    let cardHTML = '';
                     if (cartoes.length === 0) {
-                        cardHTML = '<p class="text-muted text-center small">Nenhum cartão.</p>';
+                        $(`#coluna_${colunaId}`).html(
+                            '<p class="text-muted text-center small">Nenhum cartão.</p>');
                     } else {
                         cartoes.forEach(function(card) {
                             //cria um card novo
                             var cardHTML = `
                                 <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
                                     <div class="card-header card-header-coluna d-flex align-items-center">
-                                        <h6 class="card-title text-muted" style='font-size: 0.9rem'>${card.titulo}</h6>
+                                        <h6 class="card-title text-muted" style='font-size: 0.9rem'>${escapeHtml(card.titulo)}</h6>
                                             <div class="card-tools d-flex ml-auto column-actions">
                                                 <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
                                                 <button type="button" class="btn btn-tool btn-delete-card"><i class="fas fa-trash"></i></button>
@@ -596,7 +603,7 @@
                                         </div>
 
                                      ${card.descricao ? `<div class="card-body" style='font-size: 0.8rem'>${card.descricao}</div>` : ''}
-                                    
+
                                 </div>
                                 `;
                             $(`#coluna_${card.coluna_id}`).append(cardHTML);
@@ -629,8 +636,7 @@
         function deletarCartao(idCard) {
             return $.ajax({
                 url: '{{ route('deletar-cartao') }}',
-                method: 'GET',
-                contentType: 'application/json',
+                method: 'POST',
                 data: {
                     _token: '{{ csrf_token() }}',
                     id_card: idCard

@@ -99,11 +99,11 @@ class TarefasController extends Controller
     }
 
     public function addColuna()
-    {        
+    {
         $validateData = $this->request->validate([
             'dados.nome' => 'required|string|max:255',
             'dados.color' => 'required|string|size:6',
-            'dados.projeto_id' => 'required|integer|exists:kanban_projetos,id'            
+            'dados.projeto_id' => 'required|integer|exists:kanban_projetos,id'
         ]);
 
         return $this->coluna->addColuna($validateData['dados']);

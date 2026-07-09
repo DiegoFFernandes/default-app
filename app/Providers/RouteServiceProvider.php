@@ -56,6 +56,7 @@ class RouteServiceProvider extends ServiceProvider
                     require base_path('routes/compras.php');
                     require base_path('routes/wppconnect.php');
                     require base_path('routes/despesa.php');
+                    require base_path('routes/fluxocaixa.php');
                 });
         });
     }

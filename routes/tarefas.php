@@ -22,7 +22,7 @@ Route::middleware(['auth', 'permission:ver-quadro-tarefa'])->group(function () {
 
         Route::get('listar-cartoes', [TarefasController::class, 'listarCartoes'])->name('listar-cartoes');
         Route::post('editar-cartoes', [TarefasController::class, 'editarCartoes'])->name('editar-cartoes');
-        Route::get('deletar-cartao', [TarefasController::class, 'deletarCartao'])->name('deletar-cartao');
+        Route::post('deletar-cartao', [TarefasController::class, 'deletarCartao'])->name('deletar-cartao');
 
         Route::post('reordenar-cartao', [TarefasController::class, 'reordenarCartao'])->name('reordenar-cartao');
         Route::post('reordenar-colunas', [TarefasController::class, 'reordenarColunas'])->name('reordenar-colunas');
