@@ -93,7 +93,7 @@ class RelatorioCobrancaController extends Controller
 
         $filtro = $this->request->input('filtro');
 
-        if ($this->user->hasRole('admin|cobranca')) {
+        if ($this->user->hasRole('admin|cobranca|diretoria')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             // $regiao = $this->regiao->regiaoAll();
