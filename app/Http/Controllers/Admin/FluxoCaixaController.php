@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contas;
+use App\Models\FluxoCaixaCompensacao;
+use App\Models\FluxoCaixaParametro;
 use App\Models\FluxoCaixaSaldoDia;
 use App\Models\SaldoFluxoCaixa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class FluxoCaixaController extends Controller
 {
@@ -45,26 +49,35 @@ class FluxoCaixaController extends Controller
         $dtInicio = $dias[0]->format('Y-m-d');
         $dtFim    = $dias[$qtdDias - 1]->format('Y-m-d');
 
-        // Cada CD_TIPOCONTA tem sua própria condição de forma de pagamento, então
-        // consultamos um de cada vez e mesclamos os lançamentos antes de agrupar.
-        $lancamentosReceber = array_merge(
-            Contas::contasReceber($dtInicio, $dtFim, 2, ['BL', 'DB']),
-            Contas::contasReceber($dtInicio, $dtFim, 12),
-            Contas::contasReceber($dtInicio, $dtFim, 5)
-        );
+        // Cada CD_TIPOCONTA tem sua própria condição de forma de pagamento, configurada pelo
+        // usuário na tela de Parâmetros (tabela fluxo_caixa_parametros) — consultamos um de
+        // cada vez e mesclamos os lançamentos antes de agrupar.
+        $lancamentosReceber = [];
+        foreach (FluxoCaixaParametro::tipocontasPorTipo('receber') as $cdTipoConta => $formasPagamento) {
+            $lancamentosReceber = array_merge(
+                $lancamentosReceber,
+                Contas::contasReceber($dtInicio, $dtFim, $cdTipoConta, $formasPagamento)
+            );
+        }
 
-        $contasReceber = $this->agruparContas($lancamentosReceber, $dias, $tipoData, 'Clientes');
+        // Regras de compensação (Data Personalizada) por CD_TIPOCONTA, configuradas na tela de
+        // Parâmetros (tabela fluxo_caixa_compensacao) — carregadas uma vez e reaproveitadas em
+        // vez de consultar a cada lançamento.
+        $offsetPorTipoConta = FluxoCaixaCompensacao::offsetPorTipoConta();
+
+        $contasReceber = $this->agruparContas($lancamentosReceber, $dias, $tipoData, 'Clientes', $offsetPorTipoConta);
 
         $lancamentoManualEntrada = array_fill(0, $qtdDias, 0);
 
-        $lancamentosPagar = array_merge(
-            Contas::contasPagar($dtInicio, $dtFim, 1),
-            Contas::contasPagar($dtInicio, $dtFim, 17),
-            Contas::contasPagar($dtInicio, $dtFim, 29),
-            Contas::contasPagar($dtInicio, $dtFim, 31)
-        );
+        $lancamentosPagar = [];
+        foreach (FluxoCaixaParametro::tipocontasPorTipo('pagar') as $cdTipoConta => $formasPagamento) {
+            $lancamentosPagar = array_merge(
+                $lancamentosPagar,
+                Contas::contasPagar($dtInicio, $dtFim, $cdTipoConta, $formasPagamento)
+            );
+        }
 
-        $contasPagar = $this->agruparContas($lancamentosPagar, $dias, $tipoData, 'Fornecedores');
+        $contasPagar = $this->agruparContas($lancamentosPagar, $dias, $tipoData, 'Fornecedores', $offsetPorTipoConta);
 
         $lancamentoManualSaida = array_fill(0, $qtdDias, 0);
         
@@ -297,6 +310,199 @@ class FluxoCaixaController extends Controller
     }
 
     /**
+     * Agrupa por (tipo, cd_tipoconta) — cada CD_TIPOCONTA pode ter várias formas de pagamento
+     * associadas (uma linha por combinação na tabela), mas na tela isso é um único "parâmetro".
+     */
+    public function listarParametros(Request $request)
+    {
+        $parametros = FluxoCaixaParametro::orderBy('tipo')->orderBy('cd_tipoconta')->get()
+            ->groupBy(fn (FluxoCaixaParametro $parametro) => $parametro->tipo . '|' . $parametro->cd_tipoconta)
+            ->map(fn ($linhas) => [
+                'ids' => $linhas->pluck('id')->values(),
+                'tipo' => $linhas->first()->tipo,
+                'cd_tipoconta' => $linhas->first()->cd_tipoconta,
+                'ds_tipoconta' => $linhas->first()->ds_tipoconta,
+                'formas_pagamento' => $linhas->pluck('cd_formapagto')->filter()->values(),
+            ])
+            ->values();
+
+        return response()->json([
+            'dados' => $parametros,
+        ]);
+    }
+
+    public function salvarParametro(Request $request)
+    {
+        $validado = $request->validate([
+            'tipo' => ['required', 'in:receber,pagar'],
+            'cd_tipoconta' => ['required', 'array', 'min:1'],
+            'cd_tipoconta.*' => ['integer'],
+            'ds_tipoconta' => ['nullable', 'array'],
+            'ds_tipoconta.*' => ['nullable', 'string', 'max:100'],
+            'cd_formapagto' => ['nullable', 'array'],
+            'cd_formapagto.*' => ['string', 'max:10'],
+        ]);
+
+        $this->salvarGrupoParametro($validado);
+
+        return response()->json([
+            'success' => 'Parâmetro salvo com sucesso!',
+        ]);
+    }
+
+    public function atualizarParametro(Request $request)
+    {
+        $validado = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:fluxo_caixa_parametros,id'],
+            'tipo' => ['required', 'in:receber,pagar'],
+            'cd_tipoconta' => ['required', 'array', 'min:1'],
+            'cd_tipoconta.*' => ['integer'],
+            'ds_tipoconta' => ['nullable', 'array'],
+            'ds_tipoconta.*' => ['nullable', 'string', 'max:100'],
+            'cd_formapagto' => ['nullable', 'array'],
+            'cd_formapagto.*' => ['string', 'max:10'],
+        ]);
+
+        DB::transaction(function () use ($validado) {
+            FluxoCaixaParametro::whereIn('id', $validado['ids'])->delete();
+            $this->salvarGrupoParametro($validado);
+        });
+
+        return response()->json([
+            'success' => 'Parâmetro atualizado com sucesso!',
+        ]);
+    }
+
+    public function excluirParametro(Request $request)
+    {
+        $validado = $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', 'exists:fluxo_caixa_parametros,id'],
+        ]);
+
+        FluxoCaixaParametro::whereIn('id', $validado['ids'])->delete();
+
+        return response()->json([
+            'success' => 'Parâmetro excluído com sucesso!',
+        ]);
+    }
+
+    public function listarCompensacao(Request $request)
+    {
+        $compensacoes = FluxoCaixaCompensacao::orderBy('cd_tipoconta')->get()
+            ->map(fn (FluxoCaixaCompensacao $compensacao) => [
+                'id' => $compensacao->id,
+                'cd_tipoconta' => $compensacao->cd_tipoconta,
+                'ds_tipoconta' => $compensacao->ds_tipoconta,
+                'segunda' => $compensacao->segunda,
+                'terca' => $compensacao->terca,
+                'quarta' => $compensacao->quarta,
+                'quinta' => $compensacao->quinta,
+                'sexta' => $compensacao->sexta,
+                'sabado' => $compensacao->sabado,
+                'domingo' => $compensacao->domingo,
+            ]);
+
+        return response()->json([
+            'dados' => $compensacoes,
+        ]);
+    }
+
+    public function salvarCompensacao(Request $request)
+    {
+        $validado = $request->validate($this->regrasValidacaoCompensacao() + [
+            'cd_tipoconta' => ['required', 'integer', 'unique:fluxo_caixa_compensacao,cd_tipoconta'],
+        ]);
+
+        FluxoCaixaCompensacao::create($validado + ['updated_by' => auth()->id()]);
+
+        return response()->json([
+            'success' => 'Regra de compensação salva com sucesso!',
+        ]);
+    }
+
+    public function atualizarCompensacao(Request $request)
+    {
+        $validado = $request->validate([
+            'id' => ['required', 'integer', 'exists:fluxo_caixa_compensacao,id'],
+            'cd_tipoconta' => [
+                'required',
+                'integer',
+                Rule::unique('fluxo_caixa_compensacao', 'cd_tipoconta')->ignore($request->input('id')),
+            ],
+        ] + $this->regrasValidacaoCompensacao(semTipoConta: true));
+
+        $compensacao = FluxoCaixaCompensacao::findOrFail($validado['id']);
+        $compensacao->update(collect($validado)->except('id')->all() + ['updated_by' => auth()->id()]);
+
+        return response()->json([
+            'success' => 'Regra de compensação atualizada com sucesso!',
+        ]);
+    }
+
+    public function excluirCompensacao(Request $request)
+    {
+        $validado = $request->validate([
+            'id' => ['required', 'integer', 'exists:fluxo_caixa_compensacao,id'],
+        ]);
+
+        FluxoCaixaCompensacao::findOrFail($validado['id'])->delete();
+
+        return response()->json([
+            'success' => 'Regra de compensação excluída com sucesso!',
+        ]);
+    }
+
+    private function regrasValidacaoCompensacao(bool $semTipoConta = false): array
+    {
+        $regras = [
+            'ds_tipoconta' => ['nullable', 'string', 'max:100'],
+            'segunda' => ['required', 'integer', 'min:0', 'max:31'],
+            'terca' => ['required', 'integer', 'min:0', 'max:31'],
+            'quarta' => ['required', 'integer', 'min:0', 'max:31'],
+            'quinta' => ['required', 'integer', 'min:0', 'max:31'],
+            'sexta' => ['required', 'integer', 'min:0', 'max:31'],
+            'sabado' => ['required', 'integer', 'min:0', 'max:31'],
+            'domingo' => ['required', 'integer', 'min:0', 'max:31'],
+        ];
+
+        if (!$semTipoConta) {
+            $regras['cd_tipoconta'] = ['required', 'integer'];
+        }
+
+        return $regras;
+    }
+
+    /**
+     * Cria uma linha por combinação de CD_TIPOCONTA (agora multi-select) e forma de pagamento
+     * selecionada (ou uma única linha sem forma de pagamento, se nenhuma foi selecionada) —
+     * cada CD_TIPOCONTA vira seu próprio grupo depois no listarParametros().
+     */
+    private function salvarGrupoParametro(array $dados): void
+    {
+        $formasPagamento = $dados['cd_formapagto'] ?? [];
+
+        if (empty($formasPagamento)) {
+            $formasPagamento = [null];
+        }
+
+        $dsTipoContaPorCodigo = $dados['ds_tipoconta'] ?? [];
+
+        foreach ($dados['cd_tipoconta'] as $cdTipoConta) {
+            foreach ($formasPagamento as $cdFormaPagto) {
+                FluxoCaixaParametro::create([
+                    'tipo' => $dados['tipo'],
+                    'cd_tipoconta' => $cdTipoConta,
+                    'ds_tipoconta' => $dsTipoContaPorCodigo[$cdTipoConta] ?? null,
+                    'cd_formapagto' => $cdFormaPagto,
+                    'updated_by' => auth()->id(),
+                ]);
+            }
+        }
+    }
+
+    /**
      * Agrupa os lançamentos de contas (a receber ou a pagar) por categoria (DS_FORMAPAGTO) e,
      * dentro de cada categoria, por pessoa — cada nível com os valores distribuídos por dia da semana.
      *
@@ -304,9 +510,10 @@ class FluxoCaixaController extends Controller
      * @param  Carbon\Carbon[] $dias             Os 7 dias (sáb a sex) exibidos no fluxo
      * @param  string         $tipoData         'real' (DT_VENCIMENTO) ou 'personalizada' (data ajustada)
      * @param  string         $prefixoCategoria Usado como fallback de categoria quando DS_FORMAPAGTO vem nulo
+     * @param  array<int,array<int,int>> $offsetPorTipoConta Retorno de FluxoCaixaCompensacao::offsetPorTipoConta()
      * @return array<string, array{totais: array<int,float>, detalhe: array<string, array<int,float>>}>
      */
-    private function agruparContas(array $lancamentos, array $dias, string $tipoData, string $prefixoCategoria): array
+    private function agruparContas(array $lancamentos, array $dias, string $tipoData, string $prefixoCategoria, array $offsetPorTipoConta): array
     {
         $qtdDias = count($dias);
 
@@ -319,7 +526,7 @@ class FluxoCaixaController extends Controller
         foreach ($lancamentos as $lancamento) {
             $dtVencimento = Carbon::parse($lancamento->DT_VENCIMENTO);
             $dataReferencia = $tipoData === 'personalizada'
-                ? $this->calcularDataPersonalizada($dtVencimento, (int) $lancamento->CD_TIPOCONTA)
+                ? $this->calcularDataPersonalizada($dtVencimento, (int) $lancamento->CD_TIPOCONTA, $offsetPorTipoConta)
                 : $dtVencimento;
 
             $dataChave = $dataReferencia->format('Y-m-d');
@@ -358,55 +565,16 @@ class FluxoCaixaController extends Controller
     }
 
     /**
-     * Calcula a data de compensação bancária (Data Personalizada) a partir do vencimento.
+     * Calcula a data de compensação bancária (Data Personalizada) a partir do vencimento,
+     * usando a regra cadastrada pelo usuário na tela de Parâmetros (tabela
+     * fluxo_caixa_compensacao) pro CD_TIPOCONTA do lançamento. Tipos de conta sem regra
+     * cadastrada usam o vencimento sem ajuste.
      *
-     * Regras:
-     * - CD_TIPOCONTA 2 (Contas a Receber) e 12 (Cartão de Crédito a Receber - boleto/débito):
-     *   compensa D+1, exceto:
-     *     - vencimento na sexta compensa na segunda-feira seguinte;
-     *     - vencimento no sábado ou domingo compensa na terça-feira seguinte.
-     * - CD_TIPOCONTA 1, 17, 29 e 31 (Contas a Pagar): compensa D+1, exceto:
-     *     - vencimento na sexta, sábado ou domingo compensa na segunda-feira seguinte
-     *       (próximo dia útil).
-     * - CD_TIPOCONTA 5 (Cheque a Receber): compensa D+2, exceto:
-     *     - vencimento na quinta compensa na segunda-feira seguinte;
-     *     - vencimento na sexta compensa na terça-feira seguinte;
-     *     - vencimento no sábado ou domingo compensa na quarta-feira seguinte.
-     *
-     * Demais tipos de conta ainda não têm regra própria e usam o vencimento sem ajuste.
+     * @param  array<int,array<int,int>> $offsetPorTipoConta Retorno de FluxoCaixaCompensacao::offsetPorTipoConta()
      */
-    private function calcularDataPersonalizada(Carbon $dtVencimento, int $cdTipoConta): Carbon
+    private function calcularDataPersonalizada(Carbon $dtVencimento, int $cdTipoConta, array $offsetPorTipoConta): Carbon
     {
-        $offsetPorDiaSemana = match ($cdTipoConta) {
-            2, 12 => [
-                Carbon::MONDAY    => 1,
-                Carbon::TUESDAY   => 1,
-                Carbon::WEDNESDAY => 1,
-                Carbon::THURSDAY  => 1,
-                Carbon::FRIDAY    => 3,
-                Carbon::SATURDAY  => 3,
-                Carbon::SUNDAY    => 2,
-            ],
-            1, 17, 29, 31 => [
-                Carbon::MONDAY    => 1,
-                Carbon::TUESDAY   => 1,
-                Carbon::WEDNESDAY => 1,
-                Carbon::THURSDAY  => 1,
-                Carbon::FRIDAY    => 3,
-                Carbon::SATURDAY  => 2,
-                Carbon::SUNDAY    => 1,
-            ],
-            5 => [
-                Carbon::MONDAY    => 2,
-                Carbon::TUESDAY   => 2,
-                Carbon::WEDNESDAY => 2,
-                Carbon::THURSDAY  => 4,
-                Carbon::FRIDAY    => 4,
-                Carbon::SATURDAY  => 4,
-                Carbon::SUNDAY    => 3,
-            ],
-            default => null,
-        };
+        $offsetPorDiaSemana = $offsetPorTipoConta[$cdTipoConta] ?? null;
 
         if ($offsetPorDiaSemana === null) {
             return $dtVencimento->copy();

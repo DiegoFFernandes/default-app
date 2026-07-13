@@ -6,12 +6,24 @@ use Illuminate\Support\Facades\DB;
 
 class TipoConta
 {
-    public static function all(): array
+    /**
+     * @param  string|null $tipo 'pagar' (TP_TIPOCONTA IN ('CP','HP')), 'receber'
+     *                           (TP_TIPOCONTA IN ('CR','HR')) ou null (sem filtro).
+     */
+    public static function all(?string $tipo = null): array
     {
         try {
+            $filtroTipo = match ($tipo) {
+                'pagar' => "AND TC.TP_TIPOCONTA IN ('CP', 'HP')",
+                'receber' => "AND TC.TP_TIPOCONTA IN ('CR', 'HR', 'CT')",
+                default => '',
+            };
+
             $rows = DB::connection('firebird')->select("
                 SELECT TC.CD_TIPOCONTA, TC.DS_TIPOCONTA
                 FROM TIPOCONTA TC
+                WHERE 1 = 1
+                {$filtroTipo}
                 ORDER BY TC.DS_TIPOCONTA
             ");
 

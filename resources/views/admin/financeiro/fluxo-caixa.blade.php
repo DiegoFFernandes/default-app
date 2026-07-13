@@ -40,6 +40,8 @@
                             </div>
                         </div>
                         <div class="col-12 col-md-3 text-md-right">
+                            <button class="btn btn-sm btn-outline-secondary" id="btn-parametros-fluxo" title="Parâmetros"><i
+                                    class="fas fa-cogs"></i></button>
                             <button class="btn btn-sm btn-success" id="btn-novo-lancamento"><i
                                     class="fas fa-plus mr-1"></i>Lançamento Manual</button>
                         </div>
@@ -506,6 +508,36 @@
             font-size: .8rem !important;
             padding: .4rem 1rem !important;
         }
+
+        /* Deixa o select2 de Formas de Pagamento no mesmo padrão compacto dos demais campos
+           (.form-control-sm) do formulário de parâmetros. Usa o id do select original (via
+           combinador ~) além da classe, com !important, pra garantir que vença o CSS do
+           vendor independente da ordem de carregamento. */
+        #swal-param-formapagto~.select2-container .select2-selection--multiple,
+        .select2-fluxo-sm.select2-container--bootstrap4 .select2-selection--multiple {
+            min-height: 31px !important;
+            font-size: 11px !important;
+        }
+
+        #swal-param-formapagto~.select2-container .select2-selection__choice,
+        .select2-fluxo-sm .select2-selection__choice {
+            font-size: 11px !important;
+            padding-right: .5rem !important;
+        }
+
+        #swal-param-formapagto~.select2-container .select2-selection__rendered,
+        .select2-fluxo-sm .select2-selection__rendered {
+            font-size: 11px !important;
+        }
+
+        #swal-param-formapagto~.select2-container .select2-search__field,
+        .select2-fluxo-sm .select2-search__field {
+            font-size: 11px !important;
+        }
+
+        .select2-fluxo-sm.select2-container--bootstrap4 .select2-results__option {
+            font-size: 12px !important;
+        }
     </style>
 @stop
 
@@ -605,13 +637,28 @@
                 'fa-chevron-right');
         });
 
-        // Detalha (mostra/oculta) os clientes/fornecedores que compõem o total de uma categoria
+        // Detalha (mostra/oculta) os clientes/fornecedores que compõem o total de uma categoria.
+        // Com muita informação essa expansão trava a thread por 2-3s — mostra um loader antes
+        // de fazer o toggle (via setTimeout) pra dar tempo do spinner aparecer na tela.
         $(document).on('click', '.btn-detalhe-categoria', function(e) {
             e.stopPropagation();
-            var grupo = $(this).data('grupo');
-            var slug = $(this).data('slug');
-            $('.grupo-' + grupo + '.linha-cliente[data-slug-pai="' + slug + '"]').toggle();
-            $(this).find('i').toggleClass('fa-chevron-right fa-chevron-down');
+            var $btn = $(this);
+            var $icone = $btn.find('i');
+            var grupo = $btn.data('grupo');
+            var slug = $btn.data('slug');
+
+            $btn.prop('disabled', true);
+            $icone.removeClass('fa-chevron-right fa-chevron-down').addClass('fa-spinner fa-spin');
+
+            setTimeout(function() {
+                var $linhas = $('.grupo-' + grupo + '.linha-cliente[data-slug-pai="' + slug + '"]');
+                $linhas.toggle();
+
+                var expandido = $linhas.is(':visible');
+                $icone.removeClass('fa-spinner fa-spin')
+                    .addClass(expandido ? 'fa-chevron-down' : 'fa-chevron-right');
+                $btn.prop('disabled', false);
+            }, 50);
         });
 
         $('#btn-novo-lancamento').on('click', function() {
@@ -967,5 +1014,664 @@
                 });
             });
         });
+
+        // Rastreia se alguma alteração real (parâmetro ou compensação) foi salva durante a
+        // navegação dentro do modal de Parâmetros, pra só forçar o reload da página quando
+        // fizer sentido — o fluxo de caixa exibido atrás é todo calculado no servidor a partir
+        // dessas tabelas, então sem reload a tela fica com dado velho mesmo após salvar.
+        var fluxoParametrosAlterado = false;
+
+        // Mesma lógica de supressão usada na Compensação: como o SweetAlert2 só mostra 1 popup
+        // por vez, abrir qualquer modal por cima (Adicionar/Editar/Excluir/Compensação) também
+        // resolve a promise do modal de Parâmetros — por isso o reload só é avaliado no
+        // fechamento de verdade (X/ESC/fora), nunca nas reaberturas internas.
+        var suprimirRecargaParametros = false;
+
+        function avisarRecargaFluxo() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Página será recarregada',
+                text: 'Foram detectadas alterações nos parâmetros/compensação do fluxo de caixa — a página vai recarregar para refletir os novos valores.',
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'swal-confirm-fluxo'
+                }
+            }).then(function() {
+                window.location.reload();
+            });
+        }
+
+        // Botão "Parâmetros": lista, adiciona, edita e exclui os CD_TIPOCONTA/forma de
+        // pagamento considerados no Fluxo de Caixa (tabela fluxo_caixa_parametros). Ainda não
+        // busca nada do Firebird — os campos são preenchidos manualmente por enquanto.
+        $('#btn-parametros-fluxo').on('click', function() {
+            fluxoParametrosAlterado = false;
+            abrirParametrosFluxo();
+        });
+
+        function abrirParametrosFluxo() {
+            suprimirRecargaParametros = false;
+
+            Swal.fire({
+                title: 'Parâmetros do Fluxo de Caixa',
+                width: 700,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    title: 'swal-title-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="text-right mb-2">' +
+                    '<button type="button" id="swal-btn-compensacao" class="btn btn-sm btn-outline-primary mr-1">' +
+                    '<i class="fas fa-clock mr-1"></i>Compensação Bancária</button>' +
+                    '<button type="button" id="swal-btn-add-parametro" class="btn btn-sm btn-success">' +
+                    '<i class="fas fa-plus mr-1"></i>Adicionar</button>' +
+                    '</div>' +
+                    '<div id="swal-resultado-parametros" style="max-height:360px; overflow-y:auto;"></div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    document.getElementById('swal-btn-add-parametro').addEventListener('click', function() {
+                        suprimirRecargaParametros = true;
+                        abrirFormularioParametro();
+                    });
+                    document.getElementById('swal-btn-compensacao').addEventListener('click', function() {
+                        suprimirRecargaParametros = true;
+                        abrirCompensacaoFluxo();
+                    });
+                    buscarParametros();
+                }
+            }).then(function() {
+                if (suprimirRecargaParametros) {
+                    return;
+                }
+
+                if (fluxoParametrosAlterado) {
+                    avisarRecargaFluxo();
+                }
+            });
+        }
+
+        function buscarParametros() {
+            var $resultado = $('#swal-resultado-parametros');
+            $resultado.html('<div class="text-center text-muted py-3">Carregando...</div>');
+
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('fluxo-caixa.listar-parametros') }}'
+            }).done(function(response) {
+                renderizarParametros(response.dados || []);
+            }).fail(function() {
+                $resultado.html(
+                    '<div class="text-center text-danger py-3">Erro ao buscar parâmetros.</div>');
+            });
+        }
+
+        function renderizarParametros(dados) {
+            var $resultado = $('#swal-resultado-parametros');
+
+            if (dados.length === 0) {
+                $resultado.html(
+                    '<div class="text-center text-muted py-3">Nenhum parâmetro cadastrado.</div>');
+                return;
+            }
+
+            function montarTabela(titulo, itens) {
+                if (itens.length === 0) {
+                    return '';
+                }
+
+                var linhas = itens.map(function(item) {
+                    var formasPagto = item.formas_pagamento && item.formas_pagamento.length ?
+                        item.formas_pagamento.join(', ') : '-';
+
+                    return '<tr>' +
+                        '<td>' + item.cd_tipoconta + '</td>' +
+                        '<td>' + (item.ds_tipoconta || '-') + '</td>' +
+                        '<td>' + formasPagto + '</td>' +
+                        '<td class="text-center">' +
+                        '<button type="button" class="btn btn-xs btn-outline-primary btn-editar-parametro" data-parametro=\'' +
+                        JSON.stringify(item) +
+                        '\' title="Editar"><i class="fas fa-pencil-alt"></i></button> ' +
+                        '<button type="button" class="btn btn-xs btn-outline-danger btn-excluir-parametro" data-ids="' +
+                        JSON.stringify(item.ids) +
+                        '" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                        '</td>' +
+                        '</tr>';
+                }).join('');
+
+                return '<h6 class="mt-2">' + titulo + '</h6>' +
+                    '<table class="table table-sm table-striped" style="font-size:12px;">' +
+                    '<thead><tr><th>Cód.</th><th>Descrição</th><th>Formas Pagto</th><th class="text-center">Ações</th></tr></thead>' +
+                    '<tbody>' + linhas + '</tbody>' +
+                    '</table>';
+            }
+
+            var receber = dados.filter(function(item) {
+                return item.tipo === 'receber';
+            });
+            var pagar = dados.filter(function(item) {
+                return item.tipo === 'pagar';
+            });
+
+            $resultado.html(montarTabela('Contas a Receber', receber) + montarTabela('Contas a Pagar',
+                pagar));
+        }
+
+        $(document).on('click', '.btn-editar-parametro', function() {
+            suprimirRecargaParametros = true;
+            abrirFormularioParametro($(this).data('parametro'));
+        });
+
+        $(document).on('click', '.btn-excluir-parametro', function() {
+            var ids = $(this).data('ids');
+            suprimirRecargaParametros = true;
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Excluir parâmetro?',
+                text: 'Essa ação não pode ser desfeita.',
+                showCancelButton: true,
+                confirmButtonText: 'Excluir',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                }
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    method: 'POST',
+                    url: '{{ route('fluxo-caixa.excluir-parametro') }}',
+                    data: {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        ids: ids
+                    }
+                }).done(function() {
+                    fluxoParametrosAlterado = true;
+                    abrirParametrosFluxo();
+                }).fail(function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                        'Erro ao excluir o parâmetro.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: msg
+                    });
+                });
+            });
+        });
+
+        // Busca os CD_TIPOCONTA válidos no Firebird (filtrados por receber/pagar) e popula o
+        // select, mantendo selecionado(s) o(s) valor(es) atual(is) quando informado (edição).
+        // `valorSelecionado` aceita tanto um valor único (select simples, ex. Compensação)
+        // quanto um array (select múltiplo, ex. Parâmetro) — `.val()` trata os dois casos.
+        function carregarOpcoesTipoConta(tipo, valorSelecionado, seletor) {
+            var $select = $(seletor || '#swal-param-cd-tipoconta');
+            $select.prop('disabled', true).html('<option>Carregando...</option>').trigger('change');
+
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('firebird.tipos-conta') }}',
+                data: {
+                    tipo: tipo
+                }
+            }).done(function(opcoes) {
+                $select.empty();
+
+                if (!opcoes || opcoes.length === 0) {
+                    $select.append('<option value="">Nenhum tipo de conta encontrado</option>');
+                    $select.prop('disabled', false).trigger('change');
+                    return;
+                }
+
+                opcoes.forEach(function(opcao) {
+                    $select.append('<option value="' + opcao.id + '">' + opcao.id + ' - ' + opcao
+                        .text + '</option>');
+                });
+
+                $select.val(valorSelecionado || []).trigger('change');
+                $select.prop('disabled', false).trigger('change');
+            }).fail(function() {
+                $select.html('<option value="">Erro ao carregar do Firebird</option>');
+                $select.prop('disabled', false).trigger('change');
+            });
+        }
+
+        // Busca as formas de pagamento no Firebird e popula o select2 multi-select, mantendo
+        // selecionadas as informadas em `selecionadas` (edição).
+        function carregarOpcoesFormaPagamento(selecionadas) {
+            var $select = $('#swal-param-formapagto');
+
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('get-form-pagamento') }}'
+            }).done(function(opcoes) {
+                $select.empty();
+
+                (opcoes || []).forEach(function(opcao) {
+                    $select.append('<option value="' + opcao.CD_FORMAPAGTO + '">' + opcao
+                        .CD_FORMAPAGTO + ' - ' + opcao.DS_FORMAPAGTO + '</option>');
+                });
+
+                $select.val(selecionadas || []).trigger('change');
+            }).fail(function() {
+                $select.empty().append(
+                    '<option value="">Erro ao carregar formas de pagamento</option>');
+            });
+        }
+
+        function abrirFormularioParametro(dadosExistentes) {
+            var editando = !!(dadosExistentes && dadosExistentes.ids && dadosExistentes.ids.length);
+            var tipo = dadosExistentes ? dadosExistentes.tipo : 'receber';
+            var cdTipoConta = dadosExistentes && dadosExistentes.cd_tipoconta ?
+                [dadosExistentes.cd_tipoconta] : [];
+            var formasPagamento = dadosExistentes ? (dadosExistentes.formas_pagamento || []) : [];
+
+            Swal.fire({
+                title: editando ? 'Editar Parâmetro' : 'Adicionar Parâmetro',
+                width: 500,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                customClass: {
+                    title: 'swal-title-fluxo',
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo</label>' +
+                    '<select id="swal-param-tipo" class="form-control form-control-sm">' +
+                    '<option value="receber"' + (tipo === 'receber' ? ' selected' : '') +
+                    '>Contas a Receber</option>' +
+                    '<option value="pagar"' + (tipo === 'pagar' ? ' selected' : '') +
+                    '>Contas a Pagar</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta</label>' +
+                    '<select id="swal-param-cd-tipoconta" class="w-100" multiple></select>' +
+                    '</div>' +
+                    '<div class="form-group mb-0">' +
+                    '<label class="mb-1" style="font-size:12px;">Formas de Pagamento (opcional)</label>' +
+                    '<select id="swal-param-formapagto" class="w-100" multiple></select>' +
+                    '</div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    carregarOpcoesTipoConta(tipo, cdTipoConta);
+                    carregarOpcoesFormaPagamento(formasPagamento);
+
+                    $('#swal-param-cd-tipoconta').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Selecione um ou mais',
+                        allowClear: true,
+                        dropdownParent: $(Swal.getPopup()),
+                        containerCssClass: 'select2-fluxo-sm',
+                        dropdownCssClass: 'select2-fluxo-sm'
+                    });
+
+                    $('#swal-param-formapagto').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Selecione (opcional)',
+                        allowClear: true,
+                        dropdownParent: $(Swal.getPopup()),
+                        containerCssClass: 'select2-fluxo-sm',
+                        dropdownCssClass: 'select2-fluxo-sm'
+                    });
+
+                    $('#swal-param-tipo').on('change', function() {
+                        carregarOpcoesTipoConta($(this).val(), []);
+                    });
+                },
+                preConfirm: function() {
+                    var tipoSelecionado = document.getElementById('swal-param-tipo').value;
+                    var cdTipoContaSelecionados = $('#swal-param-cd-tipoconta').val() || [];
+                    var dsTipoContaPorCodigo = {};
+
+                    $('#swal-param-cd-tipoconta option:selected').each(function() {
+                        dsTipoContaPorCodigo[this.value] = $(this).text().replace(this.value +
+                            ' - ', '');
+                    });
+                    var formasPagtoSelecionadas = $('#swal-param-formapagto').val() || [];
+
+                    if (!cdTipoContaSelecionados.length) {
+                        Swal.showValidationMessage('Selecione ao menos um Tipo de Conta.');
+                        return false;
+                    }
+
+                    var dadosEnvio = {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        tipo: tipoSelecionado,
+                        cd_tipoconta: cdTipoContaSelecionados,
+                        ds_tipoconta: dsTipoContaPorCodigo,
+                        cd_formapagto: formasPagtoSelecionadas
+                    };
+
+                    if (editando) {
+                        dadosEnvio.ids = dadosExistentes.ids;
+                    }
+
+                    return $.ajax({
+                        method: 'POST',
+                        url: editando ?
+                            '{{ route('fluxo-caixa.atualizar-parametro') }}' :
+                            '{{ route('fluxo-caixa.salvar-parametro') }}',
+                        data: dadosEnvio
+                    }).catch(function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                            'Erro ao salvar o parâmetro.';
+                        Swal.showValidationMessage(msg);
+                        return false;
+                    });
+                }
+            }).then(function(result) {
+                // Salvou, cancelou ou fechou (X/ESC) — em todos os casos volta pro modal de
+                // Parâmetros, senão o usuário fica sem tela nenhuma. Esse formulário não abre
+                // nenhum outro Swal por cima, então não precisa da flag de supressão usada na
+                // Compensação Bancária.
+                if (result.isConfirmed) {
+                    fluxoParametrosAlterado = true;
+                }
+
+                abrirParametrosFluxo();
+            });
+        }
+
+        // Controla a "volta" pro modal de Parâmetros quando o de Compensação é fechado. Como o
+        // SweetAlert2 só mostra um popup por vez, abrir qualquer modal de dentro da lista de
+        // Compensação (adicionar/editar/excluir) também resolve a promise da lista — por isso
+        // essa flag: só volta pros Parâmetros quando o fechamento foi de verdade (X/ESC/fora),
+        // não quando estamos de propósito navegando pra outro modal.
+        var suprimirVoltaCompensacao = false;
+
+        // Botão "Compensação Bancária" (dentro do modal de Parâmetros): lista, adiciona, edita
+        // e exclui as regras de fluxo_caixa_compensacao (dias a somar por CD_TIPOCONTA).
+        function abrirCompensacaoFluxo() {
+            suprimirVoltaCompensacao = false;
+
+            Swal.fire({
+                title: 'Regras de Compensação Bancária (D+)',
+                width: 750,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    title: 'swal-title-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="text-right mb-2">' +
+                    '<button type="button" id="swal-btn-add-compensacao" class="btn btn-sm btn-success">' +
+                    '<i class="fas fa-plus mr-1"></i>Adicionar</button>' +
+                    '</div>' +
+                    '<div id="swal-resultado-compensacao" style="max-height:360px; overflow-y:auto;"></div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    document.getElementById('swal-btn-add-compensacao').addEventListener('click',
+                        function() {
+                            suprimirVoltaCompensacao = true;
+                            abrirFormularioCompensacao();
+                        });
+                    buscarCompensacoes();
+                }
+            }).then(function() {
+                // Esse modal não tem botão de confirmar (só X/ESC/clique fora) — ao fechar de
+                // verdade, volta pro modal de Parâmetros em vez de deixar o usuário "sem tela".
+                if (!suprimirVoltaCompensacao) {
+                    abrirParametrosFluxo();
+                }
+            });
+        }
+
+        function buscarCompensacoes() {
+            var $resultado = $('#swal-resultado-compensacao');
+            $resultado.html('<div class="text-center text-muted py-3">Carregando...</div>');
+
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('fluxo-caixa.listar-compensacao') }}'
+            }).done(function(response) {
+                renderizarCompensacoes(response.dados || []);
+            }).fail(function() {
+                $resultado.html(
+                    '<div class="text-center text-danger py-3">Erro ao buscar regras de compensação.</div>'
+                );
+            });
+        }
+
+        function renderizarCompensacoes(dados) {
+            var $resultado = $('#swal-resultado-compensacao');
+
+            if (dados.length === 0) {
+                $resultado.html(
+                    '<div class="text-center text-muted py-3">Nenhuma regra cadastrada.</div>');
+                return;
+            }
+
+            var linhas = dados.map(function(item) {
+                return '<tr>' +
+                    '<td>' + item.cd_tipoconta + '</td>' +
+                    '<td>' + (item.ds_tipoconta || '-') + '</td>' +
+                    '<td class="text-center">' + item.segunda + '</td>' +
+                    '<td class="text-center">' + item.terca + '</td>' +
+                    '<td class="text-center">' + item.quarta + '</td>' +
+                    '<td class="text-center">' + item.quinta + '</td>' +
+                    '<td class="text-center">' + item.sexta + '</td>' +
+                    '<td class="text-center">' + item.sabado + '</td>' +
+                    '<td class="text-center">' + item.domingo + '</td>' +
+                    '<td class="text-center">' +
+                    '<button type="button" class="btn btn-xs btn-outline-primary btn-editar-compensacao" data-compensacao=\'' +
+                    JSON.stringify(item) +
+                    '\' title="Editar"><i class="fas fa-pencil-alt"></i></button> ' +
+                    '<button type="button" class="btn btn-xs btn-outline-danger btn-excluir-compensacao" data-id="' +
+                    item.id + '" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+
+            $resultado.html(
+                '<table class="table table-sm table-striped" style="font-size:11px;">' +
+                '<thead><tr><th>Cód.</th><th>Descrição</th><th>Seg</th><th>Ter</th><th>Qua</th><th>Qui</th><th>Sex</th><th>Sáb</th><th>Dom</th><th class="text-center">Ações</th></tr></thead>' +
+                '<tbody>' + linhas + '</tbody>' +
+                '</table>');
+        }
+
+        $(document).on('click', '.btn-editar-compensacao', function() {
+            suprimirVoltaCompensacao = true;
+            abrirFormularioCompensacao($(this).data('compensacao'));
+        });
+
+        $(document).on('click', '.btn-excluir-compensacao', function() {
+            var id = $(this).data('id');
+            suprimirVoltaCompensacao = true;
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Excluir regra de compensação?',
+                text: 'Essa ação não pode ser desfeita.',
+                showCancelButton: true,
+                confirmButtonText: 'Excluir',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                }
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    method: 'POST',
+                    url: '{{ route('fluxo-caixa.excluir-compensacao') }}',
+                    data: {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        id: id
+                    }
+                }).done(function() {
+                    fluxoParametrosAlterado = true;
+                    abrirCompensacaoFluxo();
+                }).fail(function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                        'Erro ao excluir a regra de compensação.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: msg
+                    });
+                });
+            });
+        });
+
+        function abrirFormularioCompensacao(dadosExistentes) {
+            var editando = !!(dadosExistentes && dadosExistentes.id);
+            var cdTipoConta = dadosExistentes ? dadosExistentes.cd_tipoconta : '';
+            var dias = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+            var rotulos = {
+                segunda: 'Segunda',
+                terca: 'Terça',
+                quarta: 'Quarta',
+                quinta: 'Quinta',
+                sexta: 'Sexta',
+                sabado: 'Sábado',
+                domingo: 'Domingo'
+            };
+
+            var camposDias = dias.map(function(dia) {
+                var valor = dadosExistentes && dadosExistentes[dia] !== undefined ? dadosExistentes[
+                    dia] : 0;
+                return '<div class="col-6 col-md-3 mb-2">' +
+                    '<label class="mb-1" style="font-size:11px;">' + rotulos[dia] + '</label>' +
+                    '<input type="number" min="0" max="31" id="swal-comp-' + dia +
+                    '" class="form-control form-control-sm" value="' + valor + '">' +
+                    '</div>';
+            }).join('');
+
+            Swal.fire({
+                title: editando ? 'Editar Regra de Compensação' : 'Adicionar Regra de Compensação',
+                width: 550,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                customClass: {
+                    title: 'swal-title-fluxo',
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta</label>' +
+                    '<select id="swal-comp-cd-tipoconta" class="form-control form-control-sm">' +
+                    '<option>Carregando...</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="row">' + camposDias + '</div>' +
+                    '<div class="form-group mb-2 mt-2" style="border-top:1px solid #dee2e6; padding-top:8px;">' +
+                    '<label class="mb-1" style="font-size:12px;">Testar Data de Vencimento</label>' +
+                    '<input type="date" id="swal-comp-teste-data" class="form-control form-control-sm">' +
+                    '<div id="swal-comp-teste-resultado" style="font-size:12px; margin-top:6px; color:#555;"></div>' +
+                    '</div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    carregarOpcoesTipoConta(null, cdTipoConta, '#swal-comp-cd-tipoconta');
+
+                    // Validação visual: só pra ajudar o usuário a conferir a regra que está
+                    // digitando, sem depender do controller/model. Recalcula a cada mudança
+                    // na data de teste ou em qualquer campo de dia.
+                    var mapaDias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta',
+                        'sabado'
+                    ];
+
+                    function recalcularCompensacaoTeste() {
+                        var dataValor = document.getElementById('swal-comp-teste-data').value;
+                        var $resultado = $('#swal-comp-teste-resultado');
+
+                        if (!dataValor) {
+                            $resultado.html('');
+                            return;
+                        }
+
+                        var partes = dataValor.split('-');
+                        var dataBase = new Date(partes[0], partes[1] - 1, partes[2]);
+                        var diaCampo = mapaDias[dataBase.getDay()];
+                        var offset = parseInt(document.getElementById('swal-comp-' + diaCampo)
+                            .value, 10) || 0;
+                        var dataCompensada = new Date(dataBase.getTime());
+                        dataCompensada.setDate(dataCompensada.getDate() + offset);
+
+                        var formatarData = function(d) {
+                            var dd = String(d.getDate()).padStart(2, '0');
+                            var mm = String(d.getMonth() + 1).padStart(2, '0');
+                            return dd + '/' + mm + '/' + d.getFullYear();
+                        };
+
+                        $resultado.html(
+                            'Vencimento cai em <strong>' + rotulos[diaCampo] + '</strong> (' +
+                            formatarData(dataBase) + ')' +
+                            (offset > 0 ? ' + ' + offset + ' dia(s)' : ' + 0 dia(s)') +
+                            ' → compensa em <strong>' + formatarData(dataCompensada) +
+                            '</strong>'
+                        );
+                    }
+
+                    $('#swal-comp-teste-data').on('input change', recalcularCompensacaoTeste);
+                    dias.forEach(function(dia) {
+                        $('#swal-comp-' + dia).on('input', recalcularCompensacaoTeste);
+                    });
+                },
+                preConfirm: function() {
+                    var $opcaoSelecionada = $('#swal-comp-cd-tipoconta option:selected');
+                    var cdTipoContaValor = $opcaoSelecionada.val();
+                    var dsTipoContaValor = cdTipoContaValor ?
+                        $opcaoSelecionada.text().replace(cdTipoContaValor + ' - ', '') : '';
+
+                    if (!cdTipoContaValor) {
+                        Swal.showValidationMessage('Selecione o CD_TIPOCONTA.');
+                        return false;
+                    }
+
+                    var dadosEnvio = {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        cd_tipoconta: cdTipoContaValor,
+                        ds_tipoconta: dsTipoContaValor
+                    };
+
+                    dias.forEach(function(dia) {
+                        dadosEnvio[dia] = document.getElementById('swal-comp-' + dia).value || 0;
+                    });
+
+                    if (editando) {
+                        dadosEnvio.id = dadosExistentes.id;
+                    }
+
+                    return $.ajax({
+                        method: 'POST',
+                        url: editando ?
+                            '{{ route('fluxo-caixa.atualizar-compensacao') }}' :
+                            '{{ route('fluxo-caixa.salvar-compensacao') }}',
+                        data: dadosEnvio
+                    }).catch(function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                            'Erro ao salvar a regra de compensação.';
+                        Swal.showValidationMessage(msg);
+                        return false;
+                    });
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    fluxoParametrosAlterado = true;
+                    abrirCompensacaoFluxo();
+                }
+            });
+        }
     </script>
 @stop
