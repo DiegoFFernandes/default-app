@@ -7,9 +7,12 @@
     'cliente' => null,
     'colorirPorSinal' => false,
     'classeCelula' => '',
-    'subtotalModo' => 'soma', // 'soma' ou 'ultimo' (saldo acumulado no fim da semana)
+    'subtotalModo' => 'soma', // 'soma', 'ultimo' ou 'traco'
     'totalModo' => 'soma', // 'soma', 'ultimo' ou 'traco'
     'finsDeSemana' => [], // array paralelo a $valores: true nas posições de sábado/domingo
+    'destaques' => [], // array paralelo a $valores: true nos dias com lançamento manual de saldo
+    'clicavelTotal' => false, // permite clique em modo 'total' para TODOS os dias (ex: linha Saldo Banco)
+    'clicavelPorDia' => null, // array<int,bool> paralelo a $valores — clique só nos dias marcados; tem prioridade sobre clicavelTotal
 ])
 
 @php
@@ -18,14 +21,20 @@
 
 @foreach ($valores as $i => $v)
     @php
+        $destacada = $destaques[$i] ?? false;
         $classeSinal = $colorirPorSinal ? ($v >= 0 ? 'valor-positivo' : 'valor-negativo') : '';
         $classeCelulaAtual = $modo === 'total' ? ($colorirPorSinal ? $classeSinal : $classeCelula) : '';
+        $ehClicavelTotal = $modo === 'total' && ($clicavelPorDia !== null ? ($clicavelPorDia[$i] ?? false) : $clicavelTotal);
     @endphp
-    <td class="text-right {{ $classeCelulaAtual }} {{ ($modo === 'detalhe' && $clicavel && $v > 0) ? 'valor-clicavel' : '' }} {{ ($finsDeSemana[$i] ?? false) ? 'dia-fim-semana-cel' : '' }}"
+    <td class="text-right {{ $classeCelulaAtual }} {{ ($modo === 'detalhe' && $clicavel && $v > 0) ? 'valor-clicavel' : '' }} {{ $ehClicavelTotal ? 'valor-clicavel saldo-banco-clicavel' : '' }} {{ ($finsDeSemana[$i] ?? false) ? 'dia-fim-semana-cel' : '' }} {{ $destacada ? 'dia-lancamento-manual' : '' }}"
+        @if ($destacada) title="Saldo bancário informado manualmente" @endif
         @if ($modo === 'detalhe' && $clicavel && $v > 0)
             data-tipo="{{ $tipo }}"
             data-categoria="{{ $categoria }}"
             @if ($cliente) data-cliente="{{ $cliente }}" @endif
+            data-dia="{{ $i }}"
+        @endif
+        @if ($ehClicavelTotal)
             data-dia="{{ $i }}"
         @endif
     >{{ $modo === 'detalhe' ? ($v > 0 ? number_format($v, 2, ',', '.') : '-') : number_format($v, 2, ',', '.') }}</td>
@@ -36,7 +45,12 @@
             $classeSubtotal = $colorirPorSinal ? ($valorSemana >= 0 ? 'valor-positivo' : 'valor-negativo') : $classeCelula;
         @endphp
         <td class="text-right font-weight-bold col-subtotal-semana {{ $modo === 'total' ? $classeSubtotal : '' }}">
-            {{ number_format($valorSemana, 2, ',', '.') }}</td>
+            @if ($subtotalModo === 'traco')
+                -
+            @else
+                {{ number_format($valorSemana, 2, ',', '.') }}
+            @endif
+        </td>
     @endif
 @endforeach
 

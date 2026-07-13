@@ -48,7 +48,7 @@
                     <div class="row align-items-center mt-2">
                         <div class="col-12 text-center">
                             <div class="btn-group btn-group-sm" role="group">
-                                <span class="btn btn-sm btn-light disabled" style="cursor:default;">Semanas exibidas:</span>
+                                <span class="btn btn-sm btn-light disabled" style="cursor:default;">Semanas Projetadas:</span>
                                 @foreach ([1, 2, 4] as $opcaoSemanas)
                                     <a href="{{ route('fluxo-caixa.index', ['tipo_data' => $tipoData, 'ref' => $refSemanaAtual, 'semanas' => $opcaoSemanas]) }}"
                                         class="btn btn-sm {{ $qtdSemanas === $opcaoSemanas ? 'btn-primary active' : 'btn-outline-primary' }}">{{ $opcaoSemanas }}</a>
@@ -63,13 +63,19 @@
                 <div class="col-6 col-md-3 mb-2">
                     <div class="stat-card stat-primary">
                         <div class="stat-title">
-                            <span><i class="fas fa-wallet"></i> Saldo Banco(s)</span>
-                            <button type="button" class="btn-add-saldo-banco" id="btn-add-saldo-banco"
-                                title="Adicionar saldo de banco/financeira">
-                                <i class="fas fa-plus-circle"></i>
-                            </button>
+                            <span><i class="fas fa-wallet"></i> Saldo Banco(s) Hoje</span>
+                            <span class="stat-title-actions">
+                                <button type="button" class="btn-add-saldo-banco" id="btn-listar-saldo-banco"
+                                    title="Ver lançamentos de saldo">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button type="button" class="btn-add-saldo-banco" id="btn-add-saldo-banco"
+                                    title="Adicionar saldo de banco/financeira">
+                                    <i class="fas fa-plus-circle"></i>
+                                </button>
+                            </span>
                         </div>
-                        <div class="stat-value">R$ {{ number_format($saldoInicial, 2, ',', '.') }}</div>
+                        <div class="stat-value">R$ {{ number_format($saldoBancoHoje, 2, ',', '.') }}</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 mb-2">
@@ -85,9 +91,9 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-3 mb-2">
-                    <div class="stat-card {{ end($saldoAcumulado) >= 0 ? 'stat-info' : 'stat-danger' }}">
+                    <div class="stat-card {{ end($saldoDia) >= 0 ? 'stat-info' : 'stat-danger' }}">
                         <div class="stat-title"><i class="fas fa-flag-checkered"></i> Saldo Final da Semana</div>
-                        <div class="stat-value">R$ {{ number_format(end($saldoAcumulado), 2, ',', '.') }}</div>
+                        <div class="stat-value">R$ {{ number_format(end($saldoDia), 2, ',', '.') }}</div>
                     </div>
                 </div>
             </div>
@@ -95,12 +101,11 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-table mr-1 text-muted"></i> Fluxo de Caixa Semanal
+                    </h3>
+                    <div class="card-tools">
                         <span class="badge {{ $tipoData === 'personalizada' ? 'badge-primary' : 'badge-info' }} ml-1">
                             {{ $tipoData === 'personalizada' ? 'Data Personalizada' : 'Data Real' }}
                         </span>
-                    </h3>
-                    <div class="card-tools">
-                        <span class="badge badge-secondary"><i class="fas fa-info-circle"></i> Dados fictícios - mockup</span>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -115,7 +120,7 @@
                                             {{ $dia->translatedFormat('D') }}<br>
                                             <small>{{ $dia->format('d/m') }}</small>
                                         </th>
-                                        @if ((($i + 1) % 7 === 0) && ($i + 1 < count($dias)))
+                                        @if (($i + 1) % 7 === 0 && $i + 1 < count($dias))
                                             <th class="text-center col-subtotal-semana">Total<br>
                                                 <small>Sem {{ intdiv($i, 7) + 1 }}</small>
                                             </th>
@@ -126,16 +131,16 @@
                             </thead>
                             <tbody>
                                 <tr class="linha-saldo-inicial">
-                                    <td>Saldo Inicial</td>
-                                    <td colspan="{{ $colspanSaldoInicial }}" class="text-center">R$
-                                        {{ number_format($saldoInicial, 2, ',', '.') }}</td>
-                                    <td class="text-center">-</td>
+                                    <td>Saldo Banco</td>
+                                    <x-fluxo-celulas :valores="$saldoBancoPorDia" modo="total" :colorir-por-sinal="true"
+                                        subtotal-modo="traco" total-modo="traco" :fins-de-semana="$finsDeSemana" :destaques="$diasComLancamentoManual"
+                                        :clicavel-por-dia="$saldoBancoClicavelPorDia" />
                                 </tr>
 
                                 <tr class="linha-grupo linha-grupo-receber">
                                     <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Receber</td>
-                                    <x-fluxo-celulas :valores="$totalContasReceberPorDia" modo="total"
-                                        classe-celula="valor-positivo" :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$totalContasReceberPorDia" modo="total" classe-celula="valor-positivo"
+                                        :fins-de-semana="$finsDeSemana" />
                                 </tr>
                                 @foreach ($contasReceber as $categoria => $dadosCategoria)
                                     @php $slugCategoria = \Illuminate\Support\Str::slug($categoria); @endphp
@@ -147,43 +152,44 @@
                                             </button>
                                             {{ $categoria }}
                                         </td>
-                                        <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true"
-                                            tipo="receber" :categoria="$categoria" :fins-de-semana="$finsDeSemana" />
+                                        <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true" tipo="receber"
+                                            :categoria="$categoria" :fins-de-semana="$finsDeSemana" />
                                     </tr>
                                     @foreach ($dadosCategoria['detalhe'] as $cliente => $valores)
-                                        <tr class="grupo-receber linha-detalhe linha-cliente" data-slug-pai="{{ $slugCategoria }}"
-                                            style="display:none;">
+                                        <tr class="grupo-receber linha-detalhe linha-cliente"
+                                            data-slug-pai="{{ $slugCategoria }}" style="display:none;">
                                             <td class="pl-5">{{ $cliente }}</td>
                                             <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
-                                                tipo="receber" :categoria="$categoria" :cliente="$cliente"
-                                                :fins-de-semana="$finsDeSemana" />
+                                                tipo="receber" :categoria="$categoria" :cliente="$cliente" :fins-de-semana="$finsDeSemana" />
                                         </tr>
                                     @endforeach
                                 @endforeach
                                 <tr class="grupo-receber linha-detalhe">
                                     <td class="pl-4">Lançamento Manual (Entrada)
-                                        <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;" title="Editável"></i>
+                                        <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;"
+                                            title="Editável"></i>
                                     </td>
-                                    <x-fluxo-celulas :valores="$lancamentoManualEntrada" modo="detalhe"
-                                        :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$lancamentoManualEntrada" modo="detalhe" :fins-de-semana="$finsDeSemana" />
                                 </tr>
 
                                 <tr class="linha-total linha-total-entrada">
                                     <td>Total Entradas</td>
-                                    <x-fluxo-celulas :valores="$totalEntradasPorDia" modo="total" :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$totalEntradasExibicaoPorDia" modo="total"
+                                        subtotal-modo="traco" total-modo="traco" :fins-de-semana="$finsDeSemana" />
                                 </tr>
 
                                 <tr class="linha-grupo linha-grupo-pagar">
                                     <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Pagar</td>
-                                    <x-fluxo-celulas :valores="$totalContasPagarPorDia" modo="total"
-                                        classe-celula="valor-negativo" :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$totalContasPagarPorDia" modo="total" classe-celula="valor-negativo"
+                                        :fins-de-semana="$finsDeSemana" />
                                 </tr>
                                 @foreach ($contasPagar as $categoria => $dadosCategoria)
                                     @php $slugCategoriaPagar = \Illuminate\Support\Str::slug($categoria); @endphp
                                     <tr class="grupo-pagar linha-detalhe linha-categoria">
                                         <td class="pl-4">
                                             <button type="button" class="btn-detalhe-categoria" data-grupo="pagar"
-                                                data-slug="{{ $slugCategoriaPagar }}" title="Ver fornecedores deste total">
+                                                data-slug="{{ $slugCategoriaPagar }}"
+                                                title="Ver fornecedores deste total">
                                                 <i class="fas fa-chevron-right"></i>
                                             </button>
                                             {{ $categoria }}
@@ -192,21 +198,20 @@
                                             tipo="pagar" :categoria="$categoria" :fins-de-semana="$finsDeSemana" />
                                     </tr>
                                     @foreach ($dadosCategoria['detalhe'] as $fornecedor => $valores)
-                                        <tr class="grupo-pagar linha-detalhe linha-cliente" data-slug-pai="{{ $slugCategoriaPagar }}"
-                                            style="display:none;">
+                                        <tr class="grupo-pagar linha-detalhe linha-cliente"
+                                            data-slug-pai="{{ $slugCategoriaPagar }}" style="display:none;">
                                             <td class="pl-5">{{ $fornecedor }}</td>
                                             <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
-                                                tipo="pagar" :categoria="$categoria" :cliente="$fornecedor"
-                                                :fins-de-semana="$finsDeSemana" />
+                                                tipo="pagar" :categoria="$categoria" :cliente="$fornecedor" :fins-de-semana="$finsDeSemana" />
                                         </tr>
                                     @endforeach
                                 @endforeach
                                 <tr class="grupo-pagar linha-detalhe">
                                     <td class="pl-4">Lançamento Manual (Saída)
-                                        <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;" title="Editável"></i>
+                                        <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;"
+                                            title="Editável"></i>
                                     </td>
-                                    <x-fluxo-celulas :valores="$lancamentoManualSaida" modo="detalhe"
-                                        :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$lancamentoManualSaida" modo="detalhe" :fins-de-semana="$finsDeSemana" />
                                 </tr>
 
                                 <tr class="linha-total linha-total-saida">
@@ -217,11 +222,6 @@
                                 <tr class="linha-saldo-dia">
                                     <td>Saldo do Dia</td>
                                     <x-fluxo-celulas :valores="$saldoDia" modo="total" :colorir-por-sinal="true"
-                                        :fins-de-semana="$finsDeSemana" />
-                                </tr>
-                                <tr class="linha-saldo-acumulado">
-                                    <td>Saldo Acumulado</td>
-                                    <x-fluxo-celulas :valores="$saldoAcumulado" modo="total" :colorir-por-sinal="true"
                                         subtotal-modo="ultimo" total-modo="traco" :fins-de-semana="$finsDeSemana" />
                                 </tr>
                             </tbody>
@@ -264,12 +264,18 @@
             font-weight: 700;
         }
 
+        .stat-title-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .btn-add-saldo-banco {
             border: none;
             background: transparent;
             padding: 0;
-            margin-left: auto;
-            color: #007bff;
+            color: #28a745;
             font-size: .8rem;
             cursor: pointer;
             line-height: 1;
@@ -378,6 +384,13 @@
             background-color: #fff8e1;
         }
 
+        .dia-lancamento-manual {
+            background-color: #cfe2ff !important;
+            color: #084298 !important;
+            font-weight: 700;
+            box-shadow: inset 0 0 0 1px #6ea8fe;
+        }
+
         .col-subtotal-semana {
             min-width: 95px;
             background-color: #eef1f4;
@@ -457,20 +470,15 @@
             background-color: #f8f9fa;
         }
 
-        .linha-saldo-dia,
-        .linha-saldo-acumulado {
+        .linha-saldo-dia {
             font-weight: 700;
             background-color: #fffbe6;
-        }
-
-        tbody .linha-saldo-dia td:first-child,
-        tbody .linha-saldo-acumulado td:first-child {
-            background-color: #fffbe6;
-        }
-
-        .linha-saldo-acumulado {
             border-top: 2px solid #444B53;
             border-bottom: 3px double #444B53;
+        }
+
+        tbody .linha-saldo-dia td:first-child {
+            background-color: #fffbe6;
         }
 
         .valor-positivo {
@@ -502,9 +510,11 @@
 @stop
 
 @section('js')
+    <script src="{{ asset('js/dashboard/swal-draggable.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
         var fluxoContasReceber = @json($contasReceber);
         var fluxoContasPagar = @json($contasPagar);
+        var fluxoSaldoBancoDetalhePorDia = @json($saldoBancoDetalhePorDia);
 
         // Abre um modal com os lançamentos (NR_LANCAMENTO, Data Real, Cliente/Fornecedor e
         // Valor) que compõem o total clicado — na linha de categoria mostra todas as pessoas
@@ -543,11 +553,12 @@
                 totalItens += item.valor;
                 return '<tr>' +
                     '<td>' + item.nr_lancamento + '</td>' +
-                    '<td>' + item.dt_real + '</td>' +
+                    '<td style="width:85px; white-space:nowrap;">' + item.dt_real + '</td>' +
                     '<td>' + item.nm_pessoa + '</td>' +
-                    '<td class="text-right">' + item.valor.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2
-                    }) + '</td>' +
+                    '<td class="text-right" style="width:100px; white-space:nowrap;">' + item.valor.toLocaleString(
+                        'pt-BR', {
+                            minimumFractionDigits: 2
+                        }) + '</td>' +
                     '</tr>';
             }).join('');
 
@@ -561,14 +572,17 @@
                 },
                 html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
                     '<table class="table table-sm table-striped" style="font-size:12px;">' +
-                    '<thead><tr><th>Nº Lançamento</th><th>Data Real</th><th>' + rotuloPessoa +
-                    '</th><th class="text-right">Valor</th></tr></thead>' +
+                    '<thead><tr style="white-space:nowrap;"><th>Nº Lanc</th><th style="width:85px; white-space:nowrap;">Data Real</th><th>' +
+                    rotuloPessoa + '</th><th class="text-right" style="width:100px; white-space:nowrap;">Valor</th></tr></thead>' +
                     '<tbody>' + linhas + '</tbody>' +
-                    '<tfoot><tr><th colspan="3">Total</th><th class="text-right">R$ ' +
+                    '<tfoot><tr><th colspan="3">Total</th><th class="text-right" style="white-space:nowrap;">R$ ' +
                     totalItens.toLocaleString('pt-BR', {
                         minimumFractionDigits: 2
                     }) + '</th></tr></tfoot>' +
-                    '</table></div>'
+                    '</table></div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                }
             });
         });
 
@@ -578,7 +592,8 @@
             $('.grupo-receber').not('.linha-cliente').toggle();
             // Ao recolher/expandir o grupo, sempre fecha o detalhamento por cliente
             $('.grupo-receber.linha-cliente').hide();
-            $('.btn-detalhe-categoria[data-grupo="receber"] i').removeClass('fa-chevron-down').addClass('fa-chevron-right');
+            $('.btn-detalhe-categoria[data-grupo="receber"] i').removeClass('fa-chevron-down').addClass(
+                'fa-chevron-right');
         });
 
         $('.linha-grupo-pagar').on('click', function() {
@@ -586,7 +601,8 @@
             $('.grupo-pagar').not('.linha-cliente').toggle();
             // Ao recolher/expandir o grupo, sempre fecha o detalhamento por fornecedor
             $('.grupo-pagar.linha-cliente').hide();
-            $('.btn-detalhe-categoria[data-grupo="pagar"] i').removeClass('fa-chevron-down').addClass('fa-chevron-right');
+            $('.btn-detalhe-categoria[data-grupo="pagar"] i').removeClass('fa-chevron-down').addClass(
+                'fa-chevron-right');
         });
 
         // Detalha (mostra/oculta) os clientes/fornecedores que compõem o total de uma categoria
@@ -607,8 +623,7 @@
             });
         });
 
-        // Modal (somente front, ainda sem integração com o backend) para cadastrar o saldo
-        // de um banco/financeira.
+        // Modal para cadastrar o saldo de um banco/financeira (grava em fluxo_caixa_saldo via AJAX).
         $('#btn-add-saldo-banco').on('click', function() {
             Swal.fire({
                 title: 'Adicionar Saldo Banco/Financeira',
@@ -616,6 +631,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Salvar',
                 cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
                 customClass: {
                     title: 'swal-title-fluxo',
                     confirmButton: 'swal-confirm-fluxo',
@@ -632,25 +648,323 @@
                     '</div>' +
                     '<div class="form-group mb-0">' +
                     '<label class="mb-1" style="font-size:12px;">Saldo Banco</label>' +
-                    '<input type="number" step="0.01" id="swal-saldo-banco" class="form-control form-control-sm" placeholder="0,00">' +
+                    '<input type="text" inputmode="decimal" id="swal-saldo-banco" class="form-control form-control-sm" placeholder="R$ 0,00">' +
                     '</div>' +
                     '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    $('#swal-saldo-banco').inputmask({
+                        mask: ['R$ 9,99', 'R$ 99,99', 'R$ 999,99', 'R$ 9.999,99',
+                            'R$ 99.999,99',
+                            'R$ 999.999,99', 'R$ 9.999.999,99'
+                        ],
+                        radixPoint: ','
+                    });
+                },
                 preConfirm: function() {
-                    return {
-                        dataLancamento: document.getElementById('swal-data-lancamento').value,
-                        nomeBanco: document.getElementById('swal-nome-banco').value,
-                        saldoBanco: document.getElementById('swal-saldo-banco').value
-                    };
+                    var dsBanco = document.getElementById('swal-nome-banco').value.trim();
+                    var vlSaldo = $('#swal-saldo-banco').val().replace('R$', '').trim()
+                        .replace(/\./g, '').replace(',', '.');
+                    var dtSaldo = document.getElementById('swal-data-lancamento').value;
+
+                    if (!dsBanco || vlSaldo === '' || !dtSaldo) {
+                        Swal.showValidationMessage('Preencha todos os campos.');
+                        return false;
+                    }
+
+                    return $.ajax({
+                        method: 'POST',
+                        url: '{{ route('fluxo-caixa.salvar-saldo-banco') }}',
+                        data: {
+                            _token: $('[name="csrf-token"]').attr('content'),
+                            ds_banco: dsBanco,
+                            vl_saldo: vlSaldo,
+                            dt_saldo: dtSaldo
+                        }
+                    }).catch(function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                            'Erro ao salvar o saldo.';
+                        Swal.showValidationMessage(msg);
+                        // Retornar aqui "recupera" a promise (resolve em vez de rejeitar) —
+                        // senão o Swal fica preso no loading do botão em vez de voltar ao form.
+                        return false;
+                    });
                 }
             }).then(function(result) {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        icon: 'info',
-                        title: 'Ainda não salva',
-                        text: 'Esse cadastro será integrado ao backend nas próximas etapas do projeto.',
+                        icon: 'success',
+                        title: 'Saldo salvo com sucesso!',
                         confirmButtonText: 'Ok'
+                    }).then(function() {
+                        window.location.reload();
                     });
                 }
+            });
+        });
+
+        // Monta as linhas (com botões de editar/excluir) usadas tanto no drill-down por dia
+        // quanto na busca por período.
+        function montarLinhasSaldoBanco(itens) {
+            return itens.map(function(item) {
+                return '<tr>' +
+                    '<td>' + item.ds_banco + '</td>' +
+                    '<td>' + item.dt_saldo_formatada + '</td>' +
+                    '<td class="text-right">' + item.vl_saldo.toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2
+                    }) + '</td>' +
+                    '<td class="text-center">' +
+                    '<button type="button" class="btn btn-xs btn-outline-primary btn-editar-saldo-banco" data-id="' +
+                    item.id + '" data-banco="' + item.ds_banco + '" data-valor="' + item.vl_saldo +
+                    '" data-data="' + item.dt_saldo +
+                    '" title="Editar"><i class="fas fa-pencil-alt"></i></button> ' +
+                    '<button type="button" class="btn btn-xs btn-outline-danger btn-excluir-saldo-banco" data-id="' +
+                    item.id + '" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        // Clique num valor da linha "Saldo Banco": mostra os lançamentos (por banco) que
+        // compõem o total daquele dia.
+        $(document).on('click', '.saldo-banco-clicavel', function() {
+            var dia = $(this).data('dia');
+            var itens = fluxoSaldoBancoDetalhePorDia[dia] || [];
+
+            if (itens.length === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sem lançamentos',
+                    text: 'Nenhum saldo de banco informado até esse dia.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Saldos considerados neste dia',
+                width: 650,
+                confirmButtonText: 'Fechar',
+                customClass: {
+                    title: 'swal-title-fluxo',
+                    confirmButton: 'swal-confirm-fluxo'
+                },
+                html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
+                    '<table class="table table-sm table-striped" style="font-size:12px;">' +
+                    '<thead><tr><th>Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
+                    '<tbody>' + montarLinhasSaldoBanco(itens) + '</tbody>' +
+                    '</table></div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                }
+            });
+        });
+
+        // Botão "Ver lançamentos de saldo": busca por período com botão de busca. Recebe
+        // datas opcionais para reabrir já com o filtro anterior (ex: depois de editar/excluir).
+        function abrirListaSaldoBanco(dtInicioParam, dtFimParam) {
+            var dtInicioPadrao = dtInicioParam || '{{ $dias[0]->format('Y-m-d') }}';
+            var dtFimPadrao = dtFimParam || '{{ end($dias)->format('Y-m-d') }}';
+
+            Swal.fire({
+                title: 'Lançamentos de Saldo Banco/Financeira',
+                width: 700,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    title: 'swal-title-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="form-row align-items-end mb-2">' +
+                    '<div class="col-5"><label class="mb-1" style="font-size:12px;">De</label>' +
+                    '<input type="date" id="swal-filtro-dt-inicio" class="form-control form-control-sm" value="' +
+                    dtInicioPadrao + '"></div>' +
+                    '<div class="col-5"><label class="mb-1" style="font-size:12px;">Até</label>' +
+                    '<input type="date" id="swal-filtro-dt-fim" class="form-control form-control-sm" value="' +
+                    dtFimPadrao + '"></div>' +
+                    '<div class="col-2"><button type="button" id="swal-btn-buscar-saldo" class="btn btn-sm btn-primary btn-block">Buscar</button></div>' +
+                    '</div>' +
+                    '<div id="swal-resultado-saldo-banco" style="max-height:320px; overflow-y:auto;"></div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    document.getElementById('swal-btn-buscar-saldo').addEventListener('click',
+                        buscarSaldoBanco);
+                    buscarSaldoBanco();
+                }
+            });
+        }
+
+        $('#btn-listar-saldo-banco').on('click', function() {
+            abrirListaSaldoBanco();
+        });
+
+        function buscarSaldoBanco() {
+            var dtInicio = document.getElementById('swal-filtro-dt-inicio').value;
+            var dtFim = document.getElementById('swal-filtro-dt-fim').value;
+            var $resultado = $('#swal-resultado-saldo-banco');
+
+            if (!dtInicio || !dtFim) {
+                return;
+            }
+
+            $resultado.html('<div class="text-center text-muted py-3">Carregando...</div>');
+
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('fluxo-caixa.listar-saldo-banco') }}',
+                data: {
+                    dt_inicio: dtInicio,
+                    dt_fim: dtFim
+                }
+            }).done(function(response) {
+                if (!response.dados || response.dados.length === 0) {
+                    $resultado.html('<div class="text-center text-muted py-3">Nenhum lançamento no período.</div>');
+                    return;
+                }
+
+                $resultado.html(
+                    '<table class="table table-sm table-striped" style="font-size:12px;">' +
+                    '<thead><tr><th>Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
+                    '<tbody>' + montarLinhasSaldoBanco(response.dados) + '</tbody>' +
+                    '</table>'
+                );
+            }).fail(function() {
+                $resultado.html('<div class="text-center text-danger py-3">Erro ao buscar lançamentos.</div>');
+            });
+        }
+
+        // Editar um lançamento de saldo (abre modal pré-preenchido, salva via AJAX e recarrega).
+        $(document).on('click', '.btn-editar-saldo-banco', function() {
+            var id = $(this).data('id');
+            var banco = $(this).data('banco');
+            var valor = $(this).data('valor');
+            var data = $(this).data('data');
+
+            Swal.fire({
+                title: 'Editar Saldo Banco/Financeira',
+                width: 500,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                customClass: {
+                    title: 'swal-title-fluxo',
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Data Lançamento</label>' +
+                    '<input type="date" id="swal-edit-data" class="form-control form-control-sm" value="' +
+                    data +
+                    '"></div>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Nome Banco/Financeira</label>' +
+                    '<input type="text" id="swal-edit-banco" class="form-control form-control-sm" value="' +
+                    banco +
+                    '"></div>' +
+                    '<div class="form-group mb-0">' +
+                    '<label class="mb-1" style="font-size:12px;">Saldo Banco</label>' +
+                    '<input type="text" inputmode="decimal" id="swal-edit-valor" class="form-control form-control-sm" value="' +
+                    Number(valor).toFixed(2).replace('.', ',') + '"></div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    $('#swal-edit-valor').inputmask({
+                        mask: ['R$ 9,99', 'R$ 99,99', 'R$ 999,99', 'R$ 9.999,99',
+                            'R$ 99.999,99',
+                            'R$ 999.999,99', 'R$ 9.999.999,99'
+                        ],
+                        radixPoint: ','
+                    });
+                },
+                preConfirm: function() {
+                    var dsBanco = document.getElementById('swal-edit-banco').value.trim();
+                    var vlSaldo = $('#swal-edit-valor').val().replace('R$', '').trim()
+                        .replace(/\./g, '').replace(',', '.');
+                    var dtSaldo = document.getElementById('swal-edit-data').value;
+
+                    if (!dsBanco || vlSaldo === '' || !dtSaldo) {
+                        Swal.showValidationMessage('Preencha todos os campos.');
+                        return false;
+                    }
+
+                    return $.ajax({
+                        method: 'POST',
+                        url: '{{ route('fluxo-caixa.atualizar-saldo-banco') }}',
+                        data: {
+                            _token: $('[name="csrf-token"]').attr('content'),
+                            id: id,
+                            ds_banco: dsBanco,
+                            vl_saldo: vlSaldo,
+                            dt_saldo: dtSaldo
+                        }
+                    }).catch(function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                            'Erro ao salvar o saldo.';
+                        Swal.showValidationMessage(msg);
+                        // Retornar aqui "recupera" a promise (resolve em vez de rejeitar) —
+                        // senão o Swal fica preso no loading do botão em vez de voltar ao form.
+                        return false;
+                    });
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Saldo atualizado com sucesso!',
+                        confirmButtonText: 'Ok'
+                    }).then(function() {
+                        window.location.reload();
+                    });
+                }
+            });
+        });
+
+        // Excluir um lançamento de saldo (confirma, exclui via AJAX e recarrega).
+        $(document).on('click', '.btn-excluir-saldo-banco', function() {
+            var id = $(this).data('id');
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Excluir lançamento?',
+                text: 'Essa ação não pode ser desfeita.',
+                showCancelButton: true,
+                confirmButtonText: 'Excluir',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                }
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    method: 'POST',
+                    url: '{{ route('fluxo-caixa.excluir-saldo-banco') }}',
+                    data: {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        id: id
+                    }
+                }).done(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Excluído com sucesso!',
+                        confirmButtonText: 'Ok'
+                    }).then(function() {
+                        window.location.reload();
+                    });
+                }).fail(function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                        'Erro ao excluir o lançamento.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: msg
+                    });
+                });
             });
         });
     </script>
