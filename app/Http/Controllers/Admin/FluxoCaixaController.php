@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Contas;
 use App\Models\FluxoCaixaCompensacao;
+use App\Models\FluxoCaixaLancAvulso;
 use App\Models\FluxoCaixaParametro;
 use App\Models\FluxoCaixaSaldoDia;
 use App\Models\SaldoFluxoCaixa;
@@ -67,7 +68,8 @@ class FluxoCaixaController extends Controller
 
         $contasReceber = $this->agruparContas($lancamentosReceber, $dias, $tipoData, 'Clientes', $offsetPorTipoConta);
 
-        $lancamentoManualEntrada = array_fill(0, $qtdDias, 0);
+        $lancamentoManualEntrada = FluxoCaixaLancAvulso::valorPorDia($dias, 'receber');
+        $lancAvulsoDetalheEntradaPorDia = FluxoCaixaLancAvulso::detalhePorDia($dias, 'receber');
 
         $lancamentosPagar = [];
         foreach (FluxoCaixaParametro::tipocontasPorTipo('pagar') as $cdTipoConta => $formasPagamento) {
@@ -79,8 +81,8 @@ class FluxoCaixaController extends Controller
 
         $contasPagar = $this->agruparContas($lancamentosPagar, $dias, $tipoData, 'Fornecedores', $offsetPorTipoConta);
 
-        $lancamentoManualSaida = array_fill(0, $qtdDias, 0);
-        
+        $lancamentoManualSaida = FluxoCaixaLancAvulso::valorPorDia($dias, 'pagar');
+        $lancAvulsoDetalheSaidaPorDia = FluxoCaixaLancAvulso::detalhePorDia($dias, 'pagar');
 
         // Saldo bancário real por dia (forward-fill do que está em fluxo_caixa_saldo) — usado
         // só para saber o valor real informado no dia 0 e nos dias com lançamento manual.
@@ -208,8 +210,10 @@ class FluxoCaixaController extends Controller
             'diasComLancamentoManual' => $diasComLancamentoManual,
             'contasReceber' => $contasReceber,
             'lancamentoManualEntrada' => $lancamentoManualEntrada,
+            'lancAvulsoDetalheEntradaPorDia' => $lancAvulsoDetalheEntradaPorDia,
             'contasPagar' => $contasPagar,
             'lancamentoManualSaida' => $lancamentoManualSaida,
+            'lancAvulsoDetalheSaidaPorDia' => $lancAvulsoDetalheSaidaPorDia,
             'totalContasReceberPorDia' => $totalContasReceberPorDia,
             'totalContasPagarPorDia' => $totalContasPagarPorDia,
             'totalEntradasPorDia' => $totalEntradasPorDia,
@@ -307,6 +311,59 @@ class FluxoCaixaController extends Controller
         return response()->json([
             'success' => 'Lançamento excluído com sucesso!',
         ]);
+    }
+
+    public function salvarLancamento(Request $request)
+    {
+        $validado = $request->validate($this->regrasValidacaoLancamento());
+
+        FluxoCaixaLancAvulso::create($validado + ['updated_by' => auth()->id()]);
+
+        return response()->json([
+            'success' => 'Lançamento manual salvo com sucesso!',
+        ]);
+    }
+
+    public function atualizarLancamento(Request $request)
+    {
+        $validado = $request->validate([
+            'id' => ['required', 'integer', 'exists:fluxo_caixa_lanc_avulso,id'],
+        ] + $this->regrasValidacaoLancamento());
+
+        $lancamento = FluxoCaixaLancAvulso::findOrFail($validado['id']);
+        $lancamento->update(collect($validado)->except('id')->all() + ['updated_by' => auth()->id()]);
+
+        return response()->json([
+            'success' => 'Lançamento manual atualizado com sucesso!',
+        ]);
+    }
+
+    public function excluirLancamento(Request $request)
+    {
+        $validado = $request->validate([
+            'id' => ['required', 'integer', 'exists:fluxo_caixa_lanc_avulso,id'],
+        ]);
+
+        FluxoCaixaLancAvulso::findOrFail($validado['id'])->delete();
+
+        return response()->json([
+            'success' => 'Lançamento manual excluído com sucesso!',
+        ]);
+    }
+
+    private function regrasValidacaoLancamento(): array
+    {
+        return [
+            'tipo' => ['required', 'in:receber,pagar'],
+            'dt_lancamento' => ['required', 'date'],
+            'cd_pessoa' => ['required', 'integer'],
+            'nm_pessoa' => ['required', 'string', 'max:150'],
+            'vl_documento' => ['required', 'numeric', 'min:0.01'],
+            'cd_tipoconta' => ['required', 'integer'],
+            'ds_tipoconta' => ['nullable', 'string', 'max:100'],
+            'cd_formapagto' => ['nullable', 'string', 'max:10'],
+            'ds_formapagto' => ['nullable', 'string', 'max:100'],
+        ];
     }
 
     /**

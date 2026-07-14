@@ -45,7 +45,8 @@
                                     title="Parâmetros"><i class="fas fa-cogs"></i></button>
                             @endcan
                             <button class="btn btn-sm btn-success" id="btn-novo-lancamento"><i
-                                    class="fas fa-plus mr-1"></i>Lançamento Manual</button>
+                                    class="fas fa-plus mr-1"></i>Lançamento Manual
+                            </button>
                         </div>
                     </div>
                     <hr>
@@ -197,7 +198,8 @@
                                         <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;"
                                             title="Editável"></i>
                                     </td>
-                                    <x-fluxo-celulas :valores="$lancamentoManualEntrada" modo="detalhe" :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$lancamentoManualEntrada" modo="detalhe" :fins-de-semana="$finsDeSemana"
+                                        lanc-avulso-tipo="receber" />
                                 </tr>
 
                                 <tr class="linha-total linha-total-entrada">
@@ -239,7 +241,8 @@
                                         <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;"
                                             title="Editável"></i>
                                     </td>
-                                    <x-fluxo-celulas :valores="$lancamentoManualSaida" modo="detalhe" :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$lancamentoManualSaida" modo="detalhe" :fins-de-semana="$finsDeSemana"
+                                        lanc-avulso-tipo="pagar" />
                                 </tr>
 
                                 <tr class="linha-total linha-total-saida">
@@ -568,6 +571,15 @@
             text-decoration: underline;
         }
 
+        .lanc-avulso-cel.tem-lancamento {
+            cursor: pointer;
+            text-decoration: underline dotted;
+        }
+
+        .lanc-avulso-cel.tem-lancamento:hover {
+            background-color: #d7e6f5;
+        }
+
         .swal-title-fluxo {
             font-size: 1.1rem !important;
         }
@@ -615,6 +627,10 @@
         var fluxoContasReceber = @json($contasReceber);
         var fluxoContasPagar = @json($contasPagar);
         var fluxoSaldoBancoDetalhePorDia = @json($saldoBancoDetalhePorDia);
+        var fluxoLancAvulsoDetalhePorDia = {
+            receber: @json($lancAvulsoDetalheEntradaPorDia),
+            pagar: @json($lancAvulsoDetalheSaidaPorDia)
+        };
 
         // Abre um modal com os lançamentos (NR_LANCAMENTO, Data Real, Cliente/Fornecedor e
         // Valor) que compõem o total clicado — na linha de categoria mostra todas as pessoas
@@ -803,13 +819,314 @@
             }
         });
 
-        $('#btn-novo-lancamento').on('click', function() {
+        // Modal de Lançamento Manual (fluxo_caixa_lanc_avulso) — funciona tanto pra entrada
+        // (Contas a Receber) quanto saída (Contas a Pagar), a depender do "Tipo" escolhido.
+        // Reaproveitada tanto pro botão "Lançamento Manual" (adicionar) quanto pro editar via
+        // hover na linha da grade (dadosExistentes vem preenchido nesse caso).
+        function abrirFormularioLancamento(dadosExistentes, aoFechar) {
+            var editando = !!(dadosExistentes && dadosExistentes.id);
+            var tipoInicial = editando ? dadosExistentes.tipo : 'receber';
+
             Swal.fire({
-                icon: 'info',
-                title: 'Lançamento manual',
-                text: 'Tela de cadastro de lançamento adicional será implementada nas próximas etapas do projeto.',
-                confirmButtonText: 'Ok'
+                title: editando ? 'Editar Lançamento Manual' : 'Lançamento Manual',
+                width: 500,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                customClass: {
+                    title: 'swal-title-fluxo',
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo</label>' +
+                    '<select id="swal-lanc-tipo" class="form-control form-control-sm">' +
+                    '<option value="receber"' + (tipoInicial === 'receber' ? ' selected' : '') +
+                    '>Entrada (Contas a Receber)</option>' +
+                    '<option value="pagar"' + (tipoInicial === 'pagar' ? ' selected' : '') +
+                    '>Saída (Contas a Pagar)</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Data Lançamento</label>' +
+                    '<input type="date" id="swal-lanc-data" class="form-control form-control-sm" value="' +
+                    (editando ? dadosExistentes.dt_lancamento : '{{ now()->format('Y-m-d') }}') +
+                    '">' +
+                    '</div>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Pessoa</label>' +
+                    '<select id="swal-lanc-cd-pessoa" class="w-100"></select>' +
+                    '</div>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta</label>' +
+                    '<select id="swal-lanc-cd-tipoconta" class="w-100"></select>' +
+                    '</div>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Forma de Pagamento</label>' +
+                    '<select id="swal-lanc-cd-formapagto" class="w-100"></select>' +
+                    '</div>' +
+                    '<div class="form-group mb-0">' +
+                    '<label class="mb-1" style="font-size:12px;">Valor do Documento</label>' +
+                    '<input type="text" inputmode="decimal" id="swal-lanc-valor" class="form-control form-control-sm" placeholder="R$ 0,00" value="' +
+                    (editando ? 'R$ ' + Number(dadosExistentes.vl_documento).toFixed(2).replace(
+                        '.', ',') : '') + '">' +
+                    '</div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    carregarOpcoesTipoConta(tipoInicial, editando ? dadosExistentes.cd_tipoconta :
+                        null, '#swal-lanc-cd-tipoconta');
+                    carregarOpcoesFormaPagamento(editando ? dadosExistentes.cd_formapagto : null,
+                        '#swal-lanc-cd-formapagto');
+
+                    if (editando && dadosExistentes.cd_pessoa) {
+                        $('#swal-lanc-cd-pessoa').append('<option value="' + dadosExistentes.cd_pessoa +
+                            '" selected>' + dadosExistentes.cd_pessoa + '-' + dadosExistentes.nm_pessoa +
+                            '</option>');
+                    }
+
+                    $('#swal-lanc-cd-pessoa').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Buscar pessoa...',
+                        allowClear: true,
+                        minimumInputLength: 2,
+                        language: {
+                            inputTooShort: function() {
+                                return 'Digite ao menos 2 caracteres...';
+                            },
+                            searching: function() {
+                                return 'Buscando...';
+                            },
+                            noResults: function() {
+                                return 'Nenhuma pessoa encontrada';
+                            }
+                        },
+                        dropdownParent: $(Swal.getPopup()),
+                        containerCssClass: 'select2-fluxo-sm',
+                        dropdownCssClass: 'select2-fluxo-sm',
+                        ajax: {
+                            url: '{{ route('pessoa.search') }}',
+                            dataType: 'json',
+                            delay: 300,
+                            data: function(params) {
+                                return {
+                                    q: params.term
+                                };
+                            },
+                            processResults: function(dados) {
+                                return {
+                                    results: dados
+                                };
+                            }
+                        }
+                    });
+
+                    $('#swal-lanc-cd-tipoconta').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Selecione',
+                        dropdownParent: $(Swal.getPopup()),
+                        containerCssClass: 'select2-fluxo-sm',
+                        dropdownCssClass: 'select2-fluxo-sm'
+                    });
+
+                    $('#swal-lanc-cd-formapagto').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Selecione',
+                        dropdownParent: $(Swal.getPopup()),
+                        containerCssClass: 'select2-fluxo-sm',
+                        dropdownCssClass: 'select2-fluxo-sm'
+                    });
+
+                    $('#swal-lanc-valor').inputmask({
+                        mask: ['R$ 9,99', 'R$ 99,99', 'R$ 999,99', 'R$ 9.999,99',
+                            'R$ 99.999,99',
+                            'R$ 999.999,99', 'R$ 9.999.999,99'
+                        ],
+                        radixPoint: ','
+                    });
+
+                    $('#swal-lanc-tipo').on('change', function() {
+                        carregarOpcoesTipoConta($(this).val(), null, '#swal-lanc-cd-tipoconta');
+                    });
+                },
+                preConfirm: function() {
+                    var tipo = document.getElementById('swal-lanc-tipo').value;
+                    var dtLancamento = document.getElementById('swal-lanc-data').value;
+                    var vlDocumento = $('#swal-lanc-valor').val().replace('R$', '').trim()
+                        .replace(/\./g, '').replace(',', '.');
+
+                    var $pessoaSelecionada = $('#swal-lanc-cd-pessoa option:selected');
+                    var cdPessoa = $pessoaSelecionada.val() || null;
+                    var nmPessoa = cdPessoa ? $pessoaSelecionada.text().replace(cdPessoa + '-',
+                        '') : null;
+
+                    var $tipoContaSelecionada = $('#swal-lanc-cd-tipoconta option:selected');
+                    var cdTipoConta = $tipoContaSelecionada.val();
+                    var dsTipoConta = cdTipoConta ? $tipoContaSelecionada.text().replace(
+                        cdTipoConta + ' - ', '') : '';
+
+                    var $formaPagtoSelecionada = $('#swal-lanc-cd-formapagto option:selected');
+                    var cdFormaPagto = $formaPagtoSelecionada.val();
+                    var dsFormaPagto = cdFormaPagto ? $formaPagtoSelecionada.text().replace(
+                        cdFormaPagto + ' - ', '') : '';
+
+                    if (!dtLancamento || vlDocumento === '' || !cdTipoConta || !cdPessoa) {
+                        Swal.showValidationMessage(
+                            'Preencha a data, a pessoa, o tipo de conta e o valor do documento.');
+                        return false;
+                    }
+
+                    var dadosEnvio = {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        tipo: tipo,
+                        dt_lancamento: dtLancamento,
+                        cd_pessoa: cdPessoa,
+                        nm_pessoa: nmPessoa,
+                        vl_documento: vlDocumento,
+                        cd_tipoconta: cdTipoConta,
+                        ds_tipoconta: dsTipoConta,
+                        cd_formapagto: cdFormaPagto,
+                        ds_formapagto: dsFormaPagto
+                    };
+
+                    if (editando) {
+                        dadosEnvio.id = dadosExistentes.id;
+                    }
+
+                    return $.ajax({
+                        method: 'POST',
+                        url: editando ?
+                            '{{ route('fluxo-caixa.atualizar-lancamento') }}' :
+                            '{{ route('fluxo-caixa.salvar-lancamento') }}',
+                        data: dadosEnvio
+                    }).catch(function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                            'Erro ao salvar o lançamento.';
+                        Swal.showValidationMessage(msg);
+                        return false;
+                    });
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    window.location.reload();
+                    return;
+                }
+
+                // Cancelou/fechou (X/ESC) — se veio da lista do dia (aoFechar informado),
+                // volta pra ela em vez de deixar o usuário sem tela nenhuma.
+                if (aoFechar) {
+                    aoFechar();
+                }
             });
+        }
+
+        $('#btn-novo-lancamento').on('click', function() {
+            abrirFormularioLancamento();
+        });
+
+        // Clique na linha "Lançamento Manual" (.lanc-avulso-cel.tem-lancamento): abre um Swal
+        // com os lançamentos daquele dia e botões de editar/excluir — mesmo padrão de clique já
+        // usado nas outras linhas da grade (Contas a Receber/Pagar, Saldo Banco).
+        function abrirListaLancAvulsoDoDia(tipo, dia) {
+            var itens = (fluxoLancAvulsoDetalhePorDia[tipo] || {})[dia] || [];
+
+            if (!itens.length) {
+                return;
+            }
+
+            var linhas = itens.map(function(item) {
+                return '<tr>' +
+                    '<td>' + (item.nm_pessoa || '-') +
+                    '<br><small class="text-muted">' + item.ds_tipoconta +
+                    (item.ds_formapagto ? ' · ' + item.ds_formapagto : '') + '</small></td>' +
+                    '<td class="text-right">R$ ' + Number(item.vl_documento).toFixed(2).replace(
+                        '.', ',') + '</td>' +
+                    '<td class="text-center text-nowrap">' +
+                    '<button type="button" class="btn-xs btn-outline-primary btn-lanc-avulso-editar" data-item=\'' +
+                    JSON.stringify(item) +
+                    '\' title="Editar"><i class="fas fa-pencil-alt"></i></button> ' +
+                    '<button type="button" class="btn-xs btn-outline-danger btn-lanc-avulso-excluir" data-id="' +
+                    item.id + '" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+
+            Swal.fire({
+                title: 'Lançamentos Manuais do Dia',
+                width: 500,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    title: 'swal-title-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<table class="table table-sm table-striped" style="font-size:12px;">' +
+                    '<tbody>' + linhas + '</tbody>' +
+                    '</table>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+
+                    $(Swal.getPopup()).on('click', '.btn-lanc-avulso-editar', function() {
+                        var item = $(this).data('item');
+                        abrirFormularioLancamento(item, function() {
+                            abrirListaLancAvulsoDoDia(tipo, dia);
+                        });
+                    });
+
+                    $(Swal.getPopup()).on('click', '.btn-lanc-avulso-excluir', function() {
+                        var id = $(this).data('id');
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Excluir lançamento?',
+                            text: 'Essa ação não pode ser desfeita.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Excluir',
+                            cancelButtonText: 'Cancelar',
+                            customClass: {
+                                confirmButton: 'swal-confirm-fluxo',
+                                cancelButton: 'swal-confirm-fluxo'
+                            }
+                        }).then(function(result) {
+                            if (!result.isConfirmed) {
+                                abrirListaLancAvulsoDoDia(tipo, dia);
+                                return;
+                            }
+
+                            $.ajax({
+                                method: 'POST',
+                                url: '{{ route('fluxo-caixa.excluir-lancamento') }}',
+                                data: {
+                                    _token: $('[name="csrf-token"]').attr('content'),
+                                    id: id
+                                }
+                            }).done(function() {
+                                window.location.reload();
+                            }).fail(function(xhr) {
+                                var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                                    'Erro ao excluir o lançamento.';
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro',
+                                    text: msg
+                                }).then(function() {
+                                    abrirListaLancAvulsoDoDia(tipo, dia);
+                                });
+                            });
+                        });
+                    });
+                }
+            });
+        }
+
+        $(document).on('click', '.lanc-avulso-cel.tem-lancamento', function() {
+            abrirListaLancAvulsoDoDia($(this).data('tipo'), $(this).data('dia'));
         });
 
         // Modal para cadastrar o saldo de um banco/financeira (grava em fluxo_caixa_saldo via AJAX).
@@ -1383,10 +1700,12 @@
             });
         }
 
-        // Busca as formas de pagamento no Firebird e popula o select2 multi-select, mantendo
-        // selecionadas as informadas em `selecionadas` (edição).
-        function carregarOpcoesFormaPagamento(selecionadas) {
-            var $select = $('#swal-param-formapagto');
+        // Busca as formas de pagamento no Firebird e popula o select (simples ou select2
+        // multi-select, dependendo do elemento), mantendo selecionada(s) as informadas em
+        // `selecionadas` (edição). `seletor` é opcional — usado pra reaproveitar essa função
+        // fora do form de Parâmetros (ex: Lançamento Manual, com select simples).
+        function carregarOpcoesFormaPagamento(selecionadas, seletor) {
+            var $select = $(seletor || '#swal-param-formapagto');
 
             $.ajax({
                 method: 'GET',

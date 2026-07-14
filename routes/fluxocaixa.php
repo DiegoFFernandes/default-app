@@ -7,6 +7,9 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('fluxo-caixa')->group(function () {
         Route::middleware('can:ver-fluxo-caixa')->group(function () {
             Route::get('/', [FluxoCaixaController::class, 'index'])->name('fluxo-caixa.index');
+            Route::post('salvar-lancamento', [FluxoCaixaController::class, 'salvarLancamento'])->name('fluxo-caixa.salvar-lancamento');
+            Route::post('atualizar-lancamento', [FluxoCaixaController::class, 'atualizarLancamento'])->name('fluxo-caixa.atualizar-lancamento');
+            Route::post('excluir-lancamento', [FluxoCaixaController::class, 'excluirLancamento'])->name('fluxo-caixa.excluir-lancamento');
         });
 
         Route::middleware('can:ver-fluxo-caixa-saldo-dia')->group(function () {
