@@ -142,6 +142,9 @@
                     <textarea class="form-control" id="liberacao" rows="2" cols="50"></textarea>
                 </div>
                 <div class="row mb-5">
+                    <div class="col-12 mb-1" style="padding-top: 6px;">
+                        <span class="badge badge-warning contas-count-badge" style="display:none; font-size:.85rem;"></span>
+                    </div>
                     <div class="col-md-6 col-sm-6" style="padding-top: 10px;">
                         <button class="btn btn-success btn-sm btn-block btn-aproover" id="">Aprovar</button>
                     </div>
@@ -351,6 +354,23 @@
 
     <script type="text/javascript">
         var tableContas;
+        var selectedContas = new Map();
+
+        function updateContasBadge() {
+            var count = selectedContas.size;
+            var $badge = $('.contas-count-badge');
+            if (count > 0) {
+                $badge.text(count + ' selecionada' + (count > 1 ? 's' : '')).show();
+            } else {
+                $badge.hide();
+            }
+        }
+
+        function resetSelectedContas() {
+            selectedContas.clear();
+            updateContasBadge();
+        }
+
         var template_historico = Handlebars.compile($("#details-item-historico").html());
         var template_motivo = Handlebars.compile($("#details-motivo").html());
         var template_vencimento = Handlebars.compile($("#details-vencimento").html());
@@ -365,11 +385,13 @@
         $('.nav-tabs a[href="#pendentes"]').on('click', function() {
             $('#table-contas-bloqueadas-pendentes').DataTable().destroy();
             tableContas = initableContas('table-contas-bloqueadas-pendentes', 'N');
+            resetSelectedContas();
         });
 
         $('.nav-tabs a[href="#vistos"]').on('click', function() {
             $('#table-contas-bloqueadas-vistos').DataTable().destroy();
             tableContas = initableContas('table-contas-bloqueadas-vistos', 'S');
+            resetSelectedContas();
         });
 
 
@@ -500,21 +522,16 @@
         function loadData(status, dsLiberacao) {
             var contas = [];
 
-            tableContas.rows().nodes().to$().each(function() {
-                if ($(this).find('.dt-row-checkbox-contas').is(':checked')) {
-                    var row = tableContas.row(this).data();
-                    if (row) {
-                        contas.push({
-                            nr_lancamento: row.NR_LANCAMENTO,
-                            cd_empresa: row.CD_EMPRESA,
-                            status: status,
-                            ds_liberacao: row.DS_LIBERACAO,
-                        });
-                    }
-                }
+            selectedContas.forEach(function(row) {
+                contas.push({
+                    nr_lancamento: row.NR_LANCAMENTO,
+                    cd_empresa: row.CD_EMPRESA,
+                    status: status,
+                    ds_liberacao: row.DS_LIBERACAO,
+                });
             });
 
-            if (contas.length > 0) {
+            if (contas.length > 0) {                
                 $.ajax({
                     method: "post",
                     url: "{{ route('contas-bloqueadas.update') }}",
@@ -549,6 +566,13 @@
                                 timer: 2000
                             });
                         }
+                        resetSelectedContas();
+                        $('.dt-select-all-contas').prop('checked', false);
+                        $('#filtro-empresa').val('');
+                        $('#filtro-nome').val('');
+                        $('#filtro-docto').val('');
+                        $('#filtro-data').val('');
+                        tableContas.columns([2, 3, 4, 8]).search('').draw();
                         $('#table-contas-bloqueadas-pendentes').DataTable().ajax.reload();
                         $('#table-contas-bloqueadas-vistos').DataTable().ajax.reload();
                     },
@@ -820,20 +844,42 @@
             });
         };
 
-        // Select all — usa API DataTables para acessar os nós reais das linhas
+        // Select all
         $(document).on('click', '.dt-select-all-contas', function(e) {
             e.stopPropagation();
             var checked = $(this).is(':checked');
-            tableContas.rows().nodes().to$().find('.dt-row-checkbox-contas').prop('checked', checked);
+            tableContas.rows({ search: 'applied' }).nodes().to$().each(function() {
+                $(this).find('.dt-row-checkbox-contas').prop('checked', checked);
+                var row = tableContas.row(this).data();
+                if (row) {
+                    var key = row.NR_LANCAMENTO + '-' + row.CD_EMPRESA;
+                    if (checked) {
+                        selectedContas.set(key, row);
+                    } else {
+                        selectedContas.delete(key);
+                    }
+                }
+            });
+            updateContasBadge();
         });
 
-        // Checkbox individual — atualiza estado do select-all
+        // Checkbox individual
         $(document).on('click', '.dt-row-checkbox-contas', function(e) {
             e.stopPropagation();
-            var total = tableContas.rows().count();
-            var selected = tableContas.rows().nodes().to$().find('.dt-row-checkbox-contas:checked').length;
-            $(this).closest('.dataTables_wrapper').find('.dt-select-all-contas').prop('checked', total > 0 &&
-                total === selected);
+            var tr = $(this).closest('tr');
+            var row = tableContas.row(tr).data();
+            if (row) {
+                var key = row.NR_LANCAMENTO + '-' + row.CD_EMPRESA;
+                if ($(this).is(':checked')) {
+                    selectedContas.set(key, row);
+                } else {
+                    selectedContas.delete(key);
+                }
+            }
+            var total = tableContas.rows({ search: 'applied' }).count();
+            $(this).closest('.dataTables_wrapper').find('.dt-select-all-contas').prop('checked',
+                total > 0 && selectedContas.size === total);
+            updateContasBadge();
         });
 
         $('link[href*="custom_datatables"]').remove();

@@ -38,7 +38,7 @@ class FluxoCaixaController extends Controller
 
         // Quantidade de semanas exibidas lado a lado (visão horizontal). Navegação
         // (anterior/hoje/próxima) sempre desliza 1 semana, independente desse valor.
-        $qtdSemanas = max(1, min(8, (int) $request->query('semanas', 1)));
+        $qtdSemanas = max(1, min(12, (int) $request->query('semanas', 1)));
         $qtdDias    = $qtdSemanas * 7;
 
         $dias = [];

@@ -26,7 +26,7 @@
         $classeCelulaAtual = $modo === 'total' ? ($colorirPorSinal ? $classeSinal : $classeCelula) : '';
         $ehClicavelTotal = $modo === 'total' && ($clicavelPorDia !== null ? ($clicavelPorDia[$i] ?? false) : $clicavelTotal);
     @endphp
-    <td class="text-right {{ $classeCelulaAtual }} {{ ($modo === 'detalhe' && $clicavel && $v > 0) ? 'valor-clicavel' : '' }} {{ $ehClicavelTotal ? 'valor-clicavel saldo-banco-clicavel' : '' }} {{ ($finsDeSemana[$i] ?? false) ? 'dia-fim-semana-cel' : '' }} {{ $destacada ? 'dia-lancamento-manual' : '' }}"
+    <td class="text-right col-dia col-dia-semana-{{ intdiv($i, 7) + 1 }} {{ $classeCelulaAtual }} {{ ($modo === 'detalhe' && $clicavel && $v > 0) ? 'valor-clicavel' : '' }} {{ $ehClicavelTotal ? 'valor-clicavel saldo-banco-clicavel' : '' }} {{ ($finsDeSemana[$i] ?? false) ? 'dia-fim-semana-cel' : '' }} {{ $destacada ? 'dia-lancamento-manual' : '' }}"
         @if ($destacada) title="Saldo bancário informado manualmente" @endif
         @if ($modo === 'detalhe' && $clicavel && $v > 0)
             data-tipo="{{ $tipo }}"
@@ -39,7 +39,7 @@
         @endif
     >{{ $modo === 'detalhe' ? ($v > 0 ? number_format($v, 2, ',', '.') : '-') : number_format($v, 2, ',', '.') }}</td>
 
-    @if ((($i + 1) % 7 === 0) && ($i + 1 < $qtdDias))
+    @if ((($i + 1) % 7 === 0) && ($qtdDias > 7))
         @php
             $valorSemana = $subtotalModo === 'ultimo' ? $v : array_sum(array_slice($valores, $i - 6, 7));
             $classeSubtotal = $colorirPorSinal ? ($valorSemana >= 0 ? 'valor-positivo' : 'valor-negativo') : $classeCelula;

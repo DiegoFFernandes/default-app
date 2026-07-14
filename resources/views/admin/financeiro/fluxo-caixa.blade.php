@@ -50,11 +50,23 @@
                     <div class="row align-items-center mt-2">
                         <div class="col-12 text-center">
                             <div class="btn-group btn-group-sm" role="group">
-                                <span class="btn btn-sm btn-light disabled" style="cursor:default;">Semanas Projetadas:</span>
+                                <span class="btn btn-sm btn-light disabled" style="cursor:default;">Semanas
+                                    Projetadas:</span>
                                 @foreach ([1, 2, 4] as $opcaoSemanas)
                                     <a href="{{ route('fluxo-caixa.index', ['tipo_data' => $tipoData, 'ref' => $refSemanaAtual, 'semanas' => $opcaoSemanas]) }}"
                                         class="btn btn-sm {{ $qtdSemanas === $opcaoSemanas ? 'btn-primary active' : 'btn-outline-primary' }}">{{ $opcaoSemanas }}</a>
                                 @endforeach
+                            </div>
+                            <div class="btn-group btn-group-sm ml-1" role="group">
+                                <input type="number" min="1" max="12" id="input-semanas-custom"
+                                    class="form-control form-control-sm text-center" style="width:60px;"
+                                    placeholder="N"
+                                    value="{{ in_array($qtdSemanas, [1, 2, 4]) ? '' : $qtdSemanas }}">
+                                <button type="button"
+                                    class="btn btn-sm {{ in_array($qtdSemanas, [1, 2, 4]) ? 'btn-outline-primary' : 'btn-primary' }}"
+                                    id="btn-semanas-custom" title="Projetar N semanas">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -104,10 +116,14 @@
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-table mr-1 text-muted"></i> Fluxo de Caixa Semanal
                     </h3>
+                    <span class="badge {{ $tipoData === 'personalizada' ? 'badge-primary' : 'badge-info' }} ml-1">
+                        {{ $tipoData === 'personalizada' ? 'Data Personalizada' : 'Data Real' }}
+                    </span>
                     <div class="card-tools">
-                        <span class="badge {{ $tipoData === 'personalizada' ? 'badge-primary' : 'badge-info' }} ml-1">
-                            {{ $tipoData === 'personalizada' ? 'Data Personalizada' : 'Data Real' }}
-                        </span>
+                        <button type="button" class="btn btn-xs btn-outline-secondary" id="btn-toggle-dias"
+                            title="Ocultar dias da semana, exibindo só os totais">
+                            <i class="fas fa-eye-slash mr-1"></i>Ocultar Dias
+                        </button>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -118,12 +134,18 @@
                                     <th class="col-categoria">Categoria</th>
                                     @foreach ($dias as $i => $dia)
                                         <th
-                                            class="text-center col-dia {{ $dia->isWeekend() ? 'dia-fim-semana' : '' }} {{ $dia->isToday() ? 'dia-atual' : '' }}">
+                                            class="text-center col-dia col-dia-semana-{{ intdiv($i, 7) + 1 }} {{ $dia->isWeekend() ? 'dia-fim-semana' : '' }} {{ $dia->isToday() ? 'dia-atual' : '' }}">
                                             {{ $dia->translatedFormat('D') }}<br>
                                             <small>{{ $dia->format('d/m') }}</small>
                                         </th>
-                                        @if (($i + 1) % 7 === 0 && $i + 1 < count($dias))
-                                            <th class="text-center col-subtotal-semana">Total<br>
+                                        @if (($i + 1) % 7 === 0 && count($dias) > 7)
+                                            <th class="text-center col-subtotal-semana">
+                                                <button type="button" class="btn-toggle-semana"
+                                                    data-semana="{{ intdiv($i, 7) + 1 }}"
+                                                    title="Recolher/expandir semana">
+                                                    <i class="fas fa-minus"></i>
+                                                </button><br>
+                                                Total<br>
                                                 <small>Sem {{ intdiv($i, 7) + 1 }}</small>
                                             </th>
                                         @endif
@@ -176,8 +198,8 @@
 
                                 <tr class="linha-total linha-total-entrada">
                                     <td>Total Entradas</td>
-                                    <x-fluxo-celulas :valores="$totalEntradasExibicaoPorDia" modo="total"
-                                        subtotal-modo="traco" total-modo="traco" :fins-de-semana="$finsDeSemana" />
+                                    <x-fluxo-celulas :valores="$totalEntradasExibicaoPorDia" modo="total" subtotal-modo="traco"
+                                        total-modo="traco" :fins-de-semana="$finsDeSemana" />
                                 </tr>
 
                                 <tr class="linha-grupo linha-grupo-pagar">
@@ -373,6 +395,48 @@
             min-width: 100px;
         }
 
+        /* Botão "Ocultar Dias": esconde só as colunas de dia (th/td.col-dia), mantendo
+               visíveis o subtotal semanal e o Total Geral. */
+        .tabela-fluxo-caixa.oculta-dias .col-dia {
+            display: none;
+        }
+
+        /* Botão +/- por semana (estilo agrupamento do Excel): recolhe só os dias daquela
+               semana, mantendo visível a coluna "Sem N" com o total. Cobre até 12 semanas —
+               mesmo limite máximo aplicado no controller (max(1, min(12, ...))). */
+        .tabela-fluxo-caixa.oculta-semana-1 .col-dia-semana-1,
+        .tabela-fluxo-caixa.oculta-semana-2 .col-dia-semana-2,
+        .tabela-fluxo-caixa.oculta-semana-3 .col-dia-semana-3,
+        .tabela-fluxo-caixa.oculta-semana-4 .col-dia-semana-4,
+        .tabela-fluxo-caixa.oculta-semana-5 .col-dia-semana-5,
+        .tabela-fluxo-caixa.oculta-semana-6 .col-dia-semana-6,
+        .tabela-fluxo-caixa.oculta-semana-7 .col-dia-semana-7,
+        .tabela-fluxo-caixa.oculta-semana-8 .col-dia-semana-8,
+        .tabela-fluxo-caixa.oculta-semana-9 .col-dia-semana-9,
+        .tabela-fluxo-caixa.oculta-semana-10 .col-dia-semana-10,
+        .tabela-fluxo-caixa.oculta-semana-11 .col-dia-semana-11,
+        .tabela-fluxo-caixa.oculta-semana-12 .col-dia-semana-12 {
+            display: none;
+        }
+
+        .btn-toggle-semana {
+            border: none;
+            background: rgba(255, 255, 255, .15);
+            color: inherit;
+            width: 16px;
+            height: 16px;
+            line-height: 1;
+            font-size: 9px;
+            border-radius: 2px;
+            padding: 0;
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+
+        .btn-toggle-semana:hover {
+            background: rgba(255, 255, 255, .3);
+        }
+
         .dia-atual {
             background-color: #2d6da3 !important;
         }
@@ -510,9 +574,9 @@
         }
 
         /* Deixa o select2 de Formas de Pagamento no mesmo padrão compacto dos demais campos
-           (.form-control-sm) do formulário de parâmetros. Usa o id do select original (via
-           combinador ~) além da classe, com !important, pra garantir que vença o CSS do
-           vendor independente da ordem de carregamento. */
+               (.form-control-sm) do formulário de parâmetros. Usa o id do select original (via
+               combinador ~) além da classe, com !important, pra garantir que vença o CSS do
+               vendor independente da ordem de carregamento. */
         #swal-param-formapagto~.select2-container .select2-selection--multiple,
         .select2-fluxo-sm.select2-container--bootstrap4 .select2-selection--multiple {
             min-height: 31px !important;
@@ -587,7 +651,8 @@
                     '<td>' + item.nr_lancamento + '</td>' +
                     '<td style="width:85px; white-space:nowrap;">' + item.dt_real + '</td>' +
                     '<td>' + item.nm_pessoa + '</td>' +
-                    '<td class="text-right" style="width:100px; white-space:nowrap;">' + item.valor.toLocaleString(
+                    '<td class="text-right" style="width:100px; white-space:nowrap;">' + item.valor
+                    .toLocaleString(
                         'pt-BR', {
                             minimumFractionDigits: 2
                         }) + '</td>' +
@@ -605,7 +670,8 @@
                 html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
                     '<table class="table table-sm table-striped" style="font-size:12px;">' +
                     '<thead><tr style="white-space:nowrap;"><th>Nº Lanc</th><th style="width:85px; white-space:nowrap;">Data Real</th><th>' +
-                    rotuloPessoa + '</th><th class="text-right" style="width:100px; white-space:nowrap;">Valor</th></tr></thead>' +
+                    rotuloPessoa +
+                    '</th><th class="text-right" style="width:100px; white-space:nowrap;">Valor</th></tr></thead>' +
                     '<tbody>' + linhas + '</tbody>' +
                     '<tfoot><tr><th colspan="3">Total</th><th class="text-right" style="white-space:nowrap;">R$ ' +
                     totalItens.toLocaleString('pt-BR', {
@@ -659,6 +725,78 @@
                     .addClass(expandido ? 'fa-chevron-down' : 'fa-chevron-right');
                 $btn.prop('disabled', false);
             }, 50);
+        });
+
+        // Botão global: em vez de ter sua própria classe/estado, "clica" em cada botão +/-
+        // de semana, reaproveitando o mesmo mecanismo (fica tudo sincronizado, sem dois
+        // estados independentes). Se não tem semana pra recolher (visão de 1 semana só, sem
+        // coluna "Sem N"), cai no fallback direto via .oculta-dias.
+        $('#btn-toggle-dias').on('click', function() {
+            var $botoesSemana = $('.btn-toggle-semana');
+
+            if (!$botoesSemana.length) {
+                var oculto = $('.tabela-fluxo-caixa').toggleClass('oculta-dias').hasClass(
+                    'oculta-dias');
+
+                $(this).html(oculto ?
+                    '<i class="fas fa-eye mr-1"></i>Mostrar Dias' :
+                    '<i class="fas fa-eye-slash mr-1"></i>Ocultar Dias');
+                return;
+            }
+
+            var algumaExpandida = $botoesSemana.filter(function() {
+                return $(this).find('i').hasClass('fa-minus');
+            }).length > 0;
+
+            $botoesSemana.each(function() {
+                var estaExpandida = $(this).find('i').hasClass('fa-minus');
+
+                if (estaExpandida === algumaExpandida) {
+                    $(this).trigger('click');
+                }
+            });
+
+            $(this).html(algumaExpandida ?
+                '<i class="fas fa-eye mr-1"></i>Mostrar Dias' :
+                '<i class="fas fa-eye-slash mr-1"></i>Ocultar Dias');
+        });
+
+        // Botão +/- de cada coluna "Sem N" (estilo agrupamento do Excel): recolhe/expande só
+        // os dias daquela semana.
+        $(document).on('click', '.btn-toggle-semana', function(e) {
+            e.stopPropagation();
+            var semana = $(this).data('semana');
+            var classe = 'oculta-semana-' + semana;
+            var oculto = $('.tabela-fluxo-caixa').toggleClass(classe).hasClass(classe);
+            var $icone = $(this).find('i');
+
+            $icone.toggleClass('fa-minus', !oculto).toggleClass('fa-plus', oculto);
+            $(this).attr('title', oculto ? 'Expandir semana' : 'Recolher semana');
+        });
+
+        // Semanas Projetadas customizado: reaproveita a mesma rota dos atalhos (1/2/4), só
+        // trocando o parâmetro "semanas" pelo valor digitado.
+        function irParaSemanasCustomizadas() {
+            var valor = parseInt($('#input-semanas-custom').val(), 10);
+
+            if (!valor || valor < 1) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Informe um número de semanas válido.'
+                });
+                return;
+            }
+
+            window.location.href =
+                '{{ route('fluxo-caixa.index', ['tipo_data' => $tipoData, 'ref' => $refSemanaAtual]) }}&semanas=' +
+                valor;
+        }
+
+        $('#btn-semanas-custom').on('click', irParaSemanasCustomizadas);
+        $('#input-semanas-custom').on('keypress', function(e) {
+            if (e.key === 'Enter') {
+                irParaSemanasCustomizadas();
+            }
         });
 
         $('#btn-novo-lancamento').on('click', function() {
@@ -1267,8 +1405,7 @@
         function abrirFormularioParametro(dadosExistentes) {
             var editando = !!(dadosExistentes && dadosExistentes.ids && dadosExistentes.ids.length);
             var tipo = dadosExistentes ? dadosExistentes.tipo : 'receber';
-            var cdTipoConta = dadosExistentes && dadosExistentes.cd_tipoconta ?
-                [dadosExistentes.cd_tipoconta] : [];
+            var cdTipoConta = dadosExistentes && dadosExistentes.cd_tipoconta ? [dadosExistentes.cd_tipoconta] : [];
             var formasPagamento = dadosExistentes ? (dadosExistentes.formas_pagamento || []) : [];
 
             Swal.fire({
