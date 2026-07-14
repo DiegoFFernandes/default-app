@@ -40,8 +40,10 @@
                             </div>
                         </div>
                         <div class="col-12 col-md-3 text-md-right">
-                            <button class="btn btn-sm btn-outline-secondary" id="btn-parametros-fluxo" title="Parâmetros"><i
-                                    class="fas fa-cogs"></i></button>
+                            @can('config-fluxo-caixa')
+                                <button class="btn btn-sm btn-outline-secondary" id="btn-parametros-fluxo"
+                                    title="Parâmetros"><i class="fas fa-cogs"></i></button>
+                            @endcan
                             <button class="btn btn-sm btn-success" id="btn-novo-lancamento"><i
                                     class="fas fa-plus mr-1"></i>Lançamento Manual</button>
                         </div>
@@ -78,16 +80,18 @@
                     <div class="stat-card stat-primary">
                         <div class="stat-title">
                             <span><i class="fas fa-wallet"></i> Saldo Banco(s) Hoje</span>
-                            <span class="stat-title-actions">
-                                <button type="button" class="btn-add-saldo-banco" id="btn-listar-saldo-banco"
-                                    title="Ver lançamentos de saldo">
-                                    <i class="fas fa-list"></i>
-                                </button>
-                                <button type="button" class="btn-add-saldo-banco" id="btn-add-saldo-banco"
-                                    title="Adicionar saldo de banco/financeira">
-                                    <i class="fas fa-plus-circle"></i>
-                                </button>
-                            </span>
+                            @can('ver-fluxo-caixa-saldo-dia')
+                                <span class="stat-title-actions">
+                                    <button type="button" class="btn-add-saldo-banco" id="btn-listar-saldo-banco"
+                                        title="Ver lançamentos de saldo">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                    <button type="button" class="btn-add-saldo-banco" id="btn-add-saldo-banco"
+                                        title="Adicionar saldo de banco/financeira">
+                                        <i class="fas fa-plus-circle"></i>
+                                    </button>
+                                </span>
+                            @endcan
                         </div>
                         <div class="stat-value">R$ {{ number_format($saldoBancoHoje, 2, ',', '.') }}</div>
                     </div>
