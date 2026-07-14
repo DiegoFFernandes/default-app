@@ -653,6 +653,70 @@ $(document).on("click", "#btn-transferir-carcaca", function () {
     });
 });
 
+var _medidasServicoReplicado = new Set();
+var _medidasValorReplicado   = new Set();
+
+$(document).on("hidden.bs.modal", "#modal-criar-pedido", function () {
+    _medidasServicoReplicado.clear();
+    _medidasValorReplicado.clear();
+});
+
+$(document).on("select2:select", "#itens-pedido select", function () {
+    var medidaAtual = $(this).closest(".item-pedido").data("medida-pneu");
+    if (_medidasServicoReplicado.has(medidaAtual)) return;
+    _medidasServicoReplicado.add(medidaAtual);
+
+    var $select      = $(this);
+    var selectedData = $select.select2("data")[0];
+    var $itemAtual   = $select.closest(".item-pedido");
+
+    Swal.fire({
+        icon: "question",
+        title: "Replicar serviço?",
+        text: "Deseja aplicar \"" + selectedData.text + "\" para todos os itens com a mesma medida?",
+        showCancelButton: true,
+        confirmButtonText: "Sim, replicar",
+        cancelButtonText: "Não",
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        $("#itens-pedido .item-pedido").not($itemAtual).each(function () {
+            if ($(this).data("medida-pneu") !== medidaAtual) return;
+
+            var $destSelect = $(this).find("select");
+            if ($destSelect.find("option[value='" + selectedData.id + "']").length === 0) {
+                $destSelect.append(new Option(selectedData.text, selectedData.id, true, true));
+            }
+            $destSelect.val(selectedData.id).trigger("change");
+        });
+    });
+});
+
+$(document).on("change", "#itens-pedido .input-venda", function () {
+    var $itemAtual  = $(this).closest(".item-pedido");
+    var medidaAtual = $itemAtual.data("medida-pneu");
+    if (_medidasValorReplicado.has(medidaAtual)) return;
+    _medidasValorReplicado.add(medidaAtual);
+
+    var valor = $(this).val();
+
+    Swal.fire({
+        icon: "question",
+        title: "Replicar valor?",
+        text: "Deseja aplicar o valor \"" + valor + "\" para todos os itens com a mesma medida?",
+        showCancelButton: true,
+        confirmButtonText: "Sim, replicar",
+        cancelButtonText: "Não",
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        $("#itens-pedido .item-pedido").not($itemAtual).each(function () {
+            if ($(this).data("medida-pneu") !== medidaAtual) return;
+            $(this).find(".input-venda").val(valor);
+        });
+    });
+});
+
 $(document).on("click", "#btn-criar-pedido", function () {
     let selectedRows = itensCarcacaTable.filter(function (row) {
         return selectedIds.has(parseInt(row.ID));
@@ -690,7 +754,7 @@ $(document).on("click", "#btn-criar-pedido", function () {
 
     selectedRows.forEach(function (rowData) {
         let itemHtml = `
-            <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}">
+            <div class="row mb-2 item-pedido" data-item-id="${rowData.ID}" data-medida-pneu="${rowData.IDMEDIDAPNEU}">
                 <div class="col-4 col-md-3">
                     <label class="form-label small">Medida</label>
                     <input type="text" class="form-control form-control-sm" value="${rowData.DSMEDIDAPNEU}" readonly />
@@ -728,7 +792,7 @@ $(document).on("click", "#btn-criar-pedido", function () {
     });
 
     $(".input-venda").inputmask({
-        mask: ["999", "9.999"],
+        mask: ["999,99", "9.999,99"],
         radixPoint: ",",
     });
 
@@ -754,7 +818,9 @@ $(document).on("click", "#btn-confirmar-pedido", function () {
     $(".item-pedido").each(function () {
         let itemId = $(this).data("item-id");
         let servico = $(this).find("select").val();
-        let valor = $(this).find("input.input-venda").val().replace(".", "");
+        let valor = $(this).find("input.input-venda").val()
+            .replace(/\./g, "")
+            .replace(",", ".");
 
         itens.push({
             itemId: itemId,
