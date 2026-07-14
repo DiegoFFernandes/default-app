@@ -20,7 +20,8 @@ class Financeiro extends Model
                     CONTAS.CD_PESSOA,
                     CONTAS.CD_PESSOA || ' - ' || P.NM_PESSOA NM_PESSOA,
                     CONTAS.CD_TIPOCONTA || ' ' || TC.DS_TIPOCONTA DS_TIPOCONTA,
-                    CONTAS.NR_DOCUMENTO||' / '||RMAX.O_NR_MAIORPARCELA NR_DOCUMENTO,
+                    CONTAS.NR_DOCUMENTO ||' - '|| CONTAS.NR_PARCELA ||' / '||RMAX.O_NR_MAIORPARCELA NR_DOCUMENTO,
+                    CONTAS.NR_PARCELA,
                     RMAX.O_NR_MAIORPARCELA PARCELAS,
                     CAST(SUM(CONTAS.VL_DOCUMENTO) AS NUMERIC(12,2)) VL_DOCUMENTO,
                     CONTAS.DS_OBSERVACAO,
@@ -49,7 +50,8 @@ class Financeiro extends Model
                     CONTAS.DS_OBSERVACAO,
                     CONTAS.DT_LANCAMENTO,
                     CONTAS.DT_VENCIMENTO,
-                    CONTAS.ST_VISTO  ";
+                    CONTAS.ST_VISTO, 
+                    CONTAS.NR_PARCELA";
 
         $results = DB::connection('firebird')->select($query);
         return $results =  Helper::ConvertFormatText($results);

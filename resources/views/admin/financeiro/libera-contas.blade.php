@@ -525,6 +525,7 @@
             selectedContas.forEach(function(row) {
                 contas.push({
                     nr_lancamento: row.NR_LANCAMENTO,
+                    nr_parcela: row.NR_PARCELA,
                     cd_empresa: row.CD_EMPRESA,
                     status: status,
                     ds_liberacao: row.DS_LIBERACAO,
@@ -698,6 +699,7 @@
                             if (type === 'display') {
                                 return '<input type="checkbox" class="dt-row-checkbox-contas" data-lancamento="' +
                                     row.NR_LANCAMENTO + '" data-empresa="' + row.CD_EMPRESA +
+                                    '" data-parcela="' + row.NR_PARCELA +
                                     '" aria-label="Selecionar linha" style="margin:0;">';
                             }
                             return '';
@@ -852,7 +854,7 @@
                 $(this).find('.dt-row-checkbox-contas').prop('checked', checked);
                 var row = tableContas.row(this).data();
                 if (row) {
-                    var key = row.NR_LANCAMENTO + '-' + row.CD_EMPRESA;
+                    var key = row.NR_LANCAMENTO + '-' + row.CD_EMPRESA + '-' + row.NR_PARCELA;
                     if (checked) {
                         selectedContas.set(key, row);
                     } else {
@@ -869,7 +871,7 @@
             var tr = $(this).closest('tr');
             var row = tableContas.row(tr).data();
             if (row) {
-                var key = row.NR_LANCAMENTO + '-' + row.CD_EMPRESA;
+                var key = row.NR_LANCAMENTO + '-' + row.CD_EMPRESA + '-' + row.NR_PARCELA;
                 if ($(this).is(':checked')) {
                     selectedContas.set(key, row);
                 } else {
