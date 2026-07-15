@@ -169,11 +169,12 @@
                                 <tr class="linha-grupo linha-grupo-receber">
                                     <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Receber</td>
                                     <x-fluxo-celulas :valores="$totalContasReceberPorDia" modo="total" classe-celula="valor-positivo"
-                                        :fins-de-semana="$finsDeSemana" />
+                                        :fins-de-semana="$finsDeSemana" ordenar-grupo="receber" />
                                 </tr>
                                 @foreach ($contasReceber as $categoria => $dadosCategoria)
                                     @php $slugCategoria = \Illuminate\Support\Str::slug($categoria); @endphp
-                                    <tr class="grupo-receber linha-detalhe linha-categoria">
+                                    <tr class="grupo-receber linha-detalhe linha-categoria"
+                                        data-valores="{{ json_encode($dadosCategoria['totais']) }}">
                                         <td class="pl-4">
                                             <button type="button" class="btn-detalhe-categoria" data-grupo="receber"
                                                 data-slug="{{ $slugCategoria }}" title="Ver clientes deste total">
@@ -186,7 +187,8 @@
                                     </tr>
                                     @foreach ($dadosCategoria['detalhe'] as $cliente => $valores)
                                         <tr class="grupo-receber linha-detalhe linha-cliente"
-                                            data-slug-pai="{{ $slugCategoria }}" style="display:none;">
+                                            data-slug-pai="{{ $slugCategoria }}" data-valores="{{ json_encode($valores) }}"
+                                            style="display:none;">
                                             <td class="pl-5">{{ $cliente }}</td>
                                             <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
                                                 tipo="receber" :categoria="$categoria" :cliente="$cliente" :fins-de-semana="$finsDeSemana" />
@@ -211,11 +213,12 @@
                                 <tr class="linha-grupo linha-grupo-pagar">
                                     <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Pagar</td>
                                     <x-fluxo-celulas :valores="$totalContasPagarPorDia" modo="total" classe-celula="valor-negativo"
-                                        :fins-de-semana="$finsDeSemana" />
+                                        :fins-de-semana="$finsDeSemana" ordenar-grupo="pagar" />
                                 </tr>
                                 @foreach ($contasPagar as $categoria => $dadosCategoria)
                                     @php $slugCategoriaPagar = \Illuminate\Support\Str::slug($categoria); @endphp
-                                    <tr class="grupo-pagar linha-detalhe linha-categoria">
+                                    <tr class="grupo-pagar linha-detalhe linha-categoria"
+                                        data-valores="{{ json_encode($dadosCategoria['totais']) }}">
                                         <td class="pl-4">
                                             <button type="button" class="btn-detalhe-categoria" data-grupo="pagar"
                                                 data-slug="{{ $slugCategoriaPagar }}"
@@ -229,7 +232,8 @@
                                     </tr>
                                     @foreach ($dadosCategoria['detalhe'] as $fornecedor => $valores)
                                         <tr class="grupo-pagar linha-detalhe linha-cliente"
-                                            data-slug-pai="{{ $slugCategoriaPagar }}" style="display:none;">
+                                            data-slug-pai="{{ $slugCategoriaPagar }}" data-valores="{{ json_encode($valores) }}"
+                                            style="display:none;">
                                             <td class="pl-5">{{ $fornecedor }}</td>
                                             <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
                                                 tipo="pagar" :categoria="$categoria" :cliente="$fornecedor" :fins-de-semana="$finsDeSemana" />
@@ -258,6 +262,16 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-bar mr-1 text-muted"></i> Entradas x Saídas por
+                        Dia</h3>
+                </div>
+                <div class="card-body" style="height:260px;">
+                    <canvas id="grafico-entradas-saidas"></canvas>
                 </div>
             </div>
 
@@ -580,6 +594,19 @@
             background-color: #d7e6f5;
         }
 
+        .ordenar-dia-cel {
+            cursor: pointer;
+        }
+
+        .ordenar-dia-cel:hover {
+            text-decoration: underline;
+        }
+
+        .icone-ordenacao {
+            font-size: 9px;
+            margin-left: 2px;
+        }
+
         .swal-title-fluxo {
             font-size: 1.1rem !important;
         }
@@ -623,6 +650,7 @@
 
 @section('js')
     <script src="{{ asset('js/dashboard/swal-draggable.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/chart-helpers.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
         var fluxoContasReceber = @json($contasReceber);
         var fluxoContasPagar = @json($contasPagar);
@@ -631,6 +659,30 @@
             receber: @json($lancAvulsoDetalheEntradaPorDia),
             pagar: @json($lancAvulsoDetalheSaidaPorDia)
         };
+
+        // Gráfico divergente: Entradas pra cima (verde), Saídas pra baixo do zero (vermelho,
+        // valores negados) — mesmas cores dos cards "Total Entradas"/"Total Saídas" acima,
+        // pra manter a mesma linguagem visual da página. Usa o helper já existente
+        // (barVertical) em vez de configurar o Chart.js na mão.
+        (function() {
+            var labelsDias = @json(collect($dias)->map(fn($d) => $d->format('d/m'))->all());
+            var totalEntradas = @json($totalEntradasExibicaoPorDia);
+            var totalSaidas = @json($totalSaidasPorDia).map(function(v) {
+                return -v;
+            });
+
+            barVertical('grafico-entradas-saidas', labelsDias, [{
+                    label: 'Entradas',
+                    data: totalEntradas,
+                    color: '#28a745'
+                },
+                {
+                    label: 'Saídas',
+                    data: totalSaidas,
+                    color: '#dc3545'
+                }
+            ]);
+        })();
 
         // Abre um modal com os lançamentos (NR_LANCAMENTO, Data Real, Cliente/Fornecedor e
         // Valor) que compõem o total clicado — na linha de categoria mostra todas as pessoas
@@ -745,6 +797,79 @@
                     .addClass(expandido ? 'fa-chevron-down' : 'fa-chevron-right');
                 $btn.prop('disabled', false);
             }, 50);
+        });
+
+        // Ordenação por dia específico: clique numa célula de dia da linha "Contas a
+        // Receber"/"Contas a Pagar" ordena as categorias (e os clientes dentro de cada uma)
+        // por aquele dia, maior pro menor — clicar de novo no mesmo dia inverte a ordem.
+        var ordenacaoAtualPorGrupo = {};
+
+        function ordenarGrupoPorDia(grupo, dia, direcao) {
+            var $linhaGrupo = $('.linha-grupo-' + grupo);
+
+            var itens = $('tr.linha-categoria.grupo-' + grupo).get().map(function(tr) {
+                var $tr = $(tr);
+                var slug = $tr.find('.btn-detalhe-categoria').data('slug');
+                var valores = $tr.data('valores') || [];
+
+                var clientes = $('tr.linha-cliente.grupo-' + grupo + '[data-slug-pai="' + slug +
+                        '"]').get()
+                    .map(function(trCliente) {
+                        var $trCliente = $(trCliente);
+                        var valoresCliente = $trCliente.data('valores') || [];
+                        return {
+                            el: $trCliente,
+                            valor: parseFloat(valoresCliente[dia]) || 0
+                        };
+                    })
+                    .sort(function(a, b) {
+                        return direcao === 'asc' ? (a.valor - b.valor) : (b.valor - a.valor);
+                    });
+
+                return {
+                    el: $tr,
+                    valor: parseFloat(valores[dia]) || 0,
+                    clientes: clientes
+                };
+            }).sort(function(a, b) {
+                return direcao === 'asc' ? (a.valor - b.valor) : (b.valor - a.valor);
+            });
+
+            var $ultimo = $linhaGrupo;
+            itens.forEach(function(item) {
+                item.el.insertAfter($ultimo);
+                $ultimo = item.el;
+
+                item.clientes.forEach(function(cliente) {
+                    cliente.el.insertAfter($ultimo);
+                    $ultimo = cliente.el;
+                });
+            });
+        }
+
+        // Ligado direto no elemento (não delegado via document) — precisa disparar antes do
+        // clique borbulhar pra .linha-grupo-receber/pagar, senão o stopPropagation() chega
+        // tarde demais e a linha recolhe/expande junto com a ordenação.
+        $('.ordenar-dia-cel').on('click', function(e) {
+            e.stopPropagation();
+
+            var $cel = $(this);
+            var grupo = $cel.data('ordenarGrupo');
+            var dia = $cel.data('dia');
+            var atual = ordenacaoAtualPorGrupo[grupo];
+            var direcao = (atual && atual.dia === dia && atual.direcao === 'desc') ? 'asc' :
+                'desc';
+
+            ordenacaoAtualPorGrupo[grupo] = {
+                dia: dia,
+                direcao: direcao
+            };
+
+            $('.linha-grupo-' + grupo + ' .icone-ordenacao').remove();
+            $cel.append(' <i class="fas fa-sort-amount-' + (direcao === 'desc' ? 'down' : 'up') +
+                ' icone-ordenacao"></i>');
+
+            ordenarGrupoPorDia(grupo, dia, direcao);
         });
 
         // Botão global: em vez de ter sua própria classe/estado, "clica" em cada botão +/-

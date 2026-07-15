@@ -14,6 +14,7 @@
     'clicavelTotal' => false, // permite clique em modo 'total' para TODOS os dias (ex: linha Saldo Banco)
     'clicavelPorDia' => null, // array<int,bool> paralelo a $valores — clique só nos dias marcados; tem prioridade sobre clicavelTotal
     'lancAvulsoTipo' => null, // 'receber' ou 'pagar' — marca a célula pra mostrar no hover os lançamentos avulsos daquele dia (editar/excluir)
+    'ordenarGrupo' => null, // 'receber' ou 'pagar' — marca a célula do dia (na linha de total do grupo) como clicável pra ordenar categorias/clientes por aquele dia
 ])
 
 @php
@@ -27,7 +28,7 @@
         $classeCelulaAtual = $modo === 'total' ? ($colorirPorSinal ? $classeSinal : $classeCelula) : '';
         $ehClicavelTotal = $modo === 'total' && ($clicavelPorDia !== null ? ($clicavelPorDia[$i] ?? false) : $clicavelTotal);
     @endphp
-    <td class="text-right col-dia col-dia-semana-{{ intdiv($i, 7) + 1 }} {{ $classeCelulaAtual }} {{ ($modo === 'detalhe' && $clicavel && $v > 0) ? 'valor-clicavel' : '' }} {{ $ehClicavelTotal ? 'valor-clicavel saldo-banco-clicavel' : '' }} {{ ($finsDeSemana[$i] ?? false) ? 'dia-fim-semana-cel' : '' }} {{ $destacada ? 'dia-lancamento-manual' : '' }} {{ $lancAvulsoTipo ? 'lanc-avulso-cel' : '' }} {{ ($lancAvulsoTipo && $v > 0) ? 'tem-lancamento' : '' }}"
+    <td class="text-right col-dia col-dia-semana-{{ intdiv($i, 7) + 1 }} {{ $classeCelulaAtual }} {{ ($modo === 'detalhe' && $clicavel && $v > 0) ? 'valor-clicavel' : '' }} {{ $ehClicavelTotal ? 'valor-clicavel saldo-banco-clicavel' : '' }} {{ ($finsDeSemana[$i] ?? false) ? 'dia-fim-semana-cel' : '' }} {{ $destacada ? 'dia-lancamento-manual' : '' }} {{ $lancAvulsoTipo ? 'lanc-avulso-cel' : '' }} {{ ($lancAvulsoTipo && $v > 0) ? 'tem-lancamento' : '' }} {{ $ordenarGrupo ? 'ordenar-dia-cel' : '' }}"
         @if ($destacada) title="Saldo bancário informado manualmente" @endif
         @if ($modo === 'detalhe' && $clicavel && $v > 0)
             data-tipo="{{ $tipo }}"
@@ -41,6 +42,11 @@
         @if ($lancAvulsoTipo)
             data-tipo="{{ $lancAvulsoTipo }}"
             data-dia="{{ $i }}"
+        @endif
+        @if ($ordenarGrupo)
+            data-ordenar-grupo="{{ $ordenarGrupo }}"
+            data-dia="{{ $i }}"
+            title="Ordenar por este dia"
         @endif
     >{{ $modo === 'detalhe' ? ($v > 0 ? number_format($v, 2, ',', '.') : '-') : number_format($v, 2, ',', '.') }}</td>
 
