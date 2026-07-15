@@ -22,6 +22,7 @@ class WppWebhookController extends Controller
         private IAService $ia,
     ) {}
 
+    // Ponto de entrada do webhook — roteia para o fluxo correto
     public function handle(Request $request)
     {
         $body  = $request->all();
@@ -29,7 +30,31 @@ class WppWebhookController extends Controller
 
         Log::info('WppConnect webhook recebido', ['event' => $event]);
 
-        // Código de pareamento por número de telefone
+        if ($resposta = $this->handleEvento($event, $body)) {
+            return $resposta;
+        }
+
+        if ($body['fromMe'] ?? false) {
+            return response()->json(['ok' => true]);
+        }
+
+        $msg = $this->parseMensagem($body);
+        if ($msg === null) {
+            return response()->json(['ok' => true]);
+        }
+
+        $resposta = $this->resolverResposta($msg['cmd'], $msg['texto'], $msg['phone'], $msg['phoneSend'], $msg['userId']);
+        if ($resposta !== null) {
+            $this->wpp->sendText($msg['phoneSend'], $resposta, '', null, $msg['userId']);
+            return response()->json(['ok' => true]);
+        }
+
+        return $this->handleAprovacao($msg['cmd'], $msg['token'], $msg['phone'], $msg['partes']);
+    }
+
+    // Trata eventos de sistema (phoneCode, autocloseCalled) — não são mensagens de usuário
+    private function handleEvento(string $event, array $body): ?\Illuminate\Http\JsonResponse
+    {
         if ($event === 'phoneCode') {
             $code = $body['phoneCode'] ?? null;
             if ($code) {
@@ -39,69 +64,68 @@ class WppWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        // Sessão fechada automaticamente (timeout de login)
         if ($event === 'status-find' && ($body['status'] ?? null) === 'autocloseCalled') {
             Cache::forget('wppconnect_phone_code');
             Log::info('WppConnect: sessão auto-fechada (autocloseCalled)');
             return response()->json(['ok' => true]);
         }
 
-        // Ignora mensagens enviadas pelo próprio bot
-        if ($body['fromMe'] ?? false) {
-            return response()->json(['ok' => true]);
-        }
+        return null;
+    }
 
-        $texto  = trim($body['body'] ?? '');
-        $from   = $body['from'] ?? ''; // Ex: 554184042323@c.us
-        $phone  = preg_replace('/\D/', '', explode('@', $from)[0]);
+    // Extrai e valida os dados da mensagem; captura LIDs desconhecidos; resolve destinatário
+    private function parseMensagem(array $body): ?array
+    {
+        $texto = trim($body['body'] ?? '');
+        $from  = $body['from'] ?? '';
+        $phone = preg_replace('/\D/', '', explode('@', $from)[0]);
 
         if (empty($texto) || empty($phone)) {
-            return response()->json(['ok' => true]);
+            return null;
         }
 
         $pushname = $body['sender']['pushname'] ?? ($body['notifyName'] ?? null);
 
-        // Se for LID (@lid) sem usuário mapeado, captura para associação posterior
-        if (str_ends_with($from, '@lid')) {
-            $jaExiste = User::where('wpp_lid', $phone)->exists();
-            if (! $jaExiste) {
-                WppLidPendente::updateOrCreate(
-                    ['lid' => $phone],
-                    ['pushname' => $pushname, 'ultimo_texto' => mb_substr($texto, 0, 200), 'updated_at' => now()],
-                );
-            }
+        if (str_ends_with($from, '@lid') && ! User::where('wpp_lid', $phone)->exists()) {
+            WppLidPendente::updateOrCreate(
+                ['lid' => $phone],
+                ['pushname' => $pushname, 'ultimo_texto' => mb_substr($texto, 0, 200), 'updated_at' => now()],
+            );
         }
 
         $partes = preg_split('/\s+/', $texto, 3);
-        $cmd    = strtoupper($partes[0] ?? '');
+        $cmd    = mb_strtoupper($partes[0] ?? '', 'UTF-8');
         $token  = $partes[1] ?? '';
 
-        // Se o remetente usou LID, resolve para o telefone real cadastrado no usuário
         $destinatario = str_ends_with($from, '@lid')
             ? User::where('wpp_lid', $phone)->first(['id', 'phone'])
             : User::where('phone', $phone)->first(['id', 'phone']);
 
-        $phoneSend = $destinatario?->phone ?? $phone;
+        return [
+            'texto'     => $texto,
+            'phone'     => $phone,
+            'cmd'       => $cmd,
+            'token'     => $token,
+            'partes'    => $partes,
+            'phoneSend' => $destinatario?->phone ?? $phone,
+            'userId'    => $destinatario?->id,
+        ];
+    }
 
-        // Respostas automáticas — adicione seus casos aqui
-        $resposta = $this->resolverResposta($cmd, $texto, $phone);
-        if ($resposta !== null) {
-            $this->wpp->sendText($phoneSend, $resposta, '', null, $destinatario?->id);
-            return response()->json(['ok' => true]);
-        }
-
-        if (!in_array($cmd, ['APROVAR', 'REPROVAR']) || empty($token)) {
+    // Processa comandos APROVAR/REPROVAR enviados via token pelo aprovador
+    private function handleAprovacao(string $cmd, string $token, string $phone, array $partes): \Illuminate\Http\JsonResponse
+    {
+        if (! in_array($cmd, ['APROVAR', 'REPROVAR']) || empty($token)) {
             return response()->json(['ok' => true]);
         }
 
         $disparo = WppDisparo::where('token', $token)->first();
 
-        if (!$disparo) {
+        if (! $disparo) {
             Log::warning("WppConnect webhook: token não encontrado [{$token}]");
             return response()->json(['ok' => true]);
         }
 
-        // Valida que quem responde é o dono do disparo
         if ((string) $disparo->phone !== $phone) {
             Log::warning("WppConnect webhook: phone não confere. Disparo: {$disparo->phone}, Remetente: {$phone}");
             return response()->json(['ok' => true]);
@@ -115,66 +139,67 @@ class WppWebhookController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    private function resolverResposta(string $cmd, string $textoOriginal, string $phone): ?string
+    // Orquestra o fluxo de resposta: fixas → IA
+    private function resolverResposta(string $cmd, string $textoOriginal, string $phone, string $phoneSend, ?int $userId): ?string
     {
-        // Respostas fixas (sem chamar LLM)
-        $fixa = match ($cmd) {
-            'OI', 'OLÁ', 'OLA', 'HELLO', 'HI', 'Oie', 'Oi' =>
-            "Olá! 👋Me faça uma pergunta sobre coletas, pedidos ou resultados!",
+        $fixa = $this->respostaFixa($cmd);
+        if ($fixa !== null) return $fixa;
+
+        if (in_array($cmd, ['APROVAR', 'REPROVAR'])) return null;
+
+        if (! $this->podeUsarIA($textoOriginal, $phone)) return null;
+
+        return $this->chamarIA($textoOriginal, $phoneSend, $userId);
+    }
+
+    // Respostas imediatas para saudações e ajuda — sem chamar a IA
+    private function respostaFixa(string $cmd): ?string
+    {
+        return match ($cmd) {
+            'OI', 'OLÁ', 'OLA', 'HELLO', 'HI', 'OIE' =>
+                "Olá! 👋 Me faça uma pergunta sobre coletas, pedidos ou resultados. Caso ainda tenha dúvida me envie a palavra *Ajuda*",
             'AJUDA', 'HELP' =>
-            "Comandos disponíveis:\n\n✅ 💬 Você pode perguntar, por exemplo:\n• _como foi meu dia de coletas hoje_\n• _coletas de junho_",
+                "Comandos disponíveis:\n\n💬 Você pode perguntar, por exemplo:\n• _como foi meu dia de coletas hoje_\n• _coletas de junho_\n• _coletas de janeiro da Unidade_",
             default => null,
         };
+    }
 
-        if ($fixa !== null) {
-            return $fixa;
-        }
-
-        // Comandos de aprovação não passam para o LLM
-        if (in_array($cmd, ['APROVAR', 'REPROVAR'])) {
-            return null;
-        }
-
-        // Mensagens muito curtas provavelmente não são perguntas de negócio
+    // Valida se a mensagem pode ser processada pela IA (tamanho, flag global, permissão do usuário)
+    private function podeUsarIA(string $textoOriginal, string $phone): bool
+    {
         if (mb_strlen($textoOriginal) < 10) {
-            Log::debug('WppWebhook[IA]: mensagem muito curta, ignorando', ['texto' => $textoOriginal]);
-            return null;
+            return false;
         }
 
-        // IA desativada globalmente
-        $iaAtivo = WppParametro::get('wpp_ia_ativo', '0');
-        Log::debug('WppWebhook[IA]: wpp_ia_ativo', ['valor' => $iaAtivo]);
-        if (! $iaAtivo) {
-            return null;
+        if (! WppParametro::get('wpp_ia_ativo', '0')) {
+            return false;
         }
 
-        // Busca por phone (formato @c.us) ou por wpp_lid (formato @lid)
-        $usuario = User::where('phone', $phone)
-            ->orWhere('wpp_lid', $phone)
-            ->first();
-        Log::debug('WppWebhook[IA]: busca usuário', ['identifier' => $phone, 'encontrado' => $usuario?->name]);
-        if (! $usuario) {
-            Log::debug('WppWebhook[IA]: identificador não encontrado em users', ['identifier' => $phone]);
-            return null;
-        }
-        if (! $usuario->hasPermissionTo('wppconnect-ia')) {
-            Log::debug('WppWebhook[IA]: usuário sem permissão wppconnect-ia', ['user' => $usuario->name]);
-            return null;
+        $usuario = User::where('phone', $phone)->orWhere('wpp_lid', $phone)->first();
+
+        if (! $usuario || ! $usuario->hasPermissionTo('wppconnect-ia')) {
+            Log::debug('WppWebhook[IA]: acesso negado', ['phone' => $phone, 'usuario' => $usuario?->name]);
+            return false;
         }
 
-        Log::debug('WppWebhook[IA]: chamando IA', ['texto' => $textoOriginal, 'user' => $usuario->name]);
+        return true;
+    }
 
-        // Tenta responder com IA
+    // Envia "aguarde", chama a IA e retorna a resposta (ou fallback em caso de falha)
+    private function chamarIA(string $textoOriginal, string $phoneSend, ?int $userId): string
+    {
+        $this->wpp->sendText($phoneSend, "⏳ Um momento, estou consultando as informações...", '', null, $userId);
+
         try {
             $resposta = $this->ia->responderParaWhatsapp($textoOriginal);
-            Log::debug('WppWebhook[IA]: resposta gerada', ['resposta' => $resposta]);
-            return $resposta;
+            return $resposta ?? "Não consegui interpretar sua pergunta. Tente de outra forma, por exemplo: _coletas de hoje_ ou _coletas de junho_.";
         } catch (\Throwable $e) {
             Log::error('WppWebhook: falha ao consultar IA', ['erro' => $e->getMessage()]);
-            return null;
+            return "Ocorreu um erro ao processar sua pergunta. Tente novamente em instantes.";
         }
     }
 
+    // Executa a aprovação ou reprovação de uma etapa de compra e invalida o token
     private function processarCompraEtapa(string $cmd, WppDisparo $disparo, string $obs): void
     {
         $idEtapa   = $disparo->referencia_id;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Helper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ class CompraParamEmpresa extends Model
 
     public function getAll()
     {
-        return DB::connection('firebird')->select("
+        $rows = DB::connection('firebird')->select("
             SELECT
                 C.CD_EMPRESA,
                 C.ST_USA_CENTROCUSTO,
@@ -23,19 +24,24 @@ class CompraParamEmpresa extends Model
             FROM COMPRA_PARAM_EMPRESA C
             LEFT JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA_COMPRA)
             LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA
-                AND EP.CD_ENDERECO = 1) 
+                AND EP.CD_ENDERECO = 1)
         ");
+
+        return Helper::ConvertFormatText($rows);
     }
 
     public function getCompradorByEmpresa(int $cdEmpresa): ?object
     {
-        return DB::connection('firebird')->selectOne("
+        $rows = DB::connection('firebird')->select("
             SELECT C.CD_PESSOA_COMPRA, P.NM_PESSOA NM_COMPRADOR, EP.NR_CELULAR
             FROM COMPRA_PARAM_EMPRESA C
             LEFT JOIN PESSOA P  ON (P.CD_PESSOA  = C.CD_PESSOA_COMPRA)
             LEFT JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = P.CD_PESSOA AND EP.CD_ENDERECO = 1)
             WHERE C.CD_EMPRESA = :cd
         ", ['cd' => $cdEmpresa]);
+
+        $converted = Helper::ConvertFormatText($rows);
+        return $converted[0] ?? null;
     }
 
     public function getMapUsaCentrocusto(): array
