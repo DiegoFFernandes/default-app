@@ -436,8 +436,8 @@
             z-index: 3;
         }
 
-        tbody .col-categoria,
-        tbody td:first-child {
+        .tabela-fluxo-caixa tbody .col-categoria,
+        .tabela-fluxo-caixa tbody td:first-child {
             position: sticky;
             left: 0;
             background: #fff;
@@ -654,6 +654,23 @@
             font-size: 1.1rem !important;
         }
 
+        /* Cabeçalho fixo dentro da área com rolagem (drill-down de lançamentos) — fica sempre
+           visível mesmo com a tabela rolada pra baixo. O Bootstrap usa border-collapse:collapse
+           por padrão, que quebra o position:sticky em th (o cabeçalho "sobe"/desalinha ao
+           rolar) — por isso força separate aqui. */
+        .tabela-thead-fixo {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .tabela-thead-fixo thead th {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 1;
+            box-shadow: inset 0 1px 0 #dee2e6, inset 0 -1px 0 #dee2e6;
+        }
+
         .swal-confirm-fluxo {
             font-size: .8rem !important;
             padding: .4rem 1rem !important;
@@ -727,9 +744,9 @@
             ]);
         })();
 
-        // Abre um modal com os lançamentos (NR_LANCAMENTO, Data Real, Cliente/Fornecedor e
-        // Valor) que compõem o total clicado — na linha de categoria mostra todas as pessoas
-        // daquele dia, na linha de pessoa mostra só os lançamentos dela.
+        // Abre um modal com os lançamentos (Nº Lanc, Nr Docto, Nr Parc., Data Real,
+        // Cliente/Fornecedor e Valor) que compõem o total clicado — na linha de categoria
+        // mostra todas as pessoas daquele dia, na linha de pessoa mostra só os lançamentos dela.
         $(document).on('click', '.valor-clicavel', function() {
             var tipo = $(this).data('tipo') || 'receber';
             var categoria = $(this).data('categoria');
@@ -760,46 +777,109 @@
                 return;
             }
 
+            abrirListaLancamentosContas(categoria, tipo, itens);
+        });
+
+        // Lista de lançamentos do drill-down: busca por cliente/valor, ordenação por Valor e
+        // total sempre visível (fora da área com rolagem — com muitos itens não precisa rolar
+        // até o fim pra saber o total).
+        function abrirListaLancamentosContas(categoria, tipo, itensOriginais) {
             var rotuloPessoa = tipo === 'pagar' ? 'Fornecedor' : 'Cliente';
-            var totalItens = 0;
-            var linhas = itens.map(function(item) {
-                totalItens += item.valor;
-                return '<tr>' +
-                    '<td>' + item.nr_lancamento + '</td>' +
-                    '<td style="width:85px; white-space:nowrap;">' + item.dt_real + '</td>' +
-                    '<td>' + item.nm_pessoa + '</td>' +
-                    '<td class="text-right" style="width:100px; white-space:nowrap;">' + item.valor
-                    .toLocaleString(
-                        'pt-BR', {
-                            minimumFractionDigits: 2
-                        }) + '</td>' +
-                    '</tr>';
-            }).join('');
+            var ordemValor = null; // null (original), 'asc' ou 'desc'
+            var filtroTexto = '';
+
+            function formatarValor(valor) {
+                return valor.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2
+                });
+            }
+
+            function itensExibidos() {
+                var lista = itensOriginais.slice();
+
+                if (filtroTexto) {
+                    var termo = filtroTexto.toLowerCase();
+                    lista = lista.filter(function(item) {
+                        return item.nm_pessoa.toLowerCase().indexOf(termo) !== -1 ||
+                            formatarValor(item.valor).indexOf(termo) !== -1;
+                    });
+                }
+
+                if (ordemValor) {
+                    lista.sort(function(a, b) {
+                        return ordemValor === 'asc' ? (a.valor - b.valor) : (b.valor - a.valor);
+                    });
+                }
+
+                return lista;
+            }
+
+            function atualizarTabela() {
+                var lista = itensExibidos();
+                var total = lista.reduce(function(acc, item) {
+                    return acc + item.valor;
+                }, 0);
+
+                var linhas = lista.map(function(item) {
+                    return '<tr>' +
+                        '<td>' + item.nr_lancamento + '</td>' +
+                        '<td>' + (item.nr_documento || '-') + '</td>' +
+                        '<td class="text-center">' + (item.nr_parcela || '-') + '</td>' +
+                        '<td style="width:85px; white-space:nowrap;">' + item.dt_real + '</td>' +
+                        '<td>' + item.nm_pessoa + '</td>' +
+                        '<td class="text-right" style="width:100px; white-space:nowrap;">' +
+                        formatarValor(item.valor) + '</td>' +
+                        '</tr>';
+                }).join('');
+
+                $('#swal-lanc-contas-tbody').html(linhas);
+                $('#swal-lanc-contas-total').text('R$ ' + formatarValor(total) + ' (' + lista.length +
+                    ' lançamento' + (lista.length === 1 ? '' : 's') + ')');
+            }
 
             Swal.fire({
                 title: categoria,
-                width: 650,
+                width: 700,
                 confirmButtonText: 'Fechar',
                 customClass: {
                     title: 'swal-title-fluxo',
                     confirmButton: 'swal-confirm-fluxo'
                 },
-                html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
-                    '<table class="table table-sm table-striped" style="font-size:12px;">' +
-                    '<thead><tr style="white-space:nowrap;"><th>Nº Lanc</th><th style="width:85px; white-space:nowrap;">Data Real</th><th>' +
-                    rotuloPessoa +
-                    '</th><th class="text-right" style="width:100px; white-space:nowrap;">Valor</th></tr></thead>' +
-                    '<tbody>' + linhas + '</tbody>' +
-                    '<tfoot><tr><th colspan="3">Total</th><th class="text-right" style="white-space:nowrap;">R$ ' +
-                    totalItens.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2
-                    }) + '</th></tr></tfoot>' +
-                    '</table></div>',
+                html: '<div style="text-align:left;">' +
+                    '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                    '<input type="text" id="swal-lanc-contas-filtro" class="form-control form-control-sm"' +
+                    ' style="max-width:220px;" placeholder="Buscar cliente ou valor...">' +
+                    '<strong id="swal-lanc-contas-total" style="font-size:12px;"></strong>' +
+                    '</div>' +
+                    '<div style="max-height:320px; overflow-y:auto;">' +
+                    '<table class="table table-sm table-striped tabela-thead-fixo" style="font-size:12px;">' +
+                    '<thead><tr style="white-space:nowrap;">' +
+                    '<th>Nº Lanc</th><th>Docto</th><th class="text-center">Parc.</th>' +
+                    '<th style="width:85px;">Data Real</th><th>' + rotuloPessoa + '</th>' +
+                    '<th class="text-right" id="swal-lanc-contas-th-valor" style="cursor:pointer;" title="Ordenar por valor">Valor <i class="fas fa-sort"></i></th>' +
+                    '</tr></thead>' +
+                    '<tbody id="swal-lanc-contas-tbody"></tbody>' +
+                    '</table>' +
+                    '</div>' +
+                    '</div>',
                 didOpen: function() {
                     makeSwalDraggable();
+                    atualizarTabela();
+
+                    $('#swal-lanc-contas-filtro').on('input', function() {
+                        filtroTexto = $(this).val().trim();
+                        atualizarTabela();
+                    });
+
+                    $('#swal-lanc-contas-th-valor').on('click', function() {
+                        ordemValor = ordemValor === 'desc' ? 'asc' : 'desc';
+                        $(this).find('i').attr('class', 'fas fa-sort-amount-' + (ordemValor ===
+                            'desc' ? 'down' : 'up'));
+                        atualizarTabela();
+                    });
                 }
             });
-        });
+        }
 
         // Colapsa/expande os grupos Contas a Receber / Contas a Pagar — só a linha de Tipo de
         // Conta fica visível de novo; categorias e clientes voltam sempre fechados.

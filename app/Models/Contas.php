@@ -109,7 +109,8 @@ class Contas
                 C.CD_PESSOA || '-' || P.NM_PESSOA NM_PESSOA,
 
                 C.CD_TIPOCONTA,
-                TC.DS_TIPOCONTA,
+                TC.DS_TIPOCONTA,                
+                C.NR_DOCUMENTO,
                 C.NR_PARCELA,
                 CAST(:prefixo_categoria AS VARCHAR(30)) || ' - ' || FP.DS_FORMAPAGTO DS_FORMAPAGTO,
 

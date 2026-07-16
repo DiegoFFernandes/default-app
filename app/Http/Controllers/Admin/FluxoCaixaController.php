@@ -623,6 +623,8 @@ class FluxoCaixaController extends Controller
 
             $grupos[$cdTipoConta]['categorias'][$categoria]['lancamentos'][$i][] = [
                 'nr_lancamento' => $lancamento->NR_LANCAMENTO,
+                'nr_documento' => $lancamento->NR_DOCUMENTO,
+                'nr_parcela' => $lancamento->NR_PARCELA,
                 'nm_pessoa' => $cliente,
                 'dt_real' => $dtVencimento->format('d/m/Y'),
                 'valor' => $valor,
