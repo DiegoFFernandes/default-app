@@ -356,13 +356,14 @@ class FluxoCaixaController extends Controller
         return [
             'tipo' => ['required', 'in:receber,pagar'],
             'dt_lancamento' => ['required', 'date'],
-            'cd_pessoa' => ['required', 'integer'],
-            'nm_pessoa' => ['required', 'string', 'max:150'],
+            'cd_pessoa' => ['nullable', 'integer'],
+            'nm_pessoa' => ['nullable', 'string', 'max:150'],
             'vl_documento' => ['required', 'numeric', 'min:0.01'],
-            'cd_tipoconta' => ['required', 'integer'],
+            'cd_tipoconta' => ['nullable', 'integer'],
             'ds_tipoconta' => ['nullable', 'string', 'max:100'],
             'cd_formapagto' => ['nullable', 'string', 'max:10'],
             'ds_formapagto' => ['nullable', 'string', 'max:100'],
+            'ds_observacao' => ['required', 'string', 'max:255'],
         ];
     }
 

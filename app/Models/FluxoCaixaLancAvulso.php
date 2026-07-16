@@ -18,6 +18,7 @@ class FluxoCaixaLancAvulso extends Model
         'ds_tipoconta',
         'cd_formapagto',
         'ds_formapagto',
+        'ds_observacao',
         'updated_by',
     ];
 
@@ -92,6 +93,7 @@ class FluxoCaixaLancAvulso extends Model
                 'ds_tipoconta' => $lancamento->ds_tipoconta,
                 'cd_formapagto' => $lancamento->cd_formapagto,
                 'ds_formapagto' => $lancamento->ds_formapagto,
+                'ds_observacao' => $lancamento->ds_observacao,
             ])->values()->all();
         }
 

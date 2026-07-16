@@ -83,13 +83,13 @@
                             <span><i class="fas fa-wallet"></i> Saldo Banco(s) Hoje</span>
                             @can('ver-fluxo-caixa-saldo-dia')
                                 <span class="stat-title-actions">
-                                    <button type="button" class="btn-add-saldo-banco" id="btn-listar-saldo-banco"
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-listar-saldo-banco"
                                         title="Ver lançamentos de saldo">
-                                        <i class="fas fa-list"></i>
+                                        <i class="fas fa-list mr-1"></i>Ver
                                     </button>
-                                    <button type="button" class="btn-add-saldo-banco" id="btn-add-saldo-banco"
+                                    <button type="button" class="btn btn-sm btn-primary" id="btn-add-saldo-banco"
                                         title="Adicionar saldo de banco/financeira">
-                                        <i class="fas fa-plus-circle"></i>
+                                        <i class="fas fa-plus-circle mr-1"></i>Adicionar
                                     </button>
                                 </span>
                             @endcan
@@ -352,18 +352,10 @@
             gap: 6px;
         }
 
-        .btn-add-saldo-banco {
-            border: none;
-            background: transparent;
-            padding: 0;
-            color: #28a745;
-            font-size: .8rem;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .btn-add-saldo-banco:hover {
-            color: #0056b3;
+        .stat-title-actions .btn {
+            font-size: .68rem;
+            padding: .15rem .4rem;
+            white-space: nowrap;
         }
 
         .stat-primary {
@@ -1127,7 +1119,7 @@
                 },
                 html: '<div style="text-align:left;">' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Tipo</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo <span class="text-danger">*</span></label>' +
                     '<select id="swal-lanc-tipo" class="form-control form-control-sm">' +
                     '<option value="receber"' + (tipoInicial === 'receber' ? ' selected' : '') +
                     '>Entrada (Contas a Receber)</option>' +
@@ -1136,36 +1128,41 @@
                     '</select>' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Data Lançamento</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Data Lançamento <span class="text-danger">*</span></label>' +
                     '<input type="date" id="swal-lanc-data" class="form-control form-control-sm" value="' +
                     (editando ? dadosExistentes.dt_lancamento : '{{ now()->format('Y-m-d') }}') +
                     '">' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Pessoa</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Pessoa (opcional)</label>' +
                     '<select id="swal-lanc-cd-pessoa" class="w-100"></select>' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Tipo Conta</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta (opcional)</label>' +
                     '<select id="swal-lanc-cd-tipoconta" class="w-100"></select>' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Forma de Pagamento</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Forma de Pagamento (opcional)</label>' +
                     '<select id="swal-lanc-cd-formapagto" class="w-100"></select>' +
                     '</div>' +
-                    '<div class="form-group mb-0">' +
-                    '<label class="mb-1" style="font-size:12px;">Valor do Documento</label>' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Valor do Documento <span class="text-danger">*</span></label>' +
                     '<input type="text" inputmode="decimal" id="swal-lanc-valor" class="form-control form-control-sm" placeholder="R$ 0,00" value="' +
                     (editando ? 'R$ ' + Number(dadosExistentes.vl_documento).toFixed(2).replace(
                         '.', ',') : '') + '">' +
+                    '</div>' +
+                    '<div class="form-group mb-0">' +
+                    '<label class="mb-1" style="font-size:12px;">Observação <span class="text-danger">*</span></label>' +
+                    '<textarea id="swal-lanc-observacao" class="form-control form-control-sm" rows="2" maxlength="255">' +
+                    (editando ? (dadosExistentes.ds_observacao || '') : '') + '</textarea>' +
                     '</div>' +
                     '</div>',
                 didOpen: function() {
                     makeSwalDraggable();
                     carregarOpcoesTipoConta(tipoInicial, editando ? dadosExistentes.cd_tipoconta :
-                        null, '#swal-lanc-cd-tipoconta');
+                        null, '#swal-lanc-cd-tipoconta', true);
                     carregarOpcoesFormaPagamento(editando ? dadosExistentes.cd_formapagto : null,
-                        '#swal-lanc-cd-formapagto');
+                        '#swal-lanc-cd-formapagto', true);
 
                     if (editando && dadosExistentes.cd_pessoa) {
                         $('#swal-lanc-cd-pessoa').append('<option value="' + dadosExistentes.cd_pessoa +
@@ -1213,7 +1210,8 @@
                     $('#swal-lanc-cd-tipoconta').select2({
                         theme: 'bootstrap4',
                         width: '100%',
-                        placeholder: 'Selecione',
+                        placeholder: 'Selecione (opcional)',
+                        allowClear: true,
                         dropdownParent: $(Swal.getPopup()),
                         containerCssClass: 'select2-fluxo-sm',
                         dropdownCssClass: 'select2-fluxo-sm'
@@ -1222,7 +1220,8 @@
                     $('#swal-lanc-cd-formapagto').select2({
                         theme: 'bootstrap4',
                         width: '100%',
-                        placeholder: 'Selecione',
+                        placeholder: 'Selecione (opcional)',
+                        allowClear: true,
                         dropdownParent: $(Swal.getPopup()),
                         containerCssClass: 'select2-fluxo-sm',
                         dropdownCssClass: 'select2-fluxo-sm'
@@ -1237,7 +1236,8 @@
                     });
 
                     $('#swal-lanc-tipo').on('change', function() {
-                        carregarOpcoesTipoConta($(this).val(), null, '#swal-lanc-cd-tipoconta');
+                        carregarOpcoesTipoConta($(this).val(), null, '#swal-lanc-cd-tipoconta',
+                            true);
                     });
                 },
                 preConfirm: function() {
@@ -1246,24 +1246,26 @@
                     var vlDocumento = $('#swal-lanc-valor').val().replace('R$', '').trim()
                         .replace(/\./g, '').replace(',', '.');
 
+                    var observacao = $('#swal-lanc-observacao').val().trim();
+
                     var $pessoaSelecionada = $('#swal-lanc-cd-pessoa option:selected');
                     var cdPessoa = $pessoaSelecionada.val() || null;
                     var nmPessoa = cdPessoa ? $pessoaSelecionada.text().replace(cdPessoa + '-',
                         '') : null;
 
                     var $tipoContaSelecionada = $('#swal-lanc-cd-tipoconta option:selected');
-                    var cdTipoConta = $tipoContaSelecionada.val();
+                    var cdTipoConta = $tipoContaSelecionada.val() || null;
                     var dsTipoConta = cdTipoConta ? $tipoContaSelecionada.text().replace(
-                        cdTipoConta + ' - ', '') : '';
+                        cdTipoConta + ' - ', '') : null;
 
                     var $formaPagtoSelecionada = $('#swal-lanc-cd-formapagto option:selected');
-                    var cdFormaPagto = $formaPagtoSelecionada.val();
+                    var cdFormaPagto = $formaPagtoSelecionada.val() || null;
                     var dsFormaPagto = cdFormaPagto ? $formaPagtoSelecionada.text().replace(
-                        cdFormaPagto + ' - ', '') : '';
+                        cdFormaPagto + ' - ', '') : null;
 
-                    if (!dtLancamento || vlDocumento === '' || !cdTipoConta || !cdPessoa) {
+                    if (!dtLancamento || vlDocumento === '' || !observacao) {
                         Swal.showValidationMessage(
-                            'Preencha a data, a pessoa, o tipo de conta e o valor do documento.');
+                            'Preencha a data, o valor do documento e a observação.');
                         return false;
                     }
 
@@ -1277,7 +1279,8 @@
                         cd_tipoconta: cdTipoConta,
                         ds_tipoconta: dsTipoConta,
                         cd_formapagto: cdFormaPagto,
-                        ds_formapagto: dsFormaPagto
+                        ds_formapagto: dsFormaPagto,
+                        ds_observacao: observacao
                     };
 
                     if (editando) {
@@ -1326,10 +1329,16 @@
             }
 
             var linhas = itens.map(function(item) {
+                var detalhes = [item.ds_tipoconta, item.ds_formapagto, item.ds_observacao]
+                    .filter(function(v) {
+                        return !!v;
+                    })
+                    .join(' · ');
+
                 return '<tr>' +
                     '<td>' + (item.nm_pessoa || '-') +
-                    '<br><small class="text-muted">' + item.ds_tipoconta +
-                    (item.ds_formapagto ? ' · ' + item.ds_formapagto : '') + '</small></td>' +
+                    (detalhes ? '<br><small class="text-muted">' + detalhes + '</small>' : '') +
+                    '</td>' +
                     '<td class="text-right">R$ ' + Number(item.vl_documento).toFixed(2).replace(
                         '.', ',') + '</td>' +
                     '<td class="text-center text-nowrap">' +
@@ -1431,15 +1440,15 @@
                 },
                 html: '<div style="text-align:left;">' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Data Lançamento</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Data Lançamento <span class="text-danger">*</span></label>' +
                     '<input type="date" id="swal-data-lancamento" class="form-control form-control-sm">' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Nome Banco/Financeira</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Nome Banco/Financeira <span class="text-danger">*</span></label>' +
                     '<input type="text" id="swal-nome-banco" class="form-control form-control-sm" placeholder="Ex: Banco do Brasil">' +
                     '</div>' +
                     '<div class="form-group mb-0">' +
-                    '<label class="mb-1" style="font-size:12px;">Saldo Banco</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Saldo Banco <span class="text-danger">*</span></label>' +
                     '<input type="text" inputmode="decimal" id="swal-saldo-banco" class="form-control form-control-sm" placeholder="R$ 0,00">' +
                     '</div>' +
                     '</div>',
@@ -1646,17 +1655,17 @@
                 },
                 html: '<div style="text-align:left;">' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Data Lançamento</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Data Lançamento <span class="text-danger">*</span></label>' +
                     '<input type="date" id="swal-edit-data" class="form-control form-control-sm" value="' +
                     data +
                     '"></div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Nome Banco/Financeira</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Nome Banco/Financeira <span class="text-danger">*</span></label>' +
                     '<input type="text" id="swal-edit-banco" class="form-control form-control-sm" value="' +
                     banco +
                     '"></div>' +
                     '<div class="form-group mb-0">' +
-                    '<label class="mb-1" style="font-size:12px;">Saldo Banco</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Saldo Banco <span class="text-danger">*</span></label>' +
                     '<input type="text" inputmode="decimal" id="swal-edit-valor" class="form-control form-control-sm" value="' +
                     Number(valor).toFixed(2).replace('.', ',') + '"></div>' +
                     '</div>',
@@ -1954,7 +1963,7 @@
         // select, mantendo selecionado(s) o(s) valor(es) atual(is) quando informado (edição).
         // `valorSelecionado` aceita tanto um valor único (select simples, ex. Compensação)
         // quanto um array (select múltiplo, ex. Parâmetro) — `.val()` trata os dois casos.
-        function carregarOpcoesTipoConta(tipo, valorSelecionado, seletor) {
+        function carregarOpcoesTipoConta(tipo, valorSelecionado, seletor, incluirOpcaoVazia) {
             var $select = $(seletor || '#swal-param-cd-tipoconta');
             $select.prop('disabled', true).html('<option>Carregando...</option>').trigger('change');
 
@@ -1966,6 +1975,10 @@
                 }
             }).done(function(opcoes) {
                 $select.empty();
+
+                if (incluirOpcaoVazia) {
+                    $select.append('<option value=""></option>');
+                }
 
                 if (!opcoes || opcoes.length === 0) {
                     $select.append('<option value="">Nenhum tipo de conta encontrado</option>');
@@ -1990,7 +2003,7 @@
         // multi-select, dependendo do elemento), mantendo selecionada(s) as informadas em
         // `selecionadas` (edição). `seletor` é opcional — usado pra reaproveitar essa função
         // fora do form de Parâmetros (ex: Lançamento Manual, com select simples).
-        function carregarOpcoesFormaPagamento(selecionadas, seletor) {
+        function carregarOpcoesFormaPagamento(selecionadas, seletor, incluirOpcaoVazia) {
             var $select = $(seletor || '#swal-param-formapagto');
 
             $.ajax({
@@ -1998,6 +2011,10 @@
                 url: '{{ route('get-form-pagamento') }}'
             }).done(function(opcoes) {
                 $select.empty();
+
+                if (incluirOpcaoVazia) {
+                    $select.append('<option value=""></option>');
+                }
 
                 (opcoes || []).forEach(function(opcao) {
                     $select.append('<option value="' + opcao.CD_FORMAPAGTO + '">' + opcao
@@ -2031,7 +2048,7 @@
                 },
                 html: '<div style="text-align:left;">' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Tipo</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo <span class="text-danger">*</span></label>' +
                     '<select id="swal-param-tipo" class="form-control form-control-sm">' +
                     '<option value="receber"' + (tipo === 'receber' ? ' selected' : '') +
                     '>Contas a Receber</option>' +
@@ -2040,7 +2057,7 @@
                     '</select>' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Tipo Conta</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta <span class="text-danger">*</span></label>' +
                     '<select id="swal-param-cd-tipoconta" class="w-100" multiple></select>' +
                     '</div>' +
                     '<div class="form-group mb-0">' +
@@ -2294,7 +2311,8 @@
                 var valor = dadosExistentes && dadosExistentes[dia] !== undefined ? dadosExistentes[
                     dia] : 0;
                 return '<div class="col-6 col-md-3 mb-2">' +
-                    '<label class="mb-1" style="font-size:11px;">' + rotulos[dia] + '</label>' +
+                    '<label class="mb-1" style="font-size:11px;">' + rotulos[dia] +
+                    ' <span class="text-danger">*</span></label>' +
                     '<input type="number" min="0" max="31" id="swal-comp-' + dia +
                     '" class="form-control form-control-sm" value="' + valor + '">' +
                     '</div>';
@@ -2314,7 +2332,7 @@
                 },
                 html: '<div style="text-align:left;">' +
                     '<div class="form-group mb-2">' +
-                    '<label class="mb-1" style="font-size:12px;">Tipo Conta</label>' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta <span class="text-danger">*</span></label>' +
                     '<select id="swal-comp-cd-tipoconta" class="form-control form-control-sm">' +
                     '<option>Carregando...</option>' +
                     '</select>' +

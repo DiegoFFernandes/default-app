@@ -35,12 +35,17 @@ class SaldoFluxoCaixa extends Model
     }
 
     /**
-     * Soma dos lançamentos com dt_saldo EXATAMENTE no dia informado (sem repetir valor de
-     * dias anteriores). Se não houver nenhum lançamento naquele dia, retorna 0.
+     * Soma do saldo de cada banco com dt_saldo EXATAMENTE no dia informado (sem repetir valor
+     * de dias anteriores) — se um banco tiver mais de um lançamento no mesmo dia (ex: correção
+     * feita depois), usa só o último (maior id), não soma os dois. Se não houver nenhum
+     * lançamento naquele dia, retorna 0.
      */
     public static function saldoLancadoNoDia(Carbon $dia): float
     {
-        return (float) self::whereDate('dt_saldo', $dia->format('Y-m-d'))->sum('vl_saldo');
+        return (float) self::whereDate('dt_saldo', $dia->format('Y-m-d'))
+            ->get()
+            ->groupBy('ds_banco')
+            ->sum(fn ($lancamentosBanco) => $lancamentosBanco->sortByDesc('id')->first()->vl_saldo);
     }
 
     /**
