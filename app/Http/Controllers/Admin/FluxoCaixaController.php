@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Contas;
 use App\Models\FluxoCaixaCompensacao;
+use App\Models\FluxoCaixaConfig;
 use App\Models\FluxoCaixaLancAvulso;
 use App\Models\FluxoCaixaParametro;
 use App\Models\FluxoCaixaSaldoDia;
+use App\Models\SaldoCaixa;
 use App\Models\SaldoFluxoCaixa;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -84,17 +86,24 @@ class FluxoCaixaController extends Controller
         $lancamentoManualSaida = FluxoCaixaLancAvulso::valorPorDia($dias, 'pagar');
         $lancAvulsoDetalheSaidaPorDia = FluxoCaixaLancAvulso::detalhePorDia($dias, 'pagar');
 
-        // Saldo bancário real por dia (forward-fill do que está em fluxo_caixa_saldo) — usado
+        // Origem do Saldo Banco: 'digitado' (fluxo_caixa_saldo, padrão) ou 'firebird'
+        // (SALDOCAIXA, via SaldoCaixa/fluxo_caixa_saldo_conta), configurável na tela de
+        // Parâmetros. As duas classes expõem os mesmos métodos/formatos de retorno, então o
+        // resto do cálculo abaixo não muda dependendo da origem escolhida.
+        $origemSaldoBanco = FluxoCaixaConfig::get('origem_saldo_banco', 'digitado');
+        $fonteSaldo = $origemSaldoBanco === 'firebird' ? SaldoCaixa::class : SaldoFluxoCaixa::class;
+
+        // Saldo bancário real por dia (forward-fill do que está na origem escolhida) — usado
         // só para saber o valor real informado no dia 0 e nos dias com lançamento manual.
-        $saldoBancoRealPorDia = SaldoFluxoCaixa::saldoTotalPorDia($dias);
+        $saldoBancoRealPorDia = $fonteSaldo::saldoTotalPorDia($dias);
 
         // Dias em que existe algum lançamento de saldo bancário com dt_saldo exatamente
         // naquele dia — nesses dias o Saldo Banco usa o valor real informado.
-        $diasComLancamentoManual = SaldoFluxoCaixa::diasComLancamento($dias);
+        $diasComLancamentoManual = $fonteSaldo::diasComLancamento($dias);
 
         // Valor efetivamente lançado em cada dia (só os bancos atualizados naquele dia, sem
         // forward-fill) — usado pro Saldo Banco bater com o que o drill-down mostra.
-        $valorSaldoBancoLancadoPorDia = SaldoFluxoCaixa::valorLancadoPorDia($dias);
+        $valorSaldoBancoLancadoPorDia = $fonteSaldo::valorLancadoPorDia($dias);
 
         // Prioridade da âncora do dia 0 (mesma regra dos demais dias, só que "ontem" não está
         // dentro da janela exibida):
@@ -111,7 +120,7 @@ class FluxoCaixaController extends Controller
             if ($saldoDoDiaAnterior !== null) {
                 $saldoBancoRealPorDia[0] = $saldoDoDiaAnterior;
             } elseif ($dias[0]->greaterThan(Carbon::now()->startOfDay())
-                && !SaldoFluxoCaixa::existeLancamentoAPartirDe($dias[0])) {
+                && !$fonteSaldo::existeLancamentoAPartirDe($dias[0])) {
                 $saldoBancoRealPorDia[0] = 0.0;
             }
         }
@@ -188,15 +197,16 @@ class FluxoCaixaController extends Controller
 
         // Lançamentos (por banco) que compõem o total de cada dia — usado no drill-down ao
         // clicar num valor da linha "Saldo Banco".
-        $saldoBancoDetalhePorDia = SaldoFluxoCaixa::detalhePorDia($dias);
+        $saldoBancoDetalhePorDia = $fonteSaldo::detalhePorDia($dias);
 
         // Card "Saldo Banco(s)": soma dos lançamentos do dia mais recente que tem algum saldo
         // informado — não confunde bancos de dias diferentes (ex: Bradesco só até 15/07 e Banco
         // do Brasil só até 10/07 não somam juntos; mostra só o Bradesco, do dia 15/07).
-        $saldoBancoHoje = SaldoFluxoCaixa::saldoUltimoDiaLancado();
+        $saldoBancoHoje = $fonteSaldo::saldoUltimoDiaLancado();
 
         return view('admin.financeiro.fluxo-caixa', [
             'dias' => $dias,
+            'origemSaldoBanco' => $origemSaldoBanco,
             'finsDeSemana' => array_map(fn (Carbon $dia) => $dia->isWeekend(), $dias),
             'tipoData' => $tipoData,
             'qtdSemanas' => $qtdSemanas,
@@ -510,6 +520,19 @@ class FluxoCaixaController extends Controller
 
         return response()->json([
             'success' => 'Regra de compensação excluída com sucesso!',
+        ]);
+    }
+
+    public function salvarOrigemSaldoBanco(Request $request)
+    {
+        $validado = $request->validate([
+            'origem_saldo_banco' => ['required', 'in:digitado,firebird'],
+        ]);
+
+        FluxoCaixaConfig::set('origem_saldo_banco', $validado['origem_saldo_banco']);
+
+        return response()->json([
+            'success' => 'Origem do saldo banco atualizada com sucesso!',
         ]);
     }
 

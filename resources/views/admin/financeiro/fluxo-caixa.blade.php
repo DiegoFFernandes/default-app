@@ -82,16 +82,18 @@
                         <div class="stat-title">
                             <span><i class="fas fa-wallet"></i> Saldo Banco(s) Hoje</span>
                             @can('ver-fluxo-caixa-saldo-dia')
-                                <span class="stat-title-actions">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-listar-saldo-banco"
-                                        title="Ver lançamentos de saldo">
-                                        <i class="fas fa-list mr-1"></i>Ver
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-primary" id="btn-add-saldo-banco"
-                                        title="Adicionar saldo de banco/financeira">
-                                        <i class="fas fa-plus-circle mr-1"></i>Adicionar
-                                    </button>
-                                </span>
+                                @if ($origemSaldoBanco !== 'firebird')
+                                    <span class="stat-title-actions">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-listar-saldo-banco"
+                                            title="Ver lançamentos de saldo">
+                                            <i class="fas fa-list mr-1"></i>Ver
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-primary" id="btn-add-saldo-banco"
+                                            title="Adicionar saldo de banco/financeira">
+                                            <i class="fas fa-plus-circle mr-1"></i>Adicionar
+                                        </button>
+                                    </span>
+                                @endif
                             @endcan
                         </div>
                         <div class="stat-value">R$ {{ number_format($saldoBancoHoje, 2, ',', '.') }}</div>
@@ -711,6 +713,7 @@
             receber: @json($lancAvulsoDetalheEntradaPorDia),
             pagar: @json($lancAvulsoDetalheSaidaPorDia)
         };
+        var fluxoOrigemSaldoBanco = @json($origemSaldoBanco);
 
         // Gráfico divergente: Entradas pra cima (verde), Saídas pra baixo do zero (vermelho,
         // valores negados) — mesmas cores dos cards "Total Entradas"/"Total Saídas" acima,
@@ -1504,24 +1507,30 @@
             });
         });
 
-        // Monta as linhas (com botões de editar/excluir) usadas tanto no drill-down por dia
-        // quanto na busca por período.
-        function montarLinhasSaldoBanco(itens) {
+        // Monta as linhas usadas tanto no drill-down por dia quanto na busca por período.
+        // `editavel` controla se mostra os botões de editar/excluir — a busca por período
+        // (buscarSaldoBanco) é sempre sobre fluxo_caixa_saldo de verdade, então sempre editável;
+        // já o drill-down por dia mostra o que estiver configurado como origem do Saldo Banco
+        // (digitado ou Firebird/SALDOCAIXA), e registros do Firebird não são editáveis/excluíveis
+        // por aqui — mostrar os botões nesse caso confundiria o usuário (o clique falharia).
+        function montarLinhasSaldoBanco(itens, editavel) {
             return itens.map(function(item) {
+                var acoes = editavel ?
+                    ('<button type="button" class="btn btn-xs btn-outline-primary btn-editar-saldo-banco" data-id="' +
+                        item.id + '" data-banco="' + item.ds_banco + '" data-valor="' + item.vl_saldo +
+                        '" data-data="' + item.dt_saldo +
+                        '" title="Editar"><i class="fas fa-pencil-alt"></i></button> ' +
+                        '<button type="button" class="btn btn-xs btn-outline-danger btn-excluir-saldo-banco" data-id="' +
+                        item.id + '" title="Excluir"><i class="fas fa-trash"></i></button>') :
+                    '<i class="fas fa-lock text-muted" title="Saldo vindo do Firebird — somente leitura"></i>';
+
                 return '<tr>' +
                     '<td>' + item.ds_banco + '</td>' +
                     '<td>' + item.dt_saldo_formatada + '</td>' +
                     '<td class="text-right">' + item.vl_saldo.toLocaleString('pt-BR', {
                         minimumFractionDigits: 2
                     }) + '</td>' +
-                    '<td class="text-center">' +
-                    '<button type="button" class="btn btn-xs btn-outline-primary btn-editar-saldo-banco" data-id="' +
-                    item.id + '" data-banco="' + item.ds_banco + '" data-valor="' + item.vl_saldo +
-                    '" data-data="' + item.dt_saldo +
-                    '" title="Editar"><i class="fas fa-pencil-alt"></i></button> ' +
-                    '<button type="button" class="btn btn-xs btn-outline-danger btn-excluir-saldo-banco" data-id="' +
-                    item.id + '" title="Excluir"><i class="fas fa-trash"></i></button>' +
-                    '</td>' +
+                    '<td class="text-center">' + acoes + '</td>' +
                     '</tr>';
             }).join('');
         }
@@ -1552,7 +1561,7 @@
                 html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
                     '<table class="table table-sm table-striped" style="font-size:12px;">' +
                     '<thead><tr><th>Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
-                    '<tbody>' + montarLinhasSaldoBanco(itens) + '</tbody>' +
+                    '<tbody>' + montarLinhasSaldoBanco(itens, fluxoOrigemSaldoBanco !== 'firebird') + '</tbody>' +
                     '</table></div>',
                 didOpen: function() {
                     makeSwalDraggable();
@@ -1626,7 +1635,7 @@
                 $resultado.html(
                     '<table class="table table-sm table-striped" style="font-size:12px;">' +
                     '<thead><tr><th>Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
-                    '<tbody>' + montarLinhasSaldoBanco(response.dados) + '</tbody>' +
+                    '<tbody>' + montarLinhasSaldoBanco(response.dados, true) + '</tbody>' +
                     '</table>'
                 );
             }).fail(function() {
@@ -1803,6 +1812,20 @@
             abrirParametrosFluxo();
         });
 
+        // Placeholder: configuração de origem do Saldo Banco (digitado x direto do Firebird,
+        // via SALDOCAIXA) e das contas (CD_CONTA) consideradas — será implementada nas
+        // próximas etapas do projeto.
+        function abrirConfigSaldoCaixaFirebird() {
+            Swal.fire({
+                icon: 'info',
+                title: 'Saldo Caixa (Junsoft)',
+                text: 'Tela de configuração da origem do saldo bancário (digitado ou direto do Firebird) e das contas consideradas será implementada nas próximas etapas do projeto.',
+                confirmButtonText: 'Ok'
+            }).then(function() {
+                abrirParametrosFluxo();
+            });
+        }
+
         function abrirParametrosFluxo() {
             suprimirRecargaParametros = false;
 
@@ -1815,11 +1838,18 @@
                     title: 'swal-title-fluxo'
                 },
                 html: '<div style="text-align:left;">' +
+                    '<div class="custom-control custom-switch mb-2">' +
+                    '<input type="checkbox" class="custom-control-input" id="swal-toggle-origem-saldo"' +
+                    (fluxoOrigemSaldoBanco === 'firebird' ? ' checked' : '') + '>' +
+                    '<label class="custom-control-label" for="swal-toggle-origem-saldo" style="font-size:12px;">Saldo Banco via Junsoft</label>' +
+                    '</div>' +
                     '<div class="text-right mb-2">' +
                     '<button type="button" id="swal-btn-compensacao" class="btn btn-sm btn-outline-primary mr-1">' +
                     '<i class="fas fa-clock mr-1"></i>Compensação Bancária</button>' +
-                    '<button type="button" id="swal-btn-add-parametro" class="btn btn-sm btn-success">' +
-                    '<i class="fas fa-plus mr-1"></i>Adicionar</button>' +
+                    '<button type="button" id="swal-btn-saldo-caixa-firebird" class="btn btn-sm btn-outline-primary mr-1">' +
+                    '<i class="fas fa-university mr-1"></i>Contas Saldo (Junsoft)</button>' +
+                    '<button type="button" id="swal-btn-add-parametro" class="btn btn-sm btn-outline-primary mr-1">' +
+                    '<i class="fas fa-plus mr-1"></i>Add Tipo Contas</button>' +
                     '</div>' +
                     '<div id="swal-resultado-parametros" style="max-height:360px; overflow-y:auto;"></div>' +
                     '</div>',
@@ -1833,6 +1863,50 @@
                         suprimirRecargaParametros = true;
                         abrirCompensacaoFluxo();
                     });
+                    document.getElementById('swal-btn-saldo-caixa-firebird').addEventListener('click',
+                        function() {
+                            suprimirRecargaParametros = true;
+                            abrirConfigSaldoCaixaFirebird();
+                        });
+                    document.getElementById('swal-toggle-origem-saldo').addEventListener('change',
+                        function() {
+                            var $toggle = $(this);
+                            var novaOrigem = this.checked ? 'firebird' : 'digitado';
+
+                            $.ajax({
+                                method: 'POST',
+                                url: '{{ route('fluxo-caixa.salvar-origem-saldo-banco') }}',
+                                data: {
+                                    _token: $('[name="csrf-token"]').attr('content'),
+                                    origem_saldo_banco: novaOrigem
+                                }
+                            }).done(function() {
+                                fluxoOrigemSaldoBanco = novaOrigem;
+                                fluxoParametrosAlterado = true;
+
+                                // Um Swal.fire aqui substituiria o modal de Parâmetros que já
+                                // está aberto (só 1 popup por vez) — em vez disso, um feedback
+                                // visual rápido ao lado do próprio toggle.
+                                var $label = $toggle.siblings('.custom-control-label');
+                                $label.find('.icone-salvo').remove();
+                                $label.append(
+                                    ' <i class="fas fa-check text-success icone-salvo"></i>');
+                                setTimeout(function() {
+                                    $label.find('.icone-salvo').fadeOut(300, function() {
+                                        $(this).remove();
+                                    });
+                                }, 1500);
+                            }).fail(function(xhr) {
+                                $toggle.prop('checked', !$toggle.prop('checked'));
+                                var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                                    'Erro ao salvar a configuração.';
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Erro',
+                                    text: msg
+                                });
+                            });
+                        });
                     buscarParametros();
                 }
             }).then(function() {

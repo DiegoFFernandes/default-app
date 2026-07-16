@@ -29,6 +29,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('salvar-compensacao', [FluxoCaixaController::class, 'salvarCompensacao'])->name('fluxo-caixa.salvar-compensacao');
             Route::post('atualizar-compensacao', [FluxoCaixaController::class, 'atualizarCompensacao'])->name('fluxo-caixa.atualizar-compensacao');
             Route::post('excluir-compensacao', [FluxoCaixaController::class, 'excluirCompensacao'])->name('fluxo-caixa.excluir-compensacao');
+
+            Route::post('salvar-origem-saldo-banco', [FluxoCaixaController::class, 'salvarOrigemSaldoBanco'])->name('fluxo-caixa.salvar-origem-saldo-banco');
         });
     });
 });
