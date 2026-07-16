@@ -190,9 +190,10 @@ class FluxoCaixaController extends Controller
         // clicar num valor da linha "Saldo Banco".
         $saldoBancoDetalhePorDia = SaldoFluxoCaixa::detalhePorDia($dias);
 
-        // Card "Saldo Banco(s)": mostra só o que foi lançado manualmente hoje (não é a
-        // projeção do período exibido, é sempre a data real de hoje).
-        $saldoBancoHoje = SaldoFluxoCaixa::saldoLancadoNoDia(Carbon::now());
+        // Card "Saldo Banco(s)": soma dos lançamentos do dia mais recente que tem algum saldo
+        // informado — não confunde bancos de dias diferentes (ex: Bradesco só até 15/07 e Banco
+        // do Brasil só até 10/07 não somam juntos; mostra só o Bradesco, do dia 15/07).
+        $saldoBancoHoje = SaldoFluxoCaixa::saldoUltimoDiaLancado();
 
         return view('admin.financeiro.fluxo-caixa', [
             'dias' => $dias,

@@ -1441,7 +1441,7 @@
                 html: '<div style="text-align:left;">' +
                     '<div class="form-group mb-2">' +
                     '<label class="mb-1" style="font-size:12px;">Data Lançamento <span class="text-danger">*</span></label>' +
-                    '<input type="date" id="swal-data-lancamento" class="form-control form-control-sm">' +
+                    '<input type="date" id="swal-data-lancamento" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}">' +
                     '</div>' +
                     '<div class="form-group mb-2">' +
                     '<label class="mb-1" style="font-size:12px;">Nome Banco/Financeira <span class="text-danger">*</span></label>' +

@@ -49,6 +49,23 @@ class SaldoFluxoCaixa extends Model
     }
 
     /**
+     * Soma dos saldos do dia mais recente que tem algum lançamento (não necessariamente hoje).
+     * Diferente de saldoTotalAtual()/saldoTotalPorDia(), que fazem forward-fill banco a banco
+     * (cada banco usa sua própria última data, podendo misturar bancos de dias diferentes na
+     * soma) — aqui só entram os bancos lançados NAQUELE dia específico mais recente.
+     */
+    public static function saldoUltimoDiaLancado(): float
+    {
+        $ultimaData = self::max('dt_saldo');
+
+        if ($ultimaData === null) {
+            return 0.0;
+        }
+
+        return self::saldoLancadoNoDia(Carbon::parse($ultimaData));
+    }
+
+    /**
      * Verifica se existe algum lançamento com dt_saldo maior ou igual à data informada.
      * Usado para não deixar o saldo real conhecido hoje "vazar" para dentro de uma semana
      * totalmente futura sem nenhuma confirmação relevante para aquele período.
