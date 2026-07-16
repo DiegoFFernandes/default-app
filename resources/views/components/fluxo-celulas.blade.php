@@ -14,7 +14,9 @@
     'clicavelTotal' => false, // permite clique em modo 'total' para TODOS os dias (ex: linha Saldo Banco)
     'clicavelPorDia' => null, // array<int,bool> paralelo a $valores — clique só nos dias marcados; tem prioridade sobre clicavelTotal
     'lancAvulsoTipo' => null, // 'receber' ou 'pagar' — marca a célula pra mostrar no hover os lançamentos avulsos daquele dia (editar/excluir)
-    'ordenarGrupo' => null, // 'receber' ou 'pagar' — marca a célula do dia (na linha de total do grupo) como clicável pra ordenar categorias/clientes por aquele dia
+    'ordenarGrupo' => null, // 'receber' ou 'pagar' — marca a célula do dia (na linha do tipo de conta) como clicável pra ordenar categorias/clientes daquele tipo de conta por aquele dia
+    'ordenarEscopo' => null, // slug do tipo de conta — escopo da ordenação (cada tipo de conta ordena só as suas próprias categorias/clientes)
+    'cdTipoConta' => null, // CD_TIPOCONTA — usado no drill-down pra localizar a categoria certa dentro do tipo de conta certo
 ])
 
 @php
@@ -34,6 +36,7 @@
             data-tipo="{{ $tipo }}"
             data-categoria="{{ $categoria }}"
             @if ($cliente) data-cliente="{{ $cliente }}" @endif
+            @if ($cdTipoConta !== null) data-tipoconta="{{ $cdTipoConta }}" @endif
             data-dia="{{ $i }}"
         @endif
         @if ($ehClicavelTotal)
@@ -45,6 +48,7 @@
         @endif
         @if ($ordenarGrupo)
             data-ordenar-grupo="{{ $ordenarGrupo }}"
+            data-ordenar-escopo="{{ $ordenarEscopo }}"
             data-dia="{{ $i }}"
             title="Ordenar por este dia"
         @endif

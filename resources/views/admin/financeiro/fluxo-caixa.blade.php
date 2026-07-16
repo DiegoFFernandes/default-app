@@ -169,30 +169,48 @@
                                 <tr class="linha-grupo linha-grupo-receber">
                                     <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Receber</td>
                                     <x-fluxo-celulas :valores="$totalContasReceberPorDia" modo="total" classe-celula="valor-positivo"
-                                        :fins-de-semana="$finsDeSemana" ordenar-grupo="receber" />
+                                        :fins-de-semana="$finsDeSemana" />
                                 </tr>
-                                @foreach ($contasReceber as $categoria => $dadosCategoria)
-                                    @php $slugCategoria = \Illuminate\Support\Str::slug($categoria); @endphp
-                                    <tr class="grupo-receber linha-detalhe linha-categoria"
-                                        data-valores="{{ json_encode($dadosCategoria['totais']) }}">
+                                @foreach ($contasReceber as $cdTipoConta => $dadosTipoConta)
+                                    @php $slugTipoConta = \Illuminate\Support\Str::slug($dadosTipoConta['ds_tipoconta'] . '-' . $cdTipoConta); @endphp
+                                    <tr class="grupo-receber linha-detalhe linha-tipoconta"
+                                        data-slug="{{ $slugTipoConta }}" data-valores="{{ json_encode($dadosTipoConta['totais']) }}">
                                         <td class="pl-4">
-                                            <button type="button" class="btn-detalhe-categoria" data-grupo="receber"
-                                                data-slug="{{ $slugCategoria }}" title="Ver clientes deste total">
+                                            <button type="button" class="btn-detalhe-tipoconta" data-grupo="receber"
+                                                data-slug="{{ $slugTipoConta }}" title="Ver categorias deste tipo de conta">
                                                 <i class="fas fa-chevron-right"></i>
                                             </button>
-                                            {{ $categoria }}
+                                            {{ $dadosTipoConta['ds_tipoconta'] }}
                                         </td>
-                                        <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true" tipo="receber"
-                                            :categoria="$categoria" :fins-de-semana="$finsDeSemana" />
+                                        <x-fluxo-celulas :valores="$dadosTipoConta['totais']" modo="detalhe"
+                                            :fins-de-semana="$finsDeSemana" ordenar-grupo="receber"
+                                            :ordenar-escopo="$slugTipoConta" />
                                     </tr>
-                                    @foreach ($dadosCategoria['detalhe'] as $cliente => $valores)
-                                        <tr class="grupo-receber linha-detalhe linha-cliente"
-                                            data-slug-pai="{{ $slugCategoria }}" data-valores="{{ json_encode($valores) }}"
-                                            style="display:none;">
-                                            <td class="pl-5">{{ $cliente }}</td>
-                                            <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
-                                                tipo="receber" :categoria="$categoria" :cliente="$cliente" :fins-de-semana="$finsDeSemana" />
+                                    @foreach ($dadosTipoConta['categorias'] as $categoria => $dadosCategoria)
+                                        @php $slugCategoria = \Illuminate\Support\Str::slug($slugTipoConta . '-' . $categoria); @endphp
+                                        <tr class="grupo-receber linha-detalhe linha-categoria"
+                                            data-slug-pai-tipoconta="{{ $slugTipoConta }}"
+                                            data-valores="{{ json_encode($dadosCategoria['totais']) }}" style="display:none;">
+                                            <td class="pl-5">
+                                                <button type="button" class="btn-detalhe-categoria" data-grupo="receber"
+                                                    data-slug="{{ $slugCategoria }}" title="Ver clientes deste total">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </button>
+                                                {{ $categoria }}
+                                            </td>
+                                            <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true" tipo="receber"
+                                                :categoria="$categoria" :cd-tipo-conta="$cdTipoConta" :fins-de-semana="$finsDeSemana" />
                                         </tr>
+                                        @foreach ($dadosCategoria['detalhe'] as $cliente => $valores)
+                                            <tr class="grupo-receber linha-detalhe linha-cliente"
+                                                data-slug-pai="{{ $slugCategoria }}" data-valores="{{ json_encode($valores) }}"
+                                                style="display:none;">
+                                                <td style="padding-left:4.5rem;">{{ $cliente }}</td>
+                                                <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
+                                                    tipo="receber" :categoria="$categoria" :cliente="$cliente" :cd-tipo-conta="$cdTipoConta"
+                                                    :fins-de-semana="$finsDeSemana" />
+                                            </tr>
+                                        @endforeach
                                     @endforeach
                                 @endforeach
                                 <tr class="grupo-receber linha-detalhe">
@@ -213,31 +231,49 @@
                                 <tr class="linha-grupo linha-grupo-pagar">
                                     <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Pagar</td>
                                     <x-fluxo-celulas :valores="$totalContasPagarPorDia" modo="total" classe-celula="valor-negativo"
-                                        :fins-de-semana="$finsDeSemana" ordenar-grupo="pagar" />
+                                        :fins-de-semana="$finsDeSemana" />
                                 </tr>
-                                @foreach ($contasPagar as $categoria => $dadosCategoria)
-                                    @php $slugCategoriaPagar = \Illuminate\Support\Str::slug($categoria); @endphp
-                                    <tr class="grupo-pagar linha-detalhe linha-categoria"
-                                        data-valores="{{ json_encode($dadosCategoria['totais']) }}">
+                                @foreach ($contasPagar as $cdTipoConta => $dadosTipoConta)
+                                    @php $slugTipoContaPagar = \Illuminate\Support\Str::slug($dadosTipoConta['ds_tipoconta'] . '-' . $cdTipoConta); @endphp
+                                    <tr class="grupo-pagar linha-detalhe linha-tipoconta"
+                                        data-slug="{{ $slugTipoContaPagar }}" data-valores="{{ json_encode($dadosTipoConta['totais']) }}">
                                         <td class="pl-4">
-                                            <button type="button" class="btn-detalhe-categoria" data-grupo="pagar"
-                                                data-slug="{{ $slugCategoriaPagar }}"
-                                                title="Ver fornecedores deste total">
+                                            <button type="button" class="btn-detalhe-tipoconta" data-grupo="pagar"
+                                                data-slug="{{ $slugTipoContaPagar }}" title="Ver categorias deste tipo de conta">
                                                 <i class="fas fa-chevron-right"></i>
                                             </button>
-                                            {{ $categoria }}
+                                            {{ $dadosTipoConta['ds_tipoconta'] }}
                                         </td>
-                                        <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true"
-                                            tipo="pagar" :categoria="$categoria" :fins-de-semana="$finsDeSemana" />
+                                        <x-fluxo-celulas :valores="$dadosTipoConta['totais']" modo="detalhe"
+                                            :fins-de-semana="$finsDeSemana" ordenar-grupo="pagar"
+                                            :ordenar-escopo="$slugTipoContaPagar" />
                                     </tr>
-                                    @foreach ($dadosCategoria['detalhe'] as $fornecedor => $valores)
-                                        <tr class="grupo-pagar linha-detalhe linha-cliente"
-                                            data-slug-pai="{{ $slugCategoriaPagar }}" data-valores="{{ json_encode($valores) }}"
-                                            style="display:none;">
-                                            <td class="pl-5">{{ $fornecedor }}</td>
-                                            <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
-                                                tipo="pagar" :categoria="$categoria" :cliente="$fornecedor" :fins-de-semana="$finsDeSemana" />
+                                    @foreach ($dadosTipoConta['categorias'] as $categoria => $dadosCategoria)
+                                        @php $slugCategoriaPagar = \Illuminate\Support\Str::slug($slugTipoContaPagar . '-' . $categoria); @endphp
+                                        <tr class="grupo-pagar linha-detalhe linha-categoria"
+                                            data-slug-pai-tipoconta="{{ $slugTipoContaPagar }}"
+                                            data-valores="{{ json_encode($dadosCategoria['totais']) }}" style="display:none;">
+                                            <td class="pl-5">
+                                                <button type="button" class="btn-detalhe-categoria" data-grupo="pagar"
+                                                    data-slug="{{ $slugCategoriaPagar }}"
+                                                    title="Ver fornecedores deste total">
+                                                    <i class="fas fa-chevron-right"></i>
+                                                </button>
+                                                {{ $categoria }}
+                                            </td>
+                                            <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true"
+                                                tipo="pagar" :categoria="$categoria" :cd-tipo-conta="$cdTipoConta" :fins-de-semana="$finsDeSemana" />
                                         </tr>
+                                        @foreach ($dadosCategoria['detalhe'] as $fornecedor => $valores)
+                                            <tr class="grupo-pagar linha-detalhe linha-cliente"
+                                                data-slug-pai="{{ $slugCategoriaPagar }}" data-valores="{{ json_encode($valores) }}"
+                                                style="display:none;">
+                                                <td style="padding-left:4.5rem;">{{ $fornecedor }}</td>
+                                                <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
+                                                    tipo="pagar" :categoria="$categoria" :cliente="$fornecedor" :cd-tipo-conta="$cdTipoConta"
+                                                    :fins-de-semana="$finsDeSemana" />
+                                            </tr>
+                                        @endforeach
                                     @endforeach
                                 @endforeach
                                 <tr class="grupo-pagar linha-detalhe">
@@ -510,7 +546,8 @@
             color: #495057;
         }
 
-        .btn-detalhe-categoria {
+        .btn-detalhe-categoria,
+        .btn-detalhe-tipoconta {
             border: none;
             background: transparent;
             padding: 0 4px 0 0;
@@ -518,7 +555,13 @@
             cursor: pointer;
         }
 
-        .btn-detalhe-categoria:hover {
+        .btn-detalhe-categoria:hover,
+        .btn-detalhe-tipoconta:hover {
+            color: #444B53;
+        }
+
+        .linha-tipoconta td {
+            font-weight: 600;
             color: #444B53;
         }
 
@@ -691,10 +734,12 @@
             var tipo = $(this).data('tipo') || 'receber';
             var categoria = $(this).data('categoria');
             var cliente = $(this).data('cliente');
+            var cdTipoConta = $(this).data('tipoconta');
             var dia = $(this).data('dia');
 
             var fonte = tipo === 'pagar' ? fluxoContasPagar : fluxoContasReceber;
-            var grupo = fonte[categoria];
+            var grupoTipoConta = fonte[cdTipoConta];
+            var grupo = grupoTipoConta ? grupoTipoConta.categorias[categoria] : null;
             if (!grupo) {
                 return;
             }
@@ -756,23 +801,54 @@
             });
         });
 
-        // Colapsa/expande os grupos Contas a Receber / Contas a Pagar
+        // Colapsa/expande os grupos Contas a Receber / Contas a Pagar — só a linha de Tipo de
+        // Conta fica visível de novo; categorias e clientes voltam sempre fechados.
         $('.linha-grupo-receber').on('click', function() {
             $(this).toggleClass('collapsed');
-            $('.grupo-receber').not('.linha-cliente').toggle();
-            // Ao recolher/expandir o grupo, sempre fecha o detalhamento por cliente
-            $('.grupo-receber.linha-cliente').hide();
-            $('.btn-detalhe-categoria[data-grupo="receber"] i').removeClass('fa-chevron-down').addClass(
-                'fa-chevron-right');
+            $('.linha-tipoconta.grupo-receber').toggle();
+            $('.linha-categoria.grupo-receber, .linha-cliente.grupo-receber').hide();
+            $('.btn-detalhe-tipoconta[data-grupo="receber"] i, .btn-detalhe-categoria[data-grupo="receber"] i')
+                .removeClass('fa-chevron-down').addClass('fa-chevron-right');
         });
 
         $('.linha-grupo-pagar').on('click', function() {
             $(this).toggleClass('collapsed');
-            $('.grupo-pagar').not('.linha-cliente').toggle();
-            // Ao recolher/expandir o grupo, sempre fecha o detalhamento por fornecedor
-            $('.grupo-pagar.linha-cliente').hide();
-            $('.btn-detalhe-categoria[data-grupo="pagar"] i').removeClass('fa-chevron-down').addClass(
-                'fa-chevron-right');
+            $('.linha-tipoconta.grupo-pagar').toggle();
+            $('.linha-categoria.grupo-pagar, .linha-cliente.grupo-pagar').hide();
+            $('.btn-detalhe-tipoconta[data-grupo="pagar"] i, .btn-detalhe-categoria[data-grupo="pagar"] i')
+                .removeClass('fa-chevron-down').addClass('fa-chevron-right');
+        });
+
+        // Detalha (mostra/oculta) as categorias (formas de pagamento) que compõem o total de um
+        // Tipo de Conta. Sempre fecha o detalhamento por cliente/fornecedor mais fundo, senão
+        // um cliente pode ficar "aberto" escondido quando o tipo de conta é recolhido de novo.
+        $(document).on('click', '.btn-detalhe-tipoconta', function(e) {
+            e.stopPropagation();
+            var $btn = $(this);
+            var $icone = $btn.find('i');
+            var grupo = $btn.data('grupo');
+            var slug = $btn.data('slug');
+
+            $btn.prop('disabled', true);
+            $icone.removeClass('fa-chevron-right fa-chevron-down').addClass('fa-spinner fa-spin');
+
+            setTimeout(function() {
+                var $categorias = $('.linha-categoria.grupo-' + grupo + '[data-slug-pai-tipoconta="' +
+                    slug + '"]');
+                $categorias.toggle();
+
+                $categorias.find('.btn-detalhe-categoria i').removeClass('fa-chevron-down').addClass(
+                    'fa-chevron-right');
+                $categorias.each(function() {
+                    var slugCategoria = $(this).find('.btn-detalhe-categoria').data('slug');
+                    $('.linha-cliente.grupo-' + grupo + '[data-slug-pai="' + slugCategoria + '"]').hide();
+                });
+
+                var expandido = $categorias.is(':visible');
+                $icone.removeClass('fa-spinner fa-spin')
+                    .addClass(expandido ? 'fa-chevron-down' : 'fa-chevron-right');
+                $btn.prop('disabled', false);
+            }, 50);
         });
 
         // Detalha (mostra/oculta) os clientes/fornecedores que compõem o total de uma categoria.
@@ -799,15 +875,17 @@
             }, 50);
         });
 
-        // Ordenação por dia específico: clique numa célula de dia da linha "Contas a
-        // Receber"/"Contas a Pagar" ordena as categorias (e os clientes dentro de cada uma)
-        // por aquele dia, maior pro menor — clicar de novo no mesmo dia inverte a ordem.
-        var ordenacaoAtualPorGrupo = {};
+        // Ordenação por dia específico: clique numa célula de dia da linha de um Tipo de Conta
+        // ordena as categorias (e os clientes dentro de cada uma) DAQUELE tipo de conta por
+        // aquele dia, maior pro menor — clicar de novo no mesmo dia inverte a ordem. Cada tipo
+        // de conta ordena só as suas próprias categorias/clientes (escopo = slug do tipoconta).
+        var ordenacaoAtualPorEscopo = {};
 
-        function ordenarGrupoPorDia(grupo, dia, direcao) {
-            var $linhaGrupo = $('.linha-grupo-' + grupo);
+        function ordenarCategoriasPorDia(grupo, escopo, dia, direcao) {
+            var $linhaTipoConta = $('.linha-tipoconta.grupo-' + grupo + '[data-slug="' + escopo + '"]');
 
-            var itens = $('tr.linha-categoria.grupo-' + grupo).get().map(function(tr) {
+            var itens = $('tr.linha-categoria.grupo-' + grupo + '[data-slug-pai-tipoconta="' + escopo +
+                '"]').get().map(function(tr) {
                 var $tr = $(tr);
                 var slug = $tr.find('.btn-detalhe-categoria').data('slug');
                 var valores = $tr.data('valores') || [];
@@ -835,7 +913,7 @@
                 return direcao === 'asc' ? (a.valor - b.valor) : (b.valor - a.valor);
             });
 
-            var $ultimo = $linhaGrupo;
+            var $ultimo = $linhaTipoConta;
             itens.forEach(function(item) {
                 item.el.insertAfter($ultimo);
                 $ultimo = item.el;
@@ -855,21 +933,24 @@
 
             var $cel = $(this);
             var grupo = $cel.data('ordenarGrupo');
+            var escopo = $cel.data('ordenarEscopo');
             var dia = $cel.data('dia');
-            var atual = ordenacaoAtualPorGrupo[grupo];
+            var chave = grupo + '|' + escopo;
+            var atual = ordenacaoAtualPorEscopo[chave];
             var direcao = (atual && atual.dia === dia && atual.direcao === 'desc') ? 'asc' :
                 'desc';
 
-            ordenacaoAtualPorGrupo[grupo] = {
+            ordenacaoAtualPorEscopo[chave] = {
                 dia: dia,
                 direcao: direcao
             };
 
-            $('.linha-grupo-' + grupo + ' .icone-ordenacao').remove();
+            $('.linha-tipoconta.grupo-' + grupo + '[data-slug="' + escopo + '"] .icone-ordenacao')
+                .remove();
             $cel.append(' <i class="fas fa-sort-amount-' + (direcao === 'desc' ? 'down' : 'up') +
                 ' icone-ordenacao"></i>');
 
-            ordenarGrupoPorDia(grupo, dia, direcao);
+            ordenarCategoriasPorDia(grupo, escopo, dia, direcao);
         });
 
         // Botão global: em vez de ter sua própria classe/estado, "clica" em cada botão +/-

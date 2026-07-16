@@ -117,8 +117,8 @@ class FluxoCaixaController extends Controller
         }
 
         $totalContasReceberPorDia = array_fill(0, $qtdDias, 0);
-        foreach ($contasReceber as $categoria) {
-            foreach ($categoria['totais'] as $i => $v) {
+        foreach ($contasReceber as $grupoTipoConta) {
+            foreach ($grupoTipoConta['totais'] as $i => $v) {
                 $totalContasReceberPorDia[$i] += $v;
             }
         }
@@ -131,8 +131,8 @@ class FluxoCaixaController extends Controller
         }
 
         $totalContasPagarPorDia = array_fill(0, $qtdDias, 0);
-        foreach ($contasPagar as $categoria) {
-            foreach ($categoria['totais'] as $i => $v) {
+        foreach ($contasPagar as $grupoTipoConta) {
+            foreach ($grupoTipoConta['totais'] as $i => $v) {
                 $totalContasPagarPorDia[$i] += $v;
             }
         }
@@ -560,15 +560,16 @@ class FluxoCaixaController extends Controller
     }
 
     /**
-     * Agrupa os lançamentos de contas (a receber ou a pagar) por categoria (DS_FORMAPAGTO) e,
-     * dentro de cada categoria, por pessoa — cada nível com os valores distribuídos por dia da semana.
+     * Agrupa os lançamentos de contas (a receber ou a pagar) por CD_TIPOCONTA, dentro de cada
+     * tipo de conta por categoria (DS_FORMAPAGTO) e, dentro de cada categoria, por pessoa —
+     * cada nível com os valores distribuídos por dia da semana.
      *
      * @param  array          $lancamentos      Retorno de Contas::contasReceber()/contasPagar()
      * @param  Carbon\Carbon[] $dias             Os 7 dias (sáb a sex) exibidos no fluxo
      * @param  string         $tipoData         'real' (DT_VENCIMENTO) ou 'personalizada' (data ajustada)
-     * @param  string         $prefixoCategoria Usado como fallback de categoria quando DS_FORMAPAGTO vem nulo
+     * @param  string         $prefixoCategoria Usado como fallback de DS_TIPOCONTA quando vem nulo
      * @param  array<int,array<int,int>> $offsetPorTipoConta Retorno de FluxoCaixaCompensacao::offsetPorTipoConta()
-     * @return array<string, array{totais: array<int,float>, detalhe: array<string, array<int,float>>}>
+     * @return array<int, array{ds_tipoconta: string, totais: array<int,float>, categorias: array<string, array{totais: array<int,float>, detalhe: array<string, array<int,float>>}>}>
      */
     private function agruparContas(array $lancamentos, array $dias, string $tipoData, string $prefixoCategoria, array $offsetPorTipoConta): array
     {
@@ -582,8 +583,9 @@ class FluxoCaixaController extends Controller
         $grupos = [];
         foreach ($lancamentos as $lancamento) {
             $dtVencimento = Carbon::parse($lancamento->DT_VENCIMENTO);
+            $cdTipoConta = (int) $lancamento->CD_TIPOCONTA;
             $dataReferencia = $tipoData === 'personalizada'
-                ? $this->calcularDataPersonalizada($dtVencimento, (int) $lancamento->CD_TIPOCONTA, $offsetPorTipoConta)
+                ? $this->calcularDataPersonalizada($dtVencimento, $cdTipoConta, $offsetPorTipoConta)
                 : $dtVencimento;
 
             $dataChave = $dataReferencia->format('Y-m-d');
@@ -592,25 +594,34 @@ class FluxoCaixaController extends Controller
             }
             $i = $indicePorData[$dataChave];
 
-            $categoria = trim($lancamento->DS_FORMAPAGTO ?? ($prefixoCategoria . ' - ' . $lancamento->DS_TIPOCONTA));
+            $categoria = trim($lancamento->DS_FORMAPAGTO ?? 'Sem forma de pagamento');
             $cliente = $lancamento->NM_PESSOA;
             $valor = (float) $lancamento->VL_SALDO;
 
-            if (!isset($grupos[$categoria])) {
-                $grupos[$categoria] = [
+            if (!isset($grupos[$cdTipoConta])) {
+                $grupos[$cdTipoConta] = [
+                    'ds_tipoconta' => $lancamento->DS_TIPOCONTA ?? ($prefixoCategoria . ' ' . $cdTipoConta),
+                    'totais' => array_fill(0, $qtdDias, 0),
+                    'categorias' => [],
+                ];
+            }
+            $grupos[$cdTipoConta]['totais'][$i] += $valor;
+
+            if (!isset($grupos[$cdTipoConta]['categorias'][$categoria])) {
+                $grupos[$cdTipoConta]['categorias'][$categoria] = [
                     'totais' => array_fill(0, $qtdDias, 0),
                     'detalhe' => [],
                     'lancamentos' => array_fill(0, $qtdDias, []),
                 ];
             }
-            $grupos[$categoria]['totais'][$i] += $valor;
+            $grupos[$cdTipoConta]['categorias'][$categoria]['totais'][$i] += $valor;
 
-            if (!isset($grupos[$categoria]['detalhe'][$cliente])) {
-                $grupos[$categoria]['detalhe'][$cliente] = array_fill(0, $qtdDias, 0);
+            if (!isset($grupos[$cdTipoConta]['categorias'][$categoria]['detalhe'][$cliente])) {
+                $grupos[$cdTipoConta]['categorias'][$categoria]['detalhe'][$cliente] = array_fill(0, $qtdDias, 0);
             }
-            $grupos[$categoria]['detalhe'][$cliente][$i] += $valor;
+            $grupos[$cdTipoConta]['categorias'][$categoria]['detalhe'][$cliente][$i] += $valor;
 
-            $grupos[$categoria]['lancamentos'][$i][] = [
+            $grupos[$cdTipoConta]['categorias'][$categoria]['lancamentos'][$i][] = [
                 'nr_lancamento' => $lancamento->NR_LANCAMENTO,
                 'nm_pessoa' => $cliente,
                 'dt_real' => $dtVencimento->format('d/m/Y'),
