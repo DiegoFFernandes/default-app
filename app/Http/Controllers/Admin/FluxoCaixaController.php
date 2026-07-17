@@ -8,6 +8,7 @@ use App\Models\FluxoCaixaCompensacao;
 use App\Models\FluxoCaixaConfig;
 use App\Models\FluxoCaixaLancAvulso;
 use App\Models\FluxoCaixaParametro;
+use App\Models\FluxoCaixaSaldoConta;
 use App\Models\FluxoCaixaSaldoDia;
 use App\Models\SaldoCaixa;
 use App\Models\SaldoFluxoCaixa;
@@ -115,7 +116,7 @@ class FluxoCaixaController extends Controller
         //    exceto numa semana totalmente futura sem nenhum lançamento a partir dela, que vira
         //    0,00 em vez de arrastar um saldo antigo pra frente sem confirmação nenhuma.
         if (empty($diasComLancamentoManual[0])) {
-            $saldoDoDiaAnterior = FluxoCaixaSaldoDia::buscarPorData($dias[0]->copy()->subDay());
+            $saldoDoDiaAnterior = FluxoCaixaSaldoDia::buscarPorData($dias[0]->copy()->subDay(), $origemSaldoBanco);
 
             if ($saldoDoDiaAnterior !== null) {
                 $saldoBancoRealPorDia[0] = $saldoDoDiaAnterior;
@@ -193,7 +194,7 @@ class FluxoCaixaController extends Controller
 
         // Persiste o Saldo do Dia calculado pra cada data exibida — serve de cache pra ancorar
         // a próxima semana (ou qualquer período futuro) quando o usuário navegar pra frente.
-        FluxoCaixaSaldoDia::salvarLote($dias, $saldoDia);
+        FluxoCaixaSaldoDia::salvarLote($dias, $saldoDia, $origemSaldoBanco);
 
         // Lançamentos (por banco) que compõem o total de cada dia — usado no drill-down ao
         // clicar num valor da linha "Saldo Banco".
@@ -534,6 +535,51 @@ class FluxoCaixaController extends Controller
         return response()->json([
             'success' => 'Origem do saldo banco atualizada com sucesso!',
         ]);
+    }
+
+    public function listarSaldoConta(Request $request)
+    {
+        $contas = FluxoCaixaSaldoConta::orderBy('cd_conta')->get(['id', 'cd_conta', 'ds_conta']);
+
+        return response()->json([
+            'dados' => $contas,
+        ]);
+    }
+
+    public function salvarSaldoConta(Request $request)
+    {
+        $validado = $request->validate([
+            'cd_conta' => ['required', 'integer', 'unique:fluxo_caixa_saldo_conta,cd_conta'],
+            'ds_conta' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        FluxoCaixaSaldoConta::create($validado + ['updated_by' => auth()->id()]);
+
+        return response()->json([
+            'success' => 'Conta adicionada com sucesso!',
+        ]);
+    }
+
+    public function excluirSaldoConta(Request $request)
+    {
+        $validado = $request->validate([
+            'id' => ['required', 'integer', 'exists:fluxo_caixa_saldo_conta,id'],
+        ]);
+
+        FluxoCaixaSaldoConta::findOrFail($validado['id'])->delete();
+
+        return response()->json([
+            'success' => 'Conta excluída com sucesso!',
+        ]);
+    }
+
+    public function buscarContasSaldoFirebird(Request $request)
+    {
+        $validado = $request->validate([
+            'tp_saldo' => ['required', 'string', 'max:1'],
+        ]);
+
+        return response()->json(SaldoCaixa::buscarContasPorTipoSaldo($validado['tp_saldo']));
     }
 
     private function regrasValidacaoCompensacao(bool $semTipoConta = false): array

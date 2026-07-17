@@ -1812,17 +1812,282 @@
             abrirParametrosFluxo();
         });
 
-        // Placeholder: configuração de origem do Saldo Banco (digitado x direto do Firebird,
-        // via SALDOCAIXA) e das contas (CD_CONTA) consideradas — será implementada nas
-        // próximas etapas do projeto.
+        // Tela de configuração das contas (CD_CONTA) consideradas quando a origem do Saldo
+        // Banco é 'firebird' (tabela fluxo_caixa_saldo_conta). Mesmo padrão de supressão da
+        // Compensação Bancária: só volta pros Parâmetros no fechamento de verdade.
+        var suprimirVoltaSaldoConta = false;
+
         function abrirConfigSaldoCaixaFirebird() {
+            suprimirVoltaSaldoConta = false;
+
             Swal.fire({
-                icon: 'info',
-                title: 'Saldo Caixa (Junsoft)',
-                text: 'Tela de configuração da origem do saldo bancário (digitado ou direto do Firebird) e das contas consideradas será implementada nas próximas etapas do projeto.',
-                confirmButtonText: 'Ok'
+                title: 'Contas Saldo (Junsoft)',
+                width: 600,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    title: 'swal-title-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="text-right mb-2">' +
+                    '<button type="button" id="swal-btn-add-saldo-conta" class="btn btn-sm btn-success">' +
+                    '<i class="fas fa-plus mr-1"></i>Adicionar Conta Saldo</button>' +
+                    '</div>' +
+                    '<div id="swal-resultado-saldo-conta" style="max-height:360px; overflow-y:auto;"></div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+                    document.getElementById('swal-btn-add-saldo-conta').addEventListener('click',
+                        function() {
+                            suprimirVoltaSaldoConta = true;
+                            abrirFormularioSaldoConta();
+                        });
+                    buscarSaldoContas();
+                }
             }).then(function() {
-                abrirParametrosFluxo();
+                if (!suprimirVoltaSaldoConta) {
+                    abrirParametrosFluxo();
+                }
+            });
+        }
+
+        function buscarSaldoContas() {
+            var $resultado = $('#swal-resultado-saldo-conta');
+            $resultado.html('<div class="text-center text-muted py-3">Carregando...</div>');
+
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('fluxo-caixa.listar-saldo-conta') }}'
+            }).done(function(response) {
+                renderizarSaldoContas(response.dados || []);
+            }).fail(function() {
+                $resultado.html(
+                    '<div class="text-center text-danger py-3">Erro ao buscar contas.</div>');
+            });
+        }
+
+        function renderizarSaldoContas(dados) {
+            var $resultado = $('#swal-resultado-saldo-conta');
+
+            if (dados.length === 0) {
+                $resultado.html(
+                    '<div class="text-center text-muted py-3">Nenhuma conta cadastrada.</div>');
+                return;
+            }
+
+            var linhas = dados.map(function(item) {
+                return '<tr>' +
+                    '<td>' + item.cd_conta + '</td>' +
+                    '<td>' + (item.ds_conta || '-') + '</td>' +
+                    '<td class="text-center">' +
+                    '<button type="button" class="btn btn-xs btn-outline-danger btn-excluir-saldo-conta" data-id="' +
+                    item.id + '" title="Excluir"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+
+            $resultado.html(
+                '<table class="table table-sm table-striped" style="font-size:12px;">' +
+                '<thead><tr><th>Cód. Conta</th><th>Descrição</th><th class="text-center">Ações</th></tr></thead>' +
+                '<tbody>' + linhas + '</tbody>' +
+                '</table>');
+        }
+
+        $(document).on('click', '.btn-excluir-saldo-conta', function() {
+            var id = $(this).data('id');
+            suprimirVoltaSaldoConta = true;
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Excluir conta?',
+                text: 'Essa ação não pode ser desfeita.',
+                showCancelButton: true,
+                confirmButtonText: 'Excluir',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                }
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                $.ajax({
+                    method: 'POST',
+                    url: '{{ route('fluxo-caixa.excluir-saldo-conta') }}',
+                    data: {
+                        _token: $('[name="csrf-token"]').attr('content'),
+                        id: id
+                    }
+                }).done(function() {
+                    fluxoParametrosAlterado = true;
+                    abrirConfigSaldoCaixaFirebird();
+                }).fail(function(xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                        'Erro ao excluir a conta.';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: msg
+                    });
+                });
+            });
+        });
+
+        // Opções fixas do "Tipo Conta Saldo" — mapeiam pro TP_SALDO do Firebird (PARMSALDO).
+        var fluxoTiposSaldo = [{
+                codigo: 'X',
+                label: 'Caixa'
+            },
+            {
+                codigo: 'B',
+                label: 'Banco'
+            },
+            {
+                codigo: 'P',
+                label: 'Cheque a Pagar'
+            },
+            {
+                codigo: 'R',
+                label: 'Cheque a Receber'
+            },
+            {
+                codigo: 'C',
+                label: 'Cartão de Crédito a Pagar'
+            },
+            {
+                codigo: 'T',
+                label: 'Cartão de Crédito a Receber'
+            },
+            {
+                codigo: 'E',
+                label: 'Caixa Transferência'
+            },
+            {
+                codigo: 'I',
+                label: 'Duplicatas Incobráveis'
+            },
+            {
+                codigo: 'V',
+                label: 'Vale'
+            }
+        ];
+
+        function abrirFormularioSaldoConta() {
+            var opcoesTipo = fluxoTiposSaldo.map(function(t) {
+                return '<option value="' + t.codigo + '">' + t.label + '</option>';
+            }).join('');
+
+            Swal.fire({
+                title: 'Adicionar Conta Saldo',
+                width: 500,
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                customClass: {
+                    title: 'swal-title-fluxo',
+                    confirmButton: 'swal-confirm-fluxo',
+                    cancelButton: 'swal-confirm-fluxo'
+                },
+                html: '<div style="text-align:left;">' +
+                    '<div class="form-group mb-2">' +
+                    '<label class="mb-1" style="font-size:12px;">Tipo Conta Saldo <span class="text-danger">*</span></label>' +
+                    '<select id="swal-saldo-conta-tipo" class="form-control form-control-sm">' +
+                    '<option value="">Selecione</option>' + opcoesTipo +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="form-group mb-0">' +
+                    '<label class="mb-1" style="font-size:12px;">Conta <span class="text-danger">*</span></label>' +
+                    '<select id="swal-saldo-conta-cd" class="w-100" disabled></select>' +
+                    '</div>' +
+                    '</div>',
+                didOpen: function() {
+                    makeSwalDraggable();
+
+                    $('#swal-saldo-conta-cd').select2({
+                        theme: 'bootstrap4',
+                        width: '100%',
+                        placeholder: 'Selecione o Tipo primeiro',
+                        dropdownParent: $(Swal.getPopup()),
+                        containerCssClass: 'select2-fluxo-sm',
+                        dropdownCssClass: 'select2-fluxo-sm'
+                    });
+
+                    $('#swal-saldo-conta-tipo').on('change', function() {
+                        var tpSaldo = $(this).val();
+                        var $selectConta = $('#swal-saldo-conta-cd');
+
+                        if (!tpSaldo) {
+                            $selectConta.empty().prop('disabled', true).trigger('change');
+                            return;
+                        }
+
+                        $selectConta.prop('disabled', true).html(
+                            '<option>Carregando...</option>').trigger('change');
+
+                        $.ajax({
+                            method: 'GET',
+                            url: '{{ route('fluxo-caixa.buscar-contas-saldo-firebird') }}',
+                            data: {
+                                tp_saldo: tpSaldo
+                            }
+                        }).done(function(opcoes) {
+                            $selectConta.empty();
+
+                            if (!opcoes || opcoes.length === 0) {
+                                $selectConta.append(
+                                    '<option value="">Nenhuma conta encontrada</option>'
+                                );
+                                $selectConta.prop('disabled', false).trigger('change');
+                                return;
+                            }
+
+                            opcoes.forEach(function(opcao) {
+                                $selectConta.append('<option value="' + opcao.id + '">' +
+                                    opcao.text + '</option>');
+                            });
+
+                            $selectConta.prop('disabled', false).trigger('change');
+                        }).fail(function() {
+                            $selectConta.html(
+                                '<option value="">Erro ao carregar do Firebird</option>');
+                            $selectConta.prop('disabled', false).trigger('change');
+                        });
+                    });
+                },
+                preConfirm: function() {
+                    var $contaSelecionada = $('#swal-saldo-conta-cd option:selected');
+                    var cdConta = $contaSelecionada.val();
+                    var dsConta = cdConta ? $contaSelecionada.text() : null;
+
+                    if (!cdConta) {
+                        Swal.showValidationMessage('Selecione o Tipo e a Conta.');
+                        return false;
+                    }
+
+                    return $.ajax({
+                        method: 'POST',
+                        url: '{{ route('fluxo-caixa.salvar-saldo-conta') }}',
+                        data: {
+                            _token: $('[name="csrf-token"]').attr('content'),
+                            cd_conta: cdConta,
+                            ds_conta: dsConta
+                        }
+                    }).catch(function(xhr) {
+                        var msg = (xhr.responseJSON && xhr.responseJSON.message) ||
+                            'Erro ao salvar a conta.';
+                        Swal.showValidationMessage(msg);
+                        return false;
+                    });
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    fluxoParametrosAlterado = true;
+                }
+
+                abrirConfigSaldoCaixaFirebird();
             });
         }
 

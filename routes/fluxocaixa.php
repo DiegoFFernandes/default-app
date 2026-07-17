@@ -31,6 +31,11 @@ Route::middleware(['auth'])->group(function () {
             Route::post('excluir-compensacao', [FluxoCaixaController::class, 'excluirCompensacao'])->name('fluxo-caixa.excluir-compensacao');
 
             Route::post('salvar-origem-saldo-banco', [FluxoCaixaController::class, 'salvarOrigemSaldoBanco'])->name('fluxo-caixa.salvar-origem-saldo-banco');
+
+            Route::get('listar-saldo-conta', [FluxoCaixaController::class, 'listarSaldoConta'])->name('fluxo-caixa.listar-saldo-conta');
+            Route::post('salvar-saldo-conta', [FluxoCaixaController::class, 'salvarSaldoConta'])->name('fluxo-caixa.salvar-saldo-conta');
+            Route::post('excluir-saldo-conta', [FluxoCaixaController::class, 'excluirSaldoConta'])->name('fluxo-caixa.excluir-saldo-conta');
+            Route::get('buscar-contas-saldo-firebird', [FluxoCaixaController::class, 'buscarContasSaldoFirebird'])->name('fluxo-caixa.buscar-contas-saldo-firebird');
         });
     });
 });

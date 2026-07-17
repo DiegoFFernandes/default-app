@@ -78,10 +78,16 @@ class SaldoCaixa
     }
 
     /**
-     * Para cada dia informado, soma o saldo mais recente conhecido de cada conta configurada
-     * (a última linha com DT_CAIXA menor ou igual àquele dia). Mesmo "degrau" de
-     * SaldoFluxoCaixa::saldoTotalPorDia() — contas ainda sem registro até aquele dia não
-     * entram na soma.
+     * Para cada dia informado, soma o saldo mais recente conhecido de cada par
+     * (CD_EMPRESA, CD_CONTA) — a última linha com DT_CAIXA menor ou igual àquele dia. Mesmo
+     * "degrau" de SaldoFluxoCaixa::saldoTotalPorDia(); pares ainda sem registro até aquele dia
+     * não entram na soma.
+     *
+     * O agrupamento é por empresa+conta, não só por conta: no SALDOCAIXA cada empresa mantém sua
+     * própria parcela na mesma conta contábil, e o saldo é cumulativo por empresa (o
+     * VL_SALDOANTERIOR de uma linha é o VL_SALDOCAIXA da linha anterior da mesma empresa+conta).
+     * Agrupar só por conta faria a empresa que movimentou por último "apagar" as parcelas das
+     * demais, que continuam existindo mesmo sem movimento recente.
      *
      * @param  Carbon[] $dias
      * @return array<int, float>
@@ -92,18 +98,18 @@ class SaldoCaixa
             return [];
         }
 
-        $porConta = collect(self::buscar(null, end($dias)->format('Y-m-d')))
+        $porEmpresaConta = collect(self::buscar(null, end($dias)->format('Y-m-d')))
             ->map(fn ($linha) => (object) [
-                'cd_conta' => $linha->CD_CONTA,
+                'chave' => $linha->CD_EMPRESA . '|' . $linha->CD_CONTA,
                 'vl_saldo' => (float) $linha->VL_SALDO,
                 'dt_saldo' => Carbon::parse($linha->DT_SALDO),
             ])
-            ->groupBy('cd_conta');
+            ->groupBy('chave');
 
         $resultado = [];
         foreach ($dias as $i => $dia) {
             $total = 0.0;
-            foreach ($porConta as $linhasConta) {
+            foreach ($porEmpresaConta as $linhasConta) {
                 $ateODia = $linhasConta->filter(fn ($linha) => $linha->dt_saldo->lte($dia));
                 if ($ateODia->isEmpty()) {
                     continue;
@@ -230,6 +236,11 @@ class SaldoCaixa
     /**
      * Soma dos registros do dia mais recente (DT_CAIXA) que tem algum saldo, entre as contas
      * configuradas. Mesmo formato de SaldoFluxoCaixa::saldoUltimoDiaLancado().
+     *
+     * Ignora datas futuras: o card que consome isso é "Saldo Banco(s) Hoje", e o SALDOCAIXA
+     * pode conter lançamento com data à frente (visto na base: registros até 31/12). No saldo
+     * digitado isso não acontece porque salvarSaldoBanco() valida a data na entrada — aqui o
+     * dado vem de fora, sem passar por validação nenhuma, então o filtro é aplicado na leitura.
      */
     public static function saldoUltimoDiaLancado(): float
     {
@@ -245,6 +256,7 @@ class SaldoCaixa
             SELECT MAX(S.DT_CAIXA) DT_MAX
             FROM SALDOCAIXA S
             WHERE S.CD_CONTA IN (" . implode(', ', $placeholders) . ")
+                  AND S.DT_CAIXA <= CURRENT_DATE
         ", $bindings);
 
         $dtMax = $row->DT_MAX ?? $row->dt_max ?? null;
@@ -254,5 +266,31 @@ class SaldoCaixa
         }
 
         return self::valorLancadoPorDia([Carbon::parse($dtMax)])[0] ?? 0.0;
+    }
+
+    /**
+     * Contas ativas (PARMSALDO + PLANOCONTAS) de um determinado TP_SALDO — usado pra popular o
+     * select de "Conta" na tela de configuração, depois que o usuário escolhe o "Tipo Conta
+     * Saldo" (valores fixos definidos na view, não vêm do banco).
+     *
+     * @return array<int, array{id:int, text:string}>
+     */
+    public static function buscarContasPorTipoSaldo(string $tpSaldo): array
+    {
+        $rows = \Helper::ConvertFormatText(DB::connection('firebird')->select("
+            SELECT DISTINCT
+                P.CD_CONTA,
+                P.CD_CONTA || ' - ' || PC.DS_CONTA DS_CONTA
+            FROM PARMSALDO P
+            INNER JOIN PLANOCONTAS PC ON (PC.CD_CONTA = P.CD_CONTA)
+            WHERE P.ST_ATIVO = 'S'
+                  AND P.TP_SALDO = :tp_saldo
+            ORDER BY DS_CONTA
+        ", ['tp_saldo' => $tpSaldo]));
+
+        return array_map(fn ($r) => [
+            'id' => $r->CD_CONTA ?? $r->cd_conta ?? null,
+            'text' => $r->DS_CONTA ?? $r->ds_conta ?? '',
+        ], $rows);
     }
 }
