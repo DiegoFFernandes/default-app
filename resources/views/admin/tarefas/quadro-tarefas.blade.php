@@ -112,6 +112,30 @@
 @stop
 @section('css')
     <style>
+        /* Colunas lado a lado com scroll horizontal, sem quebrar para uma nova linha */
+        #tarefasContainer {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            margin-left: 0;
+            margin-right: 0;
+            padding-bottom: 12px;
+        }
+
+        /* Largura fixa da coluna (substitui o col-md-2, que quebrava linha com muitas colunas) */
+        .kanban-coluna-item {
+            flex: 0 0 260px;
+            max-width: 260px;
+            padding: 0 8px;
+        }
+
+        /* Lista de cards da coluna: altura máxima com scroll vertical próprio,
+           para não esticar a página inteira quando tem muito cartão */
+        .kanban-cards {
+            max-height: calc(100vh - 260px);
+            overflow-y: auto;
+        }
+
         /* Oculta os botões de ação por padrão */
         .column-actions {
             opacity: 0;
@@ -182,6 +206,40 @@
 
         .avatar-presenca:first-child {
             margin-left: 0;
+        }
+
+        /* Cartões: altura fixa e corpo com texto truncado (...) quando muito longo */
+        .card-cartao {
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-cartao .card-title {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
+        .card-cartao .card-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
+            cursor: pointer;
+        }
+
+        /* Mantém o botão "Ações" visível enquanto o menu estiver aberto (card ou coluna) */
+        .column-actions.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .dropdown-menu-acoes {
+            min-width: 10rem;
         }
     </style>
 @stop
@@ -472,24 +530,36 @@
         });
 
         //modal editar card
-        $(document).on('click', '.btn-edit-card', function() {
-            var card = $(this).closest('.card');
+        function abrirModalEditarCard(card) {
             var idCard = card.data('task-id');
-            var titulo = card.find('.card-title').text();
-            var descricao = card.find('.card-body').html();
+            var dadosCard = cartoesCache[idCard] || {};
+            var titulo = dadosCard.titulo ?? card.find('.card-title').text();
+            var descricao = dadosCard.descricao;
             var coluna = card.closest('.kanban-cards').data('coluna-id');
 
             $('#btn-action').html(`
-                <button type="button" class="btn btn-sm btn-warning" id="btn-save-edit-card">Editar</button>                
+                <button type="button" class="btn btn-sm btn-warning" id="btn-save-edit-card">Editar</button>
             `);
             $('#modalCardTitle').text('Editar Tarefa');
             $('#colunaDestino').val(coluna);
             $('#cardId').val(idCard);
             $('#inputTitulo').val(titulo);
-            // $('#inputDescricao').val(descricao);   
+            // $('#inputDescricao').val(descricao);
             // console.log(descricao);
-            descricao_tarefa.root.innerHTML = descricao === undefined ? '' : descricao;
+            descricao_tarefa.root.innerHTML = descricao ?? '';
             $('#modalCard').modal('show');
+        }
+
+        $(document).on('click', '.btn-edit-card', function() {
+            abrirModalEditarCard($(this).closest('.card'));
+        });
+
+        // clicar em qualquer parte do card abre a edição (exceto no menu "Ações" ou logo após arrastar)
+        $(document).on('click', '.card-cartao', function(e) {
+            if (arrastandoCard) return;
+            if ($(e.target).closest('.dropdown').length) return;
+
+            abrirModalEditarCard($(this));
         });
 
         //edita o card
@@ -715,6 +785,23 @@
             return $('<div>').text(texto ?? '').html();
         }
 
+        // cache dos cards carregados (id -> {titulo, descricao, ...}) — guarda o HTML
+        // original da descrição para a edição, já que no card só mostramos uma prévia
+        // em texto puro (o -webkit-line-clamp não corta de forma confiável quando a
+        // descrição tem tags de bloco como <p>, vindas do editor Quill)
+        let cartoesCache = {};
+
+        // extrai o texto puro de uma descrição em HTML, para exibir como prévia no card
+        function textoSemHtml(html) {
+            // adiciona um espaço nas quebras de bloco/linha antes de remover as tags,
+            // senão parágrafos e <br> ficam colados (ex: "541756Itens" em vez de "541756 Itens")
+            var comEspacos = String(html ?? '')
+                .replace(/<\/(p|div|li|h[1-6]|blockquote|tr)>/gi, '$& ')
+                .replace(/<br\s*\/?>/gi, ' ');
+
+            return $('<div>').html(comEspacos).text().replace(/\s+/g, ' ').trim();
+        }
+
         function rgbToHex(rgb) {
             const result = rgb.match(/\d+/g);
             return result ? '#' + result.map(x => {
@@ -749,22 +836,20 @@
             let html = '';
             colunas.forEach(function(colunas) {
                 html += `
-                        <div class="col-md-2 col-12 d-flex">
+                        <div class="kanban-coluna-item d-flex">
                             <div class="card card-secondary kanban-coluna flex-fill">
                                 <div class="card-header card-header-coluna d-flex align-items-center" style="background-color: #${colunas.color};">
                                     <h6 class="card-title card-title-coluna mb-0" style="font-size: 14px;">${escapeHtml(colunas.nome)}</h6>
-                                    <div class="card-tools d-flex ml-auto column-actions">
-                                        <button class="btn btn-tool btn-add-card" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Adicionar Tarefa">
-                                            <i class="fas fa-plus"></i>
-                                        </button>  
-                                         <!-- Adicionando tooltip e ícone de paleta -->
-                                        <button class="btn btn-tool btn-modal-edit-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Editar Coluna">
-                                            <i class="fas fa-pen"></i>
-                                        </button> 
-                                        <button class="btn btn-tool btn-arquivar-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}" title="Arquivar Coluna">
-                                            <i class="fas fa-archive"></i>
+                                    <div class="dropdown card-tools ml-auto column-actions">
+                                        <button type="button" class="btn btn-tool dropdown-toggle btn-acoes-coluna" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Ações">
+                                            Ações
                                         </button>
-                                    </div>                                
+                                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-acoes">
+                                            <button type="button" class="dropdown-item btn-add-card" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}"><i class="fas fa-plus mr-2"></i>Adicionar Tarefa</button>
+                                            <button type="button" class="dropdown-item btn-modal-edit-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}"><i class="fas fa-pen mr-2"></i>Editar Coluna</button>
+                                            <button type="button" class="dropdown-item btn-arquivar-coluna" data-coluna-id="coluna_${colunas.id}" data-id="${colunas.id}"><i class="fas fa-archive mr-2"></i>Arquivar Coluna</button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="card-body kanban-cards" id="coluna_${colunas.id}" data-coluna-id="${colunas.id}">
                                     <!-- Cards serão carregados aqui -->
@@ -774,7 +859,7 @@
                             `;
             });
 
-            html += `<div class="col-md-2 col-12 d-flex">
+            html += `<div class="kanban-coluna-item d-flex">
                         <div class="kanban-coluna flex-fill">
                             <div class="card-header card-header-coluna d-flex align-items-center" style="background-color: #e2e3e5;">
                                 <h3 class="card-title card-title-coluna mb-0" style="font-size: 14px;">Adicionar Coluna</h3>
@@ -811,18 +896,26 @@
                             '<p class="text-muted text-center small sem-cartao">Nenhum cartão.</p>');
                     } else {
                         cartoes.forEach(function(card) {
+                            // guarda os dados completos (HTML original) para a edição
+                            cartoesCache[card.id] = card;
+
                             //cria um card novo
                             var cardHTML = `
-                                <div class="card card-info card-outline" data-task-id="${card.id}" data-posicao="${card.posicao}">
+                                <div class="card card-info card-outline card-cartao" data-task-id="${card.id}" data-posicao="${card.posicao}">
                                     <div class="card-header card-header-coluna d-flex align-items-center">
-                                        <h6 class="card-title text-muted" style='font-size: 0.9rem'>${escapeHtml(card.titulo)}</h6>
-                                            <div class="card-tools d-flex ml-auto column-actions">
-                                                <button type="button" class="btn btn-tool btn-edit-card"><i class="fas fa-pen"></i></button>
-                                                <button type="button" class="btn btn-tool btn-delete-card"><i class="fas fa-trash"></i></button>
+                                        <h6 class="card-title text-muted text-truncate" style='font-size: 0.9rem'>${escapeHtml(card.titulo)}</h6>
+                                        <div class="dropdown card-tools ml-auto column-actions">
+                                            <button type="button" class="btn btn-tool dropdown-toggle btn-acoes-card" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Ações">
+                                                Ações
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right dropdown-menu-acoes">
+                                                <button type="button" class="dropdown-item btn-edit-card"><i class="fas fa-pen mr-2"></i>Editar</button>
+                                                <button type="button" class="dropdown-item btn-delete-card"><i class="fas fa-trash mr-2"></i>Excluir</button>
                                             </div>
                                         </div>
+                                        </div>
 
-                                     ${card.descricao ? `<div class="card-body" style='font-size: 0.8rem'>${card.descricao}</div>` : ''}
+                                     ${card.descricao ? `<div class="card-body" style='font-size: 0.8rem'>${escapeHtml(textoSemHtml(card.descricao))}</div>` : ''}
 
                                 </div>
                                 `;
