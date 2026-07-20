@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-cache-v1';
+const CACHE_NAME = 'pwa-cache-v2';
 
 const filesToCache = [
     '/',
@@ -62,6 +62,13 @@ const returnFromCache = function (request) {
 
 self.addEventListener('fetch', function (event) {
     if (event.request.method !== 'GET') return;
+
+    const url = new URL(event.request.url);
+
+    // Só intercepta requisições do próprio site. Firebase/Firestore, CDNs e
+    // demais APIs externas passam direto para a rede (não são interceptadas nem
+    // cacheadas). Sem isso, o long-polling do Firestore entra em loop.
+    if (url.origin !== self.location.origin) return;
 
     event.respondWith(
         checkResponse(event.request).catch(function () {

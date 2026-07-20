@@ -5,14 +5,17 @@ importScripts(
     "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"
 );
 
+// Config vinda da query string do registro do SW (definida no .env, por cliente).
+const params = new URLSearchParams(location.search);
+
 firebase.initializeApp({
-    apiKey: "AIzaSyC2MUvepLCHUVg6ondQ8plEbiutJ2sEYz0",
-    authDomain: "meuapppwa-f72da.firebaseapp.com",
-    projectId: "meuapppwa-f72da",
-    storageBucket: "meuapppwa-f72da.firebasestorage.app",
-    messagingSenderId: "629286230886",
-    appId: "1:629286230886:web:f5d45aaea590a725bd06a7",
-    measurementId: "G-1K1VHKY9XJ",
+    apiKey: params.get("apiKey"),
+    authDomain: params.get("authDomain"),
+    projectId: params.get("projectId"),
+    storageBucket: params.get("storageBucket"),
+    messagingSenderId: params.get("messagingSenderId"),
+    appId: params.get("appId"),
+    measurementId: params.get("measurementId"),
 });
 
 const messaging = firebase.messaging();

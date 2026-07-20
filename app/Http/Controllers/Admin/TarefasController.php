@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\kanban_cartao;
 use App\Models\kanban_coluna;
 use App\Models\kanban_projeto;
+use App\Services\FirebaseAuthService;
 use Illuminate\Http\Request;
 use Stevebauman\Purify\Facades\Purify;
 
@@ -26,13 +27,16 @@ class TarefasController extends Controller
         $this->cartao = $kanban_cartao;
     }
 
-    public function tarefas()
+    public function tarefas(FirebaseAuthService $firebaseAuth)
     {
         $idProjeto = decrypt($this->request->route('id'));
 
         $projeto = $this->projeto->getProjetoById($idProjeto);
 
-        return view('admin.tarefas.quadro-tarefas', compact('projeto'));
+        // Token para autenticar o navegador no Firestore (sincronizacao em tempo real)
+        $firebaseToken = $firebaseAuth->customToken(auth()->user()->id);
+
+        return view('admin.tarefas.quadro-tarefas', compact('projeto', 'firebaseToken'));
     }
 
     public function listarColunas()

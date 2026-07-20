@@ -8,10 +8,17 @@ Route::middleware(['auth', 'permission:ver-quadro-tarefa'])->group(function () {
     Route::prefix('projetos')->group(function () {
         Route::get('area-trabalho-tarefas', [ProjetosTarefasController::class, 'index'])->name('area-trabalho-tarefas');
         Route::get('listar', [ProjetosTarefasController::class, 'listarProjeto'])->name('listar-projetos');
+        Route::get('listar-compartilhados', [ProjetosTarefasController::class, 'listarProjetoCompartilhado'])->name('listar-projetos-compartilhados');
         Route::post('salvar-projeto', [ProjetosTarefasController::class, 'salvarProjeto'])->name('salvar-projeto-tarefa');
+        Route::post('editar-projeto', [ProjetosTarefasController::class, 'editarProjeto'])->name('editar-projeto');
         Route::post('editar-titulo-projeto', [ProjetosTarefasController::class, 'editarTituloProjeto'])->name('editar-titulo-projeto');
 
         Route::post('remover-projeto', [ProjetosTarefasController::class, 'removerProjeto'])->name('remover-projeto');
+        Route::post('reordenar-projetos', [ProjetosTarefasController::class, 'reordenarProjetos'])->name('reordenar-projetos');
+
+        Route::post('compartilhar-projeto', [ProjetosTarefasController::class, 'compartilharProjeto'])->name('compartilhar-projeto');
+        Route::get('listar-compartilhamentos', [ProjetosTarefasController::class, 'listarCompartilhamentos'])->name('listar-compartilhamentos');
+        Route::post('revogar-compartilhamento', [ProjetosTarefasController::class, 'revogarCompartilhamento'])->name('revogar-compartilhamento');
     });
 
     Route::prefix('tarefas')->group(function () {

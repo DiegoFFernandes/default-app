@@ -76,9 +76,7 @@ class User extends Authenticatable
 
     public function getData()
     {
-        return static::where('id', '!=', '1')
-            // ->whereIn('empresa', $cd_empresa)
-            ->orderBy('name', 'asc')->get();
+        return static::orderBy('name', 'asc')->get();
     }
     public function userExists($id)
     {

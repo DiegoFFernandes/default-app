@@ -9,6 +9,8 @@
                 <div class="card-header">
                     <h3 class="card-title" id="projeto-nome" data-projeto-id="{{ $projeto->id }}">{{ $projeto->nome }}</h3>
                     <div class="card-tools">
+                        {{-- Avatares de quem está editando o quadro agora (presença em tempo real) --}}
+                        <span id="presenca-editores" class="d-inline-flex align-items-center mr-2"></span>
                         <button type="button" class="btn btn-tool btn-warning btn-modal-add-coluna" title="Adicionar Coluna"
                             id="">
                             <i class="fas fa-plus"></i>
@@ -159,6 +161,28 @@
                 visibility: visible !important;
             }
         }
+
+        /* Avatares de presença (quem está editando o quadro agora) */
+        .avatar-presenca {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: -6px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+            cursor: default;
+            text-transform: uppercase;
+        }
+
+        .avatar-presenca:first-child {
+            margin-left: 0;
+        }
     </style>
 @stop
 
@@ -167,7 +191,200 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/jquery.ui.touch-punch.min.js') }}"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
+        /* ---------------------------------------------------------------
+            SINCRONIZAÇÃO EM TEMPO REAL (Firestore)
+            Quando alguém altera o quadro, os outros que estão vendo o mesmo
+            projeto recebem um "sinal" e recarregam as colunas/cards.
+        --------------------------------------------------------------- */
+        const RT_PROJETO_ID = '{{ $projeto->id }}';
+        const RT_MEU_USER_ID = '{{ auth()->user()->id }}';
+        const RT_MEU_NOME = @json(auth()->user()->name);
+        const RT_FIREBASE_TOKEN = @json($firebaseToken);
+
+        let rtDb = null;
+        let arrastandoCard = false;
+        let atualizacaoPendente = false;
+
+        (function inicializarSincronizacao() {
+            if (typeof firebase === 'undefined') return;
+
+            // compartilha o app default (o mesmo usado pelo messaging)
+            if (!firebase.apps.length) {
+                firebase.initializeApp({
+                    apiKey: "{{ env('FMC_API_KEY') }}",
+                    authDomain: "{{ env('FCM_AUTH_DOMAIN') }}",
+                    projectId: "{{ env('FCM_PROJECT_ID') }}",
+                    storageBucket: "{{ env('FCM_STORAGE_BUCKET') }}",
+                    messagingSenderId: "{{ env('FCM_MESSAGING_SENDER_ID') }}",
+                    appId: "{{ env('FCM_APP_ID') }}",
+                    measurementId: "{{ env('FCM_MEASUREMENT_ID') }}"
+                });
+            }
+
+            firebase.auth().signInWithCustomToken(RT_FIREBASE_TOKEN)
+                .then(function() {
+                    rtDb = firebase.firestore();
+                    escutarAlteracoesQuadro();
+                    iniciarPresenca();
+                })
+                .catch(function(err) {
+                    console.error('Falha ao autenticar no Firebase (sync tempo real):', err);
+                });
+        })();
+
+        function escutarAlteracoesQuadro() {
+            rtDb.collection('quadros').doc(RT_PROJETO_ID).onSnapshot(function(doc) {
+                if (!doc.exists) return;
+
+                const data = doc.data();
+                if (!data) return;
+
+                // ignora o sinal disparado pelo próprio usuário
+                if (String(data.atualizadoPor) === String(RT_MEU_USER_ID)) return;
+
+                // adia se estiver arrastando um card ou com algum modal aberto
+                if (quadroOcupado()) {
+                    atualizacaoPendente = true;
+                    return;
+                }
+
+                initColunas();
+            }, function(err) {
+                console.error('Erro no listener do Firestore:', err);
+            });
+        }
+
+        // grava o sinal de que este usuário alterou o quadro
+        function sinalizarAlteracao() {
+            if (!rtDb) return;
+
+            rtDb.collection('quadros').doc(RT_PROJETO_ID).set({
+                atualizadoPor: RT_MEU_USER_ID,
+                atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(function(err) {
+                console.error('Erro ao sinalizar alteração:', err);
+            });
+        }
+
+        function quadroOcupado() {
+            return arrastandoCard || $('.modal.show').length > 0;
+        }
+
+        /* ---------------------------------------------------------------
+            PRESENÇA — mostra quem mais está com o quadro aberto
+            (heartbeat no Firestore + listener; o Firestore não tem
+            onDisconnect, então usamos "último ping" para filtrar offline)
+        --------------------------------------------------------------- */
+        const RT_PRESENCA_INTERVALO = 20000; // pinga a cada 20s
+        const RT_PRESENCA_TIMEOUT = 60000; // sem ping há 60s = considerado offline
+
+        function iniciarPresenca() {
+            const meuDoc = rtDb.collection('quadros').doc(RT_PROJETO_ID)
+                .collection('presenca').doc(RT_MEU_USER_ID);
+
+            function pingPresenca() {
+                meuDoc.set({
+                    nome: RT_MEU_NOME,
+                    ultimoPing: firebase.firestore.FieldValue.serverTimestamp()
+                }, {
+                    merge: true
+                }).catch(function(err) {
+                    console.error('Erro ao registrar presença:', err);
+                });
+            }
+
+            pingPresenca();
+            setInterval(pingPresenca, RT_PRESENCA_INTERVALO);
+
+            // escuta todos os presentes no quadro
+            rtDb.collection('quadros').doc(RT_PROJETO_ID).collection('presenca')
+                .onSnapshot(function(snap) {
+                    const agora = Date.now();
+                    const presentes = [];
+
+                    snap.forEach(function(doc) {
+                        if (doc.id === String(RT_MEU_USER_ID)) return; // ignora eu mesmo
+
+                        const d = doc.data();
+                        if (!d || !d.nome) return;
+
+                        const t = (d.ultimoPing && d.ultimoPing.toMillis) ? d.ultimoPing.toMillis() : 0;
+                        if (t && (agora - t) > RT_PRESENCA_TIMEOUT) return; // offline
+
+                        presentes.push({
+                            id: doc.id,
+                            nome: d.nome
+                        });
+                    });
+
+                    renderPresenca(presentes);
+                }, function(err) {
+                    console.error('Erro no listener de presença:', err);
+                });
+
+            // remove minha presença ao sair (best-effort)
+            window.addEventListener('beforeunload', function() {
+                meuDoc.delete();
+            });
+        }
+
+        function renderPresenca(presentes) {
+            const container = $('#presenca-editores');
+
+            if (!presentes.length) {
+                container.empty();
+                return;
+            }
+
+            let html = '';
+            presentes.forEach(function(p) {
+                html += `<span class="avatar-presenca" style="background-color: ${corPresenca(p.id)};" title="${escapePresenca(p.nome)} (editando agora)">${iniciaisPresenca(p.nome)}</span>`;
+            });
+
+            container.html(html);
+        }
+
+        function iniciaisPresenca(nome) {
+            const partes = String(nome).trim().split(/\s+/);
+            const a = partes[0] ? partes[0][0] : '';
+            const b = partes.length > 1 ? partes[partes.length - 1][0] : '';
+            return (a + b) || '?';
+        }
+
+        function corPresenca(chave) {
+            const cores = ['#007bff', '#28a745', '#dc3545', '#fd7e14', '#6f42c1', '#17a2b8', '#e83e8c',
+                '#20c997'
+            ];
+            let hash = 0;
+            const s = String(chave);
+            for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+            return cores[hash % cores.length];
+        }
+
+        function escapePresenca(texto) {
+            return String(texto ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // aplica uma atualização remota que ficou pendente (após soltar o card / fechar modal)
+        function aplicarAtualizacaoPendente() {
+            if (atualizacaoPendente && !quadroOcupado()) {
+                atualizacaoPendente = false;
+                initColunas();
+            }
+        }
+
+        // reaplica a atualização pendente quando qualquer modal é fechado
+        $(document).on('hidden.bs.modal', '.modal', function() {
+            aplicarAtualizacaoPendente();
+        });
+
         initColunas();
 
         // define só o que você quer no editor
@@ -234,6 +451,7 @@
                         });
                         renderCartoes($('#id').val());
                         $('#modalCard').modal('hide');
+                        sinalizarAlteracao();
 
                     } else {
                         Swal.fire({
@@ -299,6 +517,7 @@
                         });
                         renderCartoes(coluna);
                         $('#modalCard').modal('hide');
+                        sinalizarAlteracao();
 
                     } else {
                         Swal.fire({
@@ -341,6 +560,7 @@
                             });
                             $(`[data-task-id='${idCard}']`).remove();
                             $('#modalCard').modal('hide');
+                            sinalizarAlteracao();
                         } else {
                             Swal.fire({
                                 icon: 'error',
@@ -588,7 +808,7 @@
                 success: function(cartoes) {
                     if (cartoes.length === 0) {
                         $(`#coluna_${colunaId}`).html(
-                            '<p class="text-muted text-center small">Nenhum cartão.</p>');
+                            '<p class="text-muted text-center small sem-cartao">Nenhum cartão.</p>');
                     } else {
                         cartoes.forEach(function(card) {
                             //cria um card novo
@@ -645,12 +865,38 @@
         }
 
         //função para arrastar e soltar os cards
+        // remove o "Nenhum cartão" de colunas com card e recoloca nas que ficaram vazias
+        function normalizarColunasVazias() {
+            $('.kanban-cards').each(function() {
+                const $col = $(this);
+
+                if ($col.children('.card').length > 0) {
+                    $col.children('.sem-cartao').remove();
+                } else if ($col.children('.sem-cartao').length === 0) {
+                    $col.html('<p class="text-muted text-center small sem-cartao">Nenhum cartão.</p>');
+                }
+            });
+        }
+
         function inicializarSortableCards() {
             $('.kanban-cards').sortable({
                 connectWith: '.kanban-cards',
                 handle: '.card-header',
                 forcePlaceholderSize: true,
                 placeholder: 'ui-state-highlight',
+                start: function() {
+                    arrastandoCard = true;
+                },
+                stop: function() {
+                    // corrige o placeholder "Nenhum cartão" das colunas afetadas
+                    normalizarColunasVazias();
+
+                    // libera após soltar e aplica atualização remota pendente
+                    setTimeout(function() {
+                        arrastandoCard = false;
+                        aplicarAtualizacaoPendente();
+                    }, 100);
+                },
                 update: function(event, ui) {
                     // coluna de destino
                     const colunaDestino = $(this).data('coluna-id');
@@ -682,6 +928,7 @@
                                     showConfirmButton: false,
                                     timer: 1000
                                 });
+                                sinalizarAlteracao();
                             } else {
                                 Swal.fire({
                                     icon: 'error',
@@ -725,6 +972,7 @@
                         });
                         initColunas();
                         $('#modalColuna').modal('hide');
+                        sinalizarAlteracao();
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -754,6 +1002,7 @@
                         });
                         initColunas();
                         $('#modalColuna').modal('hide');
+                        sinalizarAlteracao();
                     } else {
                         Swal.fire({
                             icon: 'error',

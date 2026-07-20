@@ -206,6 +206,18 @@
     {{-- Script de Funções --}}
     <script src="{{ asset('vendor/adminlte/dist/js/script-functions.js?v=' . time()) }}"></script>
     <script>
+        // URL do service worker de messaging com a config do Firebase vinda do .env.
+        // Permite um projeto Firebase por cliente sem editar o arquivo do SW.
+        const FCM_SW_URL = '/firebase-messaging-sw.js?' + new URLSearchParams({
+            apiKey: "{{ env('FMC_API_KEY') }}",
+            authDomain: "{{ env('FCM_AUTH_DOMAIN') }}",
+            projectId: "{{ env('FCM_PROJECT_ID') }}",
+            storageBucket: "{{ env('FCM_STORAGE_BUCKET') }}",
+            messagingSenderId: "{{ env('FCM_MESSAGING_SENDER_ID') }}",
+            appId: "{{ env('FCM_APP_ID') }}",
+            measurementId: "{{ env('FCM_MEASUREMENT_ID') }}"
+        }).toString();
+
         document.getElementById("ativarNotificacoesCheckbox").addEventListener("click", handleNotificationToggle);
 
         async function handleNotificationToggle() {
@@ -243,7 +255,7 @@
             if (firebaseInitialized) return;
 
             firebase.initializeApp({
-                apiKey: "{{ env('FMCAPI_KEY') }}",
+                apiKey: "{{ env('FMC_API_KEY') }}",
                 authDomain: "{{ env('FCM_AUTH_DOMAIN') }}",
                 projectId: "{{ env('FCM_PROJECT_ID') }}",
                 storageBucket: "{{ env('FCM_STORAGE_BUCKET') }}",
@@ -263,8 +275,12 @@
         async function getDeviceToken() {
             const messaging = firebase.messaging();
 
+            // usa o SW registrado com a config do .env (via query string)
+            const registration = await navigator.serviceWorker.register(FCM_SW_URL);
+
             return await messaging.getToken({
-                vapidKey: "{{ env('FCM_VAPID_PUBLIC_KEY') }}"
+                vapidKey: "{{ env('FCM_VAPID_PUBLIC_KEY') }}",
+                serviceWorkerRegistration: registration
             });
         }
     </script>
@@ -273,7 +289,7 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js')
                 .catch(err => console.error('SW PWA erro:', err));
-            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            navigator.serviceWorker.register(FCM_SW_URL)
                 .catch(err => console.error('SW Firebase erro:', err));
         }
     </script>
