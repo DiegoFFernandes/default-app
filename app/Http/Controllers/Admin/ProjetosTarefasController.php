@@ -46,7 +46,7 @@ class ProjetosTarefasController extends Controller
 
     public function listarProjeto()
     {
-        $idUser = $this->user->hasRole('admin') ? [] : [auth()->user()->id];
+        $idUser = [auth()->user()->id];
 
         $projeto = $this->projeto->listProjetos($idUser)->makeHidden(['id']);
 

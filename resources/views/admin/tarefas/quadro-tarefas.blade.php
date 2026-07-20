@@ -215,6 +215,11 @@
             flex-direction: column;
         }
 
+        /* Header do card é a "alça" de arraste (handle do sortable) */
+        .card-cartao .card-header {
+            cursor: move;
+        }
+
         .card-cartao .card-title {
             flex: 1 1 auto;
             min-width: 0;
