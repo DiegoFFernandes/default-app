@@ -442,6 +442,16 @@ $(document).ready(function () {
             cancelButtonText: 'Cancelar',
         }).then(r => {
             if (!r.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Enviando...',
+                text: 'Notificando o comprador responsável.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading(),
+            });
+
             $.post('{{ route('compras.solicitacoes.enviar-analise', $idSolicitacao) }}', { _token: token }, function (res) {
                 if (res.errors) Swal.fire('Erro', res.errors, 'error');
                 else Swal.fire({
@@ -452,6 +462,8 @@ $(document).ready(function () {
                     timerProgressBar: true,
                     showConfirmButton: false,
                 }).then(() => window.location.reload());
+            }).fail(function () {
+                Swal.fire({ icon: 'error', title: 'Erro', text: 'Não foi possível enviar a solicitação. Tente novamente.', confirmButtonColor: '#dc3545' });
             });
         });
     });

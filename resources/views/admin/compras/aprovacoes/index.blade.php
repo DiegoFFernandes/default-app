@@ -86,6 +86,15 @@ $(document).ready(function () {
             cancelButtonText: 'Cancelar',
         }).then(result => {
             if (!result.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Aprovando...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading(),
+            });
+
             $.post('{{ route('compras.aprovacoes.aprovar') }}', {
                 _token:          token,
                 id_etapa:        id,
@@ -97,6 +106,8 @@ $(document).ready(function () {
                     Swal.fire('Aprovado!', res.success, 'success');
                     dt.ajax.reload();
                 }
+            }).fail(function () {
+                Swal.fire({ icon: 'error', title: 'Erro', text: 'Não foi possível aprovar. Tente novamente.', confirmButtonColor: '#dc3545' });
             });
         });
     });
@@ -114,18 +125,30 @@ $(document).ready(function () {
             Swal.fire('Atenção', 'O motivo da reprovação é obrigatório.', 'warning');
             return;
         }
+        $('#modal-reprovar').modal('hide');
+
+        Swal.fire({
+            title: 'Reprovando...',
+            text: 'Notificando o comprador responsável.',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
         $.post('{{ route('compras.aprovacoes.reprovar') }}', {
             _token:        token,
             id_etapa:      $('#reprovar_id_etapa').val(),
             ds_observacao: motivo,
         }, function (res) {
-            $('#modal-reprovar').modal('hide');
             if (res.errors) {
                 Swal.fire('Erro', res.errors, 'error');
             } else {
                 Swal.fire('Reprovado', res.success, 'success');
                 dt.ajax.reload();
             }
+        }).fail(function () {
+            Swal.fire({ icon: 'error', title: 'Erro', text: 'Não foi possível reprovar. Tente novamente.', confirmButtonColor: '#dc3545' });
         });
     });
 

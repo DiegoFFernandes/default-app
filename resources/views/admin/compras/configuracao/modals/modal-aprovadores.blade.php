@@ -7,6 +7,27 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="aprov_id_faixa">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><small>Empresa <span class="text-danger">*</span></small></label>
+                            <select class="form-control form-control-sm" id="aprov_cd_empresa" style="width:100%" disabled>
+                                <option value="">Selecione</option>
+                                @foreach($empresas as $e)
+                                    <option value="{{ $e->CD_EMPRESA }}">{{ $e->NM_EMPRESA ?? $e->CD_EMPRESA }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-2">
+                            <label class="mb-1"><small>Centro de Resultado <span class="text-danger">*</span></small></label>
+                            <select class="form-control form-control-sm" id="aprov_cd_centrocusto" style="width:100%">
+                                <option value="">Selecione a empresa primeiro</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div class="row mb-2">
                     <div class="col-md-2">
                         <div class="form-group mb-2">
@@ -51,6 +72,7 @@
                         <tr>
                             <th style="width:30px"></th>
                             <th>Ordem</th>
+                            <th>Centro de Resultado</th>
                             <th>Cargo</th>
                             <th>Usuário</th>
                             <th>Ação</th>

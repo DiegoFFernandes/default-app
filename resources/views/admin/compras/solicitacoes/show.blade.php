@@ -160,10 +160,19 @@ $(document).ready(function () {
             cancelButtonText: 'Cancelar',
         }).then(r => {
             if (!r.isConfirmed) return;
-            Swal.fire({ title: 'Enviando...', allowOutsideClick: false, showConfirmButton: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({
+                title: 'Enviando...',
+                text: 'Notificando os aprovadores.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading(),
+            });
             $.post('{{ route('compras.solicitacoes.submeter', $idSolicitacao) }}', { _token: token }, function (res) {
                 if (res.errors) Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
                 else Swal.fire({ icon: 'success', title: 'Enviada!', text: res.success, confirmButtonColor: '#dc3545' }).then(() => window.location.reload());
+            }).fail(function () {
+                Swal.fire({ icon: 'error', title: 'Erro', text: 'Não foi possível enviar a solicitação. Tente novamente.', confirmButtonColor: '#dc3545' });
             });
         });
     });

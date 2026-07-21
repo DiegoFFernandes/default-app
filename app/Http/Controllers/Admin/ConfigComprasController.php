@@ -74,8 +74,13 @@ class ConfigComprasController extends Controller
                         class="btn btn-warning btn-xs btn-edit-faixa mr-1" title="Editar">
                         <i class="fas fa-edit"></i></button>
                     <button data-id="' . $row->ID_FAIXA . '" data-ds="' . e($row->DS_FAIXA) . '"
+                        data-empresa="' . $row->CD_EMPRESA . '"
                         class="btn btn-info btn-xs btn-aprovadores mr-1" title="Aprovadores">
                         <i class="fas fa-users"></i></button>
+                    <button data-id="' . $row->ID_FAIXA . '" data-ds="' . e($row->DS_FAIXA) . '"
+                        data-min="' . $row->VL_MINIMO . '" data-max="' . $row->VL_MAXIMO . '"
+                        class="btn btn-secondary btn-xs btn-duplicar-faixa mr-1" title="Duplicar">
+                        <i class="fas fa-copy"></i></button>
                     <button data-id="' . $row->ID_FAIXA . '"
                         class="btn btn-danger btn-xs btn-delete-faixa" title="Excluir">
                         <i class="fas fa-trash"></i></button>
@@ -109,6 +114,55 @@ class ConfigComprasController extends Controller
         }
     }
 
+    public function proximaOrdemFaixa()
+    {
+        $cdEmpresa = (int) $this->request->get('cd_empresa');
+
+        return response()->json([
+            'nr_ordem' => $cdEmpresa ? $this->configFaixa->getProximaOrdem($cdEmpresa) : 1,
+        ]);
+    }
+
+    public function duplicarFaixa()
+    {
+        $input = $this->request->validate([
+            'id_faixa_origem'     => 'required|integer',
+            'cd_empresa'          => 'required|integer',
+            'ds_faixa'            => 'required|string|max:100',
+            'nr_ordem'            => 'required|integer|min:1',
+            'vl_minimo'           => 'required|numeric|min:0',
+            'vl_maximo'           => 'nullable|numeric|min:0',
+            'copiar_aprovadores'  => 'required|boolean',
+        ], [
+            'cd_empresa.required' => 'Selecione a empresa.',
+            'ds_faixa.required'   => 'Informe a descrição da faixa.',
+        ]);
+
+        try {
+            $idNovaFaixa = $this->configFaixa->store($input);
+
+            if (!$input['copiar_aprovadores']) {
+                return response()->json(['success' => 'Faixa duplicada com sucesso!']);
+            }
+
+            $r = $this->configAprov->copiarParaFaixa(
+                (int) $input['id_faixa_origem'],
+                (int) $idNovaFaixa,
+                (int) $input['cd_empresa']
+            );
+
+            $msg = "Faixa duplicada! {$r['copiados']} aprovador(es) copiado(s).";
+
+            if ($r['ignorados'] > 0) {
+                $msg .= " {$r['ignorados']} não foi(ram) copiado(s): o centro de resultado não existe na empresa selecionada.";
+            }
+
+            return response()->json(['success' => $msg]);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'Erro ao duplicar faixa: ' . $e->getMessage()]);
+        }
+    }
+
     public function destroyFaixa($id)
     {
         try {
@@ -127,15 +181,19 @@ class ConfigComprasController extends Controller
     public function storeAprovador()
     {
         $input = $this->request->validate([
-            'id_faixa'     => 'required|integer',
-            'nr_ordem'     => 'required|integer|min:1',
-            'ds_cargo'     => 'required|string|max:100',
-            'cd_usuario'   => 'required|integer',
-            'nm_aprovador' => 'required|string|max:200',
+            'id_faixa'       => 'required|integer',
+            'nr_ordem'       => 'required|integer|min:1',
+            'ds_cargo'       => 'required|string|max:100',
+            'cd_usuario'     => 'required|integer',
+            'nm_aprovador'   => 'required|string|max:200',
+            'cd_empresa'     => 'required|integer',
+            'cd_centrocusto' => 'required|integer',
         ], [
-            'ds_cargo.required'     => 'Informe o cargo.',
-            'cd_usuario.required'   => 'Selecione o usuário aprovador.',
-            'nm_aprovador.required' => 'Nome do aprovador não identificado.',
+            'ds_cargo.required'       => 'Informe o cargo.',
+            'cd_usuario.required'     => 'Selecione o usuário aprovador.',
+            'nm_aprovador.required'   => 'Nome do aprovador não identificado.',
+            'cd_empresa.required'     => 'Selecione a empresa.',
+            'cd_centrocusto.required' => 'Selecione o centro de resultado.',
         ]);
 
         try {

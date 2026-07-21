@@ -30,7 +30,12 @@ class CompraConfigFaixa extends Model
         "));
     }
 
-    public function findFaixaByValor(int $cdEmpresa, float $vlTotal)
+    /**
+     * Resolve a faixa pelo valor considerando apenas as que possuem aprovador
+     * cadastrado para o centro de resultado informado. Permite que faixas
+     * sobrepostas funcionem como réguas de valor distintas por centro.
+     */
+    public function findFaixaByValorCentro(int $cdEmpresa, float $vlTotal, int $cdCentroCusto)
     {
         $row = DB::connection('firebird')->selectOne("
             SELECT FIRST 1
@@ -45,10 +50,33 @@ class CompraConfigFaixa extends Model
               AND F.ST_ATIVO   = 'S'
               AND F.VL_MINIMO  <= :vl_total
               AND (F.VL_MAXIMO IS NULL OR F.VL_MAXIMO >= :vl_total2)
+              AND EXISTS (
+                    SELECT 1 FROM COMPRA_CONFIG_APROV A
+                    WHERE A.ID_FAIXA       = F.ID_FAIXA
+                      AND A.CD_EMPRESA     = :cd_empresa2
+                      AND A.CD_CENTROCUSTO = :cd_centrocusto
+              )
             ORDER BY F.NR_ORDEM
-        ", ['cd_empresa' => $cdEmpresa, 'vl_total' => $vlTotal, 'vl_total2' => $vlTotal]);
+        ", [
+            'cd_empresa'     => $cdEmpresa,
+            'vl_total'       => $vlTotal,
+            'vl_total2'      => $vlTotal,
+            'cd_empresa2'    => $cdEmpresa,
+            'cd_centrocusto' => $cdCentroCusto,
+        ]);
 
         return $row ? \Helper::ConvertFormatText([$row])[0] : null;
+    }
+
+    public function getProximaOrdem(int $cdEmpresa): int
+    {
+        $row = DB::connection('firebird')->selectOne("
+            SELECT COALESCE(MAX(NR_ORDEM), 0) ULTIMA
+            FROM COMPRA_CONFIG_FAIXA
+            WHERE CD_EMPRESA = :cd_empresa
+        ", ['cd_empresa' => $cdEmpresa]);
+
+        return ((int) ($row->ULTIMA ?? 0)) + 1;
     }
 
     public function store(array $data)

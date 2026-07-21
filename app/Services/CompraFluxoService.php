@@ -56,14 +56,29 @@ class CompraFluxoService
             return ['errors' => 'Informe o motivo da escolha do fornecedor.'];
         }
 
-        $faixa = $this->configFaixa->findFaixaByValor($solicitacao->CD_EMPRESA, $cotacaoSel->VL_TOTAL);
-        if (!$faixa) {
-            return ['errors' => 'Não há configuração de aprovação para este valor. Contate o administrador.'];
+        if (empty($solicitacao->CD_CENTROCUSTO)) {
+            return ['errors' => 'Informe o centro de resultado da solicitação antes de enviar para aprovação.'];
         }
 
-        $aprovadores = $this->configAprov->getByFaixa($faixa->ID_FAIXA);
+        $faixa = $this->configFaixa->findFaixaByValorCentro(
+            (int) $solicitacao->CD_EMPRESA,
+            (float) $cotacaoSel->VL_TOTAL,
+            (int) $solicitacao->CD_CENTROCUSTO
+        );
+
+        if (!$faixa) {
+            $vlFmt = number_format((float) $cotacaoSel->VL_TOTAL, 2, ',', '.');
+            return ['errors' => "Não há faixa de aprovação com aprovadores cadastrados para o centro de resultado \"{$solicitacao->DS_CENTROCUSTO}\" no valor de R$ {$vlFmt}. Contate o administrador."];
+        }
+
+        $aprovadores = $this->configAprov->getByFaixaCentro(
+            (int) $faixa->ID_FAIXA,
+            (int) $solicitacao->CD_EMPRESA,
+            (int) $solicitacao->CD_CENTROCUSTO
+        );
+
         if (empty($aprovadores)) {
-            return ['errors' => 'A faixa de aprovação não possui aprovadores configurados. Contate o administrador.'];
+            return ['errors' => "Não há aprovadores configurados para o centro de resultado \"{$solicitacao->DS_CENTROCUSTO}\" nesta faixa de valor. Contate o administrador."];
         }
 
         return ['success' => true, 'faixa' => $faixa, 'cotacao' => $cotacaoSel, 'aprovadores' => $aprovadores];

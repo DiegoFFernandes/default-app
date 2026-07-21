@@ -65,6 +65,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('configuracao',               [ConfigComprasController::class, 'index'])->name('compras.configuracao.index');
             Route::get('get-faixas',                 [ConfigComprasController::class, 'listFaixas'])->name('compras.configuracao.list-faixas');
             Route::post('faixas',                    [ConfigComprasController::class, 'storeFaixa'])->name('compras.configuracao.store-faixa');
+            Route::get('faixas/proxima-ordem',       [ConfigComprasController::class, 'proximaOrdemFaixa'])->name('compras.configuracao.proxima-ordem-faixa');
+            Route::post('faixas/duplicar',           [ConfigComprasController::class, 'duplicarFaixa'])->name('compras.configuracao.duplicar-faixa');
             Route::post('faixas/{id}/update',        [ConfigComprasController::class, 'updateFaixa'])->name('compras.configuracao.update-faixa');
             Route::delete('faixas/{id}',             [ConfigComprasController::class, 'destroyFaixa'])->name('compras.configuracao.destroy-faixa');
             Route::get('faixas/{id}/aprovadores',    [ConfigComprasController::class, 'listAprovadores'])->name('compras.configuracao.list-aprovadores');

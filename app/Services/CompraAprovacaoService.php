@@ -31,15 +31,6 @@ class CompraAprovacaoService
             return ['errors' => 'Você não tem permissão para aprovar esta etapa.'];
         }
 
-        if ((int)$etapa->NR_ORDEM > 1) {
-            $todasEtapas = $this->etapaAprov->getBySolicitacao($etapa->CD_SOLICITACAO);
-            foreach ($todasEtapas as $e) {
-                if ((int)$e->NR_ORDEM < (int)$etapa->NR_ORDEM && $e->ST_ETAPA !== 'APR') {
-                    return ['errors' => "Aguardando aprovação da etapa {$e->NR_ORDEM} — {$e->DS_CARGO}."];
-                }
-            }
-        }
-
         $this->etapaAprov->updateEtapa($idEtapa, 'APR', $cdUsuario, $obs);
         $this->verificarConclusao($etapa->CD_SOLICITACAO);
 
@@ -94,10 +85,17 @@ class CompraAprovacaoService
             return;
         }
 
+        $sol = $this->solicitacao->findById((int) $idSolicitacao);
+
+        // Aprovações são paralelas: dois aprovadores podem concluir ao mesmo tempo.
+        // Sem esta guarda o comprador receberia a notificação duplicada.
+        if (!$sol || $sol->ST_SOLICITACAO === 'APC') {
+            return;
+        }
+
         $this->solicitacao->updateStatus($idSolicitacao, 'APC');
 
         try {
-            $sol       = $this->solicitacao->findById((int) $idSolicitacao);
             $comprador = $this->paramEmpresa->getCompradorByEmpresa((int) $sol->CD_EMPRESA);
 
             if ($comprador && !empty($comprador->NR_CELULAR)) {

@@ -66,6 +66,7 @@
 
     {{-- Modal Aprovadores --}}
     @include('admin.compras.configuracao.modals.modal-aprovadores')
+    @include('admin.compras.configuracao.modals.modal-duplicar-faixa')
 
     {{-- Modal Centro de Resultado --}}
     @include('admin.compras.configuracao.modals.modal-centrocusto')
@@ -219,6 +220,22 @@
                 $('#div-st-ativo').hide();
             });
 
+            // Ordem sugerida só ao criar — ao editar preserva a ordem atual
+            $('#faixa_cd_empresa').on('change', function() {
+                if ($('#faixa_id').val()) return;
+
+                const cdEmpresa = $(this).val();
+                if (!cdEmpresa) {
+                    $('#faixa_ordem').val('');
+                    return;
+                }
+                $.getJSON('{{ route('compras.configuracao.proxima-ordem-faixa') }}', {
+                    cd_empresa: cdEmpresa
+                }, function(res) {
+                    $('#faixa_ordem').val(res.nr_ordem);
+                });
+            });
+
             // Editar faixa
             $('body').on('click', '.btn-edit-faixa', function() {
                 const btn = $(this);
@@ -262,6 +279,83 @@
                 });
             });
 
+            // ---- Duplicar faixa ----
+            $('body').on('click', '.btn-duplicar-faixa', function() {
+                const btn = $(this);
+                $('#dup_id_faixa_origem').val(btn.data('id'));
+                $('#dup-ds-origem').text(btn.data('ds'));
+                $('#dup_ds').val(btn.data('ds') + ' (cópia)');
+                $('#dup_vl_min').val(String(btn.data('min')).replace('.', ','));
+                $('#dup_vl_max').val(btn.data('max') ? String(btn.data('max')).replace('.', ',') : '');
+                $('#dup_cd_empresa').val('');
+                $('#dup_ordem').val('');
+                $('#modal-duplicar-faixa').modal('show');
+            });
+
+            // Ordem sugerida = última da empresa selecionada + 1
+            $('#dup_cd_empresa').on('change', function() {
+                const cdEmpresa = $(this).val();
+                if (!cdEmpresa) {
+                    $('#dup_ordem').val('');
+                    return;
+                }
+                $.getJSON('{{ route('compras.configuracao.proxima-ordem-faixa') }}', {
+                    cd_empresa: cdEmpresa
+                }, function(res) {
+                    $('#dup_ordem').val(res.nr_ordem);
+                });
+            });
+
+            $('#btn-salvar-duplicar-faixa').click(function() {
+                if (!$('#dup_cd_empresa').val()) {
+                    Swal.fire({ icon: 'warning', title: 'Atenção', text: 'Selecione a empresa.', confirmButtonColor: '#dc3545' });
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Copiar aprovadores?',
+                    text: 'Deseja usar os mesmos aprovadores para a faixa duplicada?',
+                    icon: 'question',
+                    showDenyButton: true,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    confirmButtonText: 'Sim, copiar',
+                    denyButtonText: 'Não, deixar em branco',
+                    confirmButtonColor: '#dc3545',
+                }).then(r => {
+                    Swal.fire({
+                        title: 'Duplicando...',
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.post('{{ route('compras.configuracao.duplicar-faixa') }}', {
+                        _token: token,
+                        id_faixa_origem: $('#dup_id_faixa_origem').val(),
+                        cd_empresa: $('#dup_cd_empresa').val(),
+                        ds_faixa: $('#dup_ds').val(),
+                        nr_ordem: $('#dup_ordem').val(),
+                        vl_minimo: toFloat($('#dup_vl_min').val()),
+                        vl_maximo: $('#dup_vl_max').val() ? toFloat($('#dup_vl_max').val()) : null,
+                        copiar_aprovadores: r.isConfirmed ? 1 : 0,
+                    }, function(res) {
+                        if (res.errors) {
+                            Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
+                        } else {
+                            $('#modal-duplicar-faixa').modal('hide');
+                            Swal.fire('Duplicado!', res.success, 'success');
+                            dt.ajax.reload();
+                        }
+                    }).fail(function(xhr) {
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            const msgs = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                            Swal.fire({ icon: 'warning', title: 'Atenção', html: msgs, confirmButtonColor: '#dc3545' });
+                        }
+                    });
+                });
+            });
+
             // Excluir faixa
             $('body').on('click', '.btn-delete-faixa', function() {
                 const id = $(this).data('id');
@@ -293,15 +387,34 @@
 
             // ---- Gerenciar Aprovadores ----
             $('body').on('click', '.btn-aprovadores', function() {
-                const id = $(this).data('id');
-                const ds = $(this).data('ds');
+                const id      = $(this).data('id');
+                const ds      = $(this).data('ds');
+                const empresa = $(this).data('empresa');
                 $('#aprov_id_faixa').val(id);
                 $('#aprov-ds-faixa').text(ds);
                 $('#aprov_ordem, #aprov_cargo').val('');
                 $('#aprov_cd_usuario').val('').trigger('change');
+                $('#aprov_cd_empresa').val(empresa);
+                carregarCentrosAprov(empresa);
                 carregarAprovadores(id);
                 $('#modal-aprovadores').modal('show');
             });
+
+            function carregarCentrosAprov(cdEmpresa) {
+                const sel = $('#aprov_cd_centrocusto');
+                sel.empty();
+                if (!cdEmpresa) {
+                    sel.append('<option value="">Selecione a empresa primeiro</option>');
+                    return;
+                }
+                $.getJSON('{{ route('compras.centros.by-empresa') }}', { cd_empresa: cdEmpresa }, function(data) {
+                    sel.empty().append('<option value="">Selecione</option>');
+                    $.each(data, function(_, c) {
+                        sel.append($('<option>', { value: c.CD_CENTROCUSTO, text: c.DS_CENTROCUSTO }));
+                    });
+                });
+            }
+
 
             let sortableOrdem = null;
 
@@ -311,7 +424,7 @@
                     const tbody = $('#tbody-aprovadores');
                     tbody.empty();
                     if (!data.length) {
-                        tbody.append('<tr><td colspan="5" class="text-center">Nenhum aprovador.</td></tr>');
+                        tbody.append('<tr><td colspan="6" class="text-center">Nenhum aprovador.</td></tr>');
                         if (sortableOrdem) {
                             sortableOrdem.destroy();
                             sortableOrdem = null;
@@ -325,6 +438,7 @@
                             <i class="fas fa-grip-vertical"></i>
                         </td>
                         <td>${a.NR_ORDEM}</td>
+                        <td>${a.DS_CENTROCUSTO || '—'}</td>
                         <td>${a.DS_CARGO}</td>
                         <td>${a.NM_APROVADOR}</td>
                         <td>
@@ -387,6 +501,8 @@
                     ds_cargo: $('#aprov_cargo').val(),
                     cd_usuario: $('#aprov_cd_usuario').val(),
                     nm_aprovador: nmAprovador,
+                    cd_empresa: $('#aprov_cd_empresa').val(),
+                    cd_centrocusto: $('#aprov_cd_centrocusto').val(),
                 }, function(res) {
                     if (res.errors) {
                         Swal.fire('Atenção', res.errors, 'warning');
