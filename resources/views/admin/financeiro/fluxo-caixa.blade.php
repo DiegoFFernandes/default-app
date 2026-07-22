@@ -1507,6 +1507,12 @@
             });
         });
 
+        function formatarValorSaldoBanco(valor) {
+            return valor.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2
+            });
+        }
+
         // Monta as linhas usadas tanto no drill-down por dia quanto na busca por período.
         // `editavel` controla se mostra os botões de editar/excluir — a busca por período
         // (buscarSaldoBanco) é sempre sobre fluxo_caixa_saldo de verdade, então sempre editável;
@@ -1527,9 +1533,7 @@
                 return '<tr>' +
                     '<td>' + item.ds_banco + '</td>' +
                     '<td>' + item.dt_saldo_formatada + '</td>' +
-                    '<td class="text-right">' + item.vl_saldo.toLocaleString('pt-BR', {
-                        minimumFractionDigits: 2
-                    }) + '</td>' +
+                    '<td class="text-right">' + formatarValorSaldoBanco(item.vl_saldo) + '</td>' +
                     '<td class="text-center">' + acoes + '</td>' +
                     '</tr>';
             }).join('');
@@ -1550,6 +1554,12 @@
                 return;
             }
 
+            // O total confere com a célula "Saldo Banco" que abriu o modal — serve de conferência
+            // rápida sem precisar somar as linhas de cabeça.
+            var totalSaldoBanco = itens.reduce(function(acc, item) {
+                return acc + item.vl_saldo;
+            }, 0);
+
             Swal.fire({
                 title: 'Saldos considerados neste dia',
                 width: 650,
@@ -1558,11 +1568,20 @@
                     title: 'swal-title-fluxo',
                     confirmButton: 'swal-confirm-fluxo'
                 },
-                html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
-                    '<table class="table table-sm table-striped" style="font-size:12px;">' +
+                html: '<div style="text-align:left;">' +
+                    '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                    '<span style="font-size:12px;">' + itens.length + ' conta' +
+                    (itens.length === 1 ? '' : 's') + '</span>' +
+                    '<strong style="font-size:12px;">Total: R$ ' +
+                    formatarValorSaldoBanco(totalSaldoBanco) + '</strong>' +
+                    '</div>' +
+                    // Altura em vh (não em px fixo) pra aproveitar a tela em monitor grande e não
+                    // estourar em notebook; tabela-thead-fixo mantém o cabeçalho visível na rolagem.
+                    '<div style="max-height:60vh; overflow-y:auto;">' +
+                    '<table class="table table-sm table-striped tabela-thead-fixo" style="font-size:12px;">' +
                     '<thead><tr><th>Empresa - Conta - Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
                     '<tbody>' + montarLinhasSaldoBanco(itens, fluxoOrigemSaldoBanco !== 'firebird') + '</tbody>' +
-                    '</table></div>',
+                    '</table></div></div>',
                 didOpen: function() {
                     makeSwalDraggable();
                 }
