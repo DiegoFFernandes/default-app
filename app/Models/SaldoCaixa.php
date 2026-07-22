@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\DB;
  */
 class SaldoCaixa
 {
+    /** Memo por request de buscar(), já que vários métodos leem a mesma faixa na mesma tela. */
+    private static array $cacheBusca = [];
+
     private static function contasConfiguradas(): array
     {
         return FluxoCaixaSaldoConta::pluck('cd_conta')->all();
@@ -44,6 +47,11 @@ class SaldoCaixa
      */
     private static function buscar(?string $dtInicio, ?string $dtFim): array
     {
+        $chaveCache = ($dtInicio ?? '') . '..' . ($dtFim ?? '');
+        if (isset(self::$cacheBusca[$chaveCache])) {
+            return self::$cacheBusca[$chaveCache];
+        }
+
         $contas = self::contasConfiguradas();
 
         if (empty($contas)) {
@@ -63,7 +71,7 @@ class SaldoCaixa
         }
         $filtroData = $condicoesData ? implode(' AND ', $condicoesData) . ' AND' : '';
 
-        return \Helper::ConvertFormatText(DB::connection('firebird')->select("
+        return self::$cacheBusca[$chaveCache] = \Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT
                 S.CD_EMPRESA,
                 S.CD_CONTA,
@@ -78,16 +86,64 @@ class SaldoCaixa
     }
 
     /**
-     * Para cada dia informado, soma o saldo mais recente conhecido de cada par
-     * (CD_EMPRESA, CD_CONTA) — a última linha com DT_CAIXA menor ou igual àquele dia. Mesmo
-     * "degrau" de SaldoFluxoCaixa::saldoTotalPorDia(); pares ainda sem registro até aquele dia
-     * não entram na soma.
+     * Normaliza o retorno de buscar() e agrupa por (CD_EMPRESA, CD_CONTA).
      *
      * O agrupamento é por empresa+conta, não só por conta: no SALDOCAIXA cada empresa mantém sua
      * própria parcela na mesma conta contábil, e o saldo é cumulativo por empresa (o
      * VL_SALDOANTERIOR de uma linha é o VL_SALDOCAIXA da linha anterior da mesma empresa+conta).
      * Agrupar só por conta faria a empresa que movimentou por último "apagar" as parcelas das
      * demais, que continuam existindo mesmo sem movimento recente.
+     */
+    private static function agruparPorEmpresaConta(array $linhas): \Illuminate\Support\Collection
+    {
+        return collect($linhas)
+            ->map(fn ($linha) => (object) [
+                'chave' => $linha->CD_EMPRESA . '|' . $linha->CD_CONTA,
+                'cd_empresa' => $linha->CD_EMPRESA,
+                'cd_conta' => $linha->CD_CONTA,
+                'ds_banco' => $linha->DS_BANCO,
+                'vl_saldo' => (float) $linha->VL_SALDO,
+                'dt_saldo' => Carbon::parse($linha->DT_SALDO),
+            ])
+            ->groupBy('chave');
+    }
+
+    /**
+     * Último saldo conhecido de cada empresa+conta até $dia (inclusive) — o forward-fill que
+     * sustenta todo o resto da classe.
+     *
+     * É o ponto central da diferença entre esta origem e o saldo digitado: o Firebird só grava
+     * uma linha em SALDOCAIXA quando a conta teve movimento naquele dia. Uma conta parada desde
+     * 21/07 continua valendo o mesmo saldo em 22/07, mas não tem linha nessa data — somar só as
+     * linhas do dia faria essa conta sumir do total. Aqui ela é arrastada com a data original,
+     * que é justamente o que o drill-down exibe ("atualizado em 21/07").
+     *
+     * Empresa+conta ainda sem nenhum registro até $dia fica de fora (não vira zero).
+     */
+    private static function ultimosSaldosAte(\Illuminate\Support\Collection $porEmpresaConta, Carbon $dia): \Illuminate\Support\Collection
+    {
+        return $porEmpresaConta
+            ->map(function ($linhas) use ($dia) {
+                $ateODia = $linhas->filter(fn ($linha) => $linha->dt_saldo->lte($dia));
+
+                if ($ateODia->isEmpty()) {
+                    return null;
+                }
+
+                // Pode haver mais de uma linha na mesma data (a soma acompanha o original).
+                $ultimaData = $ateODia->max('dt_saldo');
+
+                return $ateODia->filter(fn ($linha) => $linha->dt_saldo->equalTo($ultimaData));
+            })
+            ->filter()
+            ->flatten(1);
+    }
+
+    /**
+     * Para cada dia informado, soma o saldo mais recente conhecido de cada par
+     * (CD_EMPRESA, CD_CONTA) — a última linha com DT_CAIXA menor ou igual àquele dia. Mesmo
+     * "degrau" de SaldoFluxoCaixa::saldoTotalPorDia(); pares ainda sem registro até aquele dia
+     * não entram na soma.
      *
      * @param  Carbon[] $dias
      * @return array<int, float>
@@ -98,60 +154,43 @@ class SaldoCaixa
             return [];
         }
 
-        $porEmpresaConta = collect(self::buscar(null, end($dias)->format('Y-m-d')))
-            ->map(fn ($linha) => (object) [
-                'chave' => $linha->CD_EMPRESA . '|' . $linha->CD_CONTA,
-                'vl_saldo' => (float) $linha->VL_SALDO,
-                'dt_saldo' => Carbon::parse($linha->DT_SALDO),
-            ])
-            ->groupBy('chave');
+        $porEmpresaConta = self::agruparPorEmpresaConta(self::buscar(null, end($dias)->format('Y-m-d')));
 
         $resultado = [];
         foreach ($dias as $i => $dia) {
-            $total = 0.0;
-            foreach ($porEmpresaConta as $linhasConta) {
-                $ateODia = $linhasConta->filter(fn ($linha) => $linha->dt_saldo->lte($dia));
-                if ($ateODia->isEmpty()) {
-                    continue;
-                }
-
-                $ultimaData = $ateODia->max('dt_saldo');
-                $total += $ateODia->filter(fn ($linha) => $linha->dt_saldo->equalTo($ultimaData))->sum('vl_saldo');
-            }
-            $resultado[$i] = $total;
+            $resultado[$i] = (float) self::ultimosSaldosAte($porEmpresaConta, $dia)->sum('vl_saldo');
         }
 
         return $resultado;
     }
 
     /**
-     * Soma dos saldos (todas as contas configuradas) com DT_CAIXA EXATAMENTE em cada dia — 0
-     * nos dias sem nenhum registro. Mesmo formato de SaldoFluxoCaixa::valorLancadoPorDia().
+     * Total do Saldo Banco a exibir num dia que tem movimento — aqui, igual ao saldo total
+     * forward-filled do dia.
+     *
+     * No saldo digitado esses dois métodos são diferentes: um lançamento manual é uma
+     * reconciliação de TODOS os bancos, então o dia vale só o que foi lançado nele. No Firebird
+     * uma linha significa apenas "esta conta movimentou", nunca o total — somar só as linhas do
+     * dia derrubaria do total toda conta parada (ver ultimosSaldosAte()). Por isso, nesta origem,
+     * os dois convergem para o mesmo cálculo, e o drill-down (detalhePorDia) segue a mesma regra
+     * para continuar batendo com o total exibido.
      *
      * @param  Carbon[] $dias
      * @return array<int, float>
      */
     public static function valorLancadoPorDia(array $dias): array
     {
-        if (empty($dias)) {
-            return [];
-        }
-
-        $porData = collect(self::buscar(reset($dias)->format('Y-m-d'), end($dias)->format('Y-m-d')))
-            ->groupBy(fn ($linha) => Carbon::parse($linha->DT_SALDO)->format('Y-m-d'));
-
-        $resultado = [];
-        foreach ($dias as $i => $dia) {
-            $chave = $dia->format('Y-m-d');
-            $resultado[$i] = $porData->has($chave) ? (float) $porData->get($chave)->sum('VL_SALDO') : 0.0;
-        }
-
-        return $resultado;
+        return self::saldoTotalPorDia($dias);
     }
 
     /**
      * Marca, para cada dia informado, se existe algum registro com DT_CAIXA exatamente
      * naquele dia. Mesmo formato de SaldoFluxoCaixa::diasComLancamento().
+     *
+     * É essa marcação que faz o FluxoCaixaController usar o saldo real do dia em vez de projetar
+     * a partir do Saldo do Dia anterior. Dias futuros nunca entram: mesmo que o SALDOCAIXA tenha
+     * linha com data à frente, deixar o valor real vencer ali descartaria o a receber/a pagar já
+     * acumulado na projeção da janela. De amanhã em diante, sempre projeta.
      *
      * @param  Carbon[] $dias
      * @return array<int, bool>
@@ -162,13 +201,15 @@ class SaldoCaixa
             return [];
         }
 
+        $hoje = Carbon::now()->startOfDay();
+
         $datasComLancamento = collect(self::buscar(reset($dias)->format('Y-m-d'), end($dias)->format('Y-m-d')))
             ->map(fn ($linha) => Carbon::parse($linha->DT_SALDO)->format('Y-m-d'))
             ->flip();
 
         $resultado = [];
         foreach ($dias as $i => $dia) {
-            $resultado[$i] = $datasComLancamento->has($dia->format('Y-m-d'));
+            $resultado[$i] = $dia->lte($hoje) && $datasComLancamento->has($dia->format('Y-m-d'));
         }
 
         return $resultado;
@@ -200,11 +241,17 @@ class SaldoCaixa
     }
 
     /**
-     * Para cada dia informado, lista os registros por conta (CD_CONTA/DS_BANCO/VL_SALDO) com
-     * DT_CAIXA EXATAMENTE naquele dia — mesmo formato de SaldoFluxoCaixa::detalhePorDia(), usado
-     * no drill-down. Como SALDOCAIXA não tem um id de linha próprio, sintetiza um a partir de
-     * CD_CONTA+DT_CAIXA (só pra identificação na tela — não é editável/excluível como o saldo
-     * digitado).
+     * Para cada dia informado, lista o último saldo conhecido de cada conta (CD_CONTA/DS_BANCO/
+     * VL_SALDO) — mesmo formato de SaldoFluxoCaixa::detalhePorDia(), usado no drill-down.
+     *
+     * Segue o mesmo forward-fill do total (valorLancadoPorDia), então a soma das linhas aqui bate
+     * com o Saldo Banco exibido. Uma conta parada aparece com a data do seu último movimento
+     * (a tela mostra dt_saldo_formatada por linha), deixando visível que aquele saldo foi
+     * arrastado e não lançado no dia.
+     *
+     * Como SALDOCAIXA não tem um id de linha próprio, sintetiza um a partir de
+     * empresa+conta+DT_CAIXA (só pra identificação na tela — não é editável/excluível como o
+     * saldo digitado).
      *
      * @param  Carbon[] $dias
      * @return array<int, array<int, array{id:string, ds_banco:string, vl_saldo:float, dt_saldo:string, dt_saldo_formatada:string}>>
@@ -215,57 +262,37 @@ class SaldoCaixa
             return [];
         }
 
-        $porData = collect(self::buscar(reset($dias)->format('Y-m-d'), end($dias)->format('Y-m-d')))
-            ->groupBy(fn ($linha) => Carbon::parse($linha->DT_SALDO)->format('Y-m-d'));
+        $porEmpresaConta = self::agruparPorEmpresaConta(self::buscar(null, end($dias)->format('Y-m-d')));
 
         $resultado = [];
         foreach ($dias as $i => $dia) {
-            $linhasDoDia = $porData->get($dia->format('Y-m-d'), collect());
-            $resultado[$i] = $linhasDoDia->map(fn ($linha) => [
-                'id' => $linha->CD_CONTA . '-' . Carbon::parse($linha->DT_SALDO)->format('Ymd'),
-                'ds_banco' => $linha->DS_BANCO,
-                'vl_saldo' => (float) $linha->VL_SALDO,
-                'dt_saldo' => Carbon::parse($linha->DT_SALDO)->format('Y-m-d'),
-                'dt_saldo_formatada' => Carbon::parse($linha->DT_SALDO)->format('d/m/Y'),
-            ])->values()->all();
+            $resultado[$i] = self::ultimosSaldosAte($porEmpresaConta, $dia)
+                ->sortBy('ds_banco')
+                ->map(fn ($linha) => [
+                    'id' => $linha->cd_empresa . '-' . $linha->cd_conta . '-' . $linha->dt_saldo->format('Ymd'),
+                    'ds_banco' => $linha->ds_banco,
+                    'vl_saldo' => $linha->vl_saldo,
+                    'dt_saldo' => $linha->dt_saldo->format('Y-m-d'),
+                    'dt_saldo_formatada' => $linha->dt_saldo->format('d/m/Y'),
+                ])->values()->all();
         }
 
         return $resultado;
     }
 
     /**
-     * Soma dos registros do dia mais recente (DT_CAIXA) que tem algum saldo, entre as contas
-     * configuradas. Mesmo formato de SaldoFluxoCaixa::saldoUltimoDiaLancado().
+     * Saldo bancário consolidado de hoje — último saldo conhecido de cada conta configurada.
+     * Mesmo formato de SaldoFluxoCaixa::saldoUltimoDiaLancado(), alimenta o card
+     * "Saldo Banco(s) Hoje".
      *
-     * Ignora datas futuras: o card que consome isso é "Saldo Banco(s) Hoje", e o SALDOCAIXA
-     * pode conter lançamento com data à frente (visto na base: registros até 31/12). No saldo
-     * digitado isso não acontece porque salvarSaldoBanco() valida a data na entrada — aqui o
-     * dado vem de fora, sem passar por validação nenhuma, então o filtro é aplicado na leitura.
+     * Não usa MAX(DT_CAIXA) pra escolher "o último dia lançado" e somar só ele: isso devolveria
+     * apenas as contas que movimentaram nessa data, ignorando as paradas. O forward-fill em hoje
+     * já resolve os dois casos (inclusive o de nenhuma conta ter movimentado hoje) e, por ser
+     * limitado a hoje, também ignora eventual lançamento com data à frente.
      */
     public static function saldoUltimoDiaLancado(): float
     {
-        $contas = self::contasConfiguradas();
-
-        if (empty($contas)) {
-            return 0.0;
-        }
-
-        [$bindings, $placeholders] = self::bindingsContas($contas);
-
-        $row = DB::connection('firebird')->selectOne("
-            SELECT MAX(S.DT_CAIXA) DT_MAX
-            FROM SALDOCAIXA S
-            WHERE S.CD_CONTA IN (" . implode(', ', $placeholders) . ")
-                  AND S.DT_CAIXA <= CURRENT_DATE
-        ", $bindings);
-
-        $dtMax = $row->DT_MAX ?? $row->dt_max ?? null;
-
-        if ($dtMax === null) {
-            return 0.0;
-        }
-
-        return self::valorLancadoPorDia([Carbon::parse($dtMax)])[0] ?? 0.0;
+        return self::saldoTotalPorDia([Carbon::now()->startOfDay()])[0] ?? 0.0;
     }
 
     /**

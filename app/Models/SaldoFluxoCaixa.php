@@ -27,14 +27,6 @@ class SaldoFluxoCaixa extends Model
     }
 
     /**
-     * Soma dos saldos mais recentes de cada banco na data de hoje.
-     */
-    public static function saldoTotalAtual(): float
-    {
-        return self::saldoTotalPorDia([Carbon::now()])[0] ?? 0.0;
-    }
-
-    /**
      * Soma do saldo de cada banco com dt_saldo EXATAMENTE no dia informado (sem repetir valor
      * de dias anteriores) — se um banco tiver mais de um lançamento no mesmo dia (ex: correção
      * feita depois), usa só o último (maior id), não soma os dois. Se não houver nenhum
@@ -50,9 +42,9 @@ class SaldoFluxoCaixa extends Model
 
     /**
      * Soma dos saldos do dia mais recente que tem algum lançamento (não necessariamente hoje).
-     * Diferente de saldoTotalAtual()/saldoTotalPorDia(), que fazem forward-fill banco a banco
-     * (cada banco usa sua própria última data, podendo misturar bancos de dias diferentes na
-     * soma) — aqui só entram os bancos lançados NAQUELE dia específico mais recente.
+     * Diferente de saldoTotalPorDia(), que faz forward-fill banco a banco (cada banco usa sua
+     * própria última data, podendo misturar bancos de dias diferentes na soma) — aqui só entram
+     * os bancos lançados NAQUELE dia específico mais recente.
      */
     public static function saldoUltimoDiaLancado(): float
     {
@@ -73,17 +65,6 @@ class SaldoFluxoCaixa extends Model
     public static function existeLancamentoAPartirDe(Carbon $data): bool
     {
         return self::where('dt_saldo', '>=', $data->format('Y-m-d'))->exists();
-    }
-
-    /**
-     * Verifica se existe algum lançamento com dt_saldo menor ou igual à data informada —
-     * ou seja, se há algum saldo real pra ancorar o forward-fill até esse dia. Usado pra saber
-     * se o dia 0 deve cair no fallback do cache de fluxo_caixa_saldo_dia (nenhum saldo real
-     * informado ainda) em vez de simplesmente assumir 0.
-     */
-    public static function existeLancamentoAte(Carbon $data): bool
-    {
-        return self::where('dt_saldo', '<=', $data->format('Y-m-d'))->exists();
     }
 
     /**

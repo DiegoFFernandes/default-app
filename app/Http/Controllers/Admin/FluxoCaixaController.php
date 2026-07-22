@@ -102,8 +102,10 @@ class FluxoCaixaController extends Controller
         // naquele dia — nesses dias o Saldo Banco usa o valor real informado.
         $diasComLancamentoManual = $fonteSaldo::diasComLancamento($dias);
 
-        // Valor efetivamente lançado em cada dia (só os bancos atualizados naquele dia, sem
-        // forward-fill) — usado pro Saldo Banco bater com o que o drill-down mostra.
+        // Valor do Saldo Banco nos dias com lançamento — sempre batendo com o que o drill-down
+        // mostra. Na origem 'digitado' é só o que foi lançado naquele dia (o lançamento manual é
+        // uma reconciliação de todos os bancos); na 'firebird' é o saldo forward-filled, porque
+        // lá uma linha significa apenas que aquela conta movimentou, nunca o total.
         $valorSaldoBancoLancadoPorDia = $fonteSaldo::valorLancadoPorDia($dias);
 
         // Prioridade da âncora do dia 0 (mesma regra dos demais dias, só que "ontem" não está
@@ -153,8 +155,10 @@ class FluxoCaixaController extends Controller
         }
 
         // Saldo Banco não faz "degrau" (não repete um valor antigo indefinidamente):
-        // - Num dia com lançamento manual, usa só a soma do que foi lançado NAQUELE dia (não o
-        //   total reconciliado de todos os bancos) — assim bate com o que o drill-down mostra.
+        // - Num dia com lançamento, usa o valor real daquele dia, na definição de cada origem
+        //   (ver $valorSaldoBancoLancadoPorDia) — sempre batendo com o drill-down. Na origem
+        //   'firebird' isso nunca acontece em dia futuro: lá o valor real só vence até hoje,
+        //   senão descartaria o a receber/a pagar já projetado na janela.
         // - No dia 0 sem lançamento próprio, usa a âncora (cache do dia anterior ou forward-fill
         //   residual, já resolvidos acima).
         // - Nos demais dias, herda o Saldo do Dia do dia anterior — que já é o resultado
