@@ -1554,11 +1554,53 @@
                 return;
             }
 
-            // O total confere com a célula "Saldo Banco" que abriu o modal — serve de conferência
-            // rápida sem precisar somar as linhas de cabeça.
-            var totalSaldoBanco = itens.reduce(function(acc, item) {
-                return acc + item.vl_saldo;
-            }, 0);
+            // Filtro e ordenação seguem o mesmo desenho do drill-down de contas a receber/pagar:
+            // estado local, uma função que devolve a lista já filtrada/ordenada e outra que
+            // redesenha corpo e rodapé. Sem ordenação escolhida, mantém a ordem que veio do
+            // servidor (por empresa/conta).
+            var filtroSaldoBanco = '';
+            var ordemCampoSaldo = null; // 'ds_banco' | 'dt_saldo' | 'vl_saldo'
+            var ordemDirSaldo = 'asc';
+
+            function itensExibidosSaldoBanco() {
+                var lista = itens.slice();
+
+                if (filtroSaldoBanco) {
+                    var termo = filtroSaldoBanco.toLowerCase();
+                    lista = lista.filter(function(item) {
+                        return item.ds_banco.toLowerCase().indexOf(termo) !== -1 ||
+                            item.dt_saldo_formatada.indexOf(termo) !== -1 ||
+                            formatarValorSaldoBanco(item.vl_saldo).indexOf(termo) !== -1;
+                    });
+                }
+
+                if (ordemCampoSaldo) {
+                    lista.sort(function(a, b) {
+                        var x = a[ordemCampoSaldo];
+                        var y = b[ordemCampoSaldo];
+                        // dt_saldo vem como Y-m-d, então a comparação de texto já é cronológica.
+                        var cmp = ordemCampoSaldo === 'vl_saldo' ?
+                            (x - y) :
+                            String(x).localeCompare(String(y), 'pt-BR');
+                        return ordemDirSaldo === 'asc' ? cmp : -cmp;
+                    });
+                }
+
+                return lista;
+            }
+
+            function atualizarTabelaSaldoBanco() {
+                var lista = itensExibidosSaldoBanco();
+                var total = lista.reduce(function(acc, item) {
+                    return acc + item.vl_saldo;
+                }, 0);
+
+                $('#swal-saldo-banco-tbody').html(
+                    montarLinhasSaldoBanco(lista, fluxoOrigemSaldoBanco !== 'firebird'));
+                $('#swal-saldo-banco-contagem').text(
+                    lista.length + ' conta' + (lista.length === 1 ? '' : 's'));
+                $('#swal-saldo-banco-total').text('Total: R$ ' + formatarValorSaldoBanco(total));
+            }
 
             Swal.fire({
                 title: 'Saldos considerados neste dia',
@@ -1570,20 +1612,47 @@
                 },
                 html: '<div style="text-align:left;">' +
                     '<div class="d-flex justify-content-between align-items-center mb-2">' +
-                    '<span style="font-size:12px;">' + itens.length + ' conta' +
-                    (itens.length === 1 ? '' : 's') + '</span>' +
-                    '<strong style="font-size:12px;">Total: R$ ' +
-                    formatarValorSaldoBanco(totalSaldoBanco) + '</strong>' +
+                    '<input type="text" id="swal-saldo-banco-filtro" class="form-control form-control-sm"' +
+                    ' style="max-width:220px;" placeholder="Buscar banco, data ou valor...">' +
+                    '<div style="font-size:12px;">' +
+                    '<span id="swal-saldo-banco-contagem" class="text-muted"></span> ' +
+                    '<strong id="swal-saldo-banco-total"></strong>' +
+                    '</div>' +
                     '</div>' +
                     // Altura em vh (não em px fixo) pra aproveitar a tela em monitor grande e não
                     // estourar em notebook; tabela-thead-fixo mantém o cabeçalho visível na rolagem.
                     '<div style="max-height:60vh; overflow-y:auto;">' +
                     '<table class="table table-sm table-striped tabela-thead-fixo" style="font-size:12px;">' +
-                    '<thead><tr><th>Empresa - Conta - Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
-                    '<tbody>' + montarLinhasSaldoBanco(itens, fluxoOrigemSaldoBanco !== 'firebird') + '</tbody>' +
+                    '<thead><tr style="white-space:nowrap;">' +
+                    '<th class="th-ordena-saldo-banco" data-campo="ds_banco" style="cursor:pointer;" title="Ordenar por empresa/conta/banco">Empresa - Conta - Banco <i class="fas fa-sort"></i></th>' +
+                    '<th class="th-ordena-saldo-banco" data-campo="dt_saldo" style="cursor:pointer;" title="Ordenar por data">Data <i class="fas fa-sort"></i></th>' +
+                    '<th class="th-ordena-saldo-banco text-right" data-campo="vl_saldo" style="cursor:pointer;" title="Ordenar por valor">Valor <i class="fas fa-sort"></i></th>' +
+                    '<th class="text-center">Ações</th>' +
+                    '</tr></thead>' +
+                    '<tbody id="swal-saldo-banco-tbody"></tbody>' +
                     '</table></div></div>',
                 didOpen: function() {
                     makeSwalDraggable();
+                    atualizarTabelaSaldoBanco();
+
+                    $('#swal-saldo-banco-filtro').on('input', function() {
+                        filtroSaldoBanco = $(this).val().trim();
+                        atualizarTabelaSaldoBanco();
+                    });
+
+                    $('.th-ordena-saldo-banco').on('click', function() {
+                        var campo = $(this).data('campo');
+
+                        // Clicar de novo na mesma coluna inverte; em outra coluna, começa asc.
+                        ordemDirSaldo = (ordemCampoSaldo === campo && ordemDirSaldo === 'asc') ?
+                            'desc' : 'asc';
+                        ordemCampoSaldo = campo;
+
+                        $('.th-ordena-saldo-banco i').attr('class', 'fas fa-sort');
+                        $(this).find('i').attr('class',
+                            'fas fa-sort-' + (ordemDirSaldo === 'asc' ? 'up' : 'down'));
+                        atualizarTabelaSaldoBanco();
+                    });
                 }
             });
         });
