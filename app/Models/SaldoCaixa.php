@@ -75,7 +75,7 @@ class SaldoCaixa
             SELECT
                 S.CD_EMPRESA,
                 S.CD_CONTA,
-                S.CD_CONTA||' - '||PC.DS_CONTA DS_BANCO,
+                S.CD_EMPRESA||' - '||S.CD_CONTA||' - '||PC.DS_CONTA DS_BANCO,
                 S.DT_CAIXA DT_SALDO,
                 S.VL_SALDOCAIXA VL_SALDO
             FROM SALDOCAIXA S
@@ -209,7 +209,12 @@ class SaldoCaixa
 
         $resultado = [];
         foreach ($dias as $i => $dia) {
-            $resultado[$i] = $dia->lte($hoje) && $datasComLancamento->has($dia->format('Y-m-d'));
+            // startOfDay() antes de comparar: $dia pode chegar com a hora do request (a tela sem
+            // ?ref monta os dias a partir de Carbon::now()), e aí o próprio dia de hoje ficaria
+            // "no futuro" contra a meia-noite de hoje — descartando o saldo real lançado hoje.
+            $ehPassadoOuHoje = $dia->copy()->startOfDay()->lte($hoje);
+
+            $resultado[$i] = $ehPassadoOuHoje && $datasComLancamento->has($dia->format('Y-m-d'));
         }
 
         return $resultado;

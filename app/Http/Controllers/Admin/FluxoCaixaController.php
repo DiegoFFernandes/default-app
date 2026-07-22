@@ -29,10 +29,13 @@ class FluxoCaixaController extends Controller
         // "ref" é qualquer data dentro da semana que o usuário quer ver — os botões de
         // navegação (anterior/hoje/próxima) só mudam esse valor. Sem parâmetro, ou com um
         // valor inválido, cai na semana atual.
+        // startOfDay() é obrigatório: sem ele, a tela sem ?ref monta os dias com a hora do
+        // request, e qualquer comparação com "hoje à meia-noite" joga o próprio dia de hoje
+        // para o futuro (era o que descartava o saldo bancário real lançado hoje).
         try {
-            $inicio = Carbon::parse($request->query('ref'));
+            $inicio = Carbon::parse($request->query('ref'))->startOfDay();
         } catch (\Exception $e) {
-            $inicio = Carbon::now();
+            $inicio = Carbon::now()->startOfDay();
         }
 
         // Garante que a semana sempre comece no sábado e termine na sexta-feira
