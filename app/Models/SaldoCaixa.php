@@ -75,7 +75,7 @@ class SaldoCaixa
             SELECT
                 S.CD_EMPRESA,
                 S.CD_CONTA,
-                PC.DS_CONTA DS_BANCO,
+                S.CD_CONTA||' - '||PC.DS_CONTA DS_BANCO,
                 S.DT_CAIXA DT_SALDO,
                 S.VL_SALDOCAIXA VL_SALDO
             FROM SALDOCAIXA S
