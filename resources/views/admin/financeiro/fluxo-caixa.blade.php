@@ -1560,7 +1560,7 @@
                 },
                 html: '<div style="max-height:320px; overflow-y:auto; text-align:left;">' +
                     '<table class="table table-sm table-striped" style="font-size:12px;">' +
-                    '<thead><tr><th>Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
+                    '<thead><tr><th>Empresa - Conta - Banco</th><th>Data</th><th class="text-right">Valor</th><th class="text-center">Ações</th></tr></thead>' +
                     '<tbody>' + montarLinhasSaldoBanco(itens, fluxoOrigemSaldoBanco !== 'firebird') + '</tbody>' +
                     '</table></div>',
                 didOpen: function() {
