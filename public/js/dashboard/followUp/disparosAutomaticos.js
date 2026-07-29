@@ -211,13 +211,13 @@ function initDataTableEnvios() {
             },
             { title: 'Tentativas', data: 'NR_TENTATIVAS', width: '8%', className: 'text-center' },
             {
-                title: 'Emissão', data: 'DT_EMISSAO', width: '10%', className: 'text-center',
+                title: 'Emissão', data: 'DT_EMISSAO', width: '10%', visible: false, className: 'text-center',
                 render: function (data) {
                     return data ? moment(data).format('DD/MM/YYYY') : '';
                 },
             },
             {
-                title: 'Registro', data: 'DT_REGISTRO', width: '12%', className: 'text-center',
+                title: 'Emissão', data: 'DT_REGISTRO', width: '12%', className: 'text-center',
                 render: function (data) {
                     return data ? moment(data).format('DD/MM/YYYY HH:mm') : '';
                 },
@@ -231,7 +231,7 @@ function initDataTableEnvios() {
             { title: 'Status', data: 'status_badge', width: '8%', className: 'text-center', orderable: false },
             { title: '#', data: 'action', width: '14%', className: 'text-center text-nowrap', orderable: false },
         ],
-        order: [[7, 'desc']],
+        order: [[8, 'desc']],
     });
 }
 

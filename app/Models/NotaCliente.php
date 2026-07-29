@@ -273,7 +273,8 @@ class NotaCliente extends Model
                 N.CD_SERIE,
                 N.TP_NOTA,
                 COALESCE(NFSE.NR_NOTASERVICO, N.NR_NOTAFISCAL, NFSE.NR_RPS) NR_NOTA,
-                N.DT_EMISSAO,                
+                N.DT_EMISSAO,  
+                N.DT_REGISTRO,
 
                 P.CD_PESSOA,
                 P.NM_PESSOA,
@@ -283,7 +284,7 @@ class NotaCliente extends Model
                 DE.CD_ENVIO,
                 DE.CD_CONTEXTO,
                 DC.DS_CONTEXTO,
-                DE.DT_REGISTRO,
+                
                 COALESCE(DE.DS_EMAILDEST, P.DS_EMAIL) DS_EMAILDEST,
                 DE.NR_TENTATIVAS,
                 DE.DT_ENVIO,
