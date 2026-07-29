@@ -471,7 +471,7 @@ class EstoqueController extends Controller
 
         $data = $this->estoque->getSaldoEstoque($subgrupo['data']);
 
-        $arrayCarcacaProntasLocal = $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DS_MEDIDA', 'DS_DESENHO', 'DSMODELO');
+        $arrayCarcacaProntasLocal = $this->agruparArrayCarcacaLocal($data, 'LOCAL_ESTOQUE', 'DS_ITEM', NULL, NULL);
 
         $datatable = Datatables()
             ->of($data)

@@ -11,8 +11,12 @@ class NotaCliente extends Model
 {
     use HasFactory;
 
-    public function getListNotaCliente($nr_lancamento = null, $cd_pessoa = null)
+    public function getListNotaCliente($nr_lancamento = null, $cd_pessoa = null, $nr_nota = null, $dt_registro_min = null)
     {
+        if (empty($cd_pessoa) && empty($nr_nota) && empty($dt_registro_min)) {
+            throw new \InvalidArgumentException('Informe cd_pessoa, nr_nota ou dt_registro_min para consultar notas.');
+        }
+
         $query = "
             SELECT DISTINCT
         N.CD_EMPRESA,
@@ -47,10 +51,10 @@ class NotaCliente extends Model
         'TELEFONE : ' || COALESCE(EE.NR_FONE, EE.NR_CELULAR, EE.NR_FAX) NR_TELEFONEEMPRESA,
 
         --NOTA--
-        COALESCE(NFSE.NR_RPS, NFSE.NR_NOTASERVICO, N.NR_NOTAFISCAL) NR_NOTA,
-        N.NR_NOTAFISCAL NR_NOTAPREFA,
+        COALESCE(NFSE.NR_NOTASERVICO, N.NR_NOTAFISCAL, NFSE.NR_RPS) NR_NOTA,
+        FORMATA_DATA(N.DT_EMISSAO, '%D/%M/%Y') DS_DTEMISSAO,
         N.DT_EMISSAO DT_EMISSAONOTA,
-        NFSE.NR_NOTASERVICO,
+        IIF(NFSE.CD_AUTENTICACAO IS NOT NULL, COALESCE(NFSE.NR_NOTASERVICO, N.NR_NOTAFISCAL), '') NR_NOTASERVICO,
         NFSE.CD_AUTENTICACAO,
         N.DT_EMISSAO DT_EMISSAORPS,
         N.NR_LANCAMENTO || '/' || N.CD_SERIE || '  ' || EXTRACT(DAY FROM N.DT_EMISSAO) || '/' || EXTRACT(MONTH FROM N.DT_EMISSAO) || '/' || EXTRACT(YEAR FROM N.DT_EMISSAO) DS_NOTASERIEDATA,
@@ -74,6 +78,7 @@ class NotaCliente extends Model
         P.NM_PESSOA,
         P.NR_CNPJCPF,
         P.DS_EMAIL,
+        RPE.O_DS_EMAIL DS_EMAILCOPIA,
         P.NM_FANTASIA NM_FANTASIAPESSOA,
         EP.NR_ENDERECO NR_ENDPESSOA,
         EP.NR_INSCMUN,
@@ -92,7 +97,7 @@ class NotaCliente extends Model
         EP.NR_INSCEST NR_INSCESTPESSOA,
         --EP.DS_ENDERECO || COALESCE(', Nº ' || EP.NR_ENDERECO, ' ') || COALESCE(', CEP: ' || EP.NR_CEP, ' ') || COALESCE(', BAIRRO: ' || EP.DS_BAIRRO, ' ') || COALESCE(', ' || EP.DS_COMPLEMENTO, ' ') || COALESCE(' - ' || MP.DS_MUNICIPIO || ' , ' || ESP.DS_ESTADO, ' ') DS_ENDCOMPLETOPESSOA,
 
-        
+        --IMPOSTOS VALOR
         (SELECT
             V_VL_IMPOSTO
         FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, N.TP_NOTA, NULL, 'Q', NULL, 'VI')) VL_ISSQN,
@@ -103,7 +108,6 @@ class NotaCliente extends Model
 
         N.VL_CONTABIL,
         
-        ---IMPOSTOS ZILS
         (SELECT V_VL_IMPOSTO
             FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
                             N.TP_NOTA, NULL, 'S', NULL, 'VI')) VL_PIS,
@@ -121,6 +125,11 @@ class NotaCliente extends Model
                             N.TP_NOTA, NULL, 'L', NULL, 'VI')) VL_CSLL,
 
         N.VL_DESCONTO VL_TOTDESCONTO, LDN.O_VL_LAUDO VL_GARANTIA,
+
+        --IMPOSTOS PORCENTAGENS
+        (SELECT V_PC_IMPOSTO
+            FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, 
+                            N.TP_NOTA, NULL, 'Q', NULL, 'VI')) PC_ISSQN,
 
         (SELECT V_PC_IMPOSTO
             FROM VALOR_IMPOSTO(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE,
@@ -201,15 +210,19 @@ class NotaCliente extends Model
                 LEFT JOIN FORMAPAGTO F ON (F.CD_FORMAPAGTO = N.CD_FORMAPAGTO)
                 LEFT JOIN RETORNA_CONDPAGTONOTALNF230(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, N.TP_NOTA) RC ON (1 = 1)
                 LEFT JOIN RETORNA_VLLAUDONOTA(N.CD_EMPRESA, N.NR_LANCAMENTO, N.CD_SERIE, N.TP_NOTA) LDN ON (1=1)
+                LEFT JOIN RETORNA_PESSOAEMAIL(P.CD_PESSOA, 1, NULL) RPE ON (1 = 1)
                 " . ($nr_lancamento != null ? " LEFT JOIN RETORNA_SERVICONOTALNF230(N.CD_EMPRESA, N.NR_LANCAMENTO, N.TP_NOTA, N.CD_SERIE) R ON (1 = 1)
                     INNER JOIN ITEM I ON (I.CD_ITEM = R.O_CD_ITEM) " : "") . "
                 WHERE N.TP_NOTA = 'S'
-                    AND N.CD_SERIE = 'F3'
+                    AND N.CD_SERIE = 'F3'                    
                     AND N.ST_NOTA = 'V'
+                    AND NFSE.CD_AUTENTICACAO IS NOT NULL
                     --AND N.DT_EMISSAO = CURRENT_DATE -1
                     --AND P.DS_EMAIL IS NOT NULL
-                    AND N.CD_PESSOA in ($cd_pessoa)
-                    " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "                    
+                    " . ($cd_pessoa != null ? " AND N.CD_PESSOA in ($cd_pessoa)" : "") . "
+                    " . ($nr_nota != null ? " AND N.NR_NOTAFISCAL in ($nr_nota)" : "") . "
+                    " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "
+                    " . ($dt_registro_min != null ? " AND N.DT_REGISTRO > '" . $dt_registro_min . "'" : "") . "
                 ";
 
         if (!empty($nr_lancamento)) {
@@ -220,5 +233,85 @@ class NotaCliente extends Model
         $data = DB::connection('firebird')->select($query);
 
         return Helper::ConvertFormatText($data);
+    }
+
+    /**
+     * Lista notas emitidas (NFS-e válida) com o status do disparo automático,
+     * via LEFT JOIN em DISPARO_ENVIO - nota que ainda não foi processada pelo
+     * gerarPendentes() aparece do mesmo jeito, com ST_ENVIO nulo (COALESCE
+     * para 'P' = Pendente de Envio). Separado de getListNotaCliente() porque
+     * essa e uma listagem resumida (grid), sem os joins de imposto/itens que
+     * só o layout de PDF de uma nota especifica usa.
+     */
+    public function listarNotasEmitidas(array $filtros): array
+    {
+        $where = ['CAST(N.DT_EMISSAO AS DATE) BETWEEN :inicio AND :fim'];
+        $bindings = [
+            'inicio' => $filtros['inicio_data'],
+            'fim'    => $filtros['fim_data'],
+        ];
+
+        if (!empty($filtros['nm_pessoa'])) {
+            $where[] = 'P.NM_PESSOA CONTAINING :nm_pessoa';
+            $bindings['nm_pessoa'] = Helper::ToIso($filtros['nm_pessoa']);
+        }
+
+        if (!empty($filtros['cd_contexto'])) {
+            $where[] = 'DE.CD_CONTEXTO = :cd_contexto';
+            $bindings['cd_contexto'] = $filtros['cd_contexto'];
+        }
+
+        if (!empty($filtros['st_envio'])) {
+            $where[] = "COALESCE(DE.ST_ENVIO, 'P') = :st_envio";
+            $bindings['st_envio'] = $filtros['st_envio'];
+        }
+
+        $query = "
+            SELECT
+                N.CD_EMPRESA,
+                N.NR_LANCAMENTO,
+                N.CD_SERIE,
+                N.TP_NOTA,
+                COALESCE(NFSE.NR_NOTASERVICO, N.NR_NOTAFISCAL, NFSE.NR_RPS) NR_NOTA,
+                N.DT_EMISSAO,                
+
+                P.CD_PESSOA,
+                P.NM_PESSOA,
+                P.DS_EMAIL,
+                RPE.O_DS_EMAIL DS_EMAILCOPIA,
+
+                DE.CD_ENVIO,
+                DE.CD_CONTEXTO,
+                DC.DS_CONTEXTO,
+                DE.DT_REGISTRO,
+                COALESCE(DE.DS_EMAILDEST, P.DS_EMAIL) DS_EMAILDEST,
+                DE.NR_TENTATIVAS,
+                DE.DT_ENVIO,
+                DE.DS_MOTIVO,
+                COALESCE(DE.ST_ENVIO, 'P') ST_ENVIO
+
+            FROM NOTA N
+            INNER JOIN PESSOA P ON (P.CD_PESSOA = N.CD_PESSOA)
+            INNER JOIN NFSE ON (NFSE.CD_EMPRESA = N.CD_EMPRESA
+                AND NFSE.NR_LANCAMENTO = N.NR_LANCAMENTO
+                AND NFSE.CD_SERIE = N.CD_SERIE
+                AND NFSE.TP_NOTA = N.TP_NOTA)
+            LEFT JOIN RETORNA_PESSOAEMAIL(P.CD_PESSOA, 1, NULL) RPE ON (1 = 1)
+            LEFT JOIN DISPARO_ENVIO DE ON (DE.CD_EMPRESA = N.CD_EMPRESA
+                AND DE.NR_LANCAMENTO = N.NR_LANCAMENTO
+                AND DE.CD_SERIE = N.CD_SERIE
+                AND DE.TP_NOTA = N.TP_NOTA)
+            LEFT JOIN DISPARO_CONTEXTO DC ON (DC.CD_CONTEXTO = DE.CD_CONTEXTO)
+
+            WHERE N.TP_NOTA = 'S'
+                AND N.CD_SERIE = 'F3'
+                AND N.ST_NOTA = 'V'
+                AND NFSE.CD_AUTENTICACAO IS NOT NULL
+                AND " . implode(' AND ', $where) . '
+
+            ORDER BY N.DT_REGISTRO DESC
+        ';
+
+        return Helper::ConvertFormatText(DB::connection('firebird')->select($query, $bindings));
     }
 }

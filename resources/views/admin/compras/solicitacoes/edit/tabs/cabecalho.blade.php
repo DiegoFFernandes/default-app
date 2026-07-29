@@ -64,7 +64,7 @@
 
         <div class="col-md-4" id="div-centrocusto" style="display:none">
             <div class="form-group mb-2">
-                <label class="mb-1"><small>Centro de Resultado</small></label>
+                <label class="mb-1"><small>Setor</small></label>
                 <select class="form-control form-control-sm select2" id="cd_centrocusto"
                     data-selected="{{ $solicitacao->CD_CENTROCUSTO ?? '' }}"
                     style="width:100%">

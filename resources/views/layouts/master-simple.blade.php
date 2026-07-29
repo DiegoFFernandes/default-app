@@ -8,7 +8,7 @@
     <!-- CSS do AdminLTE -->
     <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte.min.css') }}">
     {{-- <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/adminlte_custom.css?v=6') }}"> --}}
-    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css?v=1') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/adminlte/dist/css/boleto.css') }}?v=6">
     <style>
         .row {
             display: block !important;

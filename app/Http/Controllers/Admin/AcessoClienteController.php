@@ -12,8 +12,9 @@ use App\Models\Pessoa;
 use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
+use App\Services\Nota\NotaLayoutData;
+use App\Services\Pdf\ChromePdfService;
 use App\Services\SupervisorAuthService;
-use Barryvdh\Snappy\Facades\SnappyPdf;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -86,31 +87,25 @@ class AcessoClienteController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    public function layoutNotaEmitidaCliente($id)
+    public function layoutNotaEmitidaCliente($id, ChromePdfService $chromePdf)
     {
         $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
             ->pluck('cd_pessoa')
             ->implode(',');
 
         $data = $this->nota->getListNotaCliente($id, $cd_pessoa);
+        $layout = (new NotaLayoutData())->build($data);
 
-        $view = view('admin.cliente.layout-nota', compact('data'));
+        // Chromium headless (mesmo motor do disparo): renderização idêntica ao
+        // preview HTML e quebra de página confiável. As margens vêm do
+        // @page{margin} do CSS do layout, que o Chromium respeita.
+        $html = view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
+        $pdf  = $chromePdf->fromHtml($html);
 
-        $html = $view->render();
-
-        // Configurando o Snappy
-        $options = [
-            // 'page-size' => 'A4',
-            'no-stop-slow-scripts' => true,
-            'enable-javascript' => true,
-            'lowquality' => true,
-            'encoding' => 'UTF-8'
-        ];
-
-        $pdf = SnappyPdf::loadHTML($html)->setOptions($options);
-
-        return $pdf->inline('nota_fiscal.pdf'); //Exibe o pdf sem fazer o downlaod.
-        return $pdf->download('Nota-' . $id . '.pdf'); //Faz o download do arquivo.
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="nota_fiscal.pdf"',
+        ]);
     }
 
     // Boletos
@@ -141,7 +136,7 @@ class AcessoClienteController extends Controller
             ->rawColumns(['action'])
             ->make(true);
     }
-    public function layoutBoletoEmitidoCliente()
+    public function layoutBoletoEmitidoCliente(ChromePdfService $chromePdf)
     {
         $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
             ->pluck('cd_pessoa')
@@ -155,71 +150,18 @@ class AcessoClienteController extends Controller
 
         $codigo_barras = $this->getImagemCodigoDeBarras($boleto->DS_CODIGOBARRA);
 
-        $view = view('admin.cliente.layout-boleto', compact('codigo_barras', 'boleto'));
+        // Chromium headless (mesmo motor da nota e do disparo): margens vêm do
+        // @page do layout e o barcode usa o boleto.css (width, sub-pixel).
+        $html = view('admin.layouts.layout-boleto-atz', compact('codigo_barras', 'boleto'))->render();
+        $pdf  = $chromePdf->fromHtml($html);
 
-        $html = $view->render();
-
-        // Configurando o Snappy
-        $options = [
-            // 'page-size' => 'A4',
-            'no-stop-slow-scripts' => true,
-            'enable-javascript' => true,
-            'lowquality' => true,
-            'encoding' => 'UTF-8'
-        ];
-
-        $pdf = SnappyPdf::loadHTML($html)->setOptions($options);
-
-        // $pdf->inline('nota_fiscal.pdf'); //Exibe o pdf sem fazer o downlaod.
-        return $pdf->download('boleto-' . $nr_lancamento . '.pdf'); //Faz o download do arquivo.
+        return response($pdf, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="boleto-' . $nr_lancamento . '.pdf"',
+        ]);
     }
     public function getImagemCodigoDeBarras($codigo_barras)
     {
-        $codigo_barras = (strlen($codigo_barras) % 2 != 0 ? '0' : '') . $codigo_barras;
-        $barcodes = ['00110', '10001', '01001', '11000', '00101', '10100', '01100', '00011', '10010', '01010'];
-        for ($f1 = 9; $f1 >= 0; $f1--) {
-            for ($f2 = 9; $f2 >= 0; $f2--) {
-                $f = ($f1 * 10) + $f2;
-                $texto = "";
-                for ($i = 1; $i < 6; $i++) {
-                    $texto .= substr($barcodes[$f1], ($i - 1), 1) . substr($barcodes[$f2], ($i - 1), 1);
-                }
-                $barcodes[$f] = $texto;
-            }
-        }
-
-        // Guarda inicial
-        $retorno = '<div class="barcode">' .
-            '<div class="black thin"></div>' .
-            '<div class="white thin"></div>' .
-            '<div class="black thin"></div>' .
-            '<div class="white thin"></div>';
-
-        // Draw dos dados
-        while (strlen($codigo_barras) > 0) {
-            $i = round(substr($codigo_barras, 0, 2));
-            $codigo_barras = substr($codigo_barras, strlen($codigo_barras) - (strlen($codigo_barras) - 2), strlen($codigo_barras) - 2);
-            $f = $barcodes[$i];
-            for ($i = 1; $i < 11; $i += 2) {
-                if (substr($f, ($i - 1), 1) == "0") {
-                    $f1 = 'thin';
-                } else {
-                    $f1 = 'large';
-                }
-                $retorno .= "<div class='black {$f1}'></div>";
-                if (substr($f, $i, 1) == "0") {
-                    $f2 = 'thin';
-                } else {
-                    $f2 = 'large';
-                }
-                $retorno .= "<div class='white {$f2}'></div>";
-            }
-        }
-
-        // Final
-        return $retorno . '<div class="black large"></div>' .
-            '<div class="white thin"></div>' .
-            '<div class="black thin"></div>' .
-            '</div>';
+        return Helper::codigoBarrasHtml($codigo_barras);
     }
 }

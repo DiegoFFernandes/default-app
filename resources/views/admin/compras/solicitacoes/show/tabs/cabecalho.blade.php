@@ -75,7 +75,7 @@
             @if(!empty($solicitacao->DS_CENTROCUSTO))
             <div class="col-md-4">
                 <div class="form-group mb-2">
-                    <label class="text-muted mb-0"><small>Centro de Resultado</small></label>
+                    <label class="text-muted mb-0"><small>Setor</small></label>
                     <p class="font-weight-bold mb-0 mt-1">{{ $solicitacao->DS_CENTROCUSTO }}</p>
                 </div>
             </div>

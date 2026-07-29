@@ -164,39 +164,49 @@
 }
 
 
-/* Codigo de barras Boleto */
+/* ── Código de barras do boleto (fonte única, usada pelo portal e pelo -atz) ──
+   Barras por width+background (NÃO por border): border-width é arredondado para
+   pixel inteiro pelo Chromium (1.6px vira 1/2px), enquanto width aceita sub-pixel
+   e a espessura escala de verdade. Preto mais grosso que o branco = "bold" como
+   o documento original. white-space:nowrap impede que as barras (inline-block)
+   quebrem para uma 2ª linha quando a célula é estreita. */
 .barcode {
-    height: 60px
+    height: 65px;
+    white-space: nowrap;
 }
 
 .barcode div {
     display: inline-block;
-    height: 100%
+    height: 100%;
 }
+
 .barcode .black {
-    border-color: #000;
-    border-left-style: solid;
-    width: 0
+    background: #000;
 }
 
 .barcode .white {
-    background: #fff
+    background: #fff;
 }
 
+/* Larguras INTEIRAS e uniformes (preto = branco): sub-pixel (1.8px etc) é
+   anti-aliasado para cinza na tela e a câmera não lê; inteiro fica crisp e
+   escaneável tanto no monitor quanto na impressão. Fino 2px / grosso 4px =
+   ratio 2:1 (Interleaved 2 of 5), largura ~167mm — mais próximo do original.
+   Só use larguras INTEIRAS (nada de 1.5/2.8), senão volta a borrar na tela. */
 .barcode .thin.black {
-    border-left-width: 1px
+    width: 2px;
 }
 
 .barcode .large.black {
-    border-left-width: 3px
+    width: 4px;
 }
 
 .barcode .thin.white {
-    width: 1.5px
+    width: 2px;
 }
 
 .barcode .large.white {
-    width: 3px
+    width: 4px;
 }
 
 

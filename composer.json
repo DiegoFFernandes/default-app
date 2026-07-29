@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.7",
         "laravel/ui": "^4.6",
         "maatwebsite/excel": "3.1.43",
+        "picqer/php-barcode-generator": "^2.4",
         "spatie/laravel-permission": "^6.16",
         "stevebauman/purify": "^6.3",
         "yajra/laravel-datatables": "9.0"
