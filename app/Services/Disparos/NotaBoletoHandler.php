@@ -93,7 +93,7 @@ class NotaBoletoHandler implements DisparoHandlerInterface
         return [
             'corpo'  => view('emails.disparo-automatico.nota-boleto', [
                 'nmPessoa'      => $envio->NM_PESSOA,
-                'nrNota'        => $envio->NR_LANCAMENTO,
+                'nrNota'        => $data[0]->NR_NOTA,
                 'temBoleto'     => count($parcelas) > 0,
                 // Contato da empresa que emitiu a nota (nao da Cambe fixo) - mesma
                 // fonte usada no cabecalho da nota (NM_EMPRESA/NR_FONEEMPRESA/DS_EMAILEMPRESA).

@@ -53,7 +53,7 @@ class EnviaDisparoAutomaticoJob implements ShouldQueue, ShouldBeUnique
             // só falha de vez (exceção -> retry) se NINGUÉM for conseguir receber.
             $destinatarioValido = $this->dominioValido($envio->DS_EMAILDEST);
 
-            $copiasBrutas = $this->extrairEmailsCopia($envio->DS_EMAILCOPIA ?? null);
+            $copiasBrutas = $this->extrairEmailsCopia($envio->DS_EMAILCOPIA ?? null, $envio->DS_EMAILDEST);
             $copiasValidas = array_values(array_filter($copiasBrutas, fn($e) => $this->dominioValido($e)));
             $copiasInvalidas = array_values(array_diff($copiasBrutas, $copiasValidas));
 
@@ -115,14 +115,21 @@ class EnviaDisparoAutomaticoJob implements ShouldQueue, ShouldBeUnique
     /**
      * DS_EMAILCOPIA guarda varios enderecos separados por ';' (ex.:
      * "financeiro@x.com.br; fulano@x.com.br") - aqui viram uma lista limpa
-     * para o ->cc() e para a validacao de dominio.
+     * para o ->cc() e para a validacao de dominio. Descarta qualquer copia
+     * igual ao destinatario (sem diferenciar maiusculas/minusculas) para nao
+     * mandar o mesmo e-mail duas vezes para a mesma pessoa.
      */
-    private function extrairEmailsCopia(?string $copias): array
+    private function extrairEmailsCopia(?string $copias, string $destinatario): array
     {
         if (!$copias) {
             return [];
         }
 
-        return array_values(array_filter(array_map('trim', explode(';', $copias))));
+        $destinatario = mb_strtolower(trim($destinatario));
+
+        return array_values(array_filter(
+            array_map('trim', explode(';', $copias)),
+            fn($email) => $email !== '' && mb_strtolower($email) !== $destinatario
+        ));
     }
 }

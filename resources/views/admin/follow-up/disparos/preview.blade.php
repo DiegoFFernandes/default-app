@@ -34,6 +34,15 @@
                             <dt class="col-sm-2">Destinatário</dt>
                             <dd class="col-sm-10">{{ $envio->DS_EMAILDEST }}</dd>
 
+                            <dt class="col-sm-2">Cópia para</dt>
+                            <dd class="col-sm-10">
+                                @if ($envio->DS_EMAILCOPIA)
+                                    {{ $envio->DS_EMAILCOPIA }}
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </dd>
+
                             <dt class="col-sm-2">Assunto</dt>
                             <dd class="col-sm-10">{{ $envio->DS_ASSUNTO }}</dd>
                         </dl>
