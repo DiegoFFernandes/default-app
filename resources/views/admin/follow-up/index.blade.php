@@ -76,6 +76,7 @@
             disparoToggleContexto: "{{ route('disparo-automatico.contextos.toggle', ['id' => ':id']) }}",
             disparoHorarioContexto: "{{ route('disparo-automatico.contextos.horario', ['id' => ':id']) }}",
             disparoListEnvios: "{{ route('disparo-automatico.envios') }}",
+            disparoCriarEnvioPendente: "{{ route('disparo-automatico.envios.criar-pendente') }}",
             disparoReenviarEnvio: "{{ route('disparo-automatico.envios.reenviar', ['id' => ':id']) }}",
             disparoAtualizarEmailEnvio: "{{ route('disparo-automatico.envios.email', ['id' => ':id']) }}",
         };

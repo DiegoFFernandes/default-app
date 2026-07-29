@@ -84,6 +84,23 @@ class DisparoContexto extends Model
         return $row->DT_INICIO ?? null;
     }
 
+    /**
+     * Primeiro contexto cadastrado para um handler - usado quando uma nota ainda
+     * nao tem nenhuma linha em DISPARO_ENVIO (status 'P') e o usuario aciona o
+     * envio manualmente, sem ter um CD_CONTEXTO pronto para reaproveitar.
+     */
+    public function porHandler(string $cdHandler): ?object
+    {
+        $row = DB::connection('firebird')->selectOne("
+            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, HR_EXECUCAO, NR_TENTATIVAS, ST_ATIVO, DT_INICIOENVIO, DT_ULTIMAEXECUCAO
+            FROM DISPARO_CONTEXTO
+            WHERE CD_HANDLER = :cd_handler
+            ORDER BY CD_CONTEXTO
+        ", ['cd_handler' => $cdHandler]);
+
+        return $row ? Helper::ConvertFormatText([$row])[0] : null;
+    }
+
     public function toggleAtivo(int $id): string
     {
         $atual = $this->find($id);

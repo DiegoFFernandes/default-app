@@ -71,20 +71,20 @@ class DisparoAutomaticoController extends Controller
         // Antes do inicio do disparo automatico (DT_INICIOENVIO) nao existe envio
         // possivel - toda nota apareceria como "Pendente" sem sentido nenhum, entao
         // a busca e travada e o motivo e avisado ao usuario em vez de rodar a query.
-        $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
-            $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
-        );
+        // $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
+        //     $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
+        // );
 
-        if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
-            return response()->json([
-                'draw'            => (int) $this->request->input('draw'),
-                'recordsTotal'    => 0,
-                'recordsFiltered' => 0,
-                'data'            => [],
-                'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
-                    . '. Antes dessa data não há envios - ajuste o período da busca.',
-            ]);
-        }
+        // if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
+        //     return response()->json([
+        //         'draw'            => (int) $this->request->input('draw'),
+        //         'recordsTotal'    => 0,
+        //         'recordsFiltered' => 0,
+        //         'data'            => [],
+        //         'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
+        //             . '. Antes dessa data não há envios - ajuste o período da busca.',
+        //     ]);
+        // }
 
         $data = $this->notaCliente->listarNotasEmitidas($filtros);
 
@@ -101,7 +101,11 @@ class DisparoAutomaticoController extends Controller
             })
             ->addColumn('action', function ($row) {
                 if (empty($row->CD_ENVIO)) {
-                    return '';
+                    // 'P' - nota emitida mas sem nenhuma linha em DISPARO_ENVIO ainda.
+                    // Cria o pendente sob demanda em vez de esperar a marca d'agua.
+                    return '<button class="btn btn-xs btn-success btn-criar-envio-disparo"
+                        data-nr-lancamento="' . $row->NR_LANCAMENTO . '" data-cd-pessoa="' . $row->CD_PESSOA . '" title="Enviar">
+                        <i class="fa fa-paper-plane" aria-hidden="true"></i></button>';
                 }
 
                 $btn = '<a href="' . route('disparo-automatico.envios.preview', ['id' => $row->CD_ENVIO]) . '"
@@ -111,7 +115,9 @@ class DisparoAutomaticoController extends Controller
                 if (in_array($row->ST_ENVIO, ['F', 'V'])) {
                     $btn .= '<button class="btn btn-xs btn-danger mr-1 btn-motivo-falha-disparo" data-motivo="' . e($row->DS_MOTIVO) . '" title="Ver motivo">
                         <i class="fa fa-exclamation-triangle" aria-hidden="true"></i></button>';
+                }
 
+                if (in_array($row->ST_ENVIO, ['F', 'V', 'E'])) {
                     $btn .= '<button class="btn btn-xs btn-warning mr-1 btn-editar-email-disparo"
                         data-id="' . $row->CD_ENVIO . '" data-email="' . e($row->DS_EMAILDEST) . '" title="Editar e-mail do destinatário">
                         <i class="fa fa-pencil-alt" aria-hidden="true"></i></button>';
@@ -132,6 +138,34 @@ class DisparoAutomaticoController extends Controller
         $this->envio->reenviar($id);
 
         return response()->json(['success' => 'Envio marcado para reenvio!']);
+    }
+
+    /**
+     * Cria a linha em DISPARO_ENVIO para uma nota que ainda nao tem nenhum
+     * registro (status 'P' na listagem) - acionado manualmente pelo usuario,
+     * sem esperar a marca d'agua de gerarPendentes().
+     */
+    public function criarEnvioPendente(DisparoHandlerRegistry $registry)
+    {
+        $this->request->validate([
+            'nr_lancamento' => 'required|integer',
+            'cd_pessoa'     => 'required|integer',
+        ]);
+
+        $contexto = $this->contexto->porHandler('NOTA_BOLETO');
+
+        if (!$contexto) {
+            return response()->json(['message' => 'Nenhum contexto de disparo cadastrado.'], 422);
+        }
+
+        $handler = $registry->resolve($contexto->CD_HANDLER);
+        $id = $handler->criarPendenteAvulso($contexto, (int) $this->request->nr_lancamento, (int) $this->request->cd_pessoa);
+
+        if (!$id) {
+            return response()->json(['message' => 'Já existe um envio registrado para esta nota.'], 422);
+        }
+
+        return response()->json(['success' => 'Envio criado e marcado para disparo!']);
     }
 
     public function atualizarEmailEnvio(int $id)

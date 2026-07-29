@@ -17,6 +17,7 @@ Route::middleware(['auth', 'permission:ver-follow-up'])->group(function () {
         Route::post('contextos/{id}/toggle',      [DisparoAutomaticoController::class, 'toggleContexto'])->name('disparo-automatico.contextos.toggle');
         Route::post('contextos/{id}/horario',     [DisparoAutomaticoController::class, 'updateHorarioContexto'])->name('disparo-automatico.contextos.horario');
         Route::get('envios',                      [DisparoAutomaticoController::class, 'listEnvios'])->name('disparo-automatico.envios');
+        Route::post('envios/pendente',            [DisparoAutomaticoController::class, 'criarEnvioPendente'])->name('disparo-automatico.envios.criar-pendente');
         Route::post('envios/{id}/reenviar',       [DisparoAutomaticoController::class, 'reenviarEnvio'])->name('disparo-automatico.envios.reenviar');
         Route::post('envios/{id}/email',          [DisparoAutomaticoController::class, 'atualizarEmailEnvio'])->name('disparo-automatico.envios.email');
         Route::get('envios/{id}/preview',                 [DisparoAutomaticoController::class, 'previewEnvio'])->name('disparo-automatico.envios.preview');

@@ -260,6 +260,44 @@ $(document).on('click', '.btn-emailcopia-disparo', function () {
     });
 });
 
+// ─── Criar Envio (nota sem nenhuma linha em DISPARO_ENVIO ainda) ───────────
+$(document).on('click', '.btn-criar-envio-disparo', function () {
+    const nrLancamento = $(this).data('nr-lancamento');
+    const cdPessoa = $(this).data('cd-pessoa');
+    const btn = $(this);
+
+    Swal.fire({
+        title: 'Enviar esta nota?',
+        text: 'Cria o registro de envio e ele entra na próxima execução do disparo automático.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Enviar',
+        cancelButtonText: 'Cancelar',
+    }).then(function (result) {
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        btn.prop('disabled', true);
+
+        $.post(window.routesFollowUp.disparoCriarEnvioPendente, {
+            _token: $('[name=csrf-token]').attr('content'),
+            nr_lancamento: nrLancamento,
+            cd_pessoa: cdPessoa,
+        }).done(function (res) {
+            Swal.fire({
+                icon: 'success', title: res.success, toast: true, position: 'top-end',
+                showConfirmButton: false, timer: 2000, timerProgressBar: true,
+            });
+            tabelaDisparos.ajax.reload(null, false);
+        }).fail(function (xhr) {
+            const msg = xhr.responseJSON?.message ?? 'Não foi possível criar o envio.';
+            Swal.fire('Erro', msg, 'error');
+            btn.prop('disabled', false);
+        });
+    });
+});
+
 // ─── Reenviar ──────────────────────────────────────────────────────────────
 $(document).on('click', '.btn-reenviar-disparo', function () {
     const id = $(this).data('id');

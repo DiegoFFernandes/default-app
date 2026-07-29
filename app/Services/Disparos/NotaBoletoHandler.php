@@ -37,20 +37,32 @@ class NotaBoletoHandler implements DisparoHandlerInterface
             // Sem e-mail cadastrado, criarPendente() ja registra a linha como
             // 'E'/"Não possui email cadastrado" em vez de pular - fica visivel
             // na tela em vez de sumir silenciosamente.
-            $this->envioModel->criarPendente([
-                'cd_contexto'   => $contexto->CD_CONTEXTO,
-                'cd_empresa'    => $nota->CD_EMPRESA,
-                'nr_lancamento' => $nota->NR_LANCAMENTO,
-                'cd_serie'      => $nota->CD_SERIE,
-                'tp_nota'       => $nota->TP_NOTA,
-                'cd_pessoa'     => $nota->CD_PESSOA,
-                'nm_pessoa'     => $nota->NM_PESSOA,
-                'ds_emaildest'  => $nota->DS_EMAIL,
-                'ds_emailcopia' => $nota->DS_EMAILCOPIA,
-                'ds_emailrem'   => $nota->DS_EMAILEMPRESA,
-                'ds_assunto'    => 'Nota Fiscal ' . $nota->NR_NOTA . ' - ' . $nota->NM_EMPRESA,
-            ]);
+            $this->criarPendenteDeNota($contexto, $nota);
         }
+    }
+
+    public function criarPendenteAvulso(object $contexto, int $nrLancamento, int $cdPessoa): ?int
+    {
+        $data = $this->notaModel->getListNotaCliente($nrLancamento, (string) $cdPessoa);
+
+        return $this->criarPendenteDeNota($contexto, $data[0]);
+    }
+
+    private function criarPendenteDeNota(object $contexto, object $nota): ?int
+    {
+        return $this->envioModel->criarPendente([
+            'cd_contexto'   => $contexto->CD_CONTEXTO,
+            'cd_empresa'    => $nota->CD_EMPRESA,
+            'nr_lancamento' => $nota->NR_LANCAMENTO,
+            'cd_serie'      => $nota->CD_SERIE,
+            'tp_nota'       => $nota->TP_NOTA,
+            'cd_pessoa'     => $nota->CD_PESSOA,
+            'nm_pessoa'     => $nota->NM_PESSOA,
+            'ds_emaildest'  => $nota->DS_EMAIL,
+            'ds_emailcopia' => $nota->DS_EMAILCOPIA,
+            'ds_emailrem'   => $nota->DS_EMAILEMPRESA,
+            'ds_assunto'    => 'Nota Fiscal ' . $nota->NR_NOTA . ' - ' . $nota->NM_EMPRESA,
+        ]);
     }
 
     public function montarEmail(object $envio): array
