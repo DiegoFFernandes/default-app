@@ -80,6 +80,11 @@ class DisparoEnvio extends Model
     /**
      * Cria a linha de envio pendente ('A'). Retorna null se ja existir para essa
      * nota+contexto (protegido pela constraint UK_DISPARO_ENVIO_NOTA).
+     *
+     * Sem DS_EMAILDEST nao ha para quem enviar - em vez de ficar preso em 'A'
+     * esperando um e-mail que nunca vai aparecer, ja nasce 'E' com o motivo
+     * (DS_EMAILCOPIA sozinho nao conta - copia e opcional, so o destinatario
+     * e obrigatorio).
      */
     public function criarPendente(array $dados): ?int
     {
@@ -103,14 +108,18 @@ class DisparoEnvio extends Model
             ->selectOne('SELECT GEN_ID(GEN_DISPARO_ENVIO, 1) AS NEW_ID FROM RDB$DATABASE')
             ->NEW_ID;
 
+        $semEmail = empty($dados['ds_emaildest']);
+
         try {
             DB::connection('firebird')->statement('
                 INSERT INTO DISPARO_ENVIO (
                     CD_ENVIO, CD_CONTEXTO, CD_EMPRESA, NR_LANCAMENTO, CD_SERIE, TP_NOTA,
-                    CD_PESSOA, NM_PESSOA, DS_EMAILDEST, DS_EMAILCOPIA, DS_EMAILREM, DS_ASSUNTO, ST_ENVIO
+                    CD_PESSOA, NM_PESSOA, DS_EMAILDEST, DS_EMAILCOPIA, DS_EMAILREM, DS_ASSUNTO,
+                    ST_ENVIO, DS_MOTIVO, DT_ENVIO
                 ) VALUES (
                     :id, :cd_contexto, :cd_empresa, :nr_lancamento, :cd_serie, :tp_nota,
-                    :cd_pessoa, :nm_pessoa, :ds_emaildest, :ds_emailcopia, :ds_emailrem, :ds_assunto, \'A\'
+                    :cd_pessoa, :nm_pessoa, :ds_emaildest, :ds_emailcopia, :ds_emailrem, :ds_assunto,
+                    :st_envio, :ds_motivo, :dt_envio
                 )
             ', [
                 'id'            => $id,
@@ -125,6 +134,9 @@ class DisparoEnvio extends Model
                 'ds_emailcopia' => $dados['ds_emailcopia'] ?? null,
                 'ds_emailrem'   => $dados['ds_emailrem'],
                 'ds_assunto'    => Helper::ToIso($dados['ds_assunto']),
+                'st_envio'      => $semEmail ? 'E' : 'A',
+                'ds_motivo'     => $semEmail ? Helper::ToIso('Não possui email cadastrado') : null,
+                'dt_envio'      => $semEmail ? now() : null,
             ]);
         } catch (\Throwable $e) {
             // Corrida com outra execucao que ja criou esse envio - a constraint UK_DISPARO_ENVIO_NOTA protegeu.

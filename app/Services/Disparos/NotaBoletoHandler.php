@@ -34,10 +34,9 @@ class NotaBoletoHandler implements DisparoHandlerInterface
         );
 
         foreach ($notas as $nota) {
-            if (empty($nota->DS_EMAIL)) {
-                continue;
-            }
-
+            // Sem e-mail cadastrado, criarPendente() ja registra a linha como
+            // 'E'/"Não possui email cadastrado" em vez de pular - fica visivel
+            // na tela em vez de sumir silenciosamente.
             $this->envioModel->criarPendente([
                 'cd_contexto'   => $contexto->CD_CONTEXTO,
                 'cd_empresa'    => $nota->CD_EMPRESA,
