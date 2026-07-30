@@ -12,7 +12,9 @@ use Throwable;
 
 class ExecutarDisparosAutomaticos extends Command
 {
-    protected $signature = 'disparo-automatico:executar {--dry-run : Gera os envios pendentes mas nao enfileira o disparo de e-mail}';
+    protected $signature = 'disparo-automatico:executar
+        {--dry-run : Gera os envios pendentes mas nao enfileira o disparo de e-mail}
+        {--force : Ignora o DT_PROXIMAEXECUCAO (intervalo/horario configurado) e verifica os contextos ativos agora}';
 
     protected $description = 'Verifica os contextos de disparo automatico ativos e dispara os e-mails pendentes';
 
@@ -22,7 +24,8 @@ class ExecutarDisparosAutomaticos extends Command
         DisparoHandlerRegistry $registry
     ): int {
         $dryRun = (bool) $this->option('dry-run');
-        $contextos = $contextoModel->ativosParaExecucao();
+        $force = (bool) $this->option('force');
+        $contextos = $contextoModel->ativosParaExecucao($force);
 
         if (empty($contextos)) {
             $this->info('Nenhum contexto ativo pendente de execucao no momento.');
@@ -53,6 +56,13 @@ class ExecutarDisparosAutomaticos extends Command
 
             foreach ($pendentes as $pendente) {
                 EnviaDisparoAutomaticoJob::dispatch($pendente->CD_ENVIO, $contexto->CD_HANDLER);
+            }
+
+            // --force processa fora do ciclo normal sem mexer no agendamento -
+            // nao avança DT_ULTIMAEXECUCAO/DT_PROXIMAEXECUCAO, entao a proxima
+            // execucao automatica continua no horario que ja estava calculado.
+            if ($force) {
+                continue;
             }
 
             $contextoModel->marcarExecutado(

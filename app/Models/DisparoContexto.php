@@ -46,18 +46,24 @@ class DisparoContexto extends Model
      * (NR_INTERVALOHORAS) - por isso o filtro de "esta na hora" e por linha,
      * nao um horario global do schedule.
      *
+     * $force ignora o DT_PROXIMAEXECUCAO (continua respeitando ST_ATIVO) - usado
+     * pelo --force do comando manual, pra nao precisar esperar o intervalo
+     * configurado quando alguem quer forcar o envio na hora.
+     *
      * DT_AGORA é o "agora" do servidor Firebird capturado atomicamente com o SELECT;
      * vira a próxima marca d'água (via marcarExecutado) para não haver buraco nem
      * sobreposição entre execuções.
      */
-    public function ativosParaExecucao(): array
+    public function ativosParaExecucao(bool $force = false): array
     {
+        $filtroHorario = $force ? '' : "AND (DT_PROXIMAEXECUCAO IS NULL OR DT_PROXIMAEXECUCAO <= CURRENT_TIMESTAMP)";
+
         return Helper::ConvertFormatText(DB::connection('firebird')->select("
             SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, NR_TENTATIVAS, NR_INTERVALOHORAS, HR_EXECUCAO,
                    DT_INICIOENVIO, DT_ULTIMAEXECUCAO, CURRENT_TIMESTAMP AS DT_AGORA
             FROM DISPARO_CONTEXTO
             WHERE ST_ATIVO = 'S'
-                AND (DT_PROXIMAEXECUCAO IS NULL OR DT_PROXIMAEXECUCAO <= CURRENT_TIMESTAMP)
+                {$filtroHorario}
         "));
     }
 

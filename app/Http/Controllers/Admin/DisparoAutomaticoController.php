@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\EnviaDisparoAutomaticoJob;
 use App\Models\DisparoContexto;
 use App\Models\DisparoEnvio;
 use App\Models\NotaCliente;
@@ -144,6 +145,13 @@ class DisparoAutomaticoController extends Controller
     {
         $this->envio->reenviar($id);
 
+        // Acao manual do usuario e imediata - nao espera o proximo ciclo do
+        // disparo-automatico:executar, que so roda quando o intervalo/horario
+        // configurado do contexto permitir.
+        $envio = $this->envio->find($id);
+        $contexto = $this->contexto->find($envio->CD_CONTEXTO);
+        EnviaDisparoAutomaticoJob::dispatch($id, $contexto->CD_HANDLER);
+
         return response()->json(['success' => 'Envio marcado para reenvio!']);
     }
 
@@ -171,6 +179,9 @@ class DisparoAutomaticoController extends Controller
         if (!$id) {
             return response()->json(['message' => 'Já existe um envio registrado para esta nota.'], 422);
         }
+
+        // Acao manual do usuario e imediata - mesma logica do reenviarEnvio().
+        EnviaDisparoAutomaticoJob::dispatch($id, $contexto->CD_HANDLER);
 
         return response()->json(['success' => 'Envio criado e marcado para disparo!']);
     }
