@@ -11,16 +11,18 @@
                     <thead class="thead-light">
                         <tr>
                             <th>Contexto</th>
-                            <th style="width:100px;" class="text-center">Horário</th>
+                            <th style="width:80px;" class="text-center">Horário</th>
+                            <th style="width:90px;" class="text-center">Intervalo</th>
                             <th style="width:110px;" class="text-center">Tentativas</th>
-                            <th style="width:160px;">Última Execução</th>
+                            <th style="width:150px;">Última Execução</th>
+                            <th style="width:150px;">Próxima Execução</th>
                             <th style="width:90px;" class="text-center">Status</th>
                             <th style="width:110px;" class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-contextos-disparo">
                         <tr>
-                            <td colspan="6" class="text-center py-3">
+                            <td colspan="8" class="text-center py-3">
                                 <div class="spinner-border spinner-border-sm text-secondary"></div>
                                 <span class="ml-2 text-muted">Carregando...</span>
                             </td>

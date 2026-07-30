@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Helper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,11 @@ class DisparoContexto extends Model
                 CD_HANDLER,
                 HR_EXECUCAO,
                 NR_TENTATIVAS,
+                NR_INTERVALOHORAS,
                 ST_ATIVO,
                 DT_INICIOENVIO,
-                DT_ULTIMAEXECUCAO
+                DT_ULTIMAEXECUCAO,
+                DT_PROXIMAEXECUCAO
             FROM DISPARO_CONTEXTO
             ORDER BY DS_CONTEXTO
         "));
@@ -28,7 +31,8 @@ class DisparoContexto extends Model
     public function find(int $id)
     {
         $row = DB::connection('firebird')->selectOne("
-            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, HR_EXECUCAO, NR_TENTATIVAS, ST_ATIVO, DT_INICIOENVIO, DT_ULTIMAEXECUCAO
+            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, HR_EXECUCAO, NR_TENTATIVAS, NR_INTERVALOHORAS,
+                   ST_ATIVO, DT_INICIOENVIO, DT_ULTIMAEXECUCAO, DT_PROXIMAEXECUCAO
             FROM DISPARO_CONTEXTO
             WHERE CD_CONTEXTO = :id
         ", ['id' => $id]);
@@ -37,9 +41,10 @@ class DisparoContexto extends Model
     }
 
     /**
-     * Todos os contextos ativos. Modelo de marca d'água (executa a cada hora):
-     * a seleção do que enviar é feita pela janela DT_ULTIMAEXECUCAO → DT_AGORA,
-     * não por horário fixo do dia.
+     * Contextos ativos que ja estao no horario (DT_PROXIMAEXECUCAO <= agora, ou
+     * nunca executaram ainda). Cada contexto tem seu proprio intervalo
+     * (NR_INTERVALOHORAS) - por isso o filtro de "esta na hora" e por linha,
+     * nao um horario global do schedule.
      *
      * DT_AGORA é o "agora" do servidor Firebird capturado atomicamente com o SELECT;
      * vira a próxima marca d'água (via marcarExecutado) para não haver buraco nem
@@ -48,23 +53,55 @@ class DisparoContexto extends Model
     public function ativosParaExecucao(): array
     {
         return Helper::ConvertFormatText(DB::connection('firebird')->select("
-            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, NR_TENTATIVAS,
+            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, NR_TENTATIVAS, NR_INTERVALOHORAS, HR_EXECUCAO,
                    DT_INICIOENVIO, DT_ULTIMAEXECUCAO, CURRENT_TIMESTAMP AS DT_AGORA
             FROM DISPARO_CONTEXTO
             WHERE ST_ATIVO = 'S'
+                AND (DT_PROXIMAEXECUCAO IS NULL OR DT_PROXIMAEXECUCAO <= CURRENT_TIMESTAMP)
         "));
     }
 
     /**
-     * Avança a marca d'água. Recebe o mesmo DT_AGORA lido em ativosParaExecucao()
-     * para que notas registradas durante o processamento (DT_REGISTRO > DT_AGORA)
-     * fiquem para a próxima janela, sem serem perdidas.
+     * Avança a marca d'água e recalcula DT_PROXIMAEXECUCAO. Recebe o mesmo
+     * DT_AGORA lido em ativosParaExecucao() para que notas registradas durante
+     * o processamento (DT_REGISTRO > DT_AGORA) fiquem para a próxima janela,
+     * sem serem perdidas.
+     *
+     * Intervalo < 24h: rolante (DT_AGORA + N horas) - roda a cada N horas
+     * corridas, sem se importar com o horario do dia.
+     * Intervalo >= 24h: ancorado no HR_EXECUCAO - sempre no mesmo horario do
+     * dia, sem "andar" com o tempo (ex.: 24h = uma vez por dia, as 08:00).
      */
-    public function marcarExecutado(int $id, string $dtAgora): void
+    public function marcarExecutado(int $id, string $dtAgora, int $intervaloHoras, ?string $horaExecucao): void
     {
+        $dtProxima = ($intervaloHoras >= 24 && $horaExecucao)
+            ? $this->proximaExecucaoAncorada($dtAgora, $horaExecucao, $intervaloHoras)
+            : Carbon::parse($dtAgora)->addHours($intervaloHoras);
+
         DB::connection('firebird')->statement("
-            UPDATE DISPARO_CONTEXTO SET DT_ULTIMAEXECUCAO = :dt WHERE CD_CONTEXTO = :id
-        ", ['dt' => $dtAgora, 'id' => $id]);
+            UPDATE DISPARO_CONTEXTO SET DT_ULTIMAEXECUCAO = :dt, DT_PROXIMAEXECUCAO = :dt_proxima WHERE CD_CONTEXTO = :id
+        ", [
+            'dt'         => $dtAgora,
+            'dt_proxima' => $dtProxima->format('Y-m-d H:i:s'),
+            'id'         => $id,
+        ]);
+    }
+
+    /**
+     * Proxima ocorrencia do HR_EXECUCAO (hoje, se ainda nao passou; senao avança
+     * de N em N horas ate cair no futuro) - mantem o horario do dia fixo em vez
+     * de derivar de quando a execucao efetivamente aconteceu.
+     */
+    private function proximaExecucaoAncorada(string $dtAgora, string $horaExecucao, int $intervaloHoras): Carbon
+    {
+        $agora = Carbon::parse($dtAgora);
+        $proxima = Carbon::parse($agora->format('Y-m-d') . ' ' . $horaExecucao);
+
+        while ($proxima->lessThanOrEqualTo($agora)) {
+            $proxima->addHours($intervaloHoras);
+        }
+
+        return $proxima;
     }
 
     /**
@@ -113,10 +150,10 @@ class DisparoContexto extends Model
         return $novoStatus;
     }
 
-    public function updateHorario(int $id, string $horario): void
+    public function updateHorario(int $id, string $horario, int $intervaloHoras): void
     {
         DB::connection('firebird')->statement("
-            UPDATE DISPARO_CONTEXTO SET HR_EXECUCAO = :horario WHERE CD_CONTEXTO = :id
-        ", ['horario' => $horario, 'id' => $id]);
+            UPDATE DISPARO_CONTEXTO SET HR_EXECUCAO = :horario, NR_INTERVALOHORAS = :intervalo WHERE CD_CONTEXTO = :id
+        ", ['horario' => $horario, 'intervalo' => $intervaloHoras, 'id' => $id]);
     }
 }

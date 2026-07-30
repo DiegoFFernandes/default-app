@@ -39,7 +39,7 @@ function carregarContextos() {
 function renderContextos(contextos) {
     if (!contextos || !contextos.length) {
         $('#tbody-contextos-disparo').html(
-            '<tr><td colspan="6" class="text-center text-muted py-3">Nenhum contexto cadastrado.</td></tr>'
+            '<tr><td colspan="8" class="text-center text-muted py-3">Nenhum contexto cadastrado.</td></tr>'
         );
         return;
     }
@@ -54,13 +54,16 @@ function renderContextos(contextos) {
             : `<button class="btn btn-xs btn-success btn-toggle-contexto-disparo" data-id="${c.CD_CONTEXTO}" title="Ativar"><i class="fas fa-play"></i></button>`;
         const btnEditar = `<button class="btn btn-xs btn-secondary btn-editar-horario-disparo mr-1"
                 data-id="${c.CD_CONTEXTO}" data-ds="${c.DS_CONTEXTO}" data-horario="${(c.HR_EXECUCAO || '').substring(0, 5)}"
+                data-intervalo="${c.NR_INTERVALOHORAS}"
                 title="Editar horário"><i class="fas fa-clock"></i></button>`;
 
         return `<tr data-id="${c.CD_CONTEXTO}">
             <td>${c.DS_CONTEXTO}</td>
             <td class="text-center">${(c.HR_EXECUCAO || '').substring(0, 5)}</td>
+            <td class="text-center">${c.NR_INTERVALOHORAS}h</td>
             <td class="text-center">${c.NR_TENTATIVAS}</td>
             <td>${c.DT_ULTIMAEXECUCAO || '<span class="text-muted">—</span>'}</td>
+            <td>${c.DT_PROXIMAEXECUCAO || '<span class="text-muted">—</span>'}</td>
             <td class="text-center td-status-contexto">${badge}</td>
             <td class="text-center td-acao-contexto">${btnEditar}${btnToggle}</td>
         </tr>`;
@@ -93,6 +96,8 @@ $(document).on('click', '.btn-editar-horario-disparo', function () {
     $('#horario_cd_contexto').val($(this).data('id'));
     $('#horario_ds_contexto').text($(this).data('ds'));
     $('#horario_hr_execucao').val($(this).data('horario'));
+    $('#horario_nr_intervalohoras').val($(this).data('intervalo'));
+    atualizarEstadoHorarioExecucao();
     $('#modal-horario-contexto').modal('show');
 });
 
@@ -100,13 +105,28 @@ $('#modal-horario-contexto').on('hidden.bs.modal', function () {
     $('#modal-contextos-disparo').modal('show');
 });
 
+// Horário só é usado como âncora quando o intervalo é 24h ou mais - abaixo
+// disso ele é ignorado pelo backend (rolante: agora + N horas). Desabilita
+// visualmente pra não passar a impressão de que o campo faz efeito.
+function atualizarEstadoHorarioExecucao() {
+    const intervalo = parseInt($('#horario_nr_intervalohoras').val(), 10) || 0;
+    const usaHorario = intervalo >= 24;
+
+    $('#horario_hr_execucao').prop('disabled', !usaHorario);
+    $('#horario_hr_execucao_aviso').toggleClass('d-none', usaHorario);
+}
+
+$(document).on('input', '#horario_nr_intervalohoras', atualizarEstadoHorarioExecucao);
+
 $('#btn-salvar-horario-contexto').on('click', function () {
     const id = $('#horario_cd_contexto').val();
     const horario = $('#horario_hr_execucao').val();
+    const intervalo = $('#horario_nr_intervalohoras').val();
 
     $.post(window.routesFollowUp.disparoHorarioContexto.replace(':id', id), {
         _token: $('[name=csrf-token]').attr('content'),
         hr_execucao: horario,
+        nr_intervalohoras: intervalo,
     }).done(function (res) {
         $('#modal-horario-contexto').modal('hide');
         Swal.fire({
@@ -115,7 +135,10 @@ $('#btn-salvar-horario-contexto').on('click', function () {
         });
         carregarContextos();
     }).fail(function (xhr) {
-        const msg = xhr.responseJSON?.errors ?? xhr.responseJSON?.message ?? 'Falha ao salvar horário.';
+        const errors = xhr.responseJSON?.errors;
+        const msg = errors
+            ? Object.values(errors).flat().join(' ')
+            : (xhr.responseJSON?.message ?? 'Falha ao salvar horário.');
         Swal.fire('Erro', msg, 'error');
     });
 });

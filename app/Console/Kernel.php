@@ -22,9 +22,12 @@ class Kernel extends ConsoleKernel
         $schedule->command('pedidos:atualizar-alterados')->everyTenMinutes();
 
         // Disparos automaticos: gera pendentes (marca d'agua) e enfileira o envio.
+        // A decisao de "esta na hora" e por contexto (DT_PROXIMAEXECUCAO, que
+        // respeita o NR_INTERVALOHORAS/HR_EXECUCAO de cada um) - o tick daqui so
+        // precisa ser frequente o bastante pra nao atrasar essa checagem.
         // withoutOverlapping evita duas execucoes se uma atrasar.
         $schedule->command('disparo-automatico:executar')
-            ->hourly()
+            ->everyFiveMinutes()
             ->withoutOverlapping();
     }
 

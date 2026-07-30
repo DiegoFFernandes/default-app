@@ -90,7 +90,9 @@
       "Bash(php -l resources/views/admin/layouts/partials/nota-atz-rodape.blade.php)",
       "Bash(php -l resources/views/admin/layouts/layout-boleto-atz.blade.php)",
       "Bash(php \"C:\\\\Users\\\\diego\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Apache24-htdocs-default-app\\\\eda24d81-4496-4951-bd61-4bb6698ed7c3\\\\scratchpad\\\\check_producao.php\")",
-      "Bash(php -l resources/views/admin/follow-up/disparos/preview.blade.php)"
+      "Bash(php -l resources/views/admin/follow-up/disparos/preview.blade.php)",
+      "Bash(php -l resources/views/admin/follow-up/modals/modal-horario-contexto.blade.php)",
+      "Bash(php -l app/Console/Kernel.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

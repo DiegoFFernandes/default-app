@@ -9,10 +9,27 @@
             <div class="modal-body">
                 <input type="hidden" id="horario_cd_contexto">
                 <p class="mb-2"><strong id="horario_ds_contexto"></strong></p>
-                <div class="form-group">
-                    <label for="horario_hr_execucao">Editar Horário de Execução</label>
-                    <input type="text" class="form-control form-control-sm" id="horario_hr_execucao"
-                        placeholder="HH:MM">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="horario_hr_execucao">Horário</label>
+                            <input type="text" class="form-control form-control-sm" id="horario_hr_execucao"
+                                placeholder="HH:MM">
+                            <small class="form-text text-muted">Usado como âncora quando o intervalo é de 24h ou
+                                mais - define a hora do dia em que sempre roda.</small>
+                            <small id="horario_hr_execucao_aviso" class="form-text text-warning d-none">Não se
+                                aplica com esse intervalo (menor que 24h) - o disparo roda de forma contínua.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="horario_nr_intervalohoras">Intervalo (horas)</label>
+                            <input type="number" min="1" class="form-control form-control-sm"
+                                id="horario_nr_intervalohoras" placeholder="Ex.: 1, 6, 24">
+                            <small class="form-text text-muted">De quantas em quantas horas o disparo é
+                                verificado para este contexto.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

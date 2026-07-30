@@ -134,7 +134,7 @@ class DisparoEnvio extends Model
                 'ds_emailcopia' => $dados['ds_emailcopia'] ?? null,
                 'ds_emailrem'   => $dados['ds_emailrem'],
                 'ds_assunto'    => Helper::ToIso($dados['ds_assunto']),
-                'st_envio'      => $semEmail ? 'E' : 'A',
+                'st_envio'      => $semEmail ? 'F' : 'A',
                 'ds_motivo'     => $semEmail ? Helper::ToIso('Não possui email cadastrado') : null,
                 'dt_envio'      => $semEmail ? now() : null,
             ]);

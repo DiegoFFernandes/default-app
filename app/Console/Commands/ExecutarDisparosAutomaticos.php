@@ -55,7 +55,12 @@ class ExecutarDisparosAutomaticos extends Command
                 EnviaDisparoAutomaticoJob::dispatch($pendente->CD_ENVIO, $contexto->CD_HANDLER);
             }
 
-            $contextoModel->marcarExecutado($contexto->CD_CONTEXTO, $contexto->DT_AGORA);
+            $contextoModel->marcarExecutado(
+                $contexto->CD_CONTEXTO,
+                $contexto->DT_AGORA,
+                (int) $contexto->NR_INTERVALOHORAS,
+                $contexto->HR_EXECUCAO
+            );
         }
 
         return self::SUCCESS;

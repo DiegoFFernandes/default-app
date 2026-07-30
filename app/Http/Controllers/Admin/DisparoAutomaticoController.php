@@ -48,10 +48,17 @@ class DisparoAutomaticoController extends Controller
     public function updateHorarioContexto($id)
     {
         $this->request->validate([
-            'hr_execucao' => 'required|date_format:H:i',
+            'hr_execucao'       => 'required|date_format:H:i',
+            'nr_intervalohoras' => 'required|integer|min:1',
+        ], [
+            'hr_execucao.required'    => 'Informe o horário de execução.',
+            'hr_execucao.date_format' => 'Horário inválido - use o formato HH:MM.',
+            'nr_intervalohoras.required' => 'Informe o intervalo em horas.',
+            'nr_intervalohoras.integer'  => 'O intervalo deve ser um número inteiro.',
+            'nr_intervalohoras.min'      => 'O intervalo deve ser de pelo menos 1 hora.',
         ]);
 
-        $this->contexto->updateHorario($id, $this->request->hr_execucao . ':00');
+        $this->contexto->updateHorario($id, $this->request->hr_execucao . ':00', (int) $this->request->nr_intervalohoras);
 
         return response()->json(['success' => 'Horário atualizado com sucesso!']);
     }
@@ -71,20 +78,20 @@ class DisparoAutomaticoController extends Controller
         // Antes do inicio do disparo automatico (DT_INICIOENVIO) nao existe envio
         // possivel - toda nota apareceria como "Pendente" sem sentido nenhum, entao
         // a busca e travada e o motivo e avisado ao usuario em vez de rodar a query.
-        // $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
-        //     $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
-        // );
+        $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
+            $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
+        );
 
-        // if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
-        //     return response()->json([
-        //         'draw'            => (int) $this->request->input('draw'),
-        //         'recordsTotal'    => 0,
-        //         'recordsFiltered' => 0,
-        //         'data'            => [],
-        //         'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
-        //             . '. Antes dessa data não há envios - ajuste o período da busca.',
-        //     ]);
-        // }
+        if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
+            return response()->json([
+                'draw'            => (int) $this->request->input('draw'),
+                'recordsTotal'    => 0,
+                'recordsFiltered' => 0,
+                'data'            => [],
+                'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
+                    . '. Antes dessa data não há envios - ajuste o período da busca.',
+            ]);
+        }
 
         $data = $this->notaCliente->listarNotasEmitidas($filtros);
 
