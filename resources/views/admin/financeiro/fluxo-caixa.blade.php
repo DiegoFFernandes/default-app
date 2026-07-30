@@ -217,8 +217,8 @@
                                 @endforeach
                                 <tr class="grupo-receber linha-detalhe">
                                     <td class="pl-4">Lançamento Manual (Entrada)
-                                        <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;"
-                                            title="Editável"></i>
+                                        <i class="fas fa-pencil-alt text-muted btn-add-lancamento" style="font-size:.65rem; cursor:pointer;"
+                                            data-tipo="receber" title="Adicionar lançamento manual"></i>
                                     </td>
                                     <x-fluxo-celulas :valores="$lancamentoManualEntrada" modo="detalhe" :fins-de-semana="$finsDeSemana"
                                         lanc-avulso-tipo="receber" />
@@ -280,8 +280,8 @@
                                 @endforeach
                                 <tr class="grupo-pagar linha-detalhe">
                                     <td class="pl-4">Lançamento Manual (Saída)
-                                        <i class="fas fa-pencil-alt text-muted" style="font-size:.65rem;"
-                                            title="Editável"></i>
+                                        <i class="fas fa-pencil-alt text-muted btn-add-lancamento" style="font-size:.65rem; cursor:pointer;"
+                                            data-tipo="pagar" title="Adicionar lançamento manual"></i>
                                     </td>
                                     <x-fluxo-celulas :valores="$lancamentoManualSaida" modo="detalhe" :fins-de-semana="$finsDeSemana"
                                         lanc-avulso-tipo="pagar" />
@@ -1106,7 +1106,10 @@
         // hover na linha da grade (dadosExistentes vem preenchido nesse caso).
         function abrirFormularioLancamento(dadosExistentes, aoFechar) {
             var editando = !!(dadosExistentes && dadosExistentes.id);
-            var tipoInicial = editando ? dadosExistentes.tipo : 'receber';
+            // Aceita um tipo pré-definido mesmo sem edição (ex: clique no lápis da linha de
+            // Saída já abre em 'pagar'); sem nada informado, cai no padrão 'receber'.
+            var tipoInicial = (dadosExistentes && dadosExistentes.tipo) ? dadosExistentes.tipo :
+                'receber';
 
             Swal.fire({
                 title: editando ? 'Editar Lançamento Manual' : 'Lançamento Manual',
@@ -1319,6 +1322,14 @@
 
         $('#btn-novo-lancamento').on('click', function() {
             abrirFormularioLancamento();
+        });
+
+        // Lápis nas linhas "Lançamento Manual (Entrada/Saída)": abre o mesmo form de novo
+        // lançamento, já no tipo da linha clicada.
+        $(document).on('click', '.btn-add-lancamento', function() {
+            abrirFormularioLancamento({
+                tipo: $(this).data('tipo')
+            });
         });
 
         // Clique na linha "Lançamento Manual" (.lanc-avulso-cel.tem-lancamento): abre um Swal

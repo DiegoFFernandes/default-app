@@ -14,8 +14,8 @@ class TipoConta
     {
         try {
             $filtroTipo = match ($tipo) {
-                'pagar' => "AND TC.TP_TIPOCONTA IN ('CP', 'HP')",
-                'receber' => "AND TC.TP_TIPOCONTA IN ('CR', 'HR', 'CT')",
+                'pagar' => "AND TC.TP_TIPOCONTA IN ('CP', 'HP', 'PP', 'AC')",
+                'receber' => "AND TC.TP_TIPOCONTA IN ('CR', 'HR', 'CT', 'PR')",
                 default => '',
             };
 
