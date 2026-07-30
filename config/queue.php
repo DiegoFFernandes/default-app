@@ -66,7 +66,11 @@ return [
             'driver' => 'redis',
             'connection' => 'default',
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 90,
+            // Folga acima do pior caso realista de EnviaDisparoAutomaticoJob (PDF
+            // da nota + de cada boleto via Chromium + envio SMTP) - com 90s um job
+            // um pouco mais lento era reciclado pelo Redis ainda em andamento,
+            // gerando MaxAttemptsExceededException na "segunda" tentativa.
+            'retry_after' => 300,
             'block_for' => null,
             'after_commit' => false,
         ],

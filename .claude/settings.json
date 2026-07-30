@@ -96,7 +96,8 @@
       "Bash(php -l app/Console/Commands/ExecutarDisparosAutomaticos.php)",
       "Bash(redis-cli KEYS \"*\")",
       "Bash(redis-cli LLEN \"laravel_database_queues:default\")",
-      "Bash(redis-cli LLEN \"df_database_queues:default\")"
+      "Bash(redis-cli LLEN \"df_database_queues:default\")",
+      "Bash(php -l config/queue.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

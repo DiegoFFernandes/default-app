@@ -20,8 +20,12 @@ class EnviaDisparoAutomaticoJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    // O controle de repeticao e manual (NR_TENTATIVAS/ST_ENVIO no banco), nao pela fila.
-    public int $tries = 1;
+    // O controle de repeticao "de negocio" e manual (NR_TENTATIVAS/ST_ENVIO no
+    // banco), nao pela fila - mas tries=1 deixava qualquer soluco de
+    // infraestrutura (worker reiniciado/job reciclado por timeout) matar o job
+    // direto no MaxAttemptsExceededException, sem nunca chamar handle() pra
+    // registrar o motivo. 2 da uma margem só pra isso, sem virar retry de negocio.
+    public int $tries = 2;
 
     public function __construct(
         public int $cdEnvio,
