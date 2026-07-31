@@ -65,54 +65,135 @@ class NotaBoletoHandler implements DisparoHandlerInterface
         ]);
     }
 
+    /**
+     * Monta o e-mail completo (corpo + todos os PDFs ja gerados) - usado pelo
+     * envio de verdade (EnviaDisparoAutomaticoJob), que precisa anexar tudo.
+     */
     public function montarEmail(object $envio): array
     {
+        $itens = $this->estruturaAnexos($envio);
+
+        return [
+            'corpo'  => $this->montarCorpo($envio, $itens),
+            'anexos' => array_map(fn($item) => $this->gerarAnexoPdf($item), $itens),
+        ];
+    }
+
+    /**
+     * Mesma coisa que montarEmail(), mas sem gerar nenhum PDF - so os titulos/
+     * nomes dos anexos, pra listar na tela de preview sem custar Chromium.
+     */
+    public function montarPreview(object $envio): array
+    {
+        $itens = $this->estruturaAnexos($envio);
+
+        return [
+            'corpo'  => $this->montarCorpo($envio, $itens),
+            'anexos' => array_map(fn($item) => [
+                'titulo' => $item['titulo'],
+                'nome'   => $item['nome'],
+            ], $itens),
+        ];
+    }
+
+    /**
+     * Gera o PDF/HTML de UM anexo especifico, sob demanda (clique no botao do
+     * preview) - nao toca nos outros anexos.
+     */
+    public function gerarAnexo(object $envio, int $indice): array
+    {
+        $itens = $this->estruturaAnexos($envio);
+
+        if (!isset($itens[$indice])) {
+            throw new \OutOfRangeException("Anexo {$indice} não encontrado.");
+        }
+
+        return $this->gerarAnexoPdf($itens[$indice]);
+    }
+
+    /**
+     * Monta a "receita" de cada anexo (nota + boletos em aberto) com os dados
+     * ja buscados no banco, mas sem renderizar HTML nem gerar PDF - e o que
+     * montarEmail()/montarPreview()/gerarAnexo() compartilham, pra so buscar
+     * os dados uma vez e decidir depois o que efetivamente vira PDF.
+     */
+    private function estruturaAnexos(object $envio): array
+    {
         $cdPessoa = (string) $envio->CD_PESSOA;
-        $anexos = [];
 
-        // --- PDF da Nota ---
         $data = $this->notaModel->getListNotaCliente($envio->NR_LANCAMENTO, $cdPessoa);
-        $layout = (new NotaLayoutData())->build($data);
-        $htmlNota = view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
-        // Chromium headless: renderizacao identica ao preview HTML.
-        $pdfNota = $this->chromePdf->fromHtml($htmlNota);
-        $anexos[] = ['titulo' => 'Nota Fiscal', 'nome' => 'nota.pdf', 'conteudo' => $pdfNota, 'html' => $htmlNota];
+        $itens = [
+            ['tipo' => 'nota', 'titulo' => 'Nota Fiscal', 'nome' => 'nota.pdf', 'dados' => $data],
+        ];
 
-        // --- PDF(s) do Boleto (parcelas em aberto vinculadas a essa nota) ---
         $parcelas = array_values(array_filter(
             $this->boletoModel->BoletoResumo($cdPessoa),
             fn($b) => (int) $b->NR_LANCTONOTA === (int) $envio->NR_LANCAMENTO
                 && (int) $b->CD_EMPRESA === (int) $envio->CD_EMPRESA
         ));
 
-        foreach ($parcelas as $i => $parcela) {
+        $numero = 0;
+
+        foreach ($parcelas as $parcela) {
             $boletoData = $this->boletoModel->Boleto($parcela->NR_LANCAMENTO, $parcela->CD_EMPRESA, $parcela->NR_PARC, $cdPessoa);
 
             if (empty($boletoData)) {
                 continue;
             }
 
-            $boleto = $boletoData[0];
-            $codigo_barras = Helper::codigoBarrasHtml($boleto->DS_CODIGOBARRA);
-            $htmlBoleto = view('admin.layouts.layout-boleto-atz', compact('codigo_barras', 'boleto'))->render();
-            $pdfBoleto = $this->chromePdf->fromHtml($htmlBoleto);
+            $numero++;
+            $itens[] = [
+                'tipo'   => 'boleto',
+                'titulo' => "Boleto {$numero}",
+                'nome'   => "boleto_{$numero}.pdf",
+                'dados'  => $boletoData[0],
+            ];
+        }
 
-            $numero = $i + 1;
-            $anexos[] = ['titulo' => "Boleto {$numero}", 'nome' => "boleto_{$numero}.pdf", 'conteudo' => $pdfBoleto, 'html' => $htmlBoleto];
+        return $itens;
+    }
+
+    /**
+     * Renderiza o HTML do item (nota ou boleto) e gera o PDF via Chromium -
+     * unico ponto que efetivamente custa uma invocacao do Chrome.
+     */
+    private function gerarAnexoPdf(array $item): array
+    {
+        if ($item['tipo'] === 'nota') {
+            $data = $item['dados'];
+            $layout = (new NotaLayoutData())->build($data);
+            $html = view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
+        } else {
+            $boleto = $item['dados'];
+            $codigo_barras = Helper::codigoBarrasHtml($boleto->DS_CODIGOBARRA);
+            $html = view('admin.layouts.layout-boleto-atz', compact('codigo_barras', 'boleto'))->render();
         }
 
         return [
-            'corpo'  => view('emails.disparo-automatico.nota-boleto', [
-                'nmPessoa'      => $envio->NM_PESSOA,
-                'nrNota'        => $data[0]->NR_NOTA,
-                'temBoleto'     => count($parcelas) > 0,
-                // Contato da empresa que emitiu a nota (nao da Cambe fixo) - mesma
-                // fonte usada no cabecalho da nota (NM_EMPRESA/NR_FONEEMPRESA/DS_EMAILEMPRESA).
-                'nmEmpresa'     => $data[0]->NM_EMPRESA,
-                'foneEmpresa'   => $data[0]->NR_FONEEMPRESA,
-                'emailEmpresa'  => $data[0]->DS_EMAILEMPRESA,
-            ])->render(),
-            'anexos' => $anexos,
+            'titulo'   => $item['titulo'],
+            'nome'     => $item['nome'],
+            // Chromium headless: renderizacao identica ao preview HTML.
+            'conteudo' => $this->chromePdf->fromHtml($html),
+            'html'     => $html,
         ];
+    }
+
+    private function montarCorpo(object $envio, array $itens): string
+    {
+        $data = $itens[0]['dados'];
+
+        return view('emails.disparo-automatico.nota-boleto', [
+            'nmPessoa'  => $envio->NM_PESSOA,
+            'nrNota'    => $data[0]->NR_NOTA,
+            // count($itens) > 1: se sobrou algum boleto de verdade alem da nota
+            // (item 0) - corrige um caso em que o texto dizia "e o(s) boleto(s)"
+            // mesmo quando nenhum boleto tinha dado gerado.
+            'temBoleto' => count($itens) > 1,
+            // Contato da empresa que emitiu a nota (nao da Cambe fixo) - mesma
+            // fonte usada no cabecalho da nota (NM_EMPRESA/NR_FONEEMPRESA/DS_EMAILEMPRESA).
+            'nmEmpresa'    => $data[0]->NM_EMPRESA,
+            'foneEmpresa'  => $data[0]->NR_FONEEMPRESA,
+            'emailEmpresa' => $data[0]->DS_EMAILEMPRESA,
+        ])->render();
     }
 }

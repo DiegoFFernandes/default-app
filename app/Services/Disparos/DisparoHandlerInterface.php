@@ -23,4 +23,19 @@ interface DisparoHandlerInterface
      * Retorna null se ja existir (mesma protecao de criarPendente()).
      */
     public function criarPendenteAvulso(object $contexto, int $nrLancamento, int $cdPessoa): ?int;
+
+    /**
+     * Mesma estrutura de montarEmail(), mas sem gerar nenhum PDF - so titulo/
+     * nome de cada anexo. Usado na tela de preview, que so lista os anexos
+     * (o PDF de cada um so e gerado se o usuario clicar nele).
+     * Retorna ['corpo' => string, 'anexos' => [['titulo' => string, 'nome' => string], ...]]
+     */
+    public function montarPreview(object $envio): array;
+
+    /**
+     * Gera o PDF/HTML de um unico anexo, pelo indice retornado em montarPreview().
+     * Retorna ['titulo' => string, 'nome' => string, 'conteudo' => string, 'html' => string]
+     * Lanca \OutOfRangeException se o indice nao existir.
+     */
+    public function gerarAnexo(object $envio, int $indice): array;
 }

@@ -7,6 +7,7 @@ use App\Jobs\EnviaDisparoAutomaticoJob;
 use App\Models\DisparoContexto;
 use App\Models\DisparoEnvio;
 use App\Models\NotaCliente;
+use App\Services\Disparos\DisparoHandlerInterface;
 use App\Services\Disparos\DisparoHandlerRegistry;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -79,20 +80,20 @@ class DisparoAutomaticoController extends Controller
         // Antes do inicio do disparo automatico (DT_INICIOENVIO) nao existe envio
         // possivel - toda nota apareceria como "Pendente" sem sentido nenhum, entao
         // a busca e travada e o motivo e avisado ao usuario em vez de rodar a query.
-        $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
-            $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
-        );
+        // $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
+        //     $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
+        // );
 
-        if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
-            return response()->json([
-                'draw'            => (int) $this->request->input('draw'),
-                'recordsTotal'    => 0,
-                'recordsFiltered' => 0,
-                'data'            => [],
-                'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
-                    . '. Antes dessa data não há envios - ajuste o período da busca.',
-            ]);
-        }
+        // if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
+        //     return response()->json([
+        //         'draw'            => (int) $this->request->input('draw'),
+        //         'recordsTotal'    => 0,
+        //         'recordsFiltered' => 0,
+        //         'data'            => [],
+        //         'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
+        //             . '. Antes dessa data não há envios - ajuste o período da busca.',
+        //     ]);
+        // }
 
         $data = $this->notaCliente->listarNotasEmitidas($filtros);
 
@@ -127,7 +128,8 @@ class DisparoAutomaticoController extends Controller
 
                 if (in_array($row->ST_ENVIO, ['F', 'V', 'E'])) {
                     $btn .= '<button class="btn btn-xs btn-warning mr-1 btn-editar-email-disparo"
-                        data-id="' . $row->CD_ENVIO . '" data-email="' . e($row->DS_EMAILDEST) . '" title="Editar e-mail do destinatário">
+                        data-id="' . $row->CD_ENVIO . '" data-email="' . e($row->DS_EMAILDEST) . '"
+                        data-emailcopia="' . e($row->DS_EMAILCOPIA) . '" title="Editar e-mail do destinatário">
                         <i class="fa fa-pencil-alt" aria-hidden="true"></i></button>';
 
                     $btn .= '<button class="btn btn-xs btn-success btn-reenviar-disparo"
@@ -189,25 +191,37 @@ class DisparoAutomaticoController extends Controller
     public function atualizarEmailEnvio(int $id)
     {
         $this->request->validate([
-            'ds_emaildest' => 'required|email',
+            'ds_emaildest'  => 'required|email',
+            'ds_emailcopia' => ['nullable', 'string', function ($attribute, $value, $fail) {
+                foreach (explode(';', $value) as $email) {
+                    $email = trim($email);
+
+                    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $fail("O e-mail \"{$email}\" em cópia é inválido.");
+                    }
+                }
+            }],
         ]);
 
-        $this->envio->atualizarEmailDestino($id, $this->request->ds_emaildest);
+        $this->envio->atualizarEmailDestino($id, $this->request->ds_emaildest, $this->request->ds_emailcopia);
 
         return response()->json(['success' => 'E-mail atualizado com sucesso!']);
     }
 
     public function previewEnvio(int $id, DisparoHandlerRegistry $registry)
     {
-        [$envio, $email] = $this->montarEmailDoEnvio($id, $registry);
+        [$envio, $handler] = $this->envioEHandler($id, $registry);
+        // Sem PDF nenhum aqui - so lista titulo/nome dos anexos. Cada PDF so e
+        // gerado (Chromium) se o usuario clicar no anexo especifico abaixo.
+        $email = $handler->montarPreview($envio);
 
         return view('admin.follow-up.disparos.preview', compact('envio', 'email'));
     }
 
     public function previewAnexo(int $id, int $indice, DisparoHandlerRegistry $registry)
     {
-        [, $email] = $this->montarEmailDoEnvio($id, $registry);
-        $anexo = $this->anexoOuFalha($email, $indice);
+        [$envio, $handler] = $this->envioEHandler($id, $registry);
+        $anexo = $this->gerarAnexoOuFalha($handler, $envio, $indice);
 
         return response($anexo['conteudo'], 200, [
             'Content-Type'        => 'application/pdf',
@@ -217,13 +231,13 @@ class DisparoAutomaticoController extends Controller
 
     public function previewAnexoHtml(int $id, int $indice, DisparoHandlerRegistry $registry)
     {
-        [, $email] = $this->montarEmailDoEnvio($id, $registry);
-        $anexo = $this->anexoOuFalha($email, $indice);
+        [$envio, $handler] = $this->envioEHandler($id, $registry);
+        $anexo = $this->gerarAnexoOuFalha($handler, $envio, $indice);
 
         return response($anexo['html'], 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 
-    private function montarEmailDoEnvio(int $id, DisparoHandlerRegistry $registry): array
+    private function envioEHandler(int $id, DisparoHandlerRegistry $registry): array
     {
         $envio = $this->envio->find($id);
 
@@ -234,16 +248,16 @@ class DisparoAutomaticoController extends Controller
         $contexto = $this->contexto->find($envio->CD_CONTEXTO);
         $handler = $registry->resolve($contexto->CD_HANDLER);
 
-        return [$envio, $handler->montarEmail($envio)];
+        return [$envio, $handler];
     }
 
-    private function anexoOuFalha(array $email, int $indice): array
+    private function gerarAnexoOuFalha(DisparoHandlerInterface $handler, object $envio, int $indice): array
     {
-        if (!isset($email['anexos'][$indice])) {
+        try {
+            return $handler->gerarAnexo($envio, $indice);
+        } catch (\OutOfRangeException) {
             abort(404, 'Anexo não encontrado.');
         }
-
-        return $email['anexos'][$indice];
     }
 
     private function converterData(?string $valor, string $default): string

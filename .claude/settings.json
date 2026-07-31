@@ -97,7 +97,8 @@
       "Bash(redis-cli KEYS \"*\")",
       "Bash(redis-cli LLEN \"laravel_database_queues:default\")",
       "Bash(redis-cli LLEN \"df_database_queues:default\")",
-      "Bash(php -l config/queue.php)"
+      "Bash(php -l config/queue.php)",
+      "Bash(php -l resources/views/admin/follow-up/modals/modal-editar-email-disparo.blade.php)"
     ],
     "additionalDirectories": [
       "\\tmp"

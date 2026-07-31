@@ -166,14 +166,14 @@ class DisparoEnvio extends Model
     }
 
     /**
-     * Corrige o e-mail de destino de um envio (ex.: erro de digitacao que
-     * causou a falha). Nao muda ST_ENVIO - use reenviar() para reativar.
+     * Corrige o e-mail de destino (e cópia) de um envio (ex.: erro de digitacao
+     * que causou a falha). Nao muda ST_ENVIO - use reenviar() para reativar.
      */
-    public function atualizarEmailDestino(int $id, string $email): void
+    public function atualizarEmailDestino(int $id, string $email, ?string $emailCopia): void
     {
         DB::connection('firebird')->statement('
-            UPDATE DISPARO_ENVIO SET DS_EMAILDEST = :email WHERE CD_ENVIO = :id
-        ', ['email' => $email, 'id' => $id]);
+            UPDATE DISPARO_ENVIO SET DS_EMAILDEST = :email, DS_EMAILCOPIA = :emailcopia WHERE CD_ENVIO = :id
+        ', ['email' => $email, 'emailcopia' => $emailCopia, 'id' => $id]);
     }
 
     public function marcarEnviado(int $id): void

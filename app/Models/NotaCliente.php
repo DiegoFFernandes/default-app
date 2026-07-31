@@ -277,9 +277,9 @@ class NotaCliente extends Model
                 N.DT_REGISTRO,
 
                 P.CD_PESSOA,
-                P.NM_PESSOA,
-                P.DS_EMAIL,
-                RPE.O_DS_EMAIL DS_EMAILCOPIA,
+                P.CD_PESSOA||'-'||P.NM_PESSOA NM_PESSOA,
+                COALESCE(DE.DS_EMAILDEST, P.DS_EMAIL) DS_EMAIL,
+                COALESCE(DE.DS_EMAILCOPIA, RPE.O_DS_EMAIL) DS_EMAILCOPIA,
 
                 DE.CD_ENVIO,
                 DE.CD_CONTEXTO,

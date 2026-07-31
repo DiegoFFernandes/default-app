@@ -215,7 +215,7 @@ function initDataTableEnvios() {
             { title: 'Emp.', data: 'CD_EMPRESA' },
             { title: 'Contexto', data: 'DS_CONTEXTO', width: '18%', visible: false},
             { title: 'Cliente', data: 'NM_PESSOA', width: '20%' },
-            { title: 'Nota', data: 'NR_LANCAMENTO', width: '8%', className: 'text-center' },
+            { title: 'Nota', data: 'NR_NOTA', width: '8%', className: 'text-center' },
             { title: 'E-mail', data: 'DS_EMAILDEST', width: '18%' },
             {
                 title: 'Cópia', data: 'DS_EMAILCOPIA', width: '6%', className: 'text-center', orderable: false,
@@ -308,11 +308,19 @@ $(document).on('click', '.btn-criar-envio-disparo', function () {
             nr_lancamento: nrLancamento,
             cd_pessoa: cdPessoa,
         }).done(function (res) {
-            Swal.fire({
-                icon: 'success', title: res.success, toast: true, position: 'top-end',
-                showConfirmButton: false, timer: 2000, timerProgressBar: true,
-            });
-            tabelaDisparos.ajax.reload(null, false);
+            // O callback do reload() roda ANTES do complete() da tabela (que
+            // fecha o Swal de "Carregando..."), entao mostrar o toast aqui
+            // direto seria fechado pelo complete() logo em seguida. setTimeout
+            // empurra pro proximo tick, depois que o complete() ja rodou -
+            // mesma tecnica usada no aviso de "periodo fora do disparo".
+            tabelaDisparos.ajax.reload(function () {
+                setTimeout(function () {
+                    Swal.fire({
+                        icon: 'success', title: res.success, toast: true, position: 'top-end',
+                        showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                    });
+                }, 0);
+            }, false);
         }).fail(function (xhr) {
             const msg = xhr.responseJSON?.message ?? 'Não foi possível criar o envio.';
             Swal.fire('Erro', msg, 'error');
@@ -340,11 +348,15 @@ $(document).on('click', '.btn-reenviar-disparo', function () {
         $.post(window.routesFollowUp.disparoReenviarEnvio.replace(':id', id), {
             _token: $('[name=csrf-token]').attr('content'),
         }).done(function (res) {
-            Swal.fire({
-                icon: 'success', title: res.success, toast: true, position: 'top-end',
-                showConfirmButton: false, timer: 2000, timerProgressBar: true,
-            });
-            tabelaDisparos.ajax.reload(null, false);
+            // setTimeout: ver comentario equivalente no btn-criar-envio-disparo.
+            tabelaDisparos.ajax.reload(function () {
+                setTimeout(function () {
+                    Swal.fire({
+                        icon: 'success', title: res.success, toast: true, position: 'top-end',
+                        showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                    });
+                }, 0);
+            }, false);
         }).fail(function () {
             Swal.fire('Erro', 'Não foi possível marcar o envio para reenvio.', 'error');
         });
@@ -355,25 +367,35 @@ $(document).on('click', '.btn-reenviar-disparo', function () {
 $(document).on('click', '.btn-editar-email-disparo', function () {
     $('#email_disparo_cd_envio').val($(this).data('id'));
     $('#email_disparo_ds_emaildest').val($(this).data('email'));
+    $('#email_disparo_ds_emailcopia').val($(this).data('emailcopia'));
     $('#modal-editar-email-disparo').modal('show');
 });
 
 $('#btn-salvar-email-disparo').on('click', function () {
     const id = $('#email_disparo_cd_envio').val();
     const email = $('#email_disparo_ds_emaildest').val();
+    const emailCopia = $('#email_disparo_ds_emailcopia').val();
 
     $.post(window.routesFollowUp.disparoAtualizarEmailEnvio.replace(':id', id), {
         _token: $('[name=csrf-token]').attr('content'),
         ds_emaildest: email,
+        ds_emailcopia: emailCopia,
     }).done(function (res) {
         $('#modal-editar-email-disparo').modal('hide');
-        Swal.fire({
-            icon: 'success', title: res.success, toast: true, position: 'top-end',
-            showConfirmButton: false, timer: 2000, timerProgressBar: true,
-        });
-        tabelaDisparos.ajax.reload(null, false);
+        // setTimeout: ver comentario equivalente no btn-criar-envio-disparo.
+        tabelaDisparos.ajax.reload(function () {
+            setTimeout(function () {
+                Swal.fire({
+                    icon: 'success', title: res.success, toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                });
+            }, 0);
+        }, false);
     }).fail(function (xhr) {
-        const msg = xhr.responseJSON?.errors?.ds_emaildest?.[0] ?? xhr.responseJSON?.message ?? 'Falha ao salvar e-mail.';
+        const errors = xhr.responseJSON?.errors;
+        const msg = errors
+            ? Object.values(errors).flat().join(' ')
+            : (xhr.responseJSON?.message ?? 'Falha ao salvar e-mail.');
         Swal.fire('Erro', msg, 'error');
     });
 });

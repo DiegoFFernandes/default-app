@@ -13,6 +13,13 @@
                     <input type="email" class="form-control form-control-sm" id="email_disparo_ds_emaildest"
                         placeholder="cliente@exemplo.com">
                 </div>
+                <div class="form-group">
+                    <label for="email_disparo_ds_emailcopia">E-mail(s) em Cópia</label>
+                    <input type="text" class="form-control form-control-sm" id="email_disparo_ds_emailcopia"
+                        placeholder="financeiro@exemplo.com; fulano@exemplo.com">
+                    <small class="form-text text-muted">Separe vários e-mails com ponto e vírgula
+                        (;).</small>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Fechar</button>
