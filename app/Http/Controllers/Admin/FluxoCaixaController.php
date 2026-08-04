@@ -19,19 +19,24 @@ use Illuminate\Validation\Rule;
 
 class FluxoCaixaController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Resolve o período exibido (dias, tipo de data, qtd de semanas) a partir da querystring.
+     * Compartilhado entre o shell (index) e o carregamento dos dados (conteudo) pra os dois
+     * montarem exatamente a mesma janela.
+     *
+     * @return array{0: Carbon[], 1: string, 2: int}
+     */
+    private function resolverPeriodo(Request $request): array
     {
         // Data Real = DT_VENCIMENTO puro. Data Personalizada = data ajustada pela regra
-        // de compensação bancária (hoje só definida para CD_TIPOCONTA = 2). Personalizada é
-        // o padrão ao abrir a tela sem parâmetro.
+        // de compensação bancária. Personalizada é o padrão ao abrir a tela sem parâmetro.
         $tipoData = $request->query('tipo_data') === 'real' ? 'real' : 'personalizada';
 
         // "ref" é qualquer data dentro da semana que o usuário quer ver — os botões de
-        // navegação (anterior/hoje/próxima) só mudam esse valor. Sem parâmetro, ou com um
-        // valor inválido, cai na semana atual.
-        // startOfDay() é obrigatório: sem ele, a tela sem ?ref monta os dias com a hora do
-        // request, e qualquer comparação com "hoje à meia-noite" joga o próprio dia de hoje
-        // para o futuro (era o que descartava o saldo bancário real lançado hoje).
+        // navegação (anterior/hoje/próxima) só mudam esse valor. Sem parâmetro, ou inválido,
+        // cai na semana atual. startOfDay() é obrigatório: sem ele, a tela sem ?ref monta os
+        // dias com a hora do request, e qualquer comparação com "hoje à meia-noite" joga o
+        // próprio dia de hoje para o futuro (descartava o saldo bancário real lançado hoje).
         try {
             $inicio = Carbon::parse($request->query('ref'))->startOfDay();
         } catch (\Exception $e) {
@@ -46,12 +51,43 @@ class FluxoCaixaController extends Controller
         // Quantidade de semanas exibidas lado a lado (visão horizontal). Navegação
         // (anterior/hoje/próxima) sempre desliza 1 semana, independente desse valor.
         $qtdSemanas = max(1, min(12, (int) $request->query('semanas', 1)));
-        $qtdDias    = $qtdSemanas * 7;
 
         $dias = [];
-        for ($i = 0; $i < $qtdDias; $i++) {
+        for ($i = 0; $i < $qtdSemanas * 7; $i++) {
             $dias[] = $inicio->copy()->addDays($i);
         }
+
+        return [$dias, $tipoData, $qtdSemanas];
+    }
+
+    /**
+     * Shell da tela: só o cabeçalho (período/navegação) e um container com spinner. Os dados
+     * pesados (5-7s de I/O do Firebird em produção) são carregados sob demanda por conteudo()
+     * via AJAX, pra a tela aparecer na hora em vez de congelar durante a montagem.
+     */
+    public function index(Request $request)
+    {
+        [$dias, $tipoData, $qtdSemanas] = $this->resolverPeriodo($request);
+
+        return view('admin.financeiro.fluxo-caixa', [
+            'dias' => $dias,
+            'tipoData' => $tipoData,
+            'qtdSemanas' => $qtdSemanas,
+            'refSemanaAtual' => $dias[0]->format('Y-m-d'),
+            'refSemanaAnterior' => $dias[0]->copy()->subDays(7)->format('Y-m-d'),
+            'refSemanaProxima' => $dias[0]->copy()->addDays(7)->format('Y-m-d'),
+            'origemSaldoBanco' => FluxoCaixaConfig::get('origem_saldo_banco', 'digitado'),
+        ]);
+    }
+
+    /**
+     * Monta o conteúdo pesado do fluxo (cards, tabela, gráficos) já renderizado como HTML
+     * parcial — chamado por AJAX pelo shell (index). Aqui roda todo o I/O do Firebird.
+     */
+    public function conteudo(Request $request)
+    {
+        [$dias, $tipoData, $qtdSemanas] = $this->resolverPeriodo($request);
+        $qtdDias  = count($dias);
 
         $dtInicio = $dias[0]->format('Y-m-d');
         $dtFim    = $dias[$qtdDias - 1]->format('Y-m-d');
@@ -212,15 +248,12 @@ class FluxoCaixaController extends Controller
         // do Brasil só até 10/07 não somam juntos; mostra só o Bradesco, do dia 15/07).
         $saldoBancoHoje = $fonteSaldo::saldoUltimoDiaLancado();
 
-        return view('admin.financeiro.fluxo-caixa', [
+        return view('admin.financeiro.partials.fluxo-caixa-conteudo', [
             'dias' => $dias,
             'origemSaldoBanco' => $origemSaldoBanco,
             'finsDeSemana' => array_map(fn (Carbon $dia) => $dia->isWeekend(), $dias),
             'tipoData' => $tipoData,
             'qtdSemanas' => $qtdSemanas,
-            'refSemanaAtual' => $dias[0]->format('Y-m-d'),
-            'refSemanaAnterior' => $dias[0]->copy()->subDays(7)->format('Y-m-d'),
-            'refSemanaProxima' => $dias[0]->copy()->addDays(7)->format('Y-m-d'),
             'saldoInicial' => $saldoInicial,
             'saldoBancoHoje' => $saldoBancoHoje,
             'saldoBancoPorDia' => $saldoBancoPorDia,

@@ -200,10 +200,11 @@ function initDataTableEnvios() {
                     // loading logo depois que este dataSrc retorna - abrir o aviso
                     // aqui na hora faria o complete() fechar ele também.
                     const aviso = json.aviso;
+                    const avisoTitulo = json.avisoTitulo || 'Aviso';
                     setTimeout(function () {
                         Swal.fire({
                             icon: 'info',
-                            title: 'Período fora do disparo automático',
+                            title: avisoTitulo,
                             text: aviso,
                         });
                     }, 0);

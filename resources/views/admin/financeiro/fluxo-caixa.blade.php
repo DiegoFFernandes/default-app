@@ -76,242 +76,10 @@
                 </div>
             </div>
 
-            <div class="row mb-2">
-                <div class="col-6 col-md-3 mb-2">
-                    <div class="stat-card stat-primary">
-                        <div class="stat-title">
-                            <span><i class="fas fa-wallet"></i> Saldo Banco(s) Hoje</span>
-                            @can('ver-fluxo-caixa-saldo-dia')
-                                @if ($origemSaldoBanco !== 'firebird')
-                                    <span class="stat-title-actions">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-listar-saldo-banco"
-                                            title="Ver lançamentos de saldo">
-                                            <i class="fas fa-list mr-1"></i>Ver
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-primary" id="btn-add-saldo-banco"
-                                            title="Adicionar saldo de banco/financeira">
-                                            <i class="fas fa-plus-circle mr-1"></i>Adicionar
-                                        </button>
-                                    </span>
-                                @endif
-                            @endcan
-                        </div>
-                        <div class="stat-value">R$ {{ number_format($saldoBancoHoje, 2, ',', '.') }}</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 mb-2">
-                    <div class="stat-card stat-success">
-                        <div class="stat-title"><i class="fas fa-arrow-circle-up"></i> Total Entradas</div>
-                        <div class="stat-value">R$ {{ number_format(array_sum($totalEntradasPorDia), 2, ',', '.') }}</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 mb-2">
-                    <div class="stat-card stat-danger">
-                        <div class="stat-title"><i class="fas fa-arrow-circle-down"></i> Total Saídas</div>
-                        <div class="stat-value">R$ {{ number_format(array_sum($totalSaidasPorDia), 2, ',', '.') }}</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3 mb-2">
-                    <div class="stat-card {{ end($saldoDia) >= 0 ? 'stat-info' : 'stat-danger' }}">
-                        <div class="stat-title"><i class="fas fa-flag-checkered"></i> Saldo Final da Semana</div>
-                        <div class="stat-value">R$ {{ number_format(end($saldoDia), 2, ',', '.') }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-table mr-1 text-muted"></i> Fluxo de Caixa Semanal
-                    </h3>
-                    <span class="badge {{ $tipoData === 'personalizada' ? 'badge-primary' : 'badge-info' }} ml-1">
-                        {{ $tipoData === 'personalizada' ? 'Data Personalizada' : 'Data Real' }}
-                    </span>
-                    <div class="card-tools">
-                        <button type="button" class="btn btn-xs btn-outline-secondary" id="btn-toggle-dias"
-                            title="Ocultar dias da semana, exibindo só os totais">
-                            <i class="fas fa-eye-slash mr-1"></i>Ocultar Dias
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive fluxo-table-wrapper">
-                        <table class="table table-sm table-bordered mb-0 tabela-fluxo-caixa">
-                            <thead>
-                                <tr>
-                                    <th class="col-categoria">Categoria</th>
-                                    @foreach ($dias as $i => $dia)
-                                        <th
-                                            class="text-center col-dia col-dia-semana-{{ intdiv($i, 7) + 1 }} {{ $dia->isWeekend() ? 'dia-fim-semana' : '' }} {{ $dia->isToday() ? 'dia-atual' : '' }}">
-                                            {{ $dia->translatedFormat('D') }}<br>
-                                            <small>{{ $dia->format('d/m') }}</small>
-                                        </th>
-                                        @if (($i + 1) % 7 === 0 && count($dias) > 7)
-                                            <th class="text-center col-subtotal-semana">
-                                                <button type="button" class="btn-toggle-semana"
-                                                    data-semana="{{ intdiv($i, 7) + 1 }}"
-                                                    title="Recolher/expandir semana">
-                                                    <i class="fas fa-minus"></i>
-                                                </button><br>
-                                                Total<br>
-                                                <small>Sem {{ intdiv($i, 7) + 1 }}</small>
-                                            </th>
-                                        @endif
-                                    @endforeach
-                                    <th class="text-center col-total">Total Geral</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="linha-saldo-inicial">
-                                    <td>Saldo Banco</td>
-                                    <x-fluxo-celulas :valores="$saldoBancoPorDia" modo="total" :colorir-por-sinal="true"
-                                        subtotal-modo="traco" total-modo="traco" :fins-de-semana="$finsDeSemana" :destaques="$diasComLancamentoManual"
-                                        :clicavel-por-dia="$saldoBancoClicavelPorDia" />
-                                </tr>
-
-                                <tr class="linha-grupo linha-grupo-receber">
-                                    <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Receber</td>
-                                    <x-fluxo-celulas :valores="$totalContasReceberPorDia" modo="total" classe-celula="valor-positivo"
-                                        :fins-de-semana="$finsDeSemana" />
-                                </tr>
-                                @foreach ($contasReceber as $cdTipoConta => $dadosTipoConta)
-                                    @php $slugTipoConta = \Illuminate\Support\Str::slug($dadosTipoConta['ds_tipoconta'] . '-' . $cdTipoConta); @endphp
-                                    <tr class="grupo-receber linha-detalhe linha-tipoconta"
-                                        data-slug="{{ $slugTipoConta }}" data-valores="{{ json_encode($dadosTipoConta['totais']) }}">
-                                        <td class="pl-4">
-                                            <button type="button" class="btn-detalhe-tipoconta" data-grupo="receber"
-                                                data-slug="{{ $slugTipoConta }}" title="Ver categorias deste tipo de conta">
-                                                <i class="fas fa-chevron-right"></i>
-                                            </button>
-                                            {{ $dadosTipoConta['ds_tipoconta'] }}
-                                        </td>
-                                        <x-fluxo-celulas :valores="$dadosTipoConta['totais']" modo="detalhe"
-                                            :fins-de-semana="$finsDeSemana" ordenar-grupo="receber"
-                                            :ordenar-escopo="$slugTipoConta" />
-                                    </tr>
-                                    @foreach ($dadosTipoConta['categorias'] as $categoria => $dadosCategoria)
-                                        @php $slugCategoria = \Illuminate\Support\Str::slug($slugTipoConta . '-' . $categoria); @endphp
-                                        <tr class="grupo-receber linha-detalhe linha-categoria"
-                                            data-slug-pai-tipoconta="{{ $slugTipoConta }}"
-                                            data-valores="{{ json_encode($dadosCategoria['totais']) }}" style="display:none;">
-                                            <td class="pl-5">
-                                                <button type="button" class="btn-detalhe-categoria" data-grupo="receber"
-                                                    data-slug="{{ $slugCategoria }}" title="Ver clientes deste total">
-                                                    <i class="fas fa-chevron-right"></i>
-                                                </button>
-                                                {{ $categoria }}
-                                            </td>
-                                            <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true" tipo="receber"
-                                                :categoria="$categoria" :cd-tipo-conta="$cdTipoConta" :fins-de-semana="$finsDeSemana" />
-                                        </tr>
-                                        @foreach ($dadosCategoria['detalhe'] as $cliente => $valores)
-                                            <tr class="grupo-receber linha-detalhe linha-cliente"
-                                                data-slug-pai="{{ $slugCategoria }}" data-valores="{{ json_encode($valores) }}"
-                                                style="display:none;">
-                                                <td style="padding-left:4.5rem;">{{ $cliente }}</td>
-                                                <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
-                                                    tipo="receber" :categoria="$categoria" :cliente="$cliente" :cd-tipo-conta="$cdTipoConta"
-                                                    :fins-de-semana="$finsDeSemana" />
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                @endforeach
-                                <tr class="grupo-receber linha-detalhe">
-                                    <td class="pl-4">Lançamento Manual (Entrada)
-                                        <i class="fas fa-pencil-alt text-muted btn-add-lancamento" style="font-size:.65rem; cursor:pointer;"
-                                            data-tipo="receber" title="Adicionar lançamento manual"></i>
-                                    </td>
-                                    <x-fluxo-celulas :valores="$lancamentoManualEntrada" modo="detalhe" :fins-de-semana="$finsDeSemana"
-                                        lanc-avulso-tipo="receber" />
-                                </tr>
-
-                                <tr class="linha-total linha-total-entrada">
-                                    <td>Total Entradas</td>
-                                    <x-fluxo-celulas :valores="$totalEntradasExibicaoPorDia" modo="total" subtotal-modo="traco"
-                                        total-modo="traco" :fins-de-semana="$finsDeSemana" />
-                                </tr>
-
-                                <tr class="linha-grupo linha-grupo-pagar">
-                                    <td><i class="fas fa-caret-down grupo-icone mr-1"></i> Contas a Pagar</td>
-                                    <x-fluxo-celulas :valores="$totalContasPagarPorDia" modo="total" classe-celula="valor-negativo"
-                                        :fins-de-semana="$finsDeSemana" />
-                                </tr>
-                                @foreach ($contasPagar as $cdTipoConta => $dadosTipoConta)
-                                    @php $slugTipoContaPagar = \Illuminate\Support\Str::slug($dadosTipoConta['ds_tipoconta'] . '-' . $cdTipoConta); @endphp
-                                    <tr class="grupo-pagar linha-detalhe linha-tipoconta"
-                                        data-slug="{{ $slugTipoContaPagar }}" data-valores="{{ json_encode($dadosTipoConta['totais']) }}">
-                                        <td class="pl-4">
-                                            <button type="button" class="btn-detalhe-tipoconta" data-grupo="pagar"
-                                                data-slug="{{ $slugTipoContaPagar }}" title="Ver categorias deste tipo de conta">
-                                                <i class="fas fa-chevron-right"></i>
-                                            </button>
-                                            {{ $dadosTipoConta['ds_tipoconta'] }}
-                                        </td>
-                                        <x-fluxo-celulas :valores="$dadosTipoConta['totais']" modo="detalhe"
-                                            :fins-de-semana="$finsDeSemana" ordenar-grupo="pagar"
-                                            :ordenar-escopo="$slugTipoContaPagar" />
-                                    </tr>
-                                    @foreach ($dadosTipoConta['categorias'] as $categoria => $dadosCategoria)
-                                        @php $slugCategoriaPagar = \Illuminate\Support\Str::slug($slugTipoContaPagar . '-' . $categoria); @endphp
-                                        <tr class="grupo-pagar linha-detalhe linha-categoria"
-                                            data-slug-pai-tipoconta="{{ $slugTipoContaPagar }}"
-                                            data-valores="{{ json_encode($dadosCategoria['totais']) }}" style="display:none;">
-                                            <td class="pl-5">
-                                                <button type="button" class="btn-detalhe-categoria" data-grupo="pagar"
-                                                    data-slug="{{ $slugCategoriaPagar }}"
-                                                    title="Ver fornecedores deste total">
-                                                    <i class="fas fa-chevron-right"></i>
-                                                </button>
-                                                {{ $categoria }}
-                                            </td>
-                                            <x-fluxo-celulas :valores="$dadosCategoria['totais']" modo="detalhe" :clicavel="true"
-                                                tipo="pagar" :categoria="$categoria" :cd-tipo-conta="$cdTipoConta" :fins-de-semana="$finsDeSemana" />
-                                        </tr>
-                                        @foreach ($dadosCategoria['detalhe'] as $fornecedor => $valores)
-                                            <tr class="grupo-pagar linha-detalhe linha-cliente"
-                                                data-slug-pai="{{ $slugCategoriaPagar }}" data-valores="{{ json_encode($valores) }}"
-                                                style="display:none;">
-                                                <td style="padding-left:4.5rem;">{{ $fornecedor }}</td>
-                                                <x-fluxo-celulas :valores="$valores" modo="detalhe" :clicavel="true"
-                                                    tipo="pagar" :categoria="$categoria" :cliente="$fornecedor" :cd-tipo-conta="$cdTipoConta"
-                                                    :fins-de-semana="$finsDeSemana" />
-                                            </tr>
-                                        @endforeach
-                                    @endforeach
-                                @endforeach
-                                <tr class="grupo-pagar linha-detalhe">
-                                    <td class="pl-4">Lançamento Manual (Saída)
-                                        <i class="fas fa-pencil-alt text-muted btn-add-lancamento" style="font-size:.65rem; cursor:pointer;"
-                                            data-tipo="pagar" title="Adicionar lançamento manual"></i>
-                                    </td>
-                                    <x-fluxo-celulas :valores="$lancamentoManualSaida" modo="detalhe" :fins-de-semana="$finsDeSemana"
-                                        lanc-avulso-tipo="pagar" />
-                                </tr>
-
-                                <tr class="linha-total linha-total-saida">
-                                    <td>Total Saídas</td>
-                                    <x-fluxo-celulas :valores="$totalSaidasPorDia" modo="total" :fins-de-semana="$finsDeSemana" />
-                                </tr>
-
-                                <tr class="linha-saldo-dia">
-                                    <td>Saldo do Dia</td>
-                                    <x-fluxo-celulas :valores="$saldoDia" modo="total" :colorir-por-sinal="true"
-                                        subtotal-modo="ultimo" total-modo="traco" :fins-de-semana="$finsDeSemana" />
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mt-2">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-chart-bar mr-1 text-muted"></i> Entradas x Saídas por
-                        Dia</h3>
-                </div>
-                <div class="card-body" style="height:260px;">
-                    <canvas id="grafico-entradas-saidas"></canvas>
-                </div>
-            </div>
+            {{-- Conteúdo pesado (cards, tabela, gráficos) carregado por AJAX (fluxo-caixa.conteudo)
+                 pra a tela aparecer na hora em vez de congelar durante os 5-7s de I/O do Firebird.
+                 O feedback de "carregando" é um Swal (ver carregarConteudoFluxo). --}}
+            <div id="fluxo-conteudo"></div>
 
         </div>
     </section>
@@ -394,6 +162,63 @@
         .stat-info .stat-title i,
         .stat-info .stat-value {
             color: #17a2b8;
+        }
+
+        .stat-warning {
+            border-left-color: #e0a800;
+        }
+
+        .stat-warning .stat-title i,
+        .stat-warning .stat-value {
+            color: #c69500;
+        }
+
+        .stat-purple {
+            border-left-color: #6f42c1;
+        }
+
+        .stat-purple .stat-title i,
+        .stat-purple .stat-value {
+            color: #6f42c1;
+        }
+
+        /* Cards multi-linha (Total Entradas/Saídas, Análise) — mesmo padrão de
+           admin.cobranca.components.cards-inadimplencia. */
+        .stat-card .stat-rows {
+            margin-top: 1px;
+        }
+
+        .stat-card .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: .74rem;
+            padding: 3px 0;
+            border-top: 1px solid rgba(0, 0, 0, .05);
+        }
+
+        .stat-card .stat-row-label {
+            color: #6c757d;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-card .stat-row-label .fa-info-circle {
+            font-size: .62rem;
+            color: #adb5bd;
+            cursor: help;
+        }
+
+        .stat-card .stat-row-val {
+            font-weight: 700;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .text-amber {
+            color: #c69500 !important;
         }
 
         .fluxo-table-wrapper {
@@ -706,38 +531,57 @@
     <script src="{{ asset('js/dashboard/swal-draggable.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/dashboard/chart-helpers.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
-        var fluxoContasReceber = @json($contasReceber);
-        var fluxoContasPagar = @json($contasPagar);
-        var fluxoSaldoBancoDetalhePorDia = @json($saldoBancoDetalhePorDia);
-        var fluxoLancAvulsoDetalhePorDia = {
-            receber: @json($lancAvulsoDetalheEntradaPorDia),
-            pagar: @json($lancAvulsoDetalheSaidaPorDia)
-        };
+        // fluxoOrigemSaldoBanco vem do shell (é barato e não depende do AJAX). Os demais dados
+        // (fluxoContasReceber/Pagar, detalhes) e a inicialização dos gráficos são definidos pelo
+        // <script> do conteúdo carregado por AJAX (partials/fluxo-caixa-conteudo.blade.php), que
+        // roda ao ser injetado; os handlers abaixo são delegados, então funcionam nesse conteúdo.
         var fluxoOrigemSaldoBanco = @json($origemSaldoBanco);
 
-        // Gráfico divergente: Entradas pra cima (verde), Saídas pra baixo do zero (vermelho,
-        // valores negados) — mesmas cores dos cards "Total Entradas"/"Total Saídas" acima,
-        // pra manter a mesma linguagem visual da página. Usa o helper já existente
-        // (barVertical) em vez de configurar o Chart.js na mão.
-        (function() {
-            var labelsDias = @json(collect($dias)->map(fn($d) => $d->format('d/m'))->all());
-            var totalEntradas = @json($totalEntradasExibicaoPorDia);
-            var totalSaidas = @json($totalSaidasPorDia).map(function(v) {
-                return -v;
+        // Carrega o conteúdo pesado do fluxo sob demanda, preservando a querystring atual
+        // (semanas/ref/tipo_data) pra montar o mesmo período do cabeçalho. Assim o usuário cai na
+        // tela na hora (só o cabeçalho + spinner) em vez de congelar durante o I/O do Firebird.
+        function carregarConteudoFluxo() {
+            Swal.fire({
+                title: 'Carregando fluxo de caixa...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                customClass: {
+                    title: 'swal-title-fluxo'
+                },
+                didOpen: function() {
+                    Swal.showLoading();
+                }
             });
 
-            barVertical('grafico-entradas-saidas', labelsDias, [{
-                    label: 'Entradas',
-                    data: totalEntradas,
-                    color: '#28a745'
-                },
-                {
-                    label: 'Saídas',
-                    data: totalSaidas,
-                    color: '#dc3545'
-                }
-            ]);
-        })();
+            $.ajax({
+                method: 'GET',
+                url: '{{ route('fluxo-caixa.conteudo') }}' + window.location.search
+            }).done(function(html) {
+                Swal.close();
+                $('#fluxo-conteudo').html(html);
+            }).fail(function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro ao carregar o fluxo',
+                    text: 'Não foi possível carregar os dados. Deseja tentar novamente?',
+                    showCancelButton: true,
+                    confirmButtonText: 'Tentar novamente',
+                    cancelButtonText: 'Fechar',
+                    customClass: {
+                        confirmButton: 'swal-confirm-fluxo',
+                        cancelButton: 'swal-confirm-fluxo'
+                    }
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        carregarConteudoFluxo();
+                    }
+                });
+            });
+        }
+
+        $(function() {
+            carregarConteudoFluxo();
+        });
 
         // Abre um modal com os lançamentos (Nº Lanc, Nr Docto, Nr Parc., Data Real,
         // Cliente/Fornecedor e Valor) que compõem o total clicado — na linha de categoria
@@ -878,7 +722,7 @@
 
         // Colapsa/expande os grupos Contas a Receber / Contas a Pagar — só a linha de Tipo de
         // Conta fica visível de novo; categorias e clientes voltam sempre fechados.
-        $('.linha-grupo-receber').on('click', function() {
+        $(document).on('click', '.linha-grupo-receber', function() {
             $(this).toggleClass('collapsed');
             $('.linha-tipoconta.grupo-receber').toggle();
             $('.linha-categoria.grupo-receber, .linha-cliente.grupo-receber').hide();
@@ -886,7 +730,7 @@
                 .removeClass('fa-chevron-down').addClass('fa-chevron-right');
         });
 
-        $('.linha-grupo-pagar').on('click', function() {
+        $(document).on('click', '.linha-grupo-pagar', function() {
             $(this).toggleClass('collapsed');
             $('.linha-tipoconta.grupo-pagar').toggle();
             $('.linha-categoria.grupo-pagar, .linha-cliente.grupo-pagar').hide();
@@ -1000,10 +844,9 @@
             });
         }
 
-        // Ligado direto no elemento (não delegado via document) — precisa disparar antes do
-        // clique borbulhar pra .linha-grupo-receber/pagar, senão o stopPropagation() chega
-        // tarde demais e a linha recolhe/expande junto com a ordenação.
-        $('.ordenar-dia-cel').on('click', function(e) {
+        // Delegado (o conteúdo vem por AJAX). stopPropagation evita que o clique na célula de
+        // ordenação também dispare algum handler de linha ao borbulhar.
+        $(document).on('click', '.ordenar-dia-cel', function(e) {
             e.stopPropagation();
 
             var $cel = $(this);
@@ -1032,7 +875,7 @@
         // de semana, reaproveitando o mesmo mecanismo (fica tudo sincronizado, sem dois
         // estados independentes). Se não tem semana pra recolher (visão de 1 semana só, sem
         // coluna "Sem N"), cai no fallback direto via .oculta-dias.
-        $('#btn-toggle-dias').on('click', function() {
+        $(document).on('click', '#btn-toggle-dias', function() {
             var $botoesSemana = $('.btn-toggle-semana');
 
             if (!$botoesSemana.length) {
@@ -1439,7 +1282,8 @@
         });
 
         // Modal para cadastrar o saldo de um banco/financeira (grava em fluxo_caixa_saldo via AJAX).
-        $('#btn-add-saldo-banco').on('click', function() {
+        // Delegado: o botão vem no conteúdo carregado por AJAX.
+        $(document).on('click', '#btn-add-saldo-banco', function() {
             Swal.fire({
                 title: 'Adicionar Saldo Banco/Financeira',
                 width: 500,
@@ -1703,7 +1547,7 @@
             });
         }
 
-        $('#btn-listar-saldo-banco').on('click', function() {
+        $(document).on('click', '#btn-listar-saldo-banco', function() {
             abrirListaSaldoBanco();
         });
 

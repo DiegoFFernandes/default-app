@@ -144,6 +144,17 @@ class DisparoContexto extends Model
         return $row ? Helper::ConvertFormatText([$row])[0] : null;
     }
 
+    /**
+     * Existe pelo menos um contexto ativo? Usado para avisar o usuario quando
+     * o disparo automatico proprio nem foi configurado ainda (so o Junsoft).
+     */
+    public function existeAtivo(): bool
+    {
+        return (bool) DB::connection('firebird')->selectOne("
+            SELECT FIRST 1 CD_CONTEXTO FROM DISPARO_CONTEXTO WHERE ST_ATIVO = 'S'
+        ");
+    }
+
     public function toggleAtivo(int $id): string
     {
         $atual = $this->find($id);

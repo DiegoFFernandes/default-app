@@ -67,6 +67,19 @@ class DisparoAutomaticoController extends Controller
 
     public function listEnvios()
     {
+        // Sem nenhum contexto ativo, o disparo automatico proprio nem esta
+        // configurado - a busca nem roda, so avisa o usuario.
+        if (!$this->contexto->existeAtivo()) {
+            return response()->json([
+                'draw'            => (int) $this->request->input('draw'),
+                'recordsTotal'    => 0,
+                'recordsFiltered' => 0,
+                'data'            => [],
+                'aviso'           => 'Não foi configurado nenhum envio próprio, somente no Junsoft.',
+                'avisoTitulo'     => 'Disparo automático não configurado',
+            ]);
+        }
+
         $hoje = now()->format('d.m.Y');
 
         $filtros = [
@@ -80,20 +93,21 @@ class DisparoAutomaticoController extends Controller
         // Antes do inicio do disparo automatico (DT_INICIOENVIO) nao existe envio
         // possivel - toda nota apareceria como "Pendente" sem sentido nenhum, entao
         // a busca e travada e o motivo e avisado ao usuario em vez de rodar a query.
-        // $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
-        //     $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
-        // );
+        $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
+            $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
+        );
 
-        // if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
-        //     return response()->json([
-        //         'draw'            => (int) $this->request->input('draw'),
-        //         'recordsTotal'    => 0,
-        //         'recordsFiltered' => 0,
-        //         'data'            => [],
-        //         'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
-        //             . '. Antes dessa data não há envios - ajuste o período da busca.',
-        //     ]);
-        // }
+        if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
+            return response()->json([
+                'draw'            => (int) $this->request->input('draw'),
+                'recordsTotal'    => 0,
+                'recordsFiltered' => 0,
+                'data'            => [],
+                'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
+                    . '. Antes dessa data não há envios - ajuste o período da busca.',
+                'avisoTitulo'     => 'Período fora do disparo automático',
+            ]);
+        }
 
         $data = $this->notaCliente->listarNotasEmitidas($filtros);
 
