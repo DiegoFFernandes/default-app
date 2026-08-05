@@ -69,7 +69,7 @@
 
                         <button type="button" class="btn btn-primary btn-xs btn-tools" id="btn-adicional">
                             Adicionais
-                        </button>
+                        </button>   
                     </div>
                 </div>
 
@@ -82,6 +82,8 @@
                     </div>
                 </div>
                 <div class="card-footer">
+                    <span class="badge badge-warning item-tabela-preco-count-badge ml-1"
+                        style="display:none; font-size:0.8rem;"></span>
                     <button type="button" class="btn btn-danger btn-sm float-right" id="btn-enviar-importar">
                         Salvar
                     </button>

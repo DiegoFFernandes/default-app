@@ -2,6 +2,71 @@ formularioDinamico(window.routes); // chama a função para deixar a pagina dina
 
 initSelect2Pessoa("#pessoa", window.routes.searchPessoa);
 
+// Grupos disponíveis no modal "Itens Adicionais". Cada `key` gera o campo
+// `{key}_valor` enviado para window.routes.searchAdicional — mesmo contrato
+// já esperado em TabelaPrecoController::getSearchAdicional().
+const GRUPOS_ADICIONAIS = [
+    { key: "vulc_carga", label: "Vulcanização Carga", default: 0 },
+    { key: "vulc_agricola", label: "Vulcanização Agrícola e OTR", default: 0 },
+    { key: "manchao", label: "Manchão", default: null },
+    { key: "manchao_agricola", label: "Manchão Agrícola e OTR", default: 0 },
+    { key: "enchimento", label: "Enchimento", default: 0 },
+    { key: "enchimento_ombro_1", label: "Enchimento Ombro 1", default: 0 },
+    { key: "enchimento_ombro_2", label: "Enchimento Ombro 2", default: 0 },
+    { key: "srx_servico_carga", label: "Srx Serviço Carga", default: 0 },
+    { key: "srx_servico_agricola", label: "Srx Serviço Agricola", default: 0 },
+    { key: "srx_manchao", label: "Srx Manchão", default: 0 },
+];
+
+$("#select-grupos-adicionais")
+    .append(
+        GRUPOS_ADICIONAIS.map(
+            (g) => new Option(g.label, g.key, false, false),
+        ),
+    )
+    .select2({
+        theme: "bootstrap4",
+        width: "100%",
+        multiple: true,
+        placeholder: "Selecione um ou mais grupos",
+        allowClear: true,
+    })
+    .on("change", function () {
+        const selecionados = $(this).val() || [];
+        const linhas = $("#linhas-grupos-adicionais");
+
+        // remove linhas de grupos desmarcados
+        linhas.children("[data-key]").each(function () {
+            if (!selecionados.includes($(this).data("key").toString())) {
+                $(this).remove();
+            }
+        });
+
+        // adiciona linha para grupos recém-marcados
+        GRUPOS_ADICIONAIS.forEach(function (grupo) {
+            if (
+                selecionados.includes(grupo.key) &&
+                linhas.find('[data-key="' + grupo.key + '"]').length === 0
+            ) {
+                linhas.append(
+                    '<div class="col-md-8 col-8" data-key="' + grupo.key + '">' +
+                        '<div class="form-group">' +
+                        '<label class="small">Grupo</label>' +
+                        '<div class="form-control form-control-sm bg-light">' + grupo.label + '</div>' +
+                        "</div>" +
+                        "</div>" +
+                        '<div class="col-md-4 col-4" data-key="' + grupo.key + '">' +
+                        '<div class="form-group">' +
+                        '<label class="small">Valor</label>' +
+                        '<input type="number" id="input-' + grupo.key + '-valor" ' +
+                        'class="form-control form-control-sm" placeholder="0,00">' +
+                        "</div>" +
+                        "</div>",
+                );
+            }
+        });
+    });
+
 $("#desenho, #medida").select2({
     theme: "bootstrap4",
     width: "100%",
@@ -83,7 +148,7 @@ $(document).on("click", "#btn-associar", function () {
                 showConfirmButton: false,
                 timer: 2000,
                 toast: true,
-                position: 'top-end',
+                position: "top-end",
                 timerProgressBar: true,
             });
 
@@ -182,11 +247,12 @@ $("#btn-deletar-itens").on("click", function () {
         },
     }).then((result) => {
         if (result.isConfirmed) {
-            selectedPreviewIds.forEach(function(id) {
+            selectedPreviewIds.forEach(function (id) {
                 itens_preview.delete(id);
             });
             selectedPreviewIds.clear();
-            $('.dt-select-all-previa').prop('checked', false);
+            $(".dt-select-all-previa").prop("checked", false);
+            updateItensPreviaBadge();
 
             var dados_atualizados = Array.from(itens_preview.values());
             tabela_preview.clear().rows.add(dados_atualizados).draw();
@@ -257,33 +323,25 @@ $(document).on("click", "#item-tabela-preco td:nth-child(3)", function () {
 });
 
 $(document).on("click", "#btn-add-modal", function () {
-    const vulc_carga_valor = $("#input-vulc-carga-valor").val() || 0;
-    const vulc_agricola_valor = $("#input-vulc-agricola-valor").val() || 0;
-    const manchao_valor = $("#input-manchao-valor").val() || null;
-    const manchao_agricola_valor =
-        $("#input-manchao-valor-agricola").val() || 0;
-    const enchimento_valor = $("#input-enchimento-valor").val() || 0;
-    const enchimento_ombro_1_valor =
-        $("#input-enchimento-ombro-1-valor").val() || 0;
-    const enchimento_ombro_2_valor =
-        $("#input-enchimento-ombro-2-valor").val() || 0;
-
     const pessoa = $("#pessoa").val();
+
+    const dadosGrupos = {};
+    GRUPOS_ADICIONAIS.forEach(function (grupo) {
+        const input = $("#input-" + grupo.key + "-valor");
+        dadosGrupos[grupo.key + "_valor"] =
+            (input.length ? input.val() : "") || grupo.default;
+    });
 
     $.ajax({
         url: window.routes.searchAdicional,
         type: "GET",
-        data: {
-            _token: window.routes.csrfToken,
-            pessoa: pessoa,
-            vulc_carga_valor: vulc_carga_valor,
-            vulc_agricola_valor: vulc_agricola_valor,
-            manchao_valor: manchao_valor,
-            manchao_agricola_valor: manchao_agricola_valor,
-            enchimento_valor: enchimento_valor,
-            enchimento_ombro_1_valor: enchimento_ombro_1_valor,
-            enchimento_ombro_2_valor: enchimento_ombro_2_valor,
-        },
+        data: Object.assign(
+            {
+                _token: window.routes.csrfToken,
+                pessoa: pessoa,
+            },
+            dadosGrupos,
+        ),
         beforeSend: function () {
             Swal.fire({
                 title: "Adicionando itens adicionais...",
@@ -295,8 +353,9 @@ $(document).on("click", "#btn-add-modal", function () {
             });
         },
         success: function (response) {
+            Swal.close();
+
             if (response.errors) {
-                Swal.close();
                 Swal.fire({
                     icon: "error",
                     title: "Campos obrigatórios",
@@ -316,6 +375,9 @@ $(document).on("click", "#btn-add-modal", function () {
             const dados_atualizados = Array.from(itens_preview.values());
 
             tabela_preview.clear().rows.add(dados_atualizados).draw();
+            $("#modal-item-adicional").modal("hide");
+            // Limpar os grupos selecionados e suas linhas de valor
+            $("#select-grupos-adicionais").val(null).trigger("change");
 
             Swal.fire({
                 icon: "success",
@@ -323,29 +385,27 @@ $(document).on("click", "#btn-add-modal", function () {
                 showConfirmButton: false,
                 timer: 2000,
                 toast: true,
-                position: 'top-end',
+                position: "top-end",
                 timerProgressBar: true,
             });
         },
-        complete: function () {
-            Swal.close();
-        },
     });
-
-    const dados_atualizados = Array.from(itens_preview.values());
-    tabela_preview.clear().rows.add(dados_atualizados).draw();
-    $("#modal-item-adicional").modal("hide");
-    // Limpar os campos do modal
-    $("#input-vulc-carga-valor").val("");
-    $("#input-vulc-agricola-valor").val("");
-    $("#input-manchao-valor").val("");
-    $("#input-manchao-valor-agricola").val("");
-    $("#input-enchimento-valor").val("");
-    $("#input-enchimento-ombro-1-valor").val("");
-    $("#input-enchimento-ombro-2-valor").val("");
 });
 
+function updateItensPreviaBadge() {
+    var count = selectedPreviewIds.size;
+    var $badge = $(".item-tabela-preco-count-badge");
+    if (count > 0) {
+        $badge.text(count + " selecionado" + (count > 1 ? "s" : "")).show();
+    } else {
+        $badge.hide();
+    }
+}
+
 function initTableTabelaPrecoPrevia() {
+    selectedPreviewIds.clear();
+    updateItensPreviaBadge();
+
     tabela_preview = $("#item-tabela-preco").DataTable({
         paging: true,
         searching: true,
@@ -368,11 +428,11 @@ function initTableTabelaPrecoPrevia() {
                 searchable: false,
                 className: "text-center",
                 title: '<input type="checkbox" class="dt-select-all-previa" title="Selecionar todos" style="margin:0;">',
-                render: function(data, type, row) {
-                    if (type === 'display') {
+                render: function (data, type, row) {
+                    if (type === "display") {
                         return '<input type="checkbox" class="dt-row-checkbox-previa" aria-label="Selecionar linha" style="margin:0;">';
                     }
-                    return '';
+                    return "";
                 },
             },
             {
@@ -401,37 +461,48 @@ function initTableTabelaPrecoPrevia() {
         ],
         orderBy: [[0, "asc"]],
     });
-
 }
 
 var selectedPreviewIds = new Set();
 
 // Selecionar / desselecionar todos
-$(document).on('click', '.dt-select-all-previa', function() {
-    var checked = $(this).is(':checked');
+$(document).on("click", ".dt-select-all-previa", function () {
+    var checked = $(this).is(":checked");
     selectedPreviewIds.clear();
-    $('#item-tabela-preco .dt-row-checkbox-previa').prop('checked', checked);
+    $("#item-tabela-preco .dt-row-checkbox-previa").prop("checked", checked);
     if (checked) {
-        tabela_preview.rows({ search: 'applied' }).data().each(function(row) {
-            selectedPreviewIds.add(row.ID);
-        });
+        tabela_preview
+            .rows({ search: "applied" })
+            .data()
+            .each(function (row) {
+                selectedPreviewIds.add(row.ID);
+            });
     }
+    updateItensPreviaBadge();
 });
 
 // Checkbox individual
-$(document).on('click', '#item-tabela-preco .dt-row-checkbox-previa', function(e) {
-    e.stopPropagation();
-    var rowData = tabela_preview.row($(this).closest('tr')).data();
-    if (!rowData) return;
-    var id = rowData.ID;
-    if ($(this).is(':checked')) {
-        selectedPreviewIds.add(id);
-    } else {
-        selectedPreviewIds.delete(id);
-    }
-    var total = tabela_preview.rows().count();
-    $('.dt-select-all-previa').prop('checked', total > 0 && selectedPreviewIds.size === total);
-});
+$(document).on(
+    "click",
+    "#item-tabela-preco .dt-row-checkbox-previa",
+    function (e) {
+        e.stopPropagation();
+        var rowData = tabela_preview.row($(this).closest("tr")).data();
+        if (!rowData) return;
+        var id = rowData.ID;
+        if ($(this).is(":checked")) {
+            selectedPreviewIds.add(id);
+        } else {
+            selectedPreviewIds.delete(id);
+        }
+        var total = tabela_preview.rows().count();
+        $(".dt-select-all-previa").prop(
+            "checked",
+            total > 0 && selectedPreviewIds.size === total,
+        );
+        updateItensPreviaBadge();
+    },
+);
 
 function formularioDinamico(route) {
     const cardTabela = $("#item-tabela-preco").closest(".card");
@@ -570,7 +641,8 @@ function recomecar() {
     dados_atualizados = [];
     itens_preview = new Map();
     selectedPreviewIds.clear();
-    $('.dt-select-all-previa').prop('checked', false);
+    $(".dt-select-all-previa").prop("checked", false);
+    updateItensPreviaBadge();
     $("#pessoa, #desenho, #medida, #valor").val("").trigger("change"); // limpa os inputs
     $("#desenho").closest(".form-group").hide(); // esconde os selects
     $("#item-tabela-preco").closest(".card").hide();

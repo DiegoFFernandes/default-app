@@ -267,6 +267,7 @@ class TabelaPrecoController extends Controller
         }
 
         $idDesenho = $this->request->input('desenho', []);
+
         $idMedida = $this->request->input('medida', []);
         $valor = $this->request->input('valor', 0);
         $IdPessoa = $this->request->input('pessoa');
@@ -312,6 +313,9 @@ class TabelaPrecoController extends Controller
             'vlr_enchimento' => $this->request->input('enchimento_valor', 0),
             'vlr_enchimento_ombro_1' => $this->request->input('enchimento_ombro_1_valor', 0),
             'vlr_enchimento_ombro_2' => $this->request->input('enchimento_ombro_2_valor', 0),
+            'vlr_srx_servico_carga_valor' => $this->request->input('srx_servico_carga_valor', 0),
+            'vlr_srx_servico_agricola_valor' => $this->request->input('srx_servico_agricola_valor', 0),
+            'vlr_srx_manchao_valor' => $this->request->input('srx_manchao_valor', 0),
         ];
 
         $rules = [
@@ -323,6 +327,9 @@ class TabelaPrecoController extends Controller
             'enchimento_valor' => 'required|numeric|min:0',
             'enchimento_ombro_1_valor' => 'required|numeric|min:0',
             'enchimento_ombro_2_valor' => 'required|numeric|min:0',
+            'srx_servico_carga_valor' => 'required|numeric|min:0',
+            'srx_servico_agricola_valor' => 'required|numeric|min:0',
+            'srx_manchao_valor' => 'required|numeric|min:0',
         ];
 
         $messages = [
@@ -348,6 +355,15 @@ class TabelaPrecoController extends Controller
             'enchimento_ombro_2_valor.required' => 'O campo Valor Enchimento Ombro 2 é obrigatório.',
             'enchimento_ombro_2_valor.numeric' => 'O campo Valor Enchimento Ombro 2 deve ser um número.',
             'enchimento_ombro_2_valor.min' => 'O campo Valor Enchimento Ombro 2 deve ser maior ou igual a zero.',
+            'srx_servico_carga_valor.required' => 'O campo Valor Srx Serviço Carga é obrigatório.',
+            'srx_servico_carga_valor.numeric' => 'O campo Valor Srx Serviço Carga deve ser um número.',
+            'srx_servico_carga_valor.min' => 'O campo Valor Srx Serviço Carga deve ser maior ou igual a zero.',
+            'srx_servico_agricola_valor.required' => 'O campo Valor Srx Serviço Agrícola é obrigatório.',
+            'srx_servico_agricola_valor.numeric' => 'O campo Valor Srx Serviço Agrícola deve ser um número.',
+            'srx_servico_agricola_valor.min' => 'O campo Valor Srx Serviço Agrícola deve ser maior ou igual a zero.',
+            'srx_manchao_valor.required' => 'O campo Valor Srx Manchão é obrigatório.',
+            'srx_manchao_valor.numeric' => 'O campo Valor Srx Manchão deve ser um número.',
+            'srx_manchao_valor.min' => 'O campo Valor Srx Manchão deve ser maior ou igual a zero.',
         ];
         $validator = Validator::make($this->request->all(), $rules, $messages);
 
@@ -362,34 +378,30 @@ class TabelaPrecoController extends Controller
         // 5 = ENCHIMENTO
         // 6 =  VULCANIZAÇÃO CARGA
         // 7 = VULCANIZAÇÃO AGRICOLA
+        // 13 = SRX SERVIÇO CARGA
+        // 14 = SRX SERVIÇO AGRICOLA
+        // 15 = SRX MANCHAO
 
-        $isValidSubgrupoManchaoCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(3);
+        $subgruposConfig = [
+            'manchao_carga' => 3,
+            'vulc_carga' => 6,
+            'manchao_agricola' => 4,
+            'vulc_agricola' => 7,
+            'enchimento' => 5,
+            'srx_servico_carga' => 13,
+            'srx_servico_agricola' => 14,
+            'srx_manchao' => 15,
+        ];
 
-        if (!$isValidSubgrupoManchaoCarga['success']) {
-            return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($isValidSubgrupoManchaoCarga);
-        }
+        $subgrupos = [];
+        foreach ($subgruposConfig as $key => $codigo) {
+            $resultado = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos($codigo);
 
-        $isValidSubgrupoVulcanizacaoCarga = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(6);
+            if (!$resultado['success']) {
+                return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($resultado);
+            }
 
-        if (!$isValidSubgrupoVulcanizacaoCarga['success']) {
-            return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($isValidSubgrupoVulcanizacaoCarga);
-        }
-
-        $isValidSubgrupoManchaoAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(4);
-
-        if (!$isValidSubgrupoManchaoAgricola['success']) {
-            return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($isValidSubgrupoManchaoAgricola);
-        }
-        $isValidSubgrupoVulcanizacaoAgricola = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(7);
-
-        if (!$isValidSubgrupoVulcanizacaoAgricola['success']) {
-            return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($isValidSubgrupoVulcanizacaoAgricola);
-        }
-
-        $isValidSubgrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(5);
-
-        if (!$isValidSubgrupoEnchimento['success']) {
-            return $this->serviceFiltroGrupoSubgrupo->retornaExistsMsg($isValidSubgrupoEnchimento);
+            $subgrupos[$key] = $resultado['data'];
         }
 
         $isValidGrupoEnchimento = $this->serviceFiltroGrupoSubgrupo->obterGruposValidos(5);
@@ -401,15 +413,16 @@ class TabelaPrecoController extends Controller
         $data = $this->tabela->getVulcanizacaoManchao(
             $arr,
             //subgrupos
-            $isValidSubgrupoManchaoCarga['data'],
-            $isValidSubgrupoVulcanizacaoCarga['data'],
-            $isValidSubgrupoManchaoAgricola['data'],
-            $isValidSubgrupoVulcanizacaoAgricola['data'],
-            $isValidSubgrupoEnchimento['data'],
+            $subgrupos['manchao_carga'],
+            $subgrupos['vulc_carga'],
+            $subgrupos['manchao_agricola'],
+            $subgrupos['vulc_agricola'],
+            $subgrupos['enchimento'],
+            $subgrupos['srx_servico_carga'],
+            $subgrupos['srx_servico_agricola'],
+            $subgrupos['srx_manchao'],
             // grupos
             $isValidGrupoEnchimento['data']
-
-
         );
 
         return response()->json(['data' => $data]);

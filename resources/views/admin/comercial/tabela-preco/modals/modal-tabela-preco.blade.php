@@ -10,125 +10,16 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-8 col-8">
+                    <div class="col-12">
                         <div class="form-group">
-                            <label class="small" for="select-vulc-carga">Grupo</label>
-                            <select id="select-vulc-carga" name="select-vulc-carga" class="form-control form-control-sm"
-                                style="width: 100%">
-                                <option value="105">Vulcanização Carga</option>
+                            <label class="small" for="select-grupos-adicionais">Selecione os Grupos</label>
+                            <select id="select-grupos-adicionais" name="grupos-adicionais[]"
+                                class="form-control form-control-sm select2" style="width: 100%" multiple>
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="select-vulc-carga">Valor</label>
-                            <input type="number" id="input-vulc-carga-valor" name="input-vulc-carga-valor"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-                    <div class="col-md-8 col-8">
-                        <div class="form-group">
-                            <label class="small" for="select-vulc-agricola">Grupo</label>
-                            <select id="select-vulc-agricola" name="select-vulc-agricola"
-                                class="form-control form-control-sm" style="width: 100%">
-                                <option value="305">Vulcanização Agricola e OTR</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="input-vulc-agricola-valor">Valor</label>
-                            <input type="number" id="input-vulc-agricola-valor" name="input-vulc-agricola-valor"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 col-8">
-                        <div class="form-group">
-                            <label class="small" for="select-manchao">Grupo</label>
-                            <select id="select-manchao" name="select-manchao" class="form-control form-control-sm"
-                                style="width: 100%">
-                                <option value="105">Manchão</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="input-manchao-valor">Valor</label>
-                            <input type="number" id="input-manchao-valor" name="input-manchao-valor"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 col-8">
-                        <div class="form-group">
-                            <label class="small" for="select-manchao-agricola">Grupo</label>
-                            <select id="select-manchao-agricola" name="select-manchao-agricola"
-                                class="form-control form-control-sm" style="width: 100%">
-                                <option value="105">Manchão Agrícola e OTR</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="input-manchao-valor-agricola">Valor</label>
-                            <input type="number" id="input-manchao-valor-agricola" name="input-manchao-valor-agricola"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 col-8">
-                        <div class="form-group">
-                            <label class="small" for="select-enchimento">Grupo</label>
-                            <select id="select-enchimento" name="select-enchimento" class="form-control form-control-sm"
-                                style="width: 100%">
-                                <option value="105">Enchimento</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="input-enchimento">Valor</label>
-                            <input type="number" id="input-enchimento-valor" name="input-enchimento"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 col-8">
-                        <div class="form-group">
-                            <label class="small" for="select-enchimento-ombro-1">Grupo</label>
-                            <select id="select-enchimento-ombro-1" name="select-enchimento-ombro-1" class="form-control form-control-sm"
-                                style="width: 100%">
-                                <option value="105">Enchimento Ombro 1</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="input-enchimento-ombro-1">Valor</label>
-                            <input type="number" id="input-enchimento-ombro-1-valor" name="input-enchimento-ombro-1-valor"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 col-8">
-                        <div class="form-group">
-                            <label class="small" for="select-enchimento-ombro-2">Grupo</label>
-                            <select id="select-enchimento-ombro-2" name="select-enchimento-ombro-2" class="form-control form-control-sm"
-                                style="width: 100%">
-                                <option value="105">Enchimento Ombro 2</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4 col-4">
-                        <div class="form-group">
-                            <label class="small" for="input-enchimento-ombro-2">Valor</label>
-                            <input type="number" id="input-enchimento-ombro-2-valor" name="input-enchimento-ombro-2-valor"
-                                class="form-control form-control-sm" style="width: 100%" placeholder="0,00">
-                        </div>
-                    </div>
-
                 </div>
+                <div class="row" id="linhas-grupos-adicionais"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-xs" data-dismiss="modal"

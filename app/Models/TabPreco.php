@@ -167,11 +167,16 @@ class TabPreco extends Model
 
     public function getVulcanizacaoManchao(
         $input,
+        //subgrupos
         $isValidSubgrupoManchaoCarga,
         $isValidSubgrupoVulcanizacaoCarga,
         $isValidSubgrupoManchaoAgricola,
         $isValidSubgrupoVulcanizacaoAgricola,
         $isValidSubgrupoEnchimento,
+        $isValidSubgrupoSrxServicoCarga,
+        $isValidSubgrupoSrxServicoAgricola,
+        $isValidSubgrupoSrxManchao,
+        //grupos
         $isValidGrupoEnchimento
     ) {
         if (is_null($input['vlr_manchao'])) {
@@ -215,7 +220,7 @@ class TabPreco extends Model
 
                 UNION ALL
 
-                --MANHCAO AGRICOLA E CARGA NÃO PODE SER 0,00
+                --MANCHAO AGRICOLA E SRX NÃO PODE SER 0,00
                 SELECT
                     $input[pessoa] AS CD_TABELA,
                     CP.ID,
@@ -223,6 +228,9 @@ class TabPreco extends Model
                     CASE                                       
                         -- CONSERTO AGRO
                         WHEN I.CD_SUBGRUPO in ($isValidSubgrupoManchaoAgricola) THEN $input[vlr_manchao_agricola]
+                        
+                        -- CONSERTO SRX
+                        WHEN I.CD_SUBGRUPO in ($isValidSubgrupoSrxManchao) THEN $input[vlr_srx_manchao_valor]
                         ELSE 0
                     END VALOR,
                     SG.DS_SUBGRUPO AS SUBGRUPO
@@ -230,9 +238,10 @@ class TabPreco extends Model
                 INNER JOIN ITEM I ON (I.CD_ITEM = CP.ID)
                 INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
                 WHERE I.ST_ATIVO = 'S'
-                    AND I.CD_SUBGRUPO IN ($isValidSubgrupoManchaoAgricola, $isValidSubgrupoManchaoCarga)
+                    AND I.CD_SUBGRUPO IN ($isValidSubgrupoManchaoAgricola, $isValidSubgrupoSrxManchao)
                     AND CASE                             
-                            WHEN I.CD_SUBGRUPO in ($isValidSubgrupoManchaoAgricola) THEN $input[vlr_manchao_agricola]                            
+                            WHEN I.CD_SUBGRUPO in ($isValidSubgrupoManchaoAgricola) THEN $input[vlr_manchao_agricola]  
+                            WHEN I.CD_SUBGRUPO in ($isValidSubgrupoSrxManchao) THEN $input[vlr_srx_manchao_valor]                          
                     END > 0
 
                 UNION ALL
@@ -306,7 +315,32 @@ class TabPreco extends Model
                     AND CASE
                             WHEN COALESCE(ITEM.CD_SECAO, 99) = 56 THEN $input[vlr_enchimento_ombro_2]
                             ELSE 0
-                        END > 0         
+                        END > 0   
+
+                 UNION ALL    
+
+                 --SRX SERVICO
+                SELECT
+                     $input[pessoa] AS CD_TABELA,
+                    SP.ID,
+                    SP.DSSERVICO AS DESCRICAO,
+                    CASE
+                        --SRX SERVICO CARGA
+                        WHEN I.CD_SUBGRUPO IN ($isValidSubgrupoSrxServicoCarga) THEN $input[vlr_srx_servico_carga_valor]
+                        --SRX SERVICO CARGA
+                        WHEN I.CD_SUBGRUPO IN ($isValidSubgrupoSrxServicoAgricola) THEN $input[vlr_srx_servico_agricola_valor]
+                    END VALOR,
+                    SG.DS_SUBGRUPO AS SUBGRUPO
+                FROM SERVICOPNEU SP
+                INNER JOIN ITEM I ON (I.CD_ITEM = SP.ID)
+                INNER JOIN SUBGRUPO SG ON (SG.CD_SUBGRUPO = I.CD_SUBGRUPO)
+                WHERE I.ST_ATIVO = 'S'
+                    AND I.CD_SUBGRUPO IN ($isValidSubgrupoSrxServicoCarga, $isValidSubgrupoSrxServicoAgricola)
+                    AND CASE
+                            WHEN I.CD_SUBGRUPO IN ($isValidSubgrupoSrxServicoCarga) THEN $input[vlr_srx_servico_carga_valor]
+                            WHEN I.CD_SUBGRUPO IN ($isValidSubgrupoSrxServicoAgricola) THEN $input[vlr_srx_servico_agricola_valor] 
+                        END > 0
+
             ";
 
         $data = DB::connection('firebird')->select($query);
