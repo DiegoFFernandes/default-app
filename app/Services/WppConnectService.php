@@ -122,8 +122,9 @@ class WppConnectService
 
     public function sendText(string $phone, string $message, string $referenciaTipo = '', int $referenciaId = null, ?int $userId = null): array
     {
+        $fone     = $this->resolverFoneEnvio($phone, $userId);
         $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
-            'phone'   => $this->formatPhone($phone),
+            'phone'   => $fone,
             'message' => $message,
         ]);
 
@@ -205,13 +206,34 @@ class WppConnectService
         string $nmEmpresa,
         float  $vlTotal,
         array  $itens,
-        array  $aprovadores  // [['id_etapa' => X, 'cd_usuario' => Y, 'ds_cargo' => Z]]
+        array  $aprovadores,  // [['id_etapa' => X, 'cd_usuario' => Y, 'ds_cargo' => Z]]
+        array  $cotacoes = []  // linhas de COMPRA_COTACAO (NM_FORNECEDOR, VL_TOTAL, ST_SELECIONADA, DS_MOTIVO_ESCOLHA)
     ): void {
         $appUrl  = rtrim(config('app.url'), '/');
         $linkSol = "{$appUrl}/compras/solicitacoes/{$idSolicitacao}";
 
         $itensTexto = collect($itens)
             ->map(fn($i) => "• {$i->QT_ITEM}x {$i->DS_ITEM}")
+            ->join("\n");
+
+        // Coloca o fornecedor ganhador no topo, com troféu e motivo da escolha
+        $cotacoesOrdenadas = collect($cotacoes)
+            ->sortByDesc(fn($c) => ($c->ST_SELECIONADA ?? 'N') === 'S' ? 1 : 0)
+            ->values();
+
+        $cotacoesTexto = $cotacoesOrdenadas
+            ->map(function ($c) {
+                $ganhador = ($c->ST_SELECIONADA ?? 'N') === 'S';
+                $prefixo  = $ganhador ? '🏆' : '•';
+                $valor    = 'R$ ' . number_format((float) ($c->VL_TOTAL ?? 0), 2, ',', '.');
+                $linha    = "{$prefixo} {$c->NM_FORNECEDOR} — {$valor}";
+
+                if ($ganhador && !empty(trim($c->DS_MOTIVO_ESCOLHA ?? ''))) {
+                    $linha .= "\n   _Motivo: {$c->DS_MOTIVO_ESCOLHA}_";
+                }
+
+                return $linha;
+            })
             ->join("\n");
 
         foreach ($aprovadores as $aprov) {
@@ -236,16 +258,20 @@ class WppConnectService
                 "*Itens:*",
                 $itensTexto,
                 "",
+                "*Cotações:*",
+                $cotacoesTexto !== '' ? $cotacoesTexto : "_Nenhuma cotação registrada._",
+                "",
                 "Toque no link para aprovar ou reprovar:",
                 "🔗 " . $linkAcao,
             ]);
 
+            $fone     = $this->resolverFoneEnvio((string) $user->phone, $user->id);
             $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
-                'phone'   => $this->formatPhone((string) $user->phone),
+                'phone'   => $fone,
                 'message' => $caption,
             ]);
 
-            $sucesso = $response->successful() && ($response->json('status') === 'success');
+            $sucesso = $this->resolverSucesso($response);
 
             WppDisparo::create([
                 'user_id'         => $user->id,
@@ -351,17 +377,13 @@ class WppConnectService
             $mensagem = $disparo->mensagem;
         }
 
-        $phone = $disparo->phone;
-        if (strlen($phone) > 13) {
-            $phone = User::where('wpp_lid', $phone)->value('phone') ?? $phone;
-        }
-
+        $fone     = $this->resolverFoneEnvio($disparo->phone, $disparo->user_id);
         $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/send-message", [
-            'phone'   => $this->formatPhone($phone),
+            'phone'   => $fone,
             'message' => $mensagem,
         ]);
 
-        $sucesso = $response->successful() && ($response->json('status') === 'success');
+        $sucesso = $this->resolverSucesso($response);
 
         $update = [
             'status'   => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
@@ -382,12 +404,29 @@ class WppConnectService
     // Helpers
     // -------------------------------------------------------
 
+    // Resolve o identificador de envio: usa wpp_lid do usuário quando disponível,
+    // pois contatos LID não aceitam envio via número no formato @c.us
+    private function resolverFoneEnvio(string $phone, ?int $userId = null): string
+    {
+        if ($userId) {
+            $lid = User::where('id', $userId)->value('wpp_lid');
+            if ($lid) {
+                return $lid . '@lid';
+            }
+        }
+
+        return $this->formatPhone($phone);
+    }
+
+    private function resolverSucesso(\Illuminate\Http\Client\Response $response): bool
+    {
+        return $response->successful() && $response->json('status') === 'success';
+    }
+
     private function formatPhone(string $phone): string
     {
-        // Remove tudo que não é dígito
         $digits = preg_replace('/\D/', '', $phone);
 
-        // Adiciona código do Brasil se não tiver
         if (strlen($digits) <= 11) {
             $digits = '55' . $digits;
         }
@@ -404,7 +443,7 @@ class WppConnectService
         ?int   $userId         = null
     ): void {
         try {
-            $sucesso = $response->successful() && ($response->json('status') === 'success');
+            $sucesso = $this->resolverSucesso($response);
 
             $digits = preg_replace('/\D/', '', $phone);
             // LIDs têm 15 dígitos; resolve para o telefone real se possível

@@ -27,6 +27,11 @@
                                     <i class="fas fa-file-invoice-dollar mr-1"></i> Cotações
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-itens" data-toggle="pill" href="#pane-itens-fonte" role="tab">
+                                    <i class="fas fa-boxes mr-1"></i> Itens
+                                </a>
+                            </li>
                         </ul>
                         <div class="card-tools mr-2">
                             <button id="btn-nova-faixa" class="btn btn-danger btn-xs" data-toggle="modal"
@@ -52,6 +57,9 @@
 
                             {{-- Tab: Cotações --}}
                             @include('admin.compras.configuracao.tabs.cotacoes')
+
+                            {{-- Tab: Itens (fonte Junsoft / Próprio) --}}
+                            @include('admin.compras.configuracao.tabs.itens')
 
                         </div>
                     </div>
@@ -128,6 +136,26 @@
 
                 $el.on('select2:clear', function() {
                     $el.closest('div.d-flex').find('small.text-muted').remove();
+                });
+            });
+
+            // ---- Fonte de itens (Junsoft / Próprio) ----
+            $('.input-fonte-item').on('change', function () {
+                const fonte = $(this).val();
+                $.post('{{ route('compras.configuracao.update-fonte-item') }}', {
+                    _token: token,
+                    st_fonte_item: fonte,
+                }, function (res) {
+                    if (res.errors) {
+                        Swal.fire({ icon: 'warning', title: 'Atenção', text: res.errors, confirmButtonColor: '#dc3545' });
+                    } else {
+                        Swal.fire({
+                            icon: 'success',
+                            title: fonte === 'P' ? 'Usando itens próprios!' : 'Usando itens Junsoft!',
+                            text: 'A alteração vale para novas solicitações. Recarregue telas abertas.',
+                            toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true,
+                        });
+                    }
                 });
             });
 

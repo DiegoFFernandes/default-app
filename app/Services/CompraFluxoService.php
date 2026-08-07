@@ -129,6 +129,7 @@ class CompraFluxoService
             $solicitacao = $this->solicitacao->findById($idSolicitacao);
             $solicitante = User::find($solicitacao->CD_USUARIO_SOLICITANTE);
             $itens       = $this->solicitacaoItem->getBySolicitacao($idSolicitacao);
+            $cotacoes    = $this->cotacao->getBySolicitacao($idSolicitacao);
 
             (new WppConnectService())->notificarAprovadores(
                 idSolicitacao: $idSolicitacao,
@@ -137,6 +138,7 @@ class CompraFluxoService
                 vlTotal:       (float) $vlTotal,
                 itens:         $itens,
                 aprovadores:   $etapas,
+                cotacoes:      $cotacoes,
             );
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('WppConnect: falha ao notificar aprovadores', [

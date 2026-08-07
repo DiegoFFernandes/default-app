@@ -171,14 +171,16 @@ class CompraCotacao extends Model
         return DB::connection('firebird')->select("
             SELECT FIRST 20
                 PESSOA.CD_PESSOA AS id,
-                CAST(PESSOA.CD_PESSOA AS VARCHAR(20)) || ' - ' || PESSOA.NM_PESSOA AS text
+                CAST(PESSOA.CD_PESSOA AS VARCHAR(20)) || ' - ' || PESSOA.NM_PESSOA
+                    || COALESCE(' (' || PESSOA.NR_CNPJCPF || ')', '') AS text
             FROM PESSOA
             WHERE PESSOA.ST_ATIVA = 'S'
               AND PESSOA.CD_TIPOPESSOA IN (2, 3)
               AND (PESSOA.NM_PESSOA CONTAINING :term
-                   OR CAST(PESSOA.CD_PESSOA AS VARCHAR(20)) CONTAINING :term2)
+                   OR CAST(PESSOA.CD_PESSOA AS VARCHAR(20)) CONTAINING :term2
+                   OR PESSOA.NR_CNPJCPF CONTAINING :term3)
             ORDER BY PESSOA.NM_PESSOA
-        ", ['term' => $term, 'term2' => $term]);
+        ", ['term' => $term, 'term2' => $term, 'term3' => $term]);
     }
 
     private function nextId()

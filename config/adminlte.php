@@ -428,6 +428,13 @@ return [
             'can'  => ['solicitacao-compra-gerenciar','solicitacao-compra-criar', 'solicitacao-compra-aprovar', 'config-compra'],
             'submenu' => [
                 [
+                    'text'   => 'Novo Item',
+                    'route'  => 'compras.itens-proprios.index',
+                    'icon'   => 'far fa-circle nav-icon',
+                    'can'    => 'compra-itens-proprios',
+                    'active' => ['compras/itens-proprios*'],
+                ],
+                [
                     'text'   => 'Solicitações',
                     'route'  => 'compras.solicitacoes.index',
                     'icon'   => 'far fa-circle nav-icon',

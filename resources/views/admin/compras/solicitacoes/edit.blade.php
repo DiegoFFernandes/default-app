@@ -124,6 +124,14 @@
         @include('admin.compras.solicitacoes.show.prints.solicitacao-compra')
     @endif
 
+    @can('compra-itens-proprios')
+        @include('admin.compras.itens.modal-item')
+    @endcan
+
+    @can('solicitacao-compra-gerenciar')
+        @include('admin.compras.solicitacoes.modals.modal-fornecedor')
+    @endcan
+
 </section>
 @stop
 
@@ -135,6 +143,15 @@
             cursor: not-allowed !important;
             pointer-events: none;
             color: #6c757d !important;
+        }
+        /* select2 dentro de input-group: ocupa o espaço e deixa o botão à direita */
+        .input-group > .select2-container--bootstrap4 {
+            flex: 1 1 auto;
+            width: 1% !important;
+        }
+        .input-group > .select2-container--bootstrap4 .select2-selection {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
         }
         #print-area { display: none; }
         @media print {
@@ -803,6 +820,43 @@ $(document).ready(function () {
 
     @endif {{-- $idSolicitacao --}}
 
+    @can('compra-itens-proprios')
+    // Abrir modal de cadastro de item próprio
+    $('#btn-novo-item-modal').on('click', function () {
+        window.abrirModalNovoCompraItem();
+    });
+
+    // Após cadastrar, injeta no select de produto e já seleciona
+    document.addEventListener('compra-item:saved', function (e) {
+        const d = e.detail || {};
+        if (!d.isNew) return;
+        const opt = new Option(d.text, d.id, true, true);
+        $('#cd_item').append(opt).trigger('change');
+        if (d.un) $('#ds_unidade').val(d.un);
+        $('#qt_item').focus();
+    });
+    @endcan
+
+    @can('solicitacao-compra-gerenciar')
+    // Abrir modal de cadastro de fornecedor
+    $('#btn-novo-fornecedor').on('click', function () {
+        window.abrirModalNovoFornecedor();
+    });
+
+    // Após cadastrar, injeta no select de fornecedor e já seleciona
+    document.addEventListener('fornecedor:saved', function (e) {
+        const d = e.detail || {};
+        $('#cd_fornecedor').append(new Option(d.text, d.id, true, true)).trigger('change');
+    });
+    @endcan
+
 });
 </script>
+
+@can('compra-itens-proprios')
+    @include('admin.compras.itens.modal-item-script')
+@endcan
+@can('solicitacao-compra-gerenciar')
+    @include('admin.compras.solicitacoes.modals.modal-fornecedor-script')
+@endcan
 @stop

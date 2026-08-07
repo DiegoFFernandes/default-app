@@ -9,6 +9,8 @@ use App\Models\CompraSolicitacaoItem;
 use App\Models\CompraCotacao;
 use App\Models\CompraCentroCusto;
 use App\Models\CompraEtapaAprov;
+use App\Models\CompraItem;
+use App\Models\CompraParam;
 use App\Models\CompraParamEmpresa;
 use App\Models\Empresa;
 use App\Models\Veiculo;
@@ -34,7 +36,9 @@ class SolicitacaoComprasController extends Controller
         protected Empresa               $empresa,
         protected CompraParamEmpresa    $paramEmpresa,
         protected CompraCentroCusto     $centroCusto,
-        protected WppConnectService     $wpp
+        protected WppConnectService     $wpp,
+        protected CompraParam           $param,
+        protected CompraItem            $compraItem
     ) {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -394,6 +398,8 @@ class SolicitacaoComprasController extends Controller
             'ds_unidade.required' => 'Informe a unidade.',
         ]);
 
+        $input['ds_item'] = $this->resolverDescricaoItem((int) $input['cd_item']);
+
         try {
             $this->solicitacaoItem->updateData($id, $input);
             return response()->json(['success' => 'Item atualizado!']);
@@ -419,12 +425,22 @@ class SolicitacaoComprasController extends Controller
             'ds_unidade.max'     => 'A unidade deve ter no máximo 10 caracteres.',
         ]);
 
+        $input['ds_item'] = $this->resolverDescricaoItem((int) $input['cd_item']);
+
         try {
             $id = $this->solicitacaoItem->store($input);
             return response()->json(['success' => 'Item adicionado!', 'id' => $id]);
         } catch (\Exception $e) {
             return response()->json(['errors' => 'Erro ao adicionar item: ' . $e->getMessage()]);
         }
+    }
+
+    /** Descrição do item pela fonte ativa, para gravar denormalizado em COMPRA_SOL_ITEM. */
+    private function resolverDescricaoItem(int $cdItem): ?string
+    {
+        return $this->param->usaItensProprios()
+            ? $this->compraItem->getDescricao($cdItem)
+            : $this->solicitacaoItem->descricaoJunsoft($cdItem);
     }
 
     public function destroyItem($id)
@@ -451,6 +467,11 @@ class SolicitacaoComprasController extends Controller
 
         if (mb_strlen($term) < 3) {
             return response()->json([]);
+        }
+
+        // Fonte 'P' busca no catálogo próprio (COMPRA_ITEM); 'J' no Junsoft (ITEM).
+        if ($this->param->usaItensProprios()) {
+            return response()->json($this->compraItem->search($term));
         }
 
         return response()->json(\Helper::ConvertFormatText($this->solicitacaoItem->searchItem($term)));

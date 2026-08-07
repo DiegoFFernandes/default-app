@@ -19,9 +19,17 @@
         <div class="col-md-4">
             <div class="form-group mb-2">
                 <label class="mb-1"><small>Fornecedor <span class="text-danger">*</span></small></label>
-                <select class="form-control form-control-sm select2-ajax" id="cd_fornecedor" style="width:100%"
-                    data-url="{{ route('compras.search-fornecedor') }}"
-                    data-placeholder="Buscar fornecedor (mín. 3 caracteres)"></select>
+                <div class="input-group input-group-sm">
+                    <select class="form-control form-control-sm select2-ajax" id="cd_fornecedor" style="width:100%"
+                        data-url="{{ route('compras.search-fornecedor') }}"
+                        data-placeholder="Buscar fornecedor (mín. 3 caracteres)"></select>
+                    <div class="input-group-append">
+                        <button type="button" id="btn-novo-fornecedor" class="btn btn-primary"
+                            title="Cadastrar novo fornecedor">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-2">

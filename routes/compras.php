@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AprovacaoComprasController;
+use App\Http\Controllers\Admin\CompraItemController;
+use App\Http\Controllers\Admin\CompraSubgrupoController;
 use App\Http\Controllers\Admin\CotacaoComprasController;
 use App\Http\Controllers\Admin\ConfigComprasController;
+use App\Http\Controllers\Admin\PessoaController;
 use App\Http\Controllers\Admin\SolicitacaoComprasController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +53,11 @@ Route::middleware(['auth'])->group(function () {
             Route::post('cotacoes/{id}/update',           [CotacaoComprasController::class, 'update'])->name('compras.cotacoes.update');
             Route::delete('cotacoes/{id}',                [CotacaoComprasController::class, 'destroy'])->name('compras.cotacoes.destroy');
             Route::post('cotacoes/selecionar-fornecedor', [CotacaoComprasController::class, 'selecionarFornecedor'])->name('compras.cotacoes.selecionar');
+
+            // Cadastro rápido de fornecedor (via CNPJ / BrasilAPI)
+            Route::get('fornecedor/consultar-cnpj',  [PessoaController::class, 'consultarCnpj'])->name('compras.fornecedor.consultar-cnpj');
+            Route::get('fornecedor/search-municipio', [PessoaController::class, 'searchMunicipio'])->name('compras.fornecedor.search-municipio');
+            Route::post('fornecedor',                 [PessoaController::class, 'storePessoa'])->name('compras.fornecedor.store');
         });
 
         // Aprovações
@@ -80,6 +88,23 @@ Route::middleware(['auth'])->group(function () {
             Route::post('centros/{id}/update',       [ConfigComprasController::class, 'updateCentroCusto'])->name('compras.configuracao.update-centro')->whereNumber('id');
             Route::post('param-empresa/centrocusto', [ConfigComprasController::class, 'toggleCentroCusto'])->name('compras.configuracao.toggle-centrocusto');
             Route::post('param-empresa/qtd-fornec',  [ConfigComprasController::class, 'updateQtdFornecCot'])->name('compras.configuracao.update-qtd-fornec');
+            Route::post('param/fonte-item',          [ConfigComprasController::class, 'updateFonteItem'])->name('compras.configuracao.update-fonte-item');
+        });
+
+        // Catálogo de itens próprios (só quando a fonte de itens é 'P')
+        Route::middleware('can:compra-itens-proprios')->group(function () {
+            Route::get('itens-proprios',             [CompraItemController::class, 'index'])->name('compras.itens-proprios.index');
+            Route::get('get-itens-proprios',         [CompraItemController::class, 'list'])->name('compras.itens-proprios.list');
+            Route::post('itens-proprios',            [CompraItemController::class, 'store'])->name('compras.itens-proprios.store');
+            Route::post('itens-proprios/{cd}/update', [CompraItemController::class, 'update'])->name('compras.itens-proprios.update')->whereNumber('cd');
+            Route::delete('itens-proprios/{cd}',     [CompraItemController::class, 'destroy'])->name('compras.itens-proprios.destroy')->whereNumber('cd');
+
+            // Subgrupos dos itens próprios
+            Route::get('get-subgrupos',              [CompraSubgrupoController::class, 'list'])->name('compras.subgrupos.list');
+            Route::get('search-subgrupo',            [CompraSubgrupoController::class, 'search'])->name('compras.subgrupos.search');
+            Route::post('subgrupos',                 [CompraSubgrupoController::class, 'store'])->name('compras.subgrupos.store');
+            Route::post('subgrupos/{cd}/update',     [CompraSubgrupoController::class, 'update'])->name('compras.subgrupos.update')->whereNumber('cd');
+            Route::delete('subgrupos/{cd}',          [CompraSubgrupoController::class, 'destroy'])->name('compras.subgrupos.destroy')->whereNumber('cd');
         });
     });
 });

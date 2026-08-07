@@ -222,7 +222,7 @@
                         width: '80px',
                         orderable: false,
                         render: function(data) {
-                            const map = { I: ['danger','Imediato'], U: ['warning','Urgente'], N: ['secondary','Necessário'] };
+                            const map = { I: ['danger','Imediato - 2 horas'], U: ['warning','Urgente - 48 horas'], N: ['secondary','Necessário - 5 dias'] };
                             const [cor, label] = map[data] || ['secondary', data || '-'];
                             return '<span class="badge badge-status badge-' + cor + '">' + label + '</span>';
                         }

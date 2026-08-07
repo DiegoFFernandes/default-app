@@ -20,14 +20,14 @@
                 <input type="date" class="form-control form-control-sm" id="dt_solicitacao"
                     value="{{ isset($solicitacao) ? $solicitacao->DT_SOLICITACAO : date('Y-m-d') }}">
             </div>
-        </div>
+        </div> 
         <div class="col-md-2">
             <div class="form-group mb-2">
                 <label class="mb-1"><small>Urgência <span class="text-danger">*</span></small></label>
                 <select class="form-control form-control-sm" id="st_urgencia">
-                    <option value="N" {{ ($solicitacao->ST_URGENCIA ?? 'N') === 'N' ? 'selected' : '' }}>Necessário</option>
-                    <option value="U" {{ ($solicitacao->ST_URGENCIA ?? '') === 'U' ? 'selected' : '' }}>Urgente</option>
-                    <option value="I" {{ ($solicitacao->ST_URGENCIA ?? '') === 'I' ? 'selected' : '' }}>Imediato</option>
+                    <option value="N" {{ ($solicitacao->ST_URGENCIA ?? 'N') === 'N' ? 'selected' : '' }}>Necessário - 5 dias</option>
+                    <option value="U" {{ ($solicitacao->ST_URGENCIA ?? '') === 'U' ? 'selected' : '' }}>Urgente - 48 horas</option>
+                    <option value="I" {{ ($solicitacao->ST_URGENCIA ?? '') === 'I' ? 'selected' : '' }}>Imediato - 2 horas</option>
                 </select>
             </div>
         </div>

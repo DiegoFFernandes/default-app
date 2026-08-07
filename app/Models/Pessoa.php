@@ -52,8 +52,18 @@ class Pessoa extends Model
         return Helper::ConvertFormatText($data);
     }
 
-    public function FindPessoaJunsoftId($cd_pessoa, $cd_tabpreco = 1)
+    public function FindPessoaJunsoftId($cd_pessoa, $cd_tabpreco = 1, $nr_cnpjcpf = null)
     {
+        // Quando $nr_cnpjcpf é informado, busca pelo CNPJ/CPF (usado para checar se já
+        // existe antes de cadastrar). Caso contrário, busca pelo CD_PESSOA.
+        $filtro = $nr_cnpjcpf !== null
+            ? "P.NR_CNPJCPF = :cnpj"
+            : "P.CD_PESSOA = :cd_pessoa";
+
+        $bind = $nr_cnpjcpf !== null
+            ? ['cnpj' => $nr_cnpjcpf]
+            : ['cd_pessoa' => $cd_pessoa];
+
         $query = "
             SELECT
                 P.CD_PESSOA CD_PESSOA,
@@ -72,12 +82,40 @@ class Pessoa extends Model
             LEFT JOIN PARMTABPRECO PT ON (PT.CD_PESSOA = P.CD_PESSOA)
             WHERE
                 P.ST_ATIVA = 'S'
-                AND P.CD_PESSOA = $cd_pessoa";
-        $data = DB::connection('firebird')->select($query);
+                AND $filtro";
+        $data = DB::connection('firebird')->select($query, $bind);
 
         $data  = Helper::ConvertFormatText($data);
 
         return $data[0] ?? null;
+    }
+
+    /**
+     * Insere um fornecedor/cliente na PESSOA do ERP (Firebird) e devolve o novo CD_PESSOA.
+     * Campos fixos: ST_ATIVA='S', ST_REVENDAIPI='N', datas = CURRENT_TIMESTAMP.
+     */
+    public function insertPessoa(array $data): int
+    {
+        $db = DB::connection('firebird');
+
+        $cdPessoa = (int) $db->selectOne("SELECT NEXT VALUE FOR SEQ_PESSOA AS N FROM RDB\$DATABASE")->N;
+
+        $db->statement("
+            INSERT INTO PESSOA (
+                CD_PESSOA, NM_PESSOA, NR_CNPJCPF, CD_TIPOPESSOA,
+                ST_ATIVA, ST_REVENDAIPI, DT_REGISTRO, DT_LIBERACAO
+            ) VALUES (
+                :cd, :nm, :cnpj, :tipo,
+                'S', 'N', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            )
+        ", [
+            'cd'    => $cdPessoa,
+            'nm'    => Helper::ToIso(mb_substr(mb_strtoupper(trim($data['nm_pessoa']), 'UTF-8'), 0, 60, 'UTF-8')),
+            'cnpj'  => $data['nr_cnpjcpf'],
+            'tipo'  => $data['cd_tipopessoa'],
+        ]);
+
+        return $cdPessoa;
     }
 
     public function storeData($input)

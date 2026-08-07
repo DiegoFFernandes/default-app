@@ -5,9 +5,19 @@
             <div class="col-md-5">
                 <div class="form-group mb-2">
                     <label class="mb-1"><small>Produto <span class="text-danger">*</span></small></label>
-                    <select class="form-control form-control-sm select2-ajax" id="cd_item" style="width:100%"
-                        data-url="{{ route('compras.search-item') }}"
-                        data-placeholder="Buscar produto (mín. 3 caracteres)"></select>
+                    <div class="input-group input-group-sm">
+                        <select class="form-control form-control-sm select2-ajax" id="cd_item" style="width:100%"
+                            data-url="{{ route('compras.search-item') }}"
+                            data-placeholder="Buscar produto (mín. 3 caracteres)"></select>
+                        @can('compra-itens-proprios')
+                            <div class="input-group-append">
+                                <button type="button" id="btn-novo-item-modal" class="btn btn-primary"
+                                    title="Cadastrar novo item">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        @endcan
+                    </div>
                 </div>
             </div>
             <div class="col-md-2">

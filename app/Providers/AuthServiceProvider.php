@@ -2,7 +2,8 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
+use App\Models\CompraParam;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -25,6 +26,11 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        //
+        // Itens próprios: só quando a fonte de itens é 'P' e o usuário mexe em compras.
+        // Usado na sidebar, no botão "Novo Item" e nas rotas do catálogo próprio.
+        Gate::define('compra-itens-proprios', function ($user) {
+            return (new CompraParam())->usaItensProprios()
+                && $user->can('solicitacao-compra-gerenciar');
+        });
     }
 }

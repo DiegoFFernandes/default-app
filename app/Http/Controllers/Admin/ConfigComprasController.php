@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CompraConfigAprov;
 use App\Models\CompraConfigFaixa;
 use App\Models\CompraCentroCusto;
+use App\Models\CompraParam;
 use App\Models\CompraParamEmpresa;
 use App\Models\Empresa;
 use App\Models\User;
@@ -24,7 +25,8 @@ class ConfigComprasController extends Controller
         protected CompraCentroCusto  $centroCusto,
         protected CompraParamEmpresa $paramEmpresa,
         protected Empresa            $empresa,
-        protected User               $userModel
+        protected User               $userModel,
+        protected CompraParam        $param
     ) {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -41,6 +43,7 @@ class ConfigComprasController extends Controller
         $usuarios      = $this->userModel->getData();
         $paramEmpresas = $this->paramEmpresa->getAll();
         $paramMap      = collect($paramEmpresas)->keyBy('CD_EMPRESA');
+        $fonteItem     = $this->param->fonteItem();
 
         return view('admin.compras.configuracao.index', compact(
             'title_page',
@@ -48,7 +51,8 @@ class ConfigComprasController extends Controller
             'uri',
             'empresas',
             'usuarios',
-            'paramMap'
+            'paramMap',
+            'fonteItem'
         ));
     }
 
@@ -111,6 +115,23 @@ class ConfigComprasController extends Controller
             return response()->json(['success' => 'Faixa atualizada com sucesso!']);
         } catch (\Exception $e) {
             return response()->json(['errors' => 'Erro ao atualizar faixa.']);
+        }
+    }
+
+    public function updateFonteItem()
+    {
+        $input = $this->request->validate([
+            'st_fonte_item' => 'required|in:J,P',
+        ], [
+            'st_fonte_item.required' => 'Selecione a fonte de itens.',
+            'st_fonte_item.in'       => 'Fonte de itens inválida.',
+        ]);
+
+        try {
+            $this->param->setFonteItem($input['st_fonte_item']);
+            return response()->json(['success' => 'Fonte de itens atualizada!']);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'Erro ao atualizar a fonte de itens.']);
         }
     }
 

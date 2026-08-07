@@ -147,8 +147,8 @@
                         <div class="kanban-cards">
                             @forelse($cards as $s)
                             @php
-                                $urgMap  = ['I' => ['danger','Imediato'], 'U' => ['warning','Urgente'], 'N' => ['secondary','Necessário']];
-                                [$urgCor, $urgLabel] = $urgMap[$s->ST_URGENCIA ?? 'N'] ?? ['secondary','Necessário'];
+                                $urgMap  = ['I' => ['danger','Imediato - 2 horas'], 'U' => ['warning','Urgente - 48 horas'], 'N' => ['secondary','Necessário - 5 dias']];
+                                [$urgCor, $urgLabel] = $urgMap[$s->ST_URGENCIA ?? 'N'] ?? ['secondary','Necessário - 5 dias'];
 
                                 $dtRaw  = $s->DT_SOLICITACAO ?? '';
                                 $dtPts  = explode('-', substr($dtRaw, 0, 10));

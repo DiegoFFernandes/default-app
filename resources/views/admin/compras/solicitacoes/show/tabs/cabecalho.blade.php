@@ -18,7 +18,7 @@
             <div class="col-md-2">
                 <div class="form-group mb-2">
                     <label class="text-muted mb-0"><small>Urgência</small></label>
-                    @php $urgMap = ['I' => ['danger','Imediato'], 'U' => ['warning','Urgente'], 'N' => ['secondary','Necessário']]; @endphp
+                    @php $urgMap = ['I' => ['danger','Imediato - 2 horas'], 'U' => ['warning','Urgente - 48 horas'], 'N' => ['secondary','Necessário - 5 dias']]; @endphp
                     <p class="mb-0 mt-1">
                         <span class="badge badge-{{ ($urgMap[$solicitacao->ST_URGENCIA ?? 'N'])[0] }}">
                             {{ ($urgMap[$solicitacao->ST_URGENCIA ?? 'N'])[1] }}
