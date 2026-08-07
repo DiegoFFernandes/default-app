@@ -33,12 +33,14 @@ Route::get('/manifest.json', function () {
     ], 200, ['Content-Type' => 'application/manifest+json']);
 });
 
-
-Route::get('/clear-cache-all', function () {
-
-    Artisan::call('cache:clear');
-
-    dd("Cache Clear All");
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/clear-cache-all', function () {
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+        return response()->json(['success' => 'Cache, config, rotas e views limpos!']);
+    });
 });
 
 Auth::routes();

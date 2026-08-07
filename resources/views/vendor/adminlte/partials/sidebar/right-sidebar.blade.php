@@ -11,7 +11,16 @@
         <div class="mb-4">
             <h6>Menu Lateral</h6>
             <input id="CollapsedSidebarCheckbox" type="checkbox" value="1" class="mr-1" checked>
-            <span>Collapsed</span>            
+            <span>Collapsed</span>
         </div>
+        @role('admin')
+        <div class="mb-4">
+            <h6>Manutenção</h6>
+            <button id="btn-limpar-cache" type="button" class="btn btn-outline-secondary btn-sm btn-block">
+                <i class="fas fa-broom mr-1"></i> Limpar Cache
+            </button>
+            <small class="text-muted d-block mt-1">Config, rotas e views.</small>
+        </div>
+        @endrole
     </div>
 </aside>

@@ -220,6 +220,34 @@
 
         document.getElementById("ativarNotificacoesCheckbox").addEventListener("click", handleNotificationToggle);
 
+        // Limpar cache (apenas admin — o botão só é renderizado para role:admin)
+        const btnLimparCache = document.getElementById("btn-limpar-cache");
+        if (btnLimparCache) {
+            btnLimparCache.addEventListener("click", function () {
+                Swal.fire({
+                    title: 'Limpando...',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => Swal.showLoading(),
+                });
+                $.get("{{ url('/clear-cache-all') }}", function (res) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Pronto!',
+                        text: res.success || 'Cache limpo!',
+                        confirmButtonColor: '#dc3545',
+                    });
+                }).fail(function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro',
+                        text: 'Não foi possível limpar o cache.',
+                        confirmButtonColor: '#dc3545',
+                    });
+                });
+            });
+        }
+
         async function handleNotificationToggle() {
             const checkbox = document.getElementById("ativarNotificacoesCheckbox");
 
