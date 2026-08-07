@@ -71,3 +71,11 @@ UPDATE COMPRA_SOL_ITEM
         WHERE IT.CD_ITEM = COMPRA_SOL_ITEM.CD_ITEM
    )
  WHERE DS_ITEM IS NULL;
+
+/* ---------------------------------------------------------------------
+   5) Remove a FK para ITEM. O CD_ITEM agora pode vir de ITEM (Junsoft) OU
+      de COMPRA_ITEM (itens próprios); uma FK apontando só para ITEM quebra
+      os itens próprios. A integridade da descrição já é garantida pela
+      coluna DS_ITEM denormalizada acima.
+   --------------------------------------------------------------------- */
+ALTER TABLE COMPRA_SOL_ITEM DROP CONSTRAINT FK_CSI_ITEM;
