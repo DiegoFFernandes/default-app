@@ -34,8 +34,28 @@ class WppWebhookController extends Controller
             return $resposta;
         }
 
+        // Só processa eventos de mensagem recebida
+        if ($event !== 'onmessage') {
+            return response()->json(['ok' => true]);
+        }
+
         if ($body['fromMe'] ?? false) {
             return response()->json(['ok' => true]);
+        }
+
+        // Deduplicação por ID da mensagem: impede processamento duplicado caso
+        // o wa-js dispare chat.new_message mais de uma vez para a mesma mensagem
+        $msgId = is_array($body['id'] ?? null)
+            ? ($body['id']['_serialized'] ?? null)
+            : ($body['id'] ?? null);
+
+        if ($msgId) {
+            $cacheKey = "wpp_msg_{$msgId}";
+            if (Cache::has($cacheKey)) {
+                Log::info('WppConnect: mensagem duplicada ignorada', ['id' => $msgId]);
+                return response()->json(['ok' => true]);
+            }
+            Cache::put($cacheKey, true, now()->addMinutes(10));
         }
 
         $msg = $this->parseMensagem($body);
