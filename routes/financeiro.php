@@ -25,3 +25,10 @@ Route::middleware(['auth', 'permission:ver-libera-contas'])->group(function () {
         Route::post('update-status-contas-bloqueadas', [FinanceiroController::class, 'updateStatusContasBloqueadas'])->name('contas-bloqueadas.update');
     });
 });
+
+Route::middleware(['auth', 'permission:ver-arquivo-remessa'])->group(function () {
+    Route::prefix('financeiro')->group(function () {
+        Route::get('arquivo-remessa', [FinanceiroController::class, 'arquivoRemessa'])->name('arquivo-remessa.index');
+        Route::get('get-list-arquivo-remessa', [FinanceiroController::class, 'listArquivoRemessa'])->name('arquivo-remessa.list');
+    });
+});

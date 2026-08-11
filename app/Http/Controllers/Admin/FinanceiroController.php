@@ -131,4 +131,70 @@ class FinanceiroController extends Controller
 
         return Datatables::of($data)->make(true);
     }
+    public function arquivoRemessa()
+    {
+        $title_page = 'Arquivo Remessa';
+        $user_auth  = $this->user;
+
+        return view('admin.financeiro.arquivo-remessa', compact(
+            'title_page',
+            'user_auth'
+        ));
+    }
+    public function listArquivoRemessa()
+    {
+        $dtInicio = $this->request->dt_inicio;
+        $dtFim    = $this->request->dt_fim;
+
+        $filtros = [
+            'dt_inicio'     => $dtInicio ? \Carbon\Carbon::createFromFormat('d.m.Y', $dtInicio)->format('Y-m-d') : null,
+            'dt_fim'        => $dtFim ? \Carbon\Carbon::createFromFormat('d.m.Y', $dtFim)->format('Y-m-d') : null,
+            'cd_pessoa'     => $this->request->cd_pessoa,
+            'cd_formapagto' => $this->request->cd_formapagto,
+        ];
+
+        $data = $this->financeiro->arquivoRemessa($filtros);
+
+        $datatables = DataTables::of($data)
+            ->addColumn('status', function ($d) {
+                $boleto = [
+                    'I' => ['label' => 'Boleto Impresso', 'cor' => 'badge-info'],
+                    'N' => ['label' => 'Não Enviado', 'cor' => 'badge-warning'],
+                    'R' => ['label' => 'Boleto Registrado', 'cor' => 'badge-success'],
+                ][$d->ST_BOLETO] ?? null;
+
+                $badges = $boleto
+                    ? '<span class="badge ' . $boleto['cor'] . ' mr-1">' . $boleto['label'] . '</span>'
+                    : ($d->ST_BOLETO ? '<span class="badge badge-secondary mr-1">' . $d->ST_BOLETO . '</span>' : '');
+
+                if ($d->ST_CARTORIO && $d->ST_CARTORIO !== 'N') {
+                    $badges .= '<span class="badge badge-danger mr-1">Cartório</span>';
+                }
+                if ($d->ST_INCOBRAVEL && $d->ST_INCOBRAVEL !== 'N') {
+                    $badges .= '<span class="badge badge-dark mr-1">Incobrável</span>';
+                }
+                if ($d->ST_SCPC && $d->ST_SCPC !== 'N') {
+                    $badges .= '<span class="badge badge-warning mr-1">SCPC</span>';
+                }
+
+                return $badges;
+            })
+            ->addColumn('remessa', function ($d) {
+                return '<span class="badge badge-danger">' . $d->DS_REMESSA . '</span>';
+            })
+            ->rawColumns(['status', 'remessa'])
+            ->make(true)
+            ->getData();
+
+        $qtd_titulos = count($data);
+        $vlr_titulos = array_sum(array_map(function ($item) {
+            return $item->VL_SALDO;
+        }, $data));
+
+        return response()->json([
+            'datatables'  => $datatables,
+            'qtd_titulos' => number_format($qtd_titulos),
+            'vlr_titulos' => number_format($vlr_titulos, 2, ',', '.'),
+        ]);
+    }
 }

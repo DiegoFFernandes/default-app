@@ -172,33 +172,55 @@
                                     </a>
                                 @endhaspermission
                             </div>
-                            @haspermission('ver-rel-cobranca')
+                            @canany(['ver-rel-cobranca', 'ver-arquivo-remessa'])
                                 <div class="col-md-12 mt-2">
                                     <div class="border-bottom mb-3 pb-1">
                                         <strong>Cobrança</strong>
                                     </div>
                                     <div class="atalhos-container mb-2">
-                                        <a href="{{ route('rel-cliente') }}"
-                                            class="card card-outline card-dark dashboard-shortcut mb-0">
+                                        @haspermission('ver-rel-cobranca')
+                                            <a href="{{ route('rel-cliente') }}"
+                                                class="card card-outline card-dark dashboard-shortcut mb-0">
 
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="card-icon">
-                                                        <i class="fas fa-credit-card fa-2x mb-2"></i>
-                                                    </div>
-
-                                                    <div class="text-dark">
-                                                        <div class="small font-weight-bold">
-                                                            Financeiro Cliente
+                                                <div class="card-body">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="card-icon">
+                                                            <i class="fas fa-credit-card fa-2x mb-2"></i>
                                                         </div>
-                                                        
+
+                                                        <div class="text-dark">
+                                                            <div class="small font-weight-bold">
+                                                                Financeiro Cliente
+                                                            </div>
+
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </a>
+                                            </a>
+                                        @endhaspermission
+                                        @haspermission('ver-arquivo-remessa')
+                                            <a href="{{ route('arquivo-remessa.index') }}"
+                                                class="card card-outline card-dark dashboard-shortcut mb-0">
+
+                                                <div class="card-body">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="card-icon">
+                                                            <i class="fas fa-file-invoice-dollar fa-2x mb-2"></i>
+                                                        </div>
+
+                                                        <div class="text-dark">
+                                                            <div class="small font-weight-bold">
+                                                                Arquivo Remessa
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        @endhaspermission
                                     </div>
                                 </div>
-                            @endhaspermission
+                            @endcanany
                             @haspermission('ver-producao')
                                 <div class="col-md-12 mt-2">
                                     <div class="border-bottom mb-3 pb-1">

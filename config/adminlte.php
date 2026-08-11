@@ -324,6 +324,11 @@ return [
         //     'url' => 'admin/blog',
         //     'can' => 'manage-blog',
         // ],
+        [
+            'text' => 'Início',
+            'route' => 'home',
+            'icon' => 'nav-icon fas fa-home',
+        ],
         ['header' => 'Navegação'],
         [
             'text' => 'Usuarios',
@@ -459,7 +464,7 @@ return [
             'text' => 'Financeiro',
             'icon' => 'nav-icon fas fa-money-bill',
             'url' => '#',
-            'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas', 'ver-despesas'],
+            'can' => ['ver-libera-ordem-financeiro', 'ver-libera-contas', 'ver-despesas', 'ver-arquivo-remessa'],
             'submenu' => [
                 [
                     'text' => 'Libera Ordem Financeiro',
@@ -481,6 +486,12 @@ return [
                     'text' => 'Fluxo de Caixa',
                     'route' => 'fluxo-caixa.index',
                     'icon' => 'far fa-circle nav-icon',
+                ],
+                [
+                    'text' => 'Arquivo Remessa',
+                    'route' => 'arquivo-remessa.index',
+                    'icon' => 'far fa-circle nav-icon',
+                    'can' => ['ver-arquivo-remessa'],
                 ],
             ]
         ],

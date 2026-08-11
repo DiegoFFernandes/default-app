@@ -100,6 +100,70 @@ class Financeiro extends Model
             return DB::connection('firebird')->select($query);
         });
     }
+    public function arquivoRemessa($filtros)
+    {
+        $bindings = [];
+
+        $filtroData = '';
+        if (!empty($filtros['dt_inicio']) && !empty($filtros['dt_fim'])) {
+            $filtroData = 'AND C.DT_LANCAMENTO BETWEEN CAST(:dt_inicio AS DATE) AND CAST(:dt_fim AS DATE)';
+            $bindings['dt_inicio'] = $filtros['dt_inicio'];
+            $bindings['dt_fim'] = $filtros['dt_fim'];
+        }
+
+        $filtroPessoa = '';
+        if (!empty($filtros['cd_pessoa'])) {
+            $filtroPessoa = 'AND C.CD_PESSOA = :cd_pessoa';
+            $bindings['cd_pessoa'] = $filtros['cd_pessoa'];
+        }
+
+        $filtroFormaPagto = '';
+        if (!empty($filtros['cd_formapagto'])) {
+            $filtroFormaPagto = 'AND C.CD_FORMAPAGTO = :cd_formapagto';
+            $bindings['cd_formapagto'] = $filtros['cd_formapagto'];
+        }
+
+        $query = "
+                SELECT
+                    COALESCE(CB.NM_ARQUIVO, 'Sem Remessa') DS_REMESSA,
+                    C.DT_LANCAMENTO,
+                    C.DT_VENCIMENTO,
+
+                    C.CD_EMPRESA,
+                    C.NR_DOCUMENTO,
+                    C.NR_PARCELA,
+                    C.NR_LANCAMENTO,
+                    C.CD_FORMAPAGTO,
+                    FP.DS_FORMAPAGTO,
+                    C.CD_PESSOA,
+                    P.NM_PESSOA,
+
+                    C.ST_BOLETO,
+                    C.ST_CARTORIO,
+                    C.ST_INCOBRAVEL,
+                    C.ST_SCPC,
+                    C.VL_SALDO
+
+                FROM CONTAS C
+                LEFT JOIN CONTASBOLETO CB ON (C.CD_EMPRESA = CB.CD_EMPRESA
+                      AND C.NR_BOLETO = CB.NR_BOLETO
+                      AND C.CD_FORMAPAGTO = CB.CD_FORMAPAGTO)
+
+                INNER JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA)
+                INNER JOIN BOLETO ON (BOLETO.CD_FORMAPAGTO = C.CD_FORMAPAGTO)
+                LEFT JOIN FORMAPAGTO FP ON (FP.CD_FORMAPAGTO = C.CD_FORMAPAGTO)
+                WHERE BOLETO.ST_ATIVO = 'S'
+                      AND C.CD_TIPOCONTA IN (2)
+                      AND CB.NM_ARQUIVO IS NULL
+                      AND C.ST_CONTAS IN ('P', 'T')
+                      {$filtroData}
+                      {$filtroPessoa}
+                      {$filtroFormaPagto}
+                ORDER BY C.DT_LANCAMENTO DESC";
+
+        $results = DB::connection('firebird')->select($query, $bindings);
+        return $results = Helper::ConvertFormatText($results);
+    }
     public function listCentroCustoContasBloqueadas($cd_empresa, $nr_lancamento)
     {
         $query = "
