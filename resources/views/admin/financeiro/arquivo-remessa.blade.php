@@ -8,15 +8,47 @@
             <div class="row mb-2">
                 <div class="col-12 col-sm-6 col-md-4 mb-2">
                     <div class="stat-card stat-primary">
-                        <div class="stat-title"><i class="fas fa-file-invoice"></i> Quantidade de Títulos</div>
-                        <div class="stat-value"><span id="qtd-titulos">0</span> <small
-                                style="font-size:.7rem;font-weight:400;">Títulos</small></div>
+                        <div class="stat-title"><i class="fas fa-info-circle"></i> Informações</div>
+                        <div class="stat-rows">
+                            <div class="stat-row">
+                                <span class="stat-row-label">Quantidade de Títulos</span>
+                                <span class="stat-row-val" id="qtd-titulos">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Valor Acumulado</span>
+                                <span class="stat-row-val" id="valor-titulos">R$ 0,00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                    <div class="stat-card stat-info">
-                        <div class="stat-title"><i class="fas fa-dollar-sign"></i> Valores</div>
-                        <div class="stat-value"><span id="valor-titulos">R$ 0,00</span></div>
+                    <div class="stat-card stat-warning">
+                        <div class="stat-title"><i class="fas fa-file-invoice"></i> Status</div>
+                        <div class="stat-rows">
+                            <div class="stat-row">
+                                <span class="stat-row-label">Boleto Impresso</span>
+                                <span class="stat-row-val" id="qtd-boleto-impresso">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Sem Boleto</span>
+                                <span class="stat-row-val" id="qtd-sem-boleto">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                    <div class="stat-card stat-danger">
+                        <div class="stat-title"><i class="fas fa-university"></i> Remessa</div>
+                        <div class="stat-rows">
+                            <div class="stat-row">
+                                <span class="stat-row-label">Sem Arquivo Remessa</span>
+                                <span class="stat-row-val" id="qtd-sem-remessa">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Registrar no Banco</span>
+                                <span class="stat-row-val" id="qtd-registrar-remessa">0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,6 +89,9 @@
 
             <div class="card">
                 <div class="card-body">
+                    <div class="mb-2">
+                        <small class="badge badge-danger badge-date"></small>
+                    </div>
                     <table class="table stripe compact" id="table-arquivo-remessa" style="width:100%;">
                         <thead>
                             <tr>
@@ -69,6 +104,7 @@
                                 <th>Valor</th>
                                 <th>Status</th>
                                 <th>Remessa</th>
+                                <th>Nome Arquivo</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -116,6 +152,33 @@
             line-height: 1.3;
         }
 
+        .stat-card .stat-rows {
+            margin-top: 1px;
+        }
+
+        .stat-card .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: .71rem;
+            padding: 2px 0;
+            border-top: 1px solid rgba(0, 0, 0, .05);
+        }
+
+        .stat-card .stat-row-label {
+            color: #6c757d;
+            flex-shrink: 0;
+        }
+
+        .stat-card .stat-row-val {
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 58%;
+        }
+
         .stat-primary {
             border-left-color: #007bff;
         }
@@ -132,6 +195,24 @@
         .stat-info .stat-title i,
         .stat-info .stat-value {
             color: #17a2b8;
+        }
+
+        .stat-warning {
+            border-left-color: #e0a800;
+        }
+
+        .stat-warning .stat-title i,
+        .stat-warning .stat-value {
+            color: #c89100;
+        }
+
+        .stat-danger {
+            border-left-color: #dc3545;
+        }
+
+        .stat-danger .stat-title i,
+        .stat-danger .stat-value {
+            color: #dc3545;
         }
 
         table.dataTable thead tr {
@@ -155,10 +236,12 @@
         var tableArquivoRemessa;
 
         // Obtem o primeiro dia do mes atual
-        var dtInicioRemessa = moment().startOf('month').format('DD.MM.YYYY');
+        var dtInicioRemessa = moment().subtract(90, 'days').startOf('day').format('DD.MM.YYYY');
         var dtFimRemessa = moment().format('DD.MM.YYYY');
 
         var datasSelecionadasRemessa = initDateRangePicker('#daterange-remessa', dtInicioRemessa, dtFimRemessa);
+
+        $('.badge-date').text('Período: ' + dtInicioRemessa + ' a ' + dtFimRemessa);
 
         $('#filtro-cliente').select2({
             theme: 'bootstrap4',
@@ -247,6 +330,12 @@
                         $('#qtd-titulos').text(json.qtd_titulos);
                         $('#valor-titulos').text('R$ ' + json.vlr_titulos);
 
+                        $('#qtd-boleto-impresso').text(json.qtd_boleto_impresso);
+                        $('#qtd-sem-boleto').text(json.qtd_sem_boleto);
+
+                        $('#qtd-sem-remessa').text(json.qtd_sem_remessa);
+                        $('#qtd-registrar-remessa').text(json.qtd_registrar_remessa);
+
                         return json.datatables.data;
                     }
                 },
@@ -297,6 +386,12 @@
                         data: 'remessa',
                         name: 'remessa',
                         orderable: false,
+                    },
+                    {
+                        data: 'R_NR_ARQUIVO',
+                        name: 'R_NR_ARQUIVO',
+                        orderable: false,
+                        visible: false
                     },
                 ],
                 columnDefs: [{

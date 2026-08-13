@@ -124,11 +124,13 @@ class Financeiro extends Model
         }
 
         $query = "
-                SELECT
-                    COALESCE(CB.NM_ARQUIVO, 'Sem Remessa') DS_REMESSA,
+                SELECT 
+                COALESCE(CB.R_DS_INSTRUCAO, 'Sem Remessa') DS_REMESSA,
+                    CB.R_DS_OCORRENCIA,
+                    CB.R_NR_ARQUIVO,
+                    C.NR_BOLETO,
                     C.DT_LANCAMENTO,
                     C.DT_VENCIMENTO,
-
                     C.CD_EMPRESA,
                     C.NR_DOCUMENTO,
                     C.NR_PARCELA,
@@ -137,29 +139,28 @@ class Financeiro extends Model
                     FP.DS_FORMAPAGTO,
                     C.CD_PESSOA,
                     P.NM_PESSOA,
-
-                    C.ST_BOLETO,
+                    CASE
+                        WHEN NR_BOLETO IS NULL THEN 'S'
+                        ELSE 'I'
+                    END ST_BOLETO,
                     C.ST_CARTORIO,
                     C.ST_INCOBRAVEL,
                     C.ST_SCPC,
                     C.VL_SALDO
-
                 FROM CONTAS C
-                LEFT JOIN CONTASBOLETO CB ON (C.CD_EMPRESA = CB.CD_EMPRESA
-                      AND C.NR_BOLETO = CB.NR_BOLETO
-                      AND C.CD_FORMAPAGTO = CB.CD_FORMAPAGTO)
-
                 INNER JOIN PESSOA P ON (P.CD_PESSOA = C.CD_PESSOA)
-                INNER JOIN BOLETO ON (BOLETO.CD_FORMAPAGTO = C.CD_FORMAPAGTO)
+                LEFT JOIN RETORNA_ULTIMA_INSTRUCAOBOLETO(C.CD_EMPRESA, C.CD_FORMAPAGTO, C.NR_BOLETO) CB ON (1 = 1)
+                INNER JOIN BOLETO ON (BOLETO.CD_FORMAPAGTO = C.CD_FORMAPAGTO
+                    AND C.CD_EMPRESA = BOLETO.CD_EMPRESA)
                 LEFT JOIN FORMAPAGTO FP ON (FP.CD_FORMAPAGTO = C.CD_FORMAPAGTO)
                 WHERE BOLETO.ST_ATIVO = 'S'
                       AND C.CD_TIPOCONTA IN (2)
-                      AND CB.NM_ARQUIVO IS NULL
                       AND C.ST_CONTAS IN ('P', 'T')
+                      AND COALESCE(CB.R_DS_INSTRUCAO, 'Sem Remessa') NOT IN ('Registro Confirmado')
                       {$filtroData}
                       {$filtroPessoa}
                       {$filtroFormaPagto}
-                ORDER BY C.DT_LANCAMENTO DESC";
+                ORDER BY C.DT_LANCAMENTO DESC, C.NR_PARCELA DESC";
 
         $results = DB::connection('firebird')->select($query, $bindings);
         return $results = Helper::ConvertFormatText($results);

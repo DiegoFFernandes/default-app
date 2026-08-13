@@ -159,8 +159,7 @@ class FinanceiroController extends Controller
             ->addColumn('status', function ($d) {
                 $boleto = [
                     'I' => ['label' => 'Boleto Impresso', 'cor' => 'badge-info'],
-                    'N' => ['label' => 'Não Enviado', 'cor' => 'badge-warning'],
-                    'R' => ['label' => 'Boleto Registrado', 'cor' => 'badge-success'],
+                    'S' => ['label' => 'Sem Boleto', 'cor' => 'badge-danger'],
                 ][$d->ST_BOLETO] ?? null;
 
                 $badges = $boleto
@@ -180,7 +179,16 @@ class FinanceiroController extends Controller
                 return $badges;
             })
             ->addColumn('remessa', function ($d) {
-                return '<span class="badge badge-danger">' . $d->DS_REMESSA . '</span>';
+                $remessa = [
+                    'Registrar Remessa' => ['label' => 'Registrar Remessa no Banco', 'cor' => 'badge-warning'],
+                    'Sem Remessa' => ['label' => 'Sem Arquivo Remessa', 'cor' => 'badge-danger'],
+                ][$d->DS_REMESSA] ?? null;
+
+                $badges = $remessa
+                    ? '<span class="badge ' . $remessa['cor'] . ' mr-1">' . $remessa['label'] . '</span>'
+                    : ($d->DS_REMESSA ? '<span class="badge badge-secondary mr-1">' . $d->DS_REMESSA . '</span>' : '');
+
+                return $badges;
             })
             ->rawColumns(['status', 'remessa'])
             ->make(true)
@@ -191,10 +199,28 @@ class FinanceiroController extends Controller
             return $item->VL_SALDO;
         }, $data));
 
+        $qtd_boleto_impresso = count(array_filter($data, function ($item) {
+            return $item->ST_BOLETO === 'I';
+        }));
+        $qtd_sem_boleto = count(array_filter($data, function ($item) {
+            return $item->ST_BOLETO === 'S';
+        }));
+
+        $qtd_sem_remessa = count(array_filter($data, function ($item) {
+            return $item->DS_REMESSA === 'Sem Remessa';
+        }));
+        $qtd_registrar_remessa = $qtd_titulos - $qtd_sem_remessa;
+
         return response()->json([
             'datatables'  => $datatables,
             'qtd_titulos' => number_format($qtd_titulos),
             'vlr_titulos' => number_format($vlr_titulos, 2, ',', '.'),
+
+            'qtd_boleto_impresso' => number_format($qtd_boleto_impresso),
+            'qtd_sem_boleto'      => number_format($qtd_sem_boleto),
+
+            'qtd_sem_remessa'       => number_format($qtd_sem_remessa),
+            'qtd_registrar_remessa' => number_format($qtd_registrar_remessa),
         ]);
     }
 }
