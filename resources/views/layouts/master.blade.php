@@ -315,8 +315,10 @@
 
     <script>
         if ('serviceWorker' in navigator) {
+            @if(request()->getHost() === parse_url(config('app.url'), PHP_URL_HOST))
             navigator.serviceWorker.register('/sw.js')
                 .catch(err => console.error('SW PWA erro:', err));
+            @endif
             navigator.serviceWorker.register(FCM_SW_URL)
                 .catch(err => console.error('SW Firebase erro:', err));
         }

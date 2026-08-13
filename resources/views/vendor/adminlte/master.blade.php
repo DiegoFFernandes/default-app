@@ -92,7 +92,9 @@
         <link rel="icon" type="image/png" sizes="96x96" href="{{ asset('img/favicon-96x96.png') }}">
         <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/android-icon-192x192.png') }}">
         
+        @if(request()->getHost() === parse_url(config('app.url'), PHP_URL_HOST))
         <link rel="manifest" crossorigin="use-credentials" href="/manifest.json">
+        @endif
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="{{ asset('img/ms-icon-144x144.png') }}">
     @endif
