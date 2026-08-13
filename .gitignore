@@ -22,3 +22,5 @@ yarn-error.log
 /public/img
 
 /config/empresas.php
+
+.claude/settings.json
