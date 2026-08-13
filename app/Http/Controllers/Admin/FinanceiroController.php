@@ -182,6 +182,7 @@ class FinanceiroController extends Controller
                 $remessa = [
                     'Registrar Remessa' => ['label' => 'Registrar Remessa no Banco', 'cor' => 'badge-warning'],
                     'Sem Remessa' => ['label' => 'Sem Arquivo Remessa', 'cor' => 'badge-danger'],
+                    'Registro Recusado' => ['label' => 'Registro Recusado', 'cor' => 'badge-info'],
                 ][$d->DS_REMESSA] ?? null;
 
                 $badges = $remessa
@@ -209,7 +210,10 @@ class FinanceiroController extends Controller
         $qtd_sem_remessa = count(array_filter($data, function ($item) {
             return $item->DS_REMESSA === 'Sem Remessa';
         }));
-        $qtd_registrar_remessa = $qtd_titulos - $qtd_sem_remessa;
+        $qtd_registro_recusado = count(array_filter($data, function ($item) {
+            return $item->DS_REMESSA === 'Registro Recusado';
+        }));
+        $qtd_registrar_remessa = $qtd_titulos - $qtd_sem_remessa - $qtd_registro_recusado;
 
         return response()->json([
             'datatables'  => $datatables,
@@ -220,6 +224,7 @@ class FinanceiroController extends Controller
             'qtd_sem_boleto'      => number_format($qtd_sem_boleto),
 
             'qtd_sem_remessa'       => number_format($qtd_sem_remessa),
+            'qtd_registro_recusado' => number_format($qtd_registro_recusado),
             'qtd_registrar_remessa' => number_format($qtd_registrar_remessa),
         ]);
     }

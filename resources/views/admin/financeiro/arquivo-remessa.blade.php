@@ -48,6 +48,10 @@
                                 <span class="stat-row-label">Registrar no Banco</span>
                                 <span class="stat-row-val" id="qtd-registrar-remessa">0</span>
                             </div>
+                            <div class="stat-row">
+                                <span class="stat-row-label">Registro Recusado</span>
+                                <span class="stat-row-val" id="qtd-registro-recusado">0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -335,6 +339,7 @@
 
                         $('#qtd-sem-remessa').text(json.qtd_sem_remessa);
                         $('#qtd-registrar-remessa').text(json.qtd_registrar_remessa);
+                        $('#qtd-registro-recusado').text(json.qtd_registro_recusado);
 
                         return json.datatables.data;
                     }
@@ -359,6 +364,10 @@
                         data: null,
                         width: '2%',
                         render: function(data, type, row) {
+                            if (type === 'sort' || type === 'type') {
+                                return String(row.NR_DOCUMENTO).padStart(10, '0') + '-' + String(row
+                                    .NR_PARCELA).padStart(5, '0');
+                            }
                             return row.NR_DOCUMENTO + ' / ' + row.NR_PARCELA;
                         }
                     },
@@ -409,7 +418,7 @@
                     }
                 ],
                 order: [
-                    [1, 'desc']
+                    [3, 'asc']
                 ],
             });
         }
