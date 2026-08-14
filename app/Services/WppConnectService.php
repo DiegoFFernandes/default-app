@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\WppDisparo;
+use App\Models\WppParametro;
+use App\Models\WppSessao;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -23,14 +25,30 @@ class WppConnectService
         $this->session = $session ?? config('services.wppconnect.session');
     }
 
-    public static function comercial(): static
-    {
-        return new static(config('services.wppconnect.sessions.comercial'));
-    }
+    /**
+     * Módulos que podem ter uma sessão própria. A chave compõe o parâmetro
+     * `session_modulo_<chave>` em wpp_parametros; o valor é o rótulo na tela.
+     */
+    public const MODULOS = [
+        'compras'  => 'Compras — aprovações e notificações',
+        'cobranca' => 'Cobrança — notas fiscais e boletos',
+        'ia'       => 'IA via WhatsApp — respostas automáticas',
+    ];
 
-    public static function cobranca(): static
+    /**
+     * Instância apontando para a sessão configurada para o módulo. Cai na sessão
+     * padrão quando o módulo não tem sessão definida ou quando a sessão
+     * configurada foi excluída da tela de conexões.
+     */
+    public static function forModulo(string $modulo): static
     {
-        return new static(config('services.wppconnect.sessions.cobranca'));
+        $session = WppParametro::get("session_modulo_{$modulo}");
+
+        if ($session && WppSessao::where('session_name', $session)->exists()) {
+            return new static($session);
+        }
+
+        return new static();
     }
 
     // -------------------------------------------------------

@@ -123,8 +123,7 @@ class IAController extends Controller
         }
 
         try {
-            $wpp    = app(WppConnectService::class);
-            $result = $wpp->sendText($telefone, $mensagem, 'resumo_ia');
+            $result = WppConnectService::forModulo('ia')->sendText($telefone, $mensagem, 'resumo_ia');
             $ok     = ($result['status'] ?? '') === 'success';
 
             return response()->json([

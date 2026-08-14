@@ -131,7 +131,7 @@ class CompraFluxoService
             $itens       = $this->solicitacaoItem->getBySolicitacao($idSolicitacao);
             $cotacoes    = $this->cotacao->getBySolicitacao($idSolicitacao);
 
-            (new WppConnectService())->notificarAprovadores(
+            WppConnectService::forModulo('compras')->notificarAprovadores(
                 idSolicitacao: $idSolicitacao,
                 nmSolicitante: $solicitante?->name ?? 'Solicitante',
                 nmEmpresa:     $solicitacao->NM_EMPRESA ?? '',

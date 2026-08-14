@@ -11,8 +11,7 @@ class CompraAprovacaoService
     public function __construct(
         protected CompraEtapaAprov  $etapaAprov,
         protected CompraSolicitacao $solicitacao,
-        protected CompraParamEmpresa $paramEmpresa,
-        protected WppConnectService  $wpp
+        protected CompraParamEmpresa $paramEmpresa
     ) {}
 
     public function aprovar($idEtapa, $cdUsuario, $obs): array
@@ -65,7 +64,7 @@ class CompraAprovacaoService
             $comprador = $this->paramEmpresa->getCompradorByEmpresa((int) $sol->CD_EMPRESA);
 
             if ($comprador && !empty($comprador->NR_CELULAR)) {
-                $this->wpp->notificarCompradorReprovacao(
+                WppConnectService::forModulo('compras')->notificarCompradorReprovacao(
                     (int) $etapa->CD_SOLICITACAO,
                     $sol->NM_EMPRESA,
                     $obs,
@@ -99,7 +98,7 @@ class CompraAprovacaoService
             $comprador = $this->paramEmpresa->getCompradorByEmpresa((int) $sol->CD_EMPRESA);
 
             if ($comprador && !empty($comprador->NR_CELULAR)) {
-                $this->wpp->notificarCompradorAprovacao(
+                WppConnectService::forModulo('compras')->notificarCompradorAprovacao(
                     (int) $idSolicitacao,
                     $sol->NM_EMPRESA,
                     (float) ($sol->VL_TOTAL ?? 0),

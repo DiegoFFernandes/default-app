@@ -39,6 +39,7 @@ Route::middleware(['auth', 'permission:wppconnect-configurar'])->group(function 
     Route::prefix('wppconnect')->group(function () {
         Route::get('parametros',              [WppConnectController::class, 'parametros'])->name('wppconnect.parametros');
         Route::post('parametros/{chave}',     [WppConnectController::class, 'salvarParametro'])->name('wppconnect.parametros.salvar');
+        Route::post('modulos/{modulo}/sessao',[WppConnectController::class, 'salvarModuloSessao'])->name('wppconnect.modulos.sessao');
         Route::post('usuarios/{id}/wppconnect-ia', [WppConnectController::class, 'toggleWppIa'])->name('wppconnect.usuarios.wppconnect-ia');
         Route::post('usuarios/{id}/wpp-lid',   [WppConnectController::class, 'salvarWppLid'])->name('wppconnect.usuarios.wpp-lid');
         Route::get('lids-pendentes',           [WppConnectController::class, 'lidsPendentes'])->name('wppconnect.lids-pendentes');

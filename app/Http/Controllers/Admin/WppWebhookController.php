@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\WppDisparo;
 use App\Models\WppLidPendente;
 use App\Models\WppParametro;
+use App\Models\WppSessao;
 use App\Services\CompraAprovacaoService;
 use App\Services\IAService;
 use App\Services\WppConnectService;
@@ -63,13 +64,27 @@ class WppWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $resposta = $this->resolverResposta($msg['cmd'], $msg['texto'], $msg['phone'], $msg['phoneSend'], $msg['userId']);
+        // Responde pela mesma sessão em que a mensagem chegou — responder por outro
+        // número abriria uma conversa diferente da que o usuário iniciou.
+        $wpp = $this->wppDaSessao($body['session'] ?? null);
+
+        $resposta = $this->resolverResposta($msg['cmd'], $msg['texto'], $msg['phone'], $msg['phoneSend'], $msg['userId'], $wpp);
         if ($resposta !== null) {
-            $this->wpp->sendText($msg['phoneSend'], $resposta, '', null, $msg['userId']);
+            $wpp->sendText($msg['phoneSend'], $resposta, '', null, $msg['userId']);
             return response()->json(['ok' => true]);
         }
 
         return $this->handleAprovacao($msg['cmd'], $msg['token'], $msg['phone'], $msg['partes']);
+    }
+
+    // Instância apontando para a sessão que recebeu a mensagem
+    private function wppDaSessao(?string $session): WppConnectService
+    {
+        if ($session && WppSessao::where('session_name', $session)->exists()) {
+            return new WppConnectService($session);
+        }
+
+        return $this->wpp;
     }
 
     // Trata eventos de sistema (phoneCode, autocloseCalled) — não são mensagens de usuário
@@ -162,7 +177,7 @@ class WppWebhookController extends Controller
     }
 
     // Orquestra o fluxo de resposta: fixas → IA
-    private function resolverResposta(string $cmd, string $textoOriginal, string $phone, string $phoneSend, ?int $userId): ?string
+    private function resolverResposta(string $cmd, string $textoOriginal, string $phone, string $phoneSend, ?int $userId, WppConnectService $wpp): ?string
     {
         $fixa = $this->respostaFixa($cmd);
         if ($fixa !== null) return $fixa;
@@ -171,7 +186,7 @@ class WppWebhookController extends Controller
 
         if (! $this->podeUsarIA($textoOriginal, $phone)) return null;
 
-        return $this->chamarIA($textoOriginal, $phoneSend, $userId);
+        return $this->chamarIA($textoOriginal, $phoneSend, $userId, $wpp);
     }
 
     // Respostas imediatas para saudações e ajuda — sem chamar a IA
@@ -208,9 +223,9 @@ class WppWebhookController extends Controller
     }
 
     // Envia "aguarde", chama a IA e retorna a resposta (ou fallback em caso de falha)
-    private function chamarIA(string $textoOriginal, string $phoneSend, ?int $userId): string
+    private function chamarIA(string $textoOriginal, string $phoneSend, ?int $userId, WppConnectService $wpp): string
     {
-        $this->wpp->sendText($phoneSend, "⏳ Um momento, estou consultando as informações...", '', null, $userId);
+        $wpp->sendText($phoneSend, "⏳ Um momento, estou consultando as informações...", '', null, $userId);
 
         try {
             $resposta = $this->ia->responderParaWhatsapp($textoOriginal);

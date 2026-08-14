@@ -36,7 +36,6 @@ class SolicitacaoComprasController extends Controller
         protected Empresa               $empresa,
         protected CompraParamEmpresa    $paramEmpresa,
         protected CompraCentroCusto     $centroCusto,
-        protected WppConnectService     $wpp,
         protected CompraParam           $param,
         protected CompraItem            $compraItem
     ) {
@@ -279,7 +278,7 @@ class SolicitacaoComprasController extends Controller
                 $comprador = $this->paramEmpresa->getCompradorByEmpresa((int) $sol->CD_EMPRESA);
 
                 if ($comprador && !empty($comprador->NR_CELULAR)) {
-                    $this->wpp->notificarComprador(
+                    WppConnectService::forModulo('compras')->notificarComprador(
                         (int) $id,
                         $sol->NM_EMPRESA,
                         $this->user->name,

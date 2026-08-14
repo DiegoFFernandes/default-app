@@ -97,6 +97,14 @@ class WppConnectController extends Controller
             ]);
         }
 
+        // Limpa os módulos que apontavam para esta sessão — sem isso ficariam
+        // com um vínculo órfão exibido na tela de parâmetros.
+        foreach (array_keys(WppConnectService::MODULOS) as $modulo) {
+            if (WppParametro::get("session_modulo_{$modulo}") === $sessao->session_name) {
+                WppParametro::set("session_modulo_{$modulo}", '');
+            }
+        }
+
         $label = $sessao->label;
         $sessao->delete();
 
@@ -229,8 +237,18 @@ class WppConnectController extends Controller
                 'wpp_ia'  => $u->hasPermissionTo('wppconnect-ia'),
             ]);
 
+        $modulos = collect(WppConnectService::MODULOS)
+            ->map(fn($label, $modulo) => [
+                'modulo'  => $modulo,
+                'label'   => $label,
+                'session' => WppParametro::get("session_modulo_{$modulo}", ''),
+            ])
+            ->values();
+
         return response()->json([
             'wpp_ia_ativo' => (bool) WppParametro::get('wpp_ia_ativo', '0'),
+            'modulos'      => $modulos,
+            'sessoes'      => WppSessao::paraView(),
             'usuarios'     => $usuarios,
         ]);
     }
@@ -246,6 +264,31 @@ class WppConnectController extends Controller
         WppParametro::set($chave, $request->boolean('valor') ? '1' : '0');
 
         return response()->json(['success' => 'Salvo com sucesso!']);
+    }
+
+    // Define qual conexão atende cada módulo; sessão vazia = usa a sessão padrão
+    public function salvarModuloSessao(Request $request, string $modulo): JsonResponse
+    {
+        if (! array_key_exists($modulo, WppConnectService::MODULOS)) {
+            return response()->json(['errors' => 'Módulo inválido.'], 422);
+        }
+
+        $request->validate([
+            'session' => ['nullable', 'string', Rule::exists('wpp_sessoes', 'session_name')],
+        ], [
+            'session.exists' => 'A conexão selecionada não existe mais.',
+        ]);
+
+        $session = $request->input('session') ?: '';
+        WppParametro::set("session_modulo_{$modulo}", $session);
+
+        $nome = $session
+            ? (WppSessao::where('session_name', $session)->first()?->label ?? $session)
+            : 'sessão padrão';
+
+        return response()->json([
+            'success' => WppConnectService::MODULOS[$modulo] . " agora envia pela {$nome}.",
+        ]);
     }
 
     public function lidsPendentes(): JsonResponse

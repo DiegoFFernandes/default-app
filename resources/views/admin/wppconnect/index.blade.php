@@ -83,7 +83,7 @@
                                         <div class="card-header text-center">
                                             <h4 class="card-title mb-0">
                                                 <i class="fab fa-whatsapp mr-2"></i>{{ $sess['label'] }}
-                                                <button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao"
+                                                <button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao ml-2"
                                                         data-setor="{{ $sess['setor'] }}" data-label="{{ $sess['label'] }}"
                                                         title="Excluir conexão">
                                                     <i class="fas fa-trash"></i>
@@ -222,6 +222,42 @@
                                                     Ativar IA via WhatsApp
                                                 </label>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Sessão por módulo --}}
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card card-outline card-warning">
+                                        <div class="card-header">
+                                            <h3 class="card-title">
+                                                <i class="fas fa-random mr-2"></i>Conexão usada por cada módulo
+                                            </h3>
+                                            <div class="card-tools">
+                                                <span class="text-muted" style="font-size:12px;">
+                                                    Sem definição, o módulo usa a conexão padrão
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <table class="table table-sm table-hover mb-0" id="table-modulos-sessao">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th>Módulo</th>
+                                                        <th style="width:280px;">Conexão (WhatsApp)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-modulos-sessao">
+                                                    <tr>
+                                                        <td colspan="2" class="text-center py-3">
+                                                            <div class="spinner-border spinner-border-sm text-warning"></div>
+                                                            <span class="ml-2 text-muted">Carregando...</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
@@ -713,7 +749,7 @@ $(document).ready(function () {
             '<div class="card card-outline card-warning mb-3" id="card-qrcode-' + name + '">' +
                 '<div class="card-header text-center">' +
                     '<h4 class="card-title mb-0"><i class="fab fa-whatsapp mr-2"></i>' + label +
-                        '<button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao" ' +
+                        '<button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao ml-2" ' +
                                 'data-setor="' + setor + '" data-label="' + label + '" title="Excluir conexão">' +
                             '<i class="fas fa-trash"></i></button>' +
                     '</h4>' +
@@ -819,6 +855,7 @@ $(document).ready(function () {
             $('#empty-conexoes').before(cardSessaoHtml(s.setor, s.name, s.label));
             atualizarEmptyState();
             iniciarWidget(s.name);
+            parametrosCarregado = false; // recarrega os selects de módulo com a nova conexão
             Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         }).fail(function (xhr) {
             var msg = (xhr.responseJSON && (xhr.responseJSON.errors || xhr.responseJSON.message)) || 'Falha ao criar conexão.';
@@ -849,6 +886,7 @@ $(document).ready(function () {
             }).done(function (res) {
                 $('#row-conexoes').find('[data-setor="' + setor + '"]').closest('[id^="col-sessao-"]').remove();
                 atualizarEmptyState();
+                parametrosCarregado = false; // os modulos vinculados a ela voltaram para a padrao
                 Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
             }).fail(function (xhr) {
                 Swal.fire('Erro', (xhr.responseJSON && xhr.responseJSON.errors) || 'Falha ao excluir conexão.', 'error');
@@ -1004,6 +1042,8 @@ $(document).ready(function () {
             // Toggle IA
             $('#toggle-wppconnect-ia').prop('checked', res.wpp_ia_ativo);
 
+            renderModulosSessao(res.modulos, res.sessoes);
+
             // Tabela de usuários
             const rows = res.usuarios.map(u => {
                 const badge = u.wpp_ia
@@ -1036,6 +1076,59 @@ $(document).ready(function () {
             $('#tbody-parametros-users').html('<tr><td colspan="5" class="text-center text-danger">Erro ao carregar dados.</td></tr>');
         });
     }
+
+    // Tabela "conexão usada por cada módulo"
+    function renderModulosSessao(modulos, sessoes) {
+        if (!modulos || !modulos.length) {
+            $('#tbody-modulos-sessao').html('<tr><td colspan="2" class="text-center text-muted py-3">Nenhum módulo configurável.</td></tr>');
+            return;
+        }
+
+        var rows = modulos.map(function (m) {
+            var opts = ['<option value="">— conexão padrão —</option>'];
+            (sessoes || []).forEach(function (s) {
+                var sel = s.name === m.session ? ' selected' : '';
+                opts.push('<option value="' + s.name + '"' + sel + '>' + escHtml(s.label) + '</option>');
+            });
+
+            // Vínculo apontando para uma conexão que não existe mais
+            var orfao = m.session && !(sessoes || []).some(function (s) { return s.name === m.session; })
+                ? '<div class="text-danger mt-1" style="font-size:11px;">'
+                  + '<i class="fas fa-exclamation-triangle mr-1"></i>Conexão "' + escHtml(m.session) + '" não existe mais — usando a padrão.</div>'
+                : '';
+
+            return '<tr>'
+                + '<td>' + escHtml(m.label) + '</td>'
+                + '<td><select class="form-control form-control-sm select-modulo-sessao" data-modulo="' + m.modulo + '">'
+                + opts.join('') + '</select>' + orfao + '</td>'
+                + '</tr>';
+        });
+
+        $('#tbody-modulos-sessao').html(rows.join(''));
+    }
+
+    $(document).on('change', '.select-modulo-sessao', function () {
+        var $sel   = $(this);
+        var modulo = $sel.data('modulo');
+
+        $sel.prop('disabled', true);
+
+        $.post('{{ url('wppconnect/modulos') }}/' + modulo + '/sessao', {
+            _token:  '{{ csrf_token() }}',
+            session: $sel.val(),
+        }).done(function (res) {
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
+            $sel.closest('td').find('.text-danger').remove();
+        }).fail(function (xhr) {
+            var msg = (xhr.responseJSON && (xhr.responseJSON.errors || xhr.responseJSON.message)) || 'Falha ao salvar.';
+            if (typeof msg === 'object') msg = Object.values(msg).flat().join(' ');
+            Swal.fire('Erro', msg, 'error');
+            parametrosCarregado = false;
+            initParametros();
+        }).always(function () {
+            $sel.prop('disabled', false);
+        });
+    });
 
     // Toggle IA ativo/inativo
     $(document).on('change', '#toggle-wppconnect-ia', function () {
