@@ -36,13 +36,11 @@ return [
     ],
 
     'wppconnect' => [
-        'url'      => env('WPPCONNECT_URL', 'http://localhost:21465'),
-        'secret'   => env('WPPCONNECT_SECRET', 'THISISMYSECRET'),
-        'sessions' => [
-            'comercial' => env('WPPCONNECT_SESSION_COMERCIAL', 'comercial'),
-            'cobranca'  => env('WPPCONNECT_SESSION_COBRANCA',  'cobranca'),
-        ],
-        'session'  => env('WPPCONNECT_SESSION', 'comercial'), // padrão para código legado
+        'url'     => env('WPPCONNECT_URL', 'http://localhost:21465'),
+        'secret'  => env('WPPCONNECT_SECRET', 'THISISMYSECRET'),
+        // Conexão que atende os módulos sem sessão própria. As demais sessões
+        // vivem na tabela wpp_sessoes, cadastradas pela tela.
+        'session' => env('WPPCONNECT_SESSION', 'geral'),
     ],
 
     'openai' => [

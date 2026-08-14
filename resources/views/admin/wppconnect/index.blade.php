@@ -83,11 +83,16 @@
                                         <div class="card-header text-center">
                                             <h4 class="card-title mb-0">
                                                 <i class="fab fa-whatsapp mr-2"></i>{{ $sess['label'] }}
-                                                <button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao ml-2"
-                                                        data-setor="{{ $sess['setor'] }}" data-label="{{ $sess['label'] }}"
-                                                        title="Excluir conexão">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                @if($sess['padrao'])
+                                                    <span class="badge badge-info float-right ml-2"
+                                                          title="Atende os módulos sem conexão própria">padrão</span>
+                                                @else
+                                                    <button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao ml-2"
+                                                            data-setor="{{ $sess['setor'] }}" data-label="{{ $sess['label'] }}"
+                                                            title="Excluir conexão">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                @endif
                                             </h4>
                                             <div class="btn-group btn-group-sm mt-2 mb-1" role="group">
                                                 <button type="button" class="btn btn-outline-warning btn-modo-qrcode" data-session="{{ $session }}">
@@ -189,6 +194,8 @@
                                         <th style="width:50px;">#</th>
                                         <th>Usuário</th>
                                         <th>Telefone</th>
+                                        <th style="width:110px;">Sessão</th>
+                                        <th style="width:120px;">Número Envio</th>
                                         <th>Mensagem</th>
                                         <th style="width:90px;" class="text-center">Status</th>
                                         <th style="width:150px;">Enviado em</th>
@@ -202,7 +209,29 @@
                         {{-- Tab: Parametrizações --}}
                         <div class="tab-pane fade" id="pane-parametros" role="tabpanel">
 
-                            {{-- Toggle IA ativa --}}
+                            <ul class="nav nav-pills mb-3" id="tabs-parametros" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-toggle="pill" href="#sub-geral" role="tab">
+                                        <i class="fas fa-sliders-h mr-1"></i> Geral
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="pill" href="#sub-modulos" role="tab">
+                                        <i class="fas fa-random mr-1"></i> Sessão por Módulo
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="pill" href="#sub-usuarios" role="tab">
+                                        <i class="fas fa-users mr-1"></i> Usuários
+                                        <span class="badge badge-warning ml-1 d-none" id="badge-lids-pendentes">0</span>
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content">
+
+                            {{-- Sub-tab: Geral --}}
+                            <div class="tab-pane fade show active" id="sub-geral" role="tabpanel">
                             <div class="row">
                                 <div class="col-md-5">
                                     <div class="card card-outline card-success">
@@ -227,7 +256,10 @@
                                 </div>
                             </div>
 
-                            {{-- Sessão por módulo --}}
+                            </div>{{-- /sub-geral --}}
+
+                            {{-- Sub-tab: Sessão por Módulo --}}
+                            <div class="tab-pane fade" id="sub-modulos" role="tabpanel">
                             <div class="row">
                                 <div class="col-12">
                                     <div class="card card-outline card-warning">
@@ -262,6 +294,11 @@
                                     </div>
                                 </div>
                             </div>
+
+                            </div>{{-- /sub-modulos --}}
+
+                            {{-- Sub-tab: Usuários --}}
+                            <div class="tab-pane fade" id="sub-usuarios" role="tabpanel">
 
                             {{-- Usuários autorizados --}}
                             <div class="row">
@@ -334,6 +371,10 @@
                                     </div>
                                 </div>
                             </div>
+
+                            </div>{{-- /sub-usuarios --}}
+
+                            </div>{{-- /tab-content parametros --}}
 
                         </div>
 
@@ -731,7 +772,14 @@ $(document).ready(function () {
     // ============================================================
 
     // Espelha o markup Blade do card de conexão para sessões criadas em runtime
-    function cardSessaoHtml(setor, name, label) {
+    function cardSessaoHtml(setor, name, label, padrao) {
+        // A conexão padrão não ganha lixeira: excluí-la deixaria os módulos sem
+        // conexão própria enviando por uma sessão inexistente.
+        var acaoHeader = padrao
+            ? '<span class="badge badge-info float-right ml-2" title="Atende os módulos sem conexão própria">padrão</span>'
+            : '<button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao ml-2" ' +
+                      'data-setor="' + setor + '" data-label="' + label + '" title="Excluir conexão">' +
+                  '<i class="fas fa-trash"></i></button>';
         return '' +
         '<div class="col-md-6 col-lg-4" id="col-sessao-' + name + '">' +
             '<div class="card card-outline card-success mb-3 d-none" id="card-connected-' + name + '">' +
@@ -748,11 +796,7 @@ $(document).ready(function () {
             '</div>' +
             '<div class="card card-outline card-warning mb-3" id="card-qrcode-' + name + '">' +
                 '<div class="card-header text-center">' +
-                    '<h4 class="card-title mb-0"><i class="fab fa-whatsapp mr-2"></i>' + label +
-                        '<button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao ml-2" ' +
-                                'data-setor="' + setor + '" data-label="' + label + '" title="Excluir conexão">' +
-                            '<i class="fas fa-trash"></i></button>' +
-                    '</h4>' +
+                    '<h4 class="card-title mb-0"><i class="fab fa-whatsapp mr-2"></i>' + label + acaoHeader + '</h4>' +
                     '<div class="btn-group btn-group-sm mt-2 mb-1" role="group">' +
                         '<button type="button" class="btn btn-outline-warning btn-modo-qrcode" data-session="' + name + '">' +
                             '<i class="fas fa-qrcode mr-1"></i>QR Code</button>' +
@@ -852,7 +896,7 @@ $(document).ready(function () {
         }).done(function (res) {
             $('#modal-add-conexao').modal('hide');
             var s = res.sessao;
-            $('#empty-conexoes').before(cardSessaoHtml(s.setor, s.name, s.label));
+            $('#empty-conexoes').before(cardSessaoHtml(s.setor, s.name, s.label, s.padrao));
             atualizarEmptyState();
             iniciarWidget(s.name);
             parametrosCarregado = false; // recarrega os selects de módulo com a nova conexão
@@ -912,6 +956,8 @@ $(document).ready(function () {
                 { data: 'id',          width: '50px' },
                 { data: 'user' },
                 { data: 'phone' },
+                { data: 'sessao',       width: '110px' },
+                { data: 'numero_envio', width: '120px' },
                 {
                     data: 'mensagem',
                     render: function (val, type, row) {
@@ -954,7 +1000,9 @@ $(document).ready(function () {
         });
     }
 
-    $('a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+    // Escopado ao nav de topo: sem isso as sub-tabs de Parâmetros também
+    // disparariam este handler ao serem clicadas
+    $('#tabs-wpp a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
         const href = $(e.target).attr('href');
         $('#btn-atualizar-disparos').toggleClass('d-none', href !== '#pane-disparos');
         if (href === '#pane-disparos')   initDisparos();
@@ -1173,9 +1221,11 @@ $(document).ready(function () {
         .done(function (res) {
             if (!res.pendentes || !res.pendentes.length) {
                 $('#card-lids-pendentes').hide();
+                $('#badge-lids-pendentes').addClass('d-none');
                 return;
             }
             $('#card-lids-pendentes').show();
+            $('#badge-lids-pendentes').text(res.pendentes.length).removeClass('d-none');
 
             const selectOpts = res.usuarios.map(u =>
                 `<option value="${u.id}">${u.name} (${u.phone})</option>`

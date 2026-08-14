@@ -11,7 +11,7 @@ class WppSessao extends Model
 
     protected $table = 'wpp_sessoes';
 
-    protected $fillable = ['setor', 'session_name'];
+    protected $fillable = ['setor', 'session_name', 'numero'];
 
     /**
      * Setores que podem ter uma conexão WhatsApp própria.
@@ -30,6 +30,15 @@ class WppSessao extends Model
     public function getLabelAttribute(): string
     {
         return self::SETORES[$this->setor] ?? ucfirst($this->setor);
+    }
+
+    /**
+     * É a conexão que atende os módulos sem sessão própria. Não pode ser excluída:
+     * sem ela, todo envio não mapeado iria para uma sessão inexistente.
+     */
+    public function ehPadrao(): bool
+    {
+        return $this->session_name === config('services.wppconnect.session');
     }
 
     /**
@@ -54,9 +63,10 @@ class WppSessao extends Model
         return static::orderBy('setor')
             ->get()
             ->map(fn($s) => [
-                'setor' => $s->setor,
-                'name'  => $s->session_name,
-                'label' => $s->label,
+                'setor'  => $s->setor,
+                'name'   => $s->session_name,
+                'label'  => $s->label,
+                'padrao' => $s->ehPadrao(),
             ]);
     }
 }

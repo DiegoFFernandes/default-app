@@ -21,11 +21,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Migra as sessões que hoje vivem no .env para o banco, para a tela
-        // continuar exibindo as conexões já pareadas.
+        // Toda instalação nasce com a conexão "Geral": é ela que atende os módulos
+        // sem sessão própria, por isso não pode ser excluída pela tela. As demais
+        // o usuário cadastra conforme a necessidade.
+        // Literal de propósito — migration não deve depender de config/.env, senão
+        // o resultado muda conforme o ambiente em que roda.
         $agora = now();
 
-        foreach (config('services.wppconnect.sessions', []) as $setor => $sessionName) {
+        foreach (['geral' => 'geral'] as $setor => $sessionName) {
             DB::table('wpp_sessoes')->insert([
                 'setor'        => $setor,
                 'session_name' => $sessionName,

@@ -95,6 +95,21 @@ class WppConnectService
         return $response->json() ?? [];
     }
 
+    /**
+     * Apaga os arquivos da sessão (token + perfil do Chromium) direto no disco do
+     * servidor, sem depender da sessão estar conectada — ao contrário de
+     * logoutSession(), que passa pelo middleware statusConnection e pode falhar
+     * silenciosamente logo após o pareamento, deixando a pasta órfã. Serve de
+     * garantia extra ao excluir uma conexão pela tela.
+     */
+    public function clearSessionData(): array
+    {
+        $response = Http::timeout(15)
+            ->post("{$this->baseUrl}/api/{$this->session}/{$this->secret}/clear-session-data");
+
+        return $response->json() ?? [];
+    }
+
     public function startSession(): array
     {
         $response = $this->http()->post("{$this->baseUrl}/api/{$this->session}/start-session");
@@ -126,6 +141,34 @@ class WppConnectService
             return ($status['status'] ?? '') === 'CONNECTED';
         } catch (\Throwable) {
             return false;
+        }
+    }
+
+    /**
+     * Número (dígitos, sem @c.us/@lid) do WhatsApp pareado nesta sessão, ou null
+     * se não foi possível obter (sessão desconectada, ou ainda sincronizando
+     * logo após o pareamento — a chamada pode falhar por alguns segundos mesmo
+     * com status-session já reportando CONNECTED).
+     */
+    public function getPhoneNumber(): ?string
+    {
+        try {
+            $response = $this->http()->get("{$this->baseUrl}/api/{$this->session}/get-phone-number");
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            $wid = $response->json('response');
+            $wid = is_array($wid) ? ($wid['_serialized'] ?? $wid['user'] ?? null) : $wid;
+
+            return $wid ? preg_replace('/\D/', '', explode('@', (string) $wid)[0]) : null;
+        } catch (\Throwable $e) {
+            Log::warning('WppConnect: falha ao obter número da sessão', [
+                'session' => $this->session,
+                'erro'    => $e->getMessage(),
+            ]);
+            return null;
         }
     }
 
@@ -310,6 +353,8 @@ class WppConnectService
                 'token'           => $token,
                 'referencia_tipo' => 'compra_etapa',
                 'referencia_id'   => $aprov['id_etapa'],
+                'sessao'          => $this->session,
+                'numero_envio'    => $this->numeroDestaSessao(),
                 'dt_envio'        => $sucesso ? now() : null,
                 'dt_registro'     => now(),
             ]);
@@ -428,9 +473,11 @@ class WppConnectService
         $sucesso = $this->resolverSucesso($response);
 
         $update = [
-            'status'   => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
-            'erro'     => $sucesso ? null : substr($response->body(), 0, 500),
-            'dt_envio' => $sucesso ? now() : null,
+            'status'       => $sucesso ? WppDisparo::STATUS_ENVIADO : WppDisparo::STATUS_FALHA,
+            'erro'         => $sucesso ? null : substr($response->body(), 0, 500),
+            'sessao'       => $this->session,
+            'numero_envio' => $this->numeroDestaSessao(),
+            'dt_envio'     => $sucesso ? now() : null,
         ];
         if ($newToken !== null) {
             $update['token'] = $newToken;
@@ -463,6 +510,17 @@ class WppConnectService
     private function resolverSucesso(\Illuminate\Http\Client\Response $response): bool
     {
         return $response->successful() && $response->json('status') === 'success';
+    }
+
+    /**
+     * Número cadastrado em wpp_sessoes para a sessão atual. Lido do banco (não
+     * consultado ao vivo a cada envio) — quem mantém esse valor atualizado é
+     * WppConnectController::status(), que o preenche assim que detecta a sessão
+     * conectada.
+     */
+    private function numeroDestaSessao(): ?string
+    {
+        return WppSessao::where('session_name', $this->session)->value('numero');
     }
 
     private function formatPhone(string $phone): string
@@ -501,6 +559,8 @@ class WppConnectService
                 'erro'           => $sucesso ? null : substr($response->body(), 0, 500),
                 'referencia_tipo' => $referenciaTipo ?: null,
                 'referencia_id'   => $referenciaId,
+                'sessao'         => $this->session,
+                'numero_envio'   => $this->numeroDestaSessao(),
                 'dt_envio'       => $sucesso ? now() : null,
                 'dt_registro'    => now(),
             ]);

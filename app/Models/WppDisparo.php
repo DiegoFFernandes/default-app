@@ -20,6 +20,8 @@ class WppDisparo extends Model
         'token',
         'referencia_tipo',
         'referencia_id',
+        'sessao',
+        'numero_envio',
         'dt_envio',
         'dt_registro',
     ];
