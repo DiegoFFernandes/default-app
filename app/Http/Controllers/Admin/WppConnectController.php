@@ -21,12 +21,28 @@ class WppConnectController extends Controller
 
     public function index()
     {
-        return view('admin.wppconnect.index');
+        $sessions = array_keys(config('services.wppconnect.sessions', []));
+        return view('admin.wppconnect.index', compact('sessions'));
     }
 
-    public function phoneCode(): JsonResponse
+    private function resolveWpp(Request $request): WppConnectService
     {
-        $code = Cache::get('wppconnect_phone_code');
+        $key      = $request->input('session');
+        $sessions = config('services.wppconnect.sessions', []);
+
+        if ($key && isset($sessions[$key])) {
+            return new WppConnectService($sessions[$key]);
+        }
+
+        return $this->wpp;
+    }
+
+    public function phoneCode(Request $request): JsonResponse
+    {
+        $key      = $request->input('session');
+        $sessions = config('services.wppconnect.sessions', []);
+        $session  = ($key && isset($sessions[$key])) ? $sessions[$key] : config('services.wppconnect.session');
+        $code     = Cache::get("wppconnect_phone_code_{$session}");
         return response()->json(['code' => $code]);
     }
 
@@ -35,48 +51,49 @@ class WppConnectController extends Controller
         $request->validate(['phone' => 'required|string|min:10']);
 
         try {
-            $result = $this->wpp->startSessionWithPhone($request->phone);
+            $result = $this->resolveWpp($request)->startSessionWithPhone($request->phone);
             return response()->json(['success' => true, 'data' => $result]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function closeSession(): JsonResponse
+    public function closeSession(Request $request): JsonResponse
     {
         try {
-            $result = $this->wpp->closeSession();
+            $result = $this->resolveWpp($request)->closeSession();
             return response()->json(['success' => true, 'data' => $result]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function logoutSession(): JsonResponse
+    public function logoutSession(Request $request): JsonResponse
     {
         try {
-            $result = $this->wpp->logoutSession();
+            $result = $this->resolveWpp($request)->logoutSession();
             return response()->json(['success' => true, 'data' => $result]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function startSession(): JsonResponse
+    public function startSession(Request $request): JsonResponse
     {
         try {
-            $result = $this->wpp->startSession();
+            $result = $this->resolveWpp($request)->startSession();
             return response()->json(['success' => true, 'data' => $result]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function status(): JsonResponse
+    public function status(Request $request): JsonResponse
     {
         try {
-            $data = $this->wpp->statusSession();
-            $connected = $this->wpp->isConnected();
+            $wpp       = $this->resolveWpp($request);
+            $data      = $wpp->statusSession();
+            $connected = $wpp->isConnected();
 
             return response()->json([
                 'success'   => true,
@@ -88,10 +105,10 @@ class WppConnectController extends Controller
         }
     }
 
-    public function qrCode(): JsonResponse
+    public function qrCode(Request $request): JsonResponse
     {
         try {
-            $data = $this->wpp->getQrCode();
+            $data = $this->resolveWpp($request)->getQrCode();
             return response()->json(['success' => true, 'data' => $data]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);

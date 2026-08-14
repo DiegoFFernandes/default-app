@@ -16,11 +16,21 @@ class WppConnectService
     private string $secret;
     private string $session;
 
-    public function __construct()
+    public function __construct(?string $session = null)
     {
         $this->baseUrl = rtrim(config('services.wppconnect.url'), '/');
         $this->secret  = config('services.wppconnect.secret');
-        $this->session = config('services.wppconnect.session');
+        $this->session = $session ?? config('services.wppconnect.session');
+    }
+
+    public static function comercial(): static
+    {
+        return new static(config('services.wppconnect.sessions.comercial'));
+    }
+
+    public static function cobranca(): static
+    {
+        return new static(config('services.wppconnect.sessions.cobranca'));
     }
 
     // -------------------------------------------------------
@@ -368,10 +378,24 @@ class WppConnectService
         $newToken = null;
 
         if ($disparo->referencia_tipo === 'compra_etapa') {
-            // Mensagem de aprovação: gera novo token e incorpora o link
+            // Mensagem de aprovação: gera novo token e SUBSTITUI o link antigo
+            // (a mensagem salva já contém o link com o token anterior — anexar
+            // geraria dois links, sendo o antigo inválido após a rotação do token).
             $newToken = Str::random(32);
             $linkAcao = rtrim(config('app.url'), '/') . '/compras/acao?token=' . $newToken;
-            $mensagem = $disparo->mensagem . "\n\n🔗 " . $linkAcao;
+
+            $mensagem = preg_replace(
+                '#https?://\S*/compras/acao\?token=\S+#',
+                $linkAcao,
+                $disparo->mensagem,
+                -1,
+                $trocas
+            );
+
+            // Se a mensagem salva não tinha link (caso raro), garante um.
+            if (!$trocas) {
+                $mensagem = $disparo->mensagem . "\n\n🔗 " . $linkAcao;
+            }
         } else {
             // Mensagem de texto simples: reenvia o conteúdo original
             $mensagem = $disparo->mensagem;

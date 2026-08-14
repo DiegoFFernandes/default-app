@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompraCotacao;
 use App\Models\CompraEtapaAprov;
 use App\Services\CompraAprovacaoService;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class AprovacaoComprasController extends Controller
     public function __construct(
         protected Request                $request,
         protected CompraEtapaAprov       $etapaAprov,
-        protected CompraAprovacaoService $aprovacaoService
+        protected CompraAprovacaoService $aprovacaoService,
+        protected CompraCotacao          $cotacao
     ) {
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
@@ -37,9 +39,29 @@ class AprovacaoComprasController extends Controller
     {
         $data = $this->etapaAprov->getPendentesParaUsuario($this->user->id);
 
+        // Orçamentos (PDFs) de todas as solicitações da lista, em uma consulta.
+        $docsMap = $this->cotacao->getDocsBySolicitacoes(
+            collect($data)->pluck('CD_SOLICITACAO')->unique()->filter()->all()
+        );
+
         return DataTables::of($data)
             ->addColumn('vl_total_fmt', fn($row) =>
                 $row->VL_TOTAL ? 'R$ ' . number_format($row->VL_TOTAL, 2, ',', '.') : '-')
+            ->addColumn('orcamentos', function ($row) use ($docsMap) {
+                $docs = $docsMap[$row->CD_SOLICITACAO] ?? collect();
+                if ($docs->isEmpty()) {
+                    return '<span class="text-muted">—</span>';
+                }
+                $html = '';
+                foreach ($docs as $d) {
+                    $url     = asset('storage/' . $d->DOC_ORCAMENTO);
+                    $trofeu  = $d->ST_SELECIONADA === 'S' ? ' <i class="fas fa-trophy text-warning"></i>' : '';
+                    $nome    = e(mb_strimwidth($d->NM_FORNECEDOR, 0, 20, '…'));
+                    $html .= '<a href="' . $url . '" target="_blank" class="btn btn-outline-info btn-xs mr-1 mb-1" title="' . e($d->NM_FORNECEDOR) . '">'
+                        . '<i class="fas fa-file-pdf mr-1"></i>' . $nome . $trofeu . '</a>';
+                }
+                return $html;
+            })
             ->addColumn('Actions', function ($row) {
                 return '
                     <a href="' . route('compras.solicitacoes.show', $row->CD_SOLICITACAO) . '"
@@ -53,7 +75,7 @@ class AprovacaoComprasController extends Controller
                         <i class="fas fa-times"></i></button>
                 ';
             })
-            ->rawColumns(['Actions'])
+            ->rawColumns(['orcamentos', 'Actions'])
             ->make(true);
     }
 

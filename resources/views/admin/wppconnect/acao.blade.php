@@ -111,6 +111,24 @@
                     </tbody>
                 </table>
 
+                {{-- Orçamentos (PDFs) das cotações --}}
+                @php $cotacoesComDoc = collect($cotacoes ?? [])->filter(fn($c) => !empty($c->DOC_ORCAMENTO)); @endphp
+                @if($cotacoesComDoc->isNotEmpty())
+                <div class="mb-4">
+                    <small class="text-muted d-block mb-2">Orçamentos</small>
+                    @foreach($cotacoesComDoc as $c)
+                    <a href="{{ asset('storage/' . $c->DOC_ORCAMENTO) }}" target="_blank"
+                       class="btn btn-outline-info btn-sm btn-block text-left mb-2">
+                        <i class="fas fa-file-pdf mr-2"></i>{{ $c->NM_FORNECEDOR }}
+                        @if($c->ST_SELECIONADA === 'S')
+                            <i class="fas fa-trophy text-warning ml-1" title="Fornecedor selecionado"></i>
+                        @endif
+                        <span class="float-right">R$ {{ number_format($c->VL_TOTAL, 2, ',', '.') }}</span>
+                    </a>
+                    @endforeach
+                </div>
+                @endif
+
                 {{-- Ação = reprovar: mostra campo de motivo --}}
                 @if($acao === 'reprovar')
                     <form method="POST" action="{{ route('wppconnect.acao.processar') }}">

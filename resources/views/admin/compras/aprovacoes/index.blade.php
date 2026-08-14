@@ -20,6 +20,7 @@
                                 <th>Justificativa</th>
                                 <th>Meu Cargo</th>
                                 <th>Valor Total</th>
+                                <th>Orçamentos</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -64,6 +65,7 @@ $(document).ready(function () {
             { data: 'DS_JUSTIFICATIVA',name: 'DS_JUSTIFICATIVA' },
             { data: 'DS_CARGO',        name: 'DS_CARGO', width: '120px' },
             { data: 'vl_total_fmt',    name: 'vl_total_fmt', orderable: false, width: '110px' },
+            { data: 'orcamentos',      name: 'orcamentos', orderable: false, searchable: false },
             { data: 'Actions',         name: 'Actions', orderable: false, searchable: false, width: '200px' },
         ],
         pageLength: 20,

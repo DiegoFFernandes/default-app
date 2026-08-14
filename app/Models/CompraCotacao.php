@@ -34,6 +34,37 @@ class CompraCotacao extends Model
         ", ['id_sol' => $idSolicitacao]));
     }
 
+    /**
+     * Orçamentos (DOC_ORCAMENTO) de várias solicitações de uma vez, só as cotações
+     * que têm PDF. Retorna uma coleção agrupada por ID_SOLICITACAO.
+     */
+    public function getDocsBySolicitacoes(array $idSolicitacoes)
+    {
+        $ids = array_filter(array_map('intval', $idSolicitacoes));
+        if (empty($ids)) {
+            return collect();
+        }
+
+        $in = implode(',', $ids);
+
+        $rows = \Helper::ConvertFormatText(DB::connection('firebird')->select("
+            SELECT
+                C.ID_SOLICITACAO,
+                C.ID_COTACAO,
+                P.NM_PESSOA AS NM_FORNECEDOR,
+                C.DOC_ORCAMENTO,
+                C.ST_SELECIONADA
+            FROM COMPRA_COTACAO C
+            INNER JOIN PESSOA P ON P.CD_PESSOA = C.CD_FORNECEDOR
+            WHERE C.ID_SOLICITACAO IN ($in)
+              AND C.DOC_ORCAMENTO IS NOT NULL
+              AND C.DOC_ORCAMENTO <> ''
+            ORDER BY C.ID_SOLICITACAO, C.ID_COTACAO
+        "));
+
+        return collect($rows)->groupBy('ID_SOLICITACAO');
+    }
+
     public function findById(int $id)
     {
         $row = DB::connection('firebird')->selectOne("

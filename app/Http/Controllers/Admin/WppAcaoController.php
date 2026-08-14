@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompraCotacao;
 use App\Models\CompraEtapaAprov;
 use App\Models\CompraSolicitacao;
 use App\Models\CompraSolicitacaoItem;
@@ -18,6 +19,7 @@ class WppAcaoController extends Controller
         private CompraEtapaAprov       $etapaAprov,
         private CompraSolicitacao      $solicitacao,
         private CompraSolicitacaoItem  $solicitacaoItem,
+        private CompraCotacao          $cotacao,
     ) {}
 
     public function show(Request $request)
@@ -34,9 +36,10 @@ class WppAcaoController extends Controller
         $etapa       = $this->etapaAprov->findById($disparo->referencia_id);
         $solicitacao = $this->solicitacao->findById($etapa->CD_SOLICITACAO);
         $itens       = $this->solicitacaoItem->getBySolicitacao($etapa->CD_SOLICITACAO);
+        $cotacoes    = $this->cotacao->getBySolicitacao($etapa->CD_SOLICITACAO);
 
         return view('admin.wppconnect.acao', compact(
-            'disparo', 'etapa', 'solicitacao', 'itens', 'acao', 'token'
+            'disparo', 'etapa', 'solicitacao', 'itens', 'cotacoes', 'acao', 'token'
         ));
     }
 

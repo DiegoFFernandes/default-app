@@ -76,17 +76,19 @@ class WppWebhookController extends Controller
     private function handleEvento(string $event, array $body): ?\Illuminate\Http\JsonResponse
     {
         if ($event === 'phoneCode') {
-            $code = $body['phoneCode'] ?? null;
+            $code    = $body['phoneCode'] ?? null;
+            $session = $body['session'] ?? 'default';
             if ($code) {
-                Cache::put('wppconnect_phone_code', $code, now()->addMinutes(5));
-                Log::info('WppConnect: phoneCode recebido', ['code' => $code]);
+                Cache::put("wppconnect_phone_code_{$session}", $code, now()->addMinutes(5));
+                Log::info('WppConnect: phoneCode recebido', ['session' => $session, 'code' => $code]);
             }
             return response()->json(['ok' => true]);
         }
 
         if ($event === 'status-find' && ($body['status'] ?? null) === 'autocloseCalled') {
-            Cache::forget('wppconnect_phone_code');
-            Log::info('WppConnect: sessão auto-fechada (autocloseCalled)');
+            $session = $body['session'] ?? 'default';
+            Cache::forget("wppconnect_phone_code_{$session}");
+            Log::info('WppConnect: sessão auto-fechada (autocloseCalled)', ['session' => $session]);
             return response()->json(['ok' => true]);
         }
 

@@ -49,31 +49,38 @@
 
                         {{-- Tab: Conexão --}}
                         <div class="tab-pane fade show active" id="pane-conexao" role="tabpanel">
-                            <div class="row justify-content-center">
-                                <div class="col-md-5 col-lg-4">
+                            <div class="row">
+                                @foreach($sessions as $session)
+                                <div class="col-md-6 col-lg-4">
 
-                                    <div class="card card-outline card-success mb-0" id="card-connected" style="display:none!important;">
+                                    {{-- Conectado --}}
+                                    <div class="card card-outline card-success mb-3 d-none" id="card-connected-{{ $session }}">
                                         <div class="card-header text-center">
                                             <h4 class="card-title mb-0">
                                                 <i class="fas fa-check-circle text-success mr-2"></i>WhatsApp Conectado
                                             </h4>
                                         </div>
                                         <div class="card-body text-center py-4">
-                                            <i class="fab fa-whatsapp text-success" style="font-size: 80px;"></i>
-                                            <p class="mt-3 mb-0 text-muted" id="status-label">Sessão ativa</p>
+                                            <i class="fab fa-whatsapp text-success" style="font-size:64px;"></i>
+                                            <p class="mt-3 mb-1 font-weight-bold text-capitalize" style="font-size:16px;">{{ $session }}</p>
+                                            <p class="mb-0 text-muted" id="status-label-{{ $session }}">Sessão ativa</p>
+                                            <button class="btn btn-sm btn-outline-danger mt-3 btn-logout-session" data-session="{{ $session }}">
+                                                <i class="fas fa-sign-out-alt mr-1"></i>Desconectar
+                                            </button>
                                         </div>
                                     </div>
 
-                                    <div class="card card-outline card-warning mb-0" id="card-qrcode">
+                                    {{-- Conectar --}}
+                                    <div class="card card-outline card-warning mb-3" id="card-qrcode-{{ $session }}">
                                         <div class="card-header text-center">
                                             <h4 class="card-title mb-0">
-                                                <i class="fab fa-whatsapp mr-2"></i>Conectar WhatsApp
+                                                <i class="fab fa-whatsapp mr-2"></i>{{ ucfirst($session) }}
                                             </h4>
                                             <div class="btn-group btn-group-sm mt-2 mb-1" role="group">
-                                                <button type="button" class="btn btn-outline-warning" id="btn-modo-qrcode">
+                                                <button type="button" class="btn btn-outline-warning btn-modo-qrcode" data-session="{{ $session }}">
                                                     <i class="fas fa-qrcode mr-1"></i>QR Code
                                                 </button>
-                                                <button type="button" class="btn btn-warning active" id="btn-modo-phone">
+                                                <button type="button" class="btn btn-warning active btn-modo-phone" data-session="{{ $session }}">
                                                     <i class="fas fa-mobile-alt mr-1"></i>Número
                                                 </button>
                                             </div>
@@ -81,84 +88,76 @@
                                         <div class="card-body text-center">
 
                                             {{-- Modo QR Code --}}
-                                            <div id="modo-qrcode" style="display:none;">
-                                                <div id="area-loading" class="py-4">
+                                            <div id="modo-qrcode-{{ $session }}" style="display:none;">
+                                                <div id="area-loading-{{ $session }}" class="py-4">
                                                     <div class="spinner-border text-warning" role="status"></div>
-                                                    <p class="mt-2 text-muted" id="loading-text">Verificando conexão...</p>
+                                                    <p class="mt-2 text-muted" id="loading-text-{{ $session }}">Verificando conexão...</p>
                                                 </div>
-
-                                                <div id="area-qrcode" style="display:none;">
+                                                <div id="area-qrcode-{{ $session }}" style="display:none;">
                                                     <p class="text-muted mb-2" style="font-size:13px;">
                                                         Abra o WhatsApp &rarr; <strong>Dispositivos conectados</strong> &rarr; <strong>Conectar dispositivo</strong>
                                                     </p>
-                                                    <img id="qrcode-img" src="" alt="QR Code"
+                                                    <img id="qrcode-img-{{ $session }}" src="" alt="QR Code"
                                                          class="img-fluid rounded border"
-                                                         style="max-width:260px; margin:0 auto; display:block;">
+                                                         style="max-width:220px; margin:0 auto; display:block;">
                                                     <p class="text-muted mt-2" style="font-size:12px;">
                                                         <i class="fas fa-sync-alt mr-1"></i>QR Code atualiza automaticamente
                                                     </p>
                                                 </div>
-
-                                                <div id="area-erro" style="display:none;" class="py-3">
+                                                <div id="area-erro-{{ $session }}" style="display:none;" class="py-3">
                                                     <i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>
-                                                    <p class="mt-2 text-danger" id="erro-text">Erro ao conectar.</p>
-                                                    <button class="btn btn-warning btn-sm" id="btn-tentar-novamente">
+                                                    <p class="mt-2 text-danger" id="erro-text-{{ $session }}">Erro ao conectar.</p>
+                                                    <button class="btn btn-warning btn-sm btn-tentar-novamente" data-session="{{ $session }}">
                                                         <i class="fas fa-redo mr-1"></i>Tentar novamente
                                                     </button>
                                                 </div>
                                             </div>
 
                                             {{-- Modo Número --}}
-                                            <div id="modo-phone">
-
-                                                <div id="area-phone-form" class="py-3">
+                                            <div id="modo-phone-{{ $session }}">
+                                                <div id="area-phone-form-{{ $session }}" class="py-3">
                                                     <p class="text-muted mb-3" style="font-size:13px;">
                                                         Abra o WhatsApp &rarr; <strong>Aparelhos vinculados</strong> &rarr; <strong>Vincular com número de telefone</strong>
                                                     </p>
-                                                    <div class="input-group mb-3" style="max-width:280px; margin:0 auto;">
+                                                    <div class="input-group mb-3" style="max-width:260px; margin:0 auto;">
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
                                                         </div>
-                                                        <input type="text" id="input-phone" class="form-control"
+                                                        <input type="text" id="input-phone-{{ $session }}" class="form-control"
                                                                placeholder="55119XXXXXXXX" maxlength="15">
                                                     </div>
-                                                    <button class="btn btn-warning" id="btn-gerar-codigo">
+                                                    <button class="btn btn-warning btn-gerar-codigo" data-session="{{ $session }}">
                                                         <i class="fas fa-key mr-1"></i>Gerar Código
                                                     </button>
                                                 </div>
-
-                                                <div id="area-phone-loading" style="display:none;" class="py-4">
+                                                <div id="area-phone-loading-{{ $session }}" style="display:none;" class="py-4">
                                                     <div class="spinner-border text-warning" role="status"></div>
                                                     <p class="mt-2 text-muted">Gerando código de pareamento...</p>
                                                 </div>
-
-                                                <div id="area-phone-code" style="display:none;" class="py-3">
-                                                    <p class="text-muted mb-2" style="font-size:13px;">
-                                                        Digite este código no WhatsApp:
-                                                    </p>
-                                                    <div class="display-4 font-weight-bold text-warning letter-spacing-lg" id="pairing-code">----</div>
+                                                <div id="area-phone-code-{{ $session }}" style="display:none;" class="py-3">
+                                                    <p class="text-muted mb-2" style="font-size:13px;">Digite este código no WhatsApp:</p>
+                                                    <div class="display-4 font-weight-bold text-warning letter-spacing-lg" id="pairing-code-{{ $session }}">----</div>
                                                     <p class="text-muted mt-3" style="font-size:12px;">
                                                         <i class="fas fa-clock mr-1"></i>O código expira em alguns minutos
                                                     </p>
-                                                    <button class="btn btn-outline-warning btn-sm mt-1" id="btn-novo-codigo">
+                                                    <button class="btn btn-outline-warning btn-sm mt-1 btn-novo-codigo" data-session="{{ $session }}">
                                                         <i class="fas fa-redo mr-1"></i>Gerar novo código
                                                     </button>
                                                 </div>
-
-                                                <div id="area-phone-erro" style="display:none;" class="py-3">
+                                                <div id="area-phone-erro-{{ $session }}" style="display:none;" class="py-3">
                                                     <i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>
-                                                    <p class="mt-2 text-danger" id="phone-erro-text">Erro ao gerar código.</p>
-                                                    <button class="btn btn-warning btn-sm" id="btn-phone-tentar-novamente">
+                                                    <p class="mt-2 text-danger" id="phone-erro-text-{{ $session }}">Erro ao gerar código.</p>
+                                                    <button class="btn btn-warning btn-sm btn-phone-tentar-novamente" data-session="{{ $session }}">
                                                         <i class="fas fa-redo mr-1"></i>Tentar novamente
                                                     </button>
                                                 </div>
-
                                             </div>
 
                                         </div>
                                     </div>
 
                                 </div>
+                                @endforeach
                             </div>
                         </div>
 
@@ -392,228 +391,244 @@
 $(document).ready(function () {
 
     // ============================================================
-    // TAB CONEXÃO
+    // TAB CONEXÃO — MULTI-SESSÃO
     // ============================================================
 
-    const INTERVAL_STATUS = 4000;
-    const INTERVAL_QRCODE = 5000;
-    let timerStatus   = null;
-    let timerQrCode   = null;
-    let tentativas    = 0;
-    let tentativasQr  = 0;
+    function createSessionWidget(session) {
+        var INTERVAL_STATUS = 4000;
+        var INTERVAL_QRCODE = 5000;
+        var INTERVAL_PHONE  = 3000;
+        var MAX_QR          = 5;
+        var MAX_CODE        = 30;
 
-    function mostrarLoading(texto) {
-        $('#area-loading').show();
-        $('#area-qrcode').hide();
-        $('#area-erro').hide();
-        $('#loading-text').text(texto || 'Aguarde...');
-    }
+        var timerStatus    = null;
+        var timerQrCode    = null;
+        var timerPhoneCode = null;
+        var tentativas     = 0;
+        var tentativasQr   = 0;
+        var tentativasCode = 0;
 
-    function mostrarQrCode(base64) {
-        $('#area-loading').hide();
-        $('#area-erro').hide();
-        $('#area-qrcode').show();
-        $('#qrcode-img').attr('src', base64.startsWith('data:') ? base64 : 'data:image/png;base64,' + base64);
-    }
+        function sid(id)    { return '#' + id + '-' + session; }
+        function addSess(u) { return u + (u.indexOf('?') === -1 ? '?' : '&') + 'session=' + session; }
 
-    function mostrarErro(msg) {
-        $('#area-loading').hide();
-        $('#area-qrcode').hide();
-        $('#area-erro').show();
-        $('#erro-text').text(msg || 'Erro ao conectar com o servidor.');
-        pararTimers();
-    }
+        function pararTimers() {
+            clearInterval(timerStatus);
+            clearInterval(timerQrCode);
+            timerStatus = timerQrCode = null;
+        }
 
-    function mostrarConectado(data) {
-        pararTimers();
-        $('#card-qrcode').hide();
-        $('#card-connected').css('display', '').show();
-        const versao = data?.version ? ' · v' + data.version : '';
-        $('#status-label').text('Sessão: {{ config('services.wppconnect.session') }}' + versao);
-    }
+        function pararTimerPhone() {
+            clearInterval(timerPhoneCode);
+            timerPhoneCode = null;
+            tentativasCode = 0;
+        }
 
-    function pararTimers() {
-        clearInterval(timerStatus);
-        clearInterval(timerQrCode);
-    }
+        function mostrarLoading(texto) {
+            $(sid('area-loading')).show();
+            $(sid('area-qrcode')).hide();
+            $(sid('area-erro')).hide();
+            $(sid('loading-text')).text(texto || 'Aguarde...');
+        }
 
-    function verificarStatus() {
-        $.get('{{ route('wppconnect.status') }}')
-            .done(function (res) {
-                if (res.connected) mostrarConectado(res.data);
-            })
-            .fail(function () {
-                tentativas++;
-                if (tentativas >= 5) mostrarErro('Servidor WppConnect não está respondendo.');
-            });
-    }
+        function mostrarQrCode(base64) {
+            $(sid('area-loading')).hide();
+            $(sid('area-erro')).hide();
+            $(sid('area-qrcode')).show();
+            var src = base64.startsWith('data:') ? base64 : 'data:image/png;base64,' + base64;
+            $(sid('qrcode-img')).attr('src', src);
+        }
 
-    const MAX_TENTATIVAS_QR = 5;
-
-    function buscarQrCode() {
-        if (tentativasQr >= MAX_TENTATIVAS_QR) {
+        function mostrarErro(msg) {
+            $(sid('area-loading')).hide();
+            $(sid('area-qrcode')).hide();
+            $(sid('area-erro')).show();
+            $(sid('erro-text')).text(msg || 'Erro ao conectar.');
             pararTimers();
-            mostrarErro('QR Code não gerado após ' + MAX_TENTATIVAS_QR + ' tentativas. Verifique se o servidor WppConnect está ativo e tente novamente.');
-            return;
         }
-        tentativasQr++;
-        $.get('{{ route('wppconnect.qrcode') }}')
-            .done(function (res) {
-                if (res.success && res.data?.qrcode) {
-                    tentativasQr = 0;
-                    mostrarQrCode(res.data.qrcode);
-                } else {
-                    mostrarLoading('Aguardando QR Code... (tentativa ' + tentativasQr + ' de ' + MAX_TENTATIVAS_QR + ')');
-                }
-            })
-            .fail(function () {
-                mostrarLoading('Erro ao buscar QR Code (tentativa ' + tentativasQr + ' de ' + MAX_TENTATIVAS_QR + ')');
-            });
-    }
 
-    function iniciarSessao() {
-        mostrarLoading('Iniciando sessão...');
-        tentativas = 0;
-        $.post('{{ route('wppconnect.start-session') }}', { _token: '{{ csrf_token() }}' })
-            .done(function () {
-                tentativasQr = 0;
-                mostrarLoading('Gerando QR Code...');
-                setTimeout(function () {
-                    buscarQrCode();
-                    timerStatus = setInterval(verificarStatus, INTERVAL_STATUS);
-                    timerQrCode = setInterval(buscarQrCode,  INTERVAL_QRCODE);
-                }, 2000);
-            })
-            .fail(function (xhr) {
-                const msg = xhr.responseJSON?.message ?? 'Falha ao iniciar sessão.';
-                console.error('[WppConnect] iniciarSessao falhou', {
-                    status:   xhr.status,
-                    statusText: xhr.statusText,
-                    message:  msg,
-                    response: xhr.responseJSON ?? xhr.responseText,
-                });
-                mostrarErro(msg);
-            });
-    }
+        function mostrarConectado(data) {
+            pararTimers();
+            pararTimerPhone();
+            $(sid('card-qrcode')).hide();
+            $(sid('card-connected')).removeClass('d-none').show();
+            var versao = data && data.version ? ' · v' + data.version : '';
+            $(sid('status-label')).text('Sessão: ' + session + versao);
+        }
 
-    $('#btn-tentar-novamente').on('click', function () { iniciarSessao(); });
-
-    // ============================================================
-    // MODO NÚMERO DE TELEFONE
-    // ============================================================
-
-    $('#btn-modo-qrcode').on('click', function () {
-        if ($('#btn-modo-qrcode').hasClass('active')) return;
-        $('#btn-modo-qrcode').addClass('active').removeClass('btn-outline-warning').addClass('btn-warning');
-        $('#btn-modo-phone').removeClass('active').addClass('btn-outline-warning').removeClass('btn-warning');
-        pararTimerPhoneCode();
-        $('#modo-phone').hide();
-        $('#modo-qrcode').show();
-        tentativas = 0;
-        tentativasQr = 0;
-        mostrarLoading('Encerrando sessão anterior...');
-        $.post('{{ route('wppconnect.logout-session') }}', { _token: '{{ csrf_token() }}' })
-            .always(function () {
-                mostrarLoading('Aguardando encerramento...');
-                setTimeout(function () { iniciarSessao(); }, 2000);
-            });
-    });
-
-    $('#btn-modo-phone').on('click', function () {
-        $('#btn-modo-phone').addClass('active').removeClass('btn-outline-warning').addClass('btn-warning');
-        $('#btn-modo-qrcode').removeClass('active').addClass('btn-outline-warning').removeClass('btn-warning');
-        pararTimers();
-        $('#modo-qrcode').hide();
-        $('#modo-phone').show();
-        $('#area-phone-form').show();
-        $('#area-phone-loading').hide();
-        $('#area-phone-code').hide();
-        $('#area-phone-erro').hide();
-    });
-
-    let timerPhoneCode = null;
-    const INTERVAL_PHONE_CODE = 3000;
-    const MAX_TENTATIVAS_CODE = 30; // 30 x 3s = 90s aguardando o código
-    let tentativasCode = 0;
-
-    function pararTimerPhoneCode() {
-        clearInterval(timerPhoneCode);
-        timerPhoneCode = null;
-        tentativasCode = 0;
-    }
-
-    function aguardarPhoneCode() {
-        pararTimerPhoneCode();
-        tentativasCode = 0;
-        timerPhoneCode = setInterval(function () {
-            tentativasCode++;
-            $.get('{{ route('wppconnect.phone-code') }}')
+        function verificarStatus() {
+            $.get(addSess('{{ route('wppconnect.status') }}'))
                 .done(function (res) {
-                    if (res.code) {
-                        pararTimerPhoneCode();
-                        $('#pairing-code').text(res.code);
-                        $('#area-phone-loading').hide();
-                        $('#area-phone-code').show();
-                        timerStatus = setInterval(function () {
-                            $.get('{{ route('wppconnect.status') }}').done(function (r) {
-                                if (r.connected) {
-                                    pararTimerPhoneCode();
-                                    mostrarConectado(r.data);
-                                }
-                            });
-                        }, INTERVAL_STATUS);
-                    } else if (tentativasCode >= MAX_TENTATIVAS_CODE) {
-                        pararTimerPhoneCode();
-                        $('#area-phone-loading').hide();
-                        $('#phone-erro-text').text('Tempo esgotado. O código não foi gerado.');
-                        $('#area-phone-erro').show();
-                    }
+                    if (res.connected) mostrarConectado(res.data);
+                })
+                .fail(function () {
+                    tentativas++;
+                    if (tentativas >= 5) mostrarErro('Servidor WppConnect não está respondendo.');
                 });
-        }, INTERVAL_PHONE_CODE);
-    }
-
-    function gerarCodigoPareamento() {
-        const phone = $('#input-phone').val().trim().replace(/\D/g, '');
-        if (phone.length < 10) {
-            Swal.fire('Atenção', 'Informe o número com DDD e DDI (ex: 5511999999999).', 'warning');
-            return;
         }
 
-        pararTimers();
-        pararTimerPhoneCode();
-        $('#area-phone-form').hide();
-        $('#area-phone-code').hide();
-        $('#area-phone-erro').hide();
-        $('#area-phone-loading').show();
+        function buscarQrCode() {
+            if (tentativasQr >= MAX_QR) {
+                pararTimers();
+                mostrarErro('QR Code não gerado após ' + MAX_QR + ' tentativas. Verifique se o servidor WppConnect está ativo.');
+                return;
+            }
+            tentativasQr++;
+            $.get(addSess('{{ route('wppconnect.qrcode') }}'))
+                .done(function (res) {
+                    if (res.success && res.data && res.data.qrcode) {
+                        tentativasQr = 0;
+                        mostrarQrCode(res.data.qrcode);
+                    } else {
+                        mostrarLoading('Aguardando QR Code... (' + tentativasQr + '/' + MAX_QR + ')');
+                    }
+                })
+                .fail(function () {
+                    mostrarLoading('Erro ao buscar QR Code (' + tentativasQr + '/' + MAX_QR + ')');
+                });
+        }
 
-        $.post('{{ route('wppconnect.start-session-phone') }}', {
-            _token: '{{ csrf_token() }}',
-            phone: phone,
-        })
-        .done(function () {
-            aguardarPhoneCode();
-        })
-        .fail(function (xhr) {
-            $('#area-phone-loading').hide();
-            const msg = xhr.responseJSON?.message ?? 'Falha ao iniciar sessão.';
-            $('#phone-erro-text').text(msg);
-            $('#area-phone-erro').show();
+        function iniciarSessao() {
+            mostrarLoading('Iniciando sessão...');
+            tentativas = 0;
+            $.post(addSess('{{ route('wppconnect.start-session') }}'), { _token: '{{ csrf_token() }}' })
+                .done(function () {
+                    tentativasQr = 0;
+                    mostrarLoading('Gerando QR Code...');
+                    setTimeout(function () {
+                        buscarQrCode();
+                        timerStatus = setInterval(verificarStatus, INTERVAL_STATUS);
+                        timerQrCode = setInterval(buscarQrCode, INTERVAL_QRCODE);
+                    }, 2000);
+                })
+                .fail(function (xhr) {
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Falha ao iniciar sessão.';
+                    mostrarErro(msg);
+                });
+        }
+
+        function aguardarPhoneCode() {
+            pararTimerPhone();
+            tentativasCode = 0;
+            timerPhoneCode = setInterval(function () {
+                tentativasCode++;
+                $.get(addSess('{{ route('wppconnect.phone-code') }}'))
+                    .done(function (res) {
+                        if (res.code) {
+                            pararTimerPhone();
+                            $(sid('pairing-code')).text(res.code);
+                            $(sid('area-phone-loading')).hide();
+                            $(sid('area-phone-code')).show();
+                            timerStatus = setInterval(function () {
+                                $.get(addSess('{{ route('wppconnect.status') }}')).done(function (r) {
+                                    if (r.connected) mostrarConectado(r.data);
+                                });
+                            }, INTERVAL_STATUS);
+                        } else if (tentativasCode >= MAX_CODE) {
+                            pararTimerPhone();
+                            $(sid('area-phone-loading')).hide();
+                            $(sid('phone-erro-text')).text('Tempo esgotado. O código não foi gerado.');
+                            $(sid('area-phone-erro')).show();
+                        }
+                    });
+            }, INTERVAL_PHONE);
+        }
+
+        function gerarCodigoPareamento() {
+            var phone = $(sid('input-phone')).val().trim().replace(/\D/g, '');
+            if (phone.length < 10) {
+                Swal.fire('Atenção', 'Informe o número com DDD e DDI (ex: 5511999999999).', 'warning');
+                return;
+            }
+            pararTimers();
+            pararTimerPhone();
+            $(sid('area-phone-form')).hide();
+            $(sid('area-phone-code')).hide();
+            $(sid('area-phone-erro')).hide();
+            $(sid('area-phone-loading')).show();
+
+            $.post(addSess('{{ route('wppconnect.start-session-phone') }}'), {
+                _token: '{{ csrf_token() }}',
+                phone:  phone,
+            }).done(function () {
+                aguardarPhoneCode();
+            }).fail(function (xhr) {
+                $(sid('area-phone-loading')).hide();
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Falha ao iniciar sessão.';
+                $(sid('phone-erro-text')).text(msg);
+                $(sid('area-phone-erro')).show();
+            });
+        }
+
+        $(document).on('click', '.btn-tentar-novamente[data-session="' + session + '"]', iniciarSessao);
+
+        $(document).on('click', '.btn-modo-qrcode[data-session="' + session + '"]', function () {
+            if ($(this).hasClass('active')) return;
+            $(this).addClass('active').removeClass('btn-outline-warning').addClass('btn-warning');
+            $('.btn-modo-phone[data-session="' + session + '"]').removeClass('active').addClass('btn-outline-warning').removeClass('btn-warning');
+            pararTimerPhone();
+            $(sid('modo-phone')).hide();
+            $(sid('modo-qrcode')).show();
+            tentativas = 0; tentativasQr = 0;
+            mostrarLoading('Encerrando sessão anterior...');
+            $.post(addSess('{{ route('wppconnect.logout-session') }}'), { _token: '{{ csrf_token() }}' })
+                .always(function () {
+                    mostrarLoading('Aguardando encerramento...');
+                    setTimeout(iniciarSessao, 2000);
+                });
         });
-    }
 
-    $('#btn-gerar-codigo').on('click', gerarCodigoPareamento);
+        $(document).on('click', '.btn-modo-phone[data-session="' + session + '"]', function () {
+            if ($(this).hasClass('active')) return;
+            $(this).addClass('active').removeClass('btn-outline-warning').addClass('btn-warning');
+            $('.btn-modo-qrcode[data-session="' + session + '"]').removeClass('active').addClass('btn-outline-warning').removeClass('btn-warning');
+            pararTimers();
+            $(sid('modo-qrcode')).hide();
+            $(sid('modo-phone')).show();
+            $(sid('area-phone-form')).show();
+            $(sid('area-phone-loading')).hide();
+            $(sid('area-phone-code')).hide();
+            $(sid('area-phone-erro')).hide();
+        });
 
-    $('#btn-novo-codigo, #btn-phone-tentar-novamente').on('click', function () {
-        pararTimers();
-        $('#area-phone-code').hide();
-        $('#area-phone-erro').hide();
-        $('#area-phone-form').show();
-    });
+        $(document).on('click', '.btn-gerar-codigo[data-session="' + session + '"]', gerarCodigoPareamento);
 
-    $.get('{{ route('wppconnect.status') }}')
-        .done(function (res) {
+        $(document).on('click', '.btn-novo-codigo[data-session="' + session + '"], .btn-phone-tentar-novamente[data-session="' + session + '"]', function () {
+            pararTimers();
+            $(sid('area-phone-code')).hide();
+            $(sid('area-phone-erro')).hide();
+            $(sid('area-phone-form')).show();
+        });
+
+        $(document).on('click', '.btn-logout-session[data-session="' + session + '"]', function () {
+            Swal.fire({
+                title: 'Desconectar sessão?',
+                text: 'A sessão "' + session + '" será encerrada.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Desconectar',
+                cancelButtonText: 'Cancelar',
+            }).then(function (r) {
+                if (!r.isConfirmed) return;
+                $.post(addSess('{{ route('wppconnect.logout-session') }}'), { _token: '{{ csrf_token() }}' })
+                    .done(function () {
+                        $(sid('card-connected')).hide().addClass('d-none');
+                        $(sid('card-qrcode')).show();
+                        Swal.fire({ icon: 'success', title: 'Sessão desconectada.', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+                    })
+                    .fail(function () { Swal.fire('Erro', 'Falha ao desconectar.', 'error'); });
+            });
+        });
+
+        // Verificação inicial de status
+        $.get(addSess('{{ route('wppconnect.status') }}')).done(function (res) {
             if (res.connected) mostrarConectado(res.data);
         });
+    }
+
+    @foreach($sessions as $session)
+    createSessionWidget('{{ $session }}');
+    @endforeach
 
     // ============================================================
     // TAB DISPAROS

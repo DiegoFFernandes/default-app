@@ -36,9 +36,13 @@ return [
     ],
 
     'wppconnect' => [
-        'url'     => env('WPPCONNECT_URL', 'http://localhost:21465'),
-        'secret'  => env('WPPCONNECT_SECRET', 'THISISMYSECRET'),
-        'session' => env('WPPCONNECT_SESSION', 'default'),
+        'url'      => env('WPPCONNECT_URL', 'http://localhost:21465'),
+        'secret'   => env('WPPCONNECT_SECRET', 'THISISMYSECRET'),
+        'sessions' => [
+            'comercial' => env('WPPCONNECT_SESSION_COMERCIAL', 'comercial'),
+            'cobranca'  => env('WPPCONNECT_SESSION_COBRANCA',  'cobranca'),
+        ],
+        'session'  => env('WPPCONNECT_SESSION', 'comercial'), // padrão para código legado
     ],
 
     'openai' => [
