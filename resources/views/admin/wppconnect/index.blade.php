@@ -49,9 +49,17 @@
 
                         {{-- Tab: Conexão --}}
                         <div class="tab-pane fade show active" id="pane-conexao" role="tabpanel">
-                            <div class="row">
-                                @foreach($sessions as $session)
-                                <div class="col-md-6 col-lg-4">
+
+                            <div class="mb-3 text-right">
+                                <button class="btn btn-success btn-sm" id="btn-add-conexao">
+                                    <i class="fas fa-plus mr-1"></i>Adicionar Conexão
+                                </button>
+                            </div>
+
+                            <div class="row" id="row-conexoes">
+                                @foreach($sessions as $sess)
+                                @php($session = $sess['name'])
+                                <div class="col-md-6 col-lg-4" id="col-sessao-{{ $session }}">
 
                                     {{-- Conectado --}}
                                     <div class="card card-outline card-success mb-3 d-none" id="card-connected-{{ $session }}">
@@ -62,7 +70,7 @@
                                         </div>
                                         <div class="card-body text-center py-4">
                                             <i class="fab fa-whatsapp text-success" style="font-size:64px;"></i>
-                                            <p class="mt-3 mb-1 font-weight-bold text-capitalize" style="font-size:16px;">{{ $session }}</p>
+                                            <p class="mt-3 mb-1 font-weight-bold" style="font-size:16px;">{{ $sess['label'] }}</p>
                                             <p class="mb-0 text-muted" id="status-label-{{ $session }}">Sessão ativa</p>
                                             <button class="btn btn-sm btn-outline-danger mt-3 btn-logout-session" data-session="{{ $session }}">
                                                 <i class="fas fa-sign-out-alt mr-1"></i>Desconectar
@@ -74,7 +82,12 @@
                                     <div class="card card-outline card-warning mb-3" id="card-qrcode-{{ $session }}">
                                         <div class="card-header text-center">
                                             <h4 class="card-title mb-0">
-                                                <i class="fab fa-whatsapp mr-2"></i>{{ ucfirst($session) }}
+                                                <i class="fab fa-whatsapp mr-2"></i>{{ $sess['label'] }}
+                                                <button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao"
+                                                        data-setor="{{ $sess['setor'] }}" data-label="{{ $sess['label'] }}"
+                                                        title="Excluir conexão">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </h4>
                                             <div class="btn-group btn-group-sm mt-2 mb-1" role="group">
                                                 <button type="button" class="btn btn-outline-warning btn-modo-qrcode" data-session="{{ $session }}">
@@ -158,6 +171,13 @@
 
                                 </div>
                                 @endforeach
+
+                                <div class="col-12 {{ count($sessions) ? 'd-none' : '' }}" id="empty-conexoes">
+                                    <div class="alert alert-light border text-center text-muted mb-0">
+                                        <i class="fab fa-whatsapp mr-1"></i>
+                                        Nenhuma conexão cadastrada. Clique em <strong>Adicionar Conexão</strong> para começar.
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -329,6 +349,37 @@
             </div>
         </div>
     </div>
+
+{{-- Modal: Adicionar Conexão --}}
+<div class="modal fade" id="modal-add-conexao" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fab fa-whatsapp text-success mr-2"></i>Adicionar Conexão
+                </h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-0">
+                    <label class="font-weight-bold mb-1" for="select-setor">Setor</label>
+                    <select id="select-setor" class="form-control">
+                        <option value="">— selecione —</option>
+                    </select>
+                    <small class="form-text text-muted">
+                        Cada setor tem seu próprio número de WhatsApp. Setores já conectados não aparecem na lista.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-sm" id="btn-salvar-conexao">
+                    <i class="fas fa-plus mr-1"></i>Adicionar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- Modal: Prévia da Intenção IA --}}
 <div class="modal fade" id="modal-previa-ia" tabindex="-1" role="dialog">
@@ -626,9 +677,184 @@ $(document).ready(function () {
         });
     }
 
-    @foreach($sessions as $session)
-    createSessionWidget('{{ $session }}');
+    // Evita registrar os handlers duas vezes caso a sessão seja recriada
+    var widgetsIniciados = {};
+
+    function iniciarWidget(session) {
+        if (widgetsIniciados[session]) return;
+        widgetsIniciados[session] = true;
+        createSessionWidget(session);
+    }
+
+    @foreach($sessions as $sess)
+    iniciarWidget('{{ $sess['name'] }}');
     @endforeach
+
+    // ============================================================
+    // ADICIONAR / EXCLUIR CONEXÃO
+    // ============================================================
+
+    // Espelha o markup Blade do card de conexão para sessões criadas em runtime
+    function cardSessaoHtml(setor, name, label) {
+        return '' +
+        '<div class="col-md-6 col-lg-4" id="col-sessao-' + name + '">' +
+            '<div class="card card-outline card-success mb-3 d-none" id="card-connected-' + name + '">' +
+                '<div class="card-header text-center">' +
+                    '<h4 class="card-title mb-0"><i class="fas fa-check-circle text-success mr-2"></i>WhatsApp Conectado</h4>' +
+                '</div>' +
+                '<div class="card-body text-center py-4">' +
+                    '<i class="fab fa-whatsapp text-success" style="font-size:64px;"></i>' +
+                    '<p class="mt-3 mb-1 font-weight-bold" style="font-size:16px;">' + label + '</p>' +
+                    '<p class="mb-0 text-muted" id="status-label-' + name + '">Sessão ativa</p>' +
+                    '<button class="btn btn-sm btn-outline-danger mt-3 btn-logout-session" data-session="' + name + '">' +
+                        '<i class="fas fa-sign-out-alt mr-1"></i>Desconectar</button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="card card-outline card-warning mb-3" id="card-qrcode-' + name + '">' +
+                '<div class="card-header text-center">' +
+                    '<h4 class="card-title mb-0"><i class="fab fa-whatsapp mr-2"></i>' + label +
+                        '<button class="btn btn-xs btn-outline-danger float-right btn-excluir-conexao" ' +
+                                'data-setor="' + setor + '" data-label="' + label + '" title="Excluir conexão">' +
+                            '<i class="fas fa-trash"></i></button>' +
+                    '</h4>' +
+                    '<div class="btn-group btn-group-sm mt-2 mb-1" role="group">' +
+                        '<button type="button" class="btn btn-outline-warning btn-modo-qrcode" data-session="' + name + '">' +
+                            '<i class="fas fa-qrcode mr-1"></i>QR Code</button>' +
+                        '<button type="button" class="btn btn-warning active btn-modo-phone" data-session="' + name + '">' +
+                            '<i class="fas fa-mobile-alt mr-1"></i>Número</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="card-body text-center">' +
+                    '<div id="modo-qrcode-' + name + '" style="display:none;">' +
+                        '<div id="area-loading-' + name + '" class="py-4">' +
+                            '<div class="spinner-border text-warning" role="status"></div>' +
+                            '<p class="mt-2 text-muted" id="loading-text-' + name + '">Verificando conexão...</p>' +
+                        '</div>' +
+                        '<div id="area-qrcode-' + name + '" style="display:none;">' +
+                            '<p class="text-muted mb-2" style="font-size:13px;">Abra o WhatsApp &rarr; <strong>Dispositivos conectados</strong> &rarr; <strong>Conectar dispositivo</strong></p>' +
+                            '<img id="qrcode-img-' + name + '" src="" alt="QR Code" class="img-fluid rounded border" style="max-width:220px; margin:0 auto; display:block;">' +
+                            '<p class="text-muted mt-2" style="font-size:12px;"><i class="fas fa-sync-alt mr-1"></i>QR Code atualiza automaticamente</p>' +
+                        '</div>' +
+                        '<div id="area-erro-' + name + '" style="display:none;" class="py-3">' +
+                            '<i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>' +
+                            '<p class="mt-2 text-danger" id="erro-text-' + name + '">Erro ao conectar.</p>' +
+                            '<button class="btn btn-warning btn-sm btn-tentar-novamente" data-session="' + name + '">' +
+                                '<i class="fas fa-redo mr-1"></i>Tentar novamente</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div id="modo-phone-' + name + '">' +
+                        '<div id="area-phone-form-' + name + '" class="py-3">' +
+                            '<p class="text-muted mb-3" style="font-size:13px;">Abra o WhatsApp &rarr; <strong>Aparelhos vinculados</strong> &rarr; <strong>Vincular com número de telefone</strong></p>' +
+                            '<div class="input-group mb-3" style="max-width:260px; margin:0 auto;">' +
+                                '<div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-mobile-alt"></i></span></div>' +
+                                '<input type="text" id="input-phone-' + name + '" class="form-control" placeholder="55119XXXXXXXX" maxlength="15">' +
+                            '</div>' +
+                            '<button class="btn btn-warning btn-gerar-codigo" data-session="' + name + '">' +
+                                '<i class="fas fa-key mr-1"></i>Gerar Código</button>' +
+                        '</div>' +
+                        '<div id="area-phone-loading-' + name + '" style="display:none;" class="py-4">' +
+                            '<div class="spinner-border text-warning" role="status"></div>' +
+                            '<p class="mt-2 text-muted">Gerando código de pareamento...</p>' +
+                        '</div>' +
+                        '<div id="area-phone-code-' + name + '" style="display:none;" class="py-3">' +
+                            '<p class="text-muted mb-2" style="font-size:13px;">Digite este código no WhatsApp:</p>' +
+                            '<div class="display-4 font-weight-bold text-warning letter-spacing-lg" id="pairing-code-' + name + '">----</div>' +
+                            '<p class="text-muted mt-3" style="font-size:12px;"><i class="fas fa-clock mr-1"></i>O código expira em alguns minutos</p>' +
+                            '<button class="btn btn-outline-warning btn-sm mt-1 btn-novo-codigo" data-session="' + name + '">' +
+                                '<i class="fas fa-redo mr-1"></i>Gerar novo código</button>' +
+                        '</div>' +
+                        '<div id="area-phone-erro-' + name + '" style="display:none;" class="py-3">' +
+                            '<i class="fas fa-exclamation-triangle text-danger" style="font-size:40px;"></i>' +
+                            '<p class="mt-2 text-danger" id="phone-erro-text-' + name + '">Erro ao gerar código.</p>' +
+                            '<button class="btn btn-warning btn-sm btn-phone-tentar-novamente" data-session="' + name + '">' +
+                                '<i class="fas fa-redo mr-1"></i>Tentar novamente</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function atualizarEmptyState() {
+        $('#empty-conexoes').toggleClass('d-none', $('#row-conexoes [id^="col-sessao-"]').length > 0);
+    }
+
+    $('#btn-add-conexao').on('click', function () {
+        var $sel = $('#select-setor');
+        $sel.html('<option value="">Carregando...</option>').prop('disabled', true);
+        $('#modal-add-conexao').modal('show');
+
+        $.get('{{ route('wppconnect.sessoes.disponiveis') }}')
+            .done(function (res) {
+                if (!res.setores || !res.setores.length) {
+                    $sel.html('<option value="">Todos os setores já possuem conexão</option>');
+                    return;
+                }
+                var opts = ['<option value="">— selecione —</option>'];
+                res.setores.forEach(function (s) {
+                    opts.push('<option value="' + s.setor + '">' + s.label + '</option>');
+                });
+                $sel.html(opts.join('')).prop('disabled', false);
+            })
+            .fail(function () {
+                $sel.html('<option value="">Erro ao carregar setores</option>');
+            });
+    });
+
+    $('#btn-salvar-conexao').on('click', function () {
+        var setor = $('#select-setor').val();
+        if (!setor) {
+            Swal.fire('Atenção', 'Selecione o setor da nova conexão.', 'warning');
+            return;
+        }
+
+        var btn = $(this).prop('disabled', true);
+
+        $.post('{{ route('wppconnect.sessoes.store') }}', {
+            _token: '{{ csrf_token() }}',
+            setor:  setor,
+        }).done(function (res) {
+            $('#modal-add-conexao').modal('hide');
+            var s = res.sessao;
+            $('#empty-conexoes').before(cardSessaoHtml(s.setor, s.name, s.label));
+            atualizarEmptyState();
+            iniciarWidget(s.name);
+            Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+        }).fail(function (xhr) {
+            var msg = (xhr.responseJSON && (xhr.responseJSON.errors || xhr.responseJSON.message)) || 'Falha ao criar conexão.';
+            if (typeof msg === 'object') msg = Object.values(msg).flat().join(' ');
+            Swal.fire('Erro', msg, 'error');
+        }).always(function () {
+            btn.prop('disabled', false);
+        });
+    });
+
+    $(document).on('click', '.btn-excluir-conexao', function () {
+        var setor = $(this).data('setor');
+        var label = $(this).data('label');
+
+        Swal.fire({
+            title: 'Excluir conexão?',
+            text: 'A conexão "' + label + '" será desconectada e removida.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: 'Sim, excluir',
+            cancelButtonText: 'Cancelar',
+        }).then(function (r) {
+            if (!r.isConfirmed) return;
+            $.post('{{ url('wppconnect/sessoes') }}/' + setor, {
+                _token:  '{{ csrf_token() }}',
+                _method: 'DELETE',
+            }).done(function (res) {
+                $('#row-conexoes').find('[data-setor="' + setor + '"]').closest('[id^="col-sessao-"]').remove();
+                atualizarEmptyState();
+                Swal.fire({ icon: 'success', title: res.success, toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
+            }).fail(function (xhr) {
+                Swal.fire('Erro', (xhr.responseJSON && xhr.responseJSON.errors) || 'Falha ao excluir conexão.', 'error');
+            });
+        });
+    });
 
     // ============================================================
     // TAB DISPAROS

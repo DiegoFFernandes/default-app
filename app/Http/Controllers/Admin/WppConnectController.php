@@ -8,12 +8,15 @@ use App\Models\User;
 use App\Models\WppDisparo;
 use App\Models\WppLidPendente;
 use App\Models\WppParametro;
+use App\Models\WppSessao;
 use App\Services\IAService;
 use App\Services\WppConnectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class WppConnectController extends Controller
 {
@@ -21,29 +24,83 @@ class WppConnectController extends Controller
 
     public function index()
     {
-        $sessions = array_keys(config('services.wppconnect.sessions', []));
+        $sessions = WppSessao::paraView();
         return view('admin.wppconnect.index', compact('sessions'));
+    }
+
+    // Resolve o nome da sessão a partir do ?session= — só aceita sessões cadastradas
+    private function resolveSessionName(Request $request): ?string
+    {
+        $name = $request->input('session');
+
+        return $name && WppSessao::where('session_name', $name)->exists() ? $name : null;
     }
 
     private function resolveWpp(Request $request): WppConnectService
     {
-        $key      = $request->input('session');
-        $sessions = config('services.wppconnect.sessions', []);
+        $name = $this->resolveSessionName($request);
 
-        if ($key && isset($sessions[$key])) {
-            return new WppConnectService($sessions[$key]);
-        }
-
-        return $this->wpp;
+        return $name ? new WppConnectService($name) : $this->wpp;
     }
 
     public function phoneCode(Request $request): JsonResponse
     {
-        $key      = $request->input('session');
-        $sessions = config('services.wppconnect.sessions', []);
-        $session  = ($key && isset($sessions[$key])) ? $sessions[$key] : config('services.wppconnect.session');
-        $code     = Cache::get("wppconnect_phone_code_{$session}");
+        $session = $this->resolveSessionName($request) ?? config('services.wppconnect.session');
+        $code    = Cache::get("wppconnect_phone_code_{$session}");
         return response()->json(['code' => $code]);
+    }
+
+    // -------------------------------------------------------
+    // Conexões (sessões) cadastradas
+    // -------------------------------------------------------
+
+    public function setoresDisponiveis(): JsonResponse
+    {
+        return response()->json(['setores' => WppSessao::setoresDisponiveis()]);
+    }
+
+    public function storeSessao(Request $request): JsonResponse
+    {
+        $request->validate([
+            'setor' => ['required', 'string', Rule::in(array_keys(WppSessao::SETORES)), 'unique:wpp_sessoes,setor'],
+        ], [
+            'setor.unique' => 'Este setor já possui uma conexão cadastrada.',
+        ]);
+
+        $sessao = WppSessao::create([
+            'setor'        => $request->setor,
+            'session_name' => $request->setor, // slug do setor = nome da sessão no wppconnect
+        ]);
+
+        return response()->json([
+            'success' => "Conexão \"{$sessao->label}\" criada. Faça o pareamento pelo QR Code ou número.",
+            'sessao'  => ['setor' => $sessao->setor, 'name' => $sessao->session_name, 'label' => $sessao->label],
+        ]);
+    }
+
+    public function destroySessao(string $setor): JsonResponse
+    {
+        $sessao = WppSessao::where('setor', $setor)->first();
+
+        if (! $sessao) {
+            return response()->json(['errors' => 'Conexão não encontrada.'], 404);
+        }
+
+        // Encerra a sessão no wppconnect antes de remover o cadastro; se o servidor
+        // estiver fora do ar o cadastro é removido do mesmo jeito.
+        try {
+            (new WppConnectService($sessao->session_name))->logoutSession();
+        } catch (\Throwable $e) {
+            Log::warning('WppConnect: falha ao encerrar sessão antes de excluir', [
+                'session' => $sessao->session_name,
+                'erro'    => $e->getMessage(),
+            ]);
+        }
+
+        $label = $sessao->label;
+        $sessao->delete();
+
+        return response()->json(['success' => "Conexão \"{$label}\" removida."]);
     }
 
     public function startSessionPhone(Request $request): JsonResponse
