@@ -26,7 +26,11 @@
 
         @include('admin.follow-up.modals.modal-horario-contexto')
 
+        @include('admin.follow-up.modals.modal-whatsapp-contexto')
+
         @include('admin.follow-up.modals.modal-editar-email-disparo')
+
+        @include('admin.follow-up.modals.modal-editar-telefone-disparo')
     </section>
 @stop
 @section('css')
@@ -75,10 +79,12 @@
             disparoListContextos: "{{ route('disparo-automatico.contextos') }}",
             disparoToggleContexto: "{{ route('disparo-automatico.contextos.toggle', ['id' => ':id']) }}",
             disparoHorarioContexto: "{{ route('disparo-automatico.contextos.horario', ['id' => ':id']) }}",
+            disparoWhatsAppContexto: "{{ route('disparo-automatico.contextos.whatsapp', ['id' => ':id']) }}",
             disparoListEnvios: "{{ route('disparo-automatico.envios') }}",
             disparoCriarEnvioPendente: "{{ route('disparo-automatico.envios.criar-pendente') }}",
             disparoReenviarEnvio: "{{ route('disparo-automatico.envios.reenviar', ['id' => ':id']) }}",
             disparoAtualizarEmailEnvio: "{{ route('disparo-automatico.envios.email', ['id' => ':id']) }}",
+            disparoAtualizarTelefoneEnvio: "{{ route('disparo-automatico.envios.telefone', ['id' => ':id']) }}",
         };
     </script>
     <script src="{{ asset('js/dashboard/followUp/junsoft.js') }}?v={{ time() }}"></script>

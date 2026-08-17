@@ -31,30 +31,39 @@
                             <dt class="col-sm-2">Cliente</dt>
                             <dd class="col-sm-10">{{ $envio->CD_PESSOA }} - {{ $envio->NM_PESSOA }}</dd>
 
-                            <dt class="col-sm-2">Destinatário</dt>
-                            <dd class="col-sm-10">{{ $envio->DS_EMAILDEST }}</dd>
+                            @if ($contexto->TP_CANAL === 'W')
+                                <dt class="col-sm-2">Telefone</dt>
+                                <dd class="col-sm-10">{{ $envio->DS_TELEFONE }}</dd>
+                            @else
+                                <dt class="col-sm-2">Destinatário</dt>
+                                <dd class="col-sm-10">{{ $envio->DS_EMAILDEST }}</dd>
 
-                            <dt class="col-sm-2">Cópia para</dt>
-                            <dd class="col-sm-10">
-                                @if ($envio->DS_EMAILCOPIA)
-                                    {{ $envio->DS_EMAILCOPIA }}
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </dd>
+                                <dt class="col-sm-2">Cópia para</dt>
+                                <dd class="col-sm-10">
+                                    @if ($envio->DS_EMAILCOPIA)
+                                        {{ $envio->DS_EMAILCOPIA }}
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </dd>
 
-                            <dt class="col-sm-2">Assunto</dt>
-                            <dd class="col-sm-10">{{ $envio->DS_ASSUNTO }}</dd>
+                                <dt class="col-sm-2">Assunto</dt>
+                                <dd class="col-sm-10">{{ $envio->DS_ASSUNTO }}</dd>
+                            @endif
                         </dl>
                     </div>
                 </div>
 
                 <div class="card card-outline card-info">
                     <div class="card-header">
-                        <h3 class="card-title">Corpo do E-mail</h3>
+                        <h3 class="card-title">{{ $contexto->TP_CANAL === 'W' ? 'Mensagem (WhatsApp)' : 'Corpo do E-mail' }}</h3>
                     </div>
                     <div class="card-body p-0">
-                        <iframe srcdoc="{{ $email['corpo'] }}" style="width:100%; height:420px; border:0;"></iframe>
+                        @if ($contexto->TP_CANAL === 'W')
+                            <pre class="p-3 mb-0" style="white-space:pre-wrap; font-family:inherit;">{{ $email['corpo'] }}</pre>
+                        @else
+                            <iframe srcdoc="{{ $email['corpo'] }}" style="width:100%; height:420px; border:0;"></iframe>
+                        @endif
                     </div>
                 </div>
 

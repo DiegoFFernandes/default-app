@@ -16,9 +16,13 @@ class DisparoContexto extends Model
                 CD_CONTEXTO,
                 DS_CONTEXTO,
                 CD_HANDLER,
+                TP_CANAL,
                 HR_EXECUCAO,
                 NR_TENTATIVAS,
                 NR_INTERVALOHORAS,
+                NR_LIMITEDIARIO,
+                HR_JANELAINICIO,
+                HR_JANELAFIM,
                 ST_ATIVO,
                 DT_INICIOENVIO,
                 DT_ULTIMAEXECUCAO,
@@ -31,7 +35,8 @@ class DisparoContexto extends Model
     public function find(int $id)
     {
         $row = DB::connection('firebird')->selectOne("
-            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, HR_EXECUCAO, NR_TENTATIVAS, NR_INTERVALOHORAS,
+            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, TP_CANAL, HR_EXECUCAO, NR_TENTATIVAS, NR_INTERVALOHORAS,
+                   NR_LIMITEDIARIO, HR_JANELAINICIO, HR_JANELAFIM,
                    ST_ATIVO, DT_INICIOENVIO, DT_ULTIMAEXECUCAO, DT_PROXIMAEXECUCAO
             FROM DISPARO_CONTEXTO
             WHERE CD_CONTEXTO = :id
@@ -63,8 +68,39 @@ class DisparoContexto extends Model
                    DT_INICIOENVIO, DT_ULTIMAEXECUCAO, CURRENT_TIMESTAMP AS DT_AGORA
             FROM DISPARO_CONTEXTO
             WHERE ST_ATIVO = 'S'
+                AND TP_CANAL = 'E'
                 {$filtroHorario}
         "));
+    }
+
+    /**
+     * Contextos WhatsApp ativos - sem DT_PROXIMAEXECUCAO (esse canal nao usa
+     * NR_INTERVALOHORAS/HR_EXECUCAO): o comando de WhatsApp roda com um tick
+     * proprio e mais frequente, e decide envio a envio (ver
+     * ExecutarDisparosWhatsApp) usando NR_LIMITEDIARIO/HR_JANELA* daqui.
+     */
+    public function ativosWpp(): array
+    {
+        return Helper::ConvertFormatText(DB::connection('firebird')->select("
+            SELECT CD_CONTEXTO, DS_CONTEXTO, CD_HANDLER, NR_TENTATIVAS, NR_LIMITEDIARIO,
+                   HR_JANELAINICIO, HR_JANELAFIM, DT_INICIOENVIO, DT_ULTIMAEXECUCAO,
+                   CURRENT_TIMESTAMP AS DT_AGORA
+            FROM DISPARO_CONTEXTO
+            WHERE ST_ATIVO = 'S'
+                AND TP_CANAL = 'W'
+        "));
+    }
+
+    /**
+     * Avança so a marca d'agua (usada por gerarPendentes()) sem mexer em
+     * DT_PROXIMAEXECUCAO - o canal WhatsApp nao usa esse agendamento, cada
+     * tick do comando so precisa saber "notas registradas depois de quando".
+     */
+    public function marcarUltimaExecucao(int $id, string $dtAgora): void
+    {
+        DB::connection('firebird')->statement("
+            UPDATE DISPARO_CONTEXTO SET DT_ULTIMAEXECUCAO = :dt WHERE CD_CONTEXTO = :id
+        ", ['dt' => $dtAgora, 'id' => $id]);
     }
 
     /**
@@ -172,5 +208,14 @@ class DisparoContexto extends Model
         DB::connection('firebird')->statement("
             UPDATE DISPARO_CONTEXTO SET HR_EXECUCAO = :horario, NR_INTERVALOHORAS = :intervalo WHERE CD_CONTEXTO = :id
         ", ['horario' => $horario, 'intervalo' => $intervaloHoras, 'id' => $id]);
+    }
+
+    public function updateWhatsApp(int $id, int $limiteDiario, string $janelaInicio, string $janelaFim): void
+    {
+        DB::connection('firebird')->statement("
+            UPDATE DISPARO_CONTEXTO
+            SET NR_LIMITEDIARIO = :limite, HR_JANELAINICIO = :inicio, HR_JANELAFIM = :fim
+            WHERE CD_CONTEXTO = :id
+        ", ['limite' => $limiteDiario, 'inicio' => $janelaInicio, 'fim' => $janelaFim, 'id' => $id]);
     }
 }

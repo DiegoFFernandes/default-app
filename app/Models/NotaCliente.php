@@ -41,6 +41,7 @@ class NotaCliente extends Model
         EE.DS_COMPLEMENTO DS_COMPEMPRESA,
         ME.DS_MUNICIPIO DS_MUNICIPIOEMP,
         EE.NR_FONE NR_FONEEMPRESA,
+        EE.NR_CELULAR NR_CELULAREMPRESA,
         EE.NR_FAX NR_FAXEMPRESA,
         --COALESCE(CF.DS_LOGOTIPO, PA.DS_LOGOTIPO) DS_LOGOTIPO,
         COALESCE(PU.NM_PESSOA, U.NM_USUARIO) NM_USUARIO,
@@ -284,8 +285,11 @@ class NotaCliente extends Model
                 DE.CD_ENVIO,
                 DE.CD_CONTEXTO,
                 DC.DS_CONTEXTO,
-                
+                DC.TP_CANAL,
+                DC.CD_HANDLER,
+
                 COALESCE(DE.DS_EMAILDEST, P.DS_EMAIL) DS_EMAILDEST,
+                DE.DS_TELEFONE,
                 DE.NR_TENTATIVAS,
                 DE.DT_ENVIO,
                 DE.DS_MOTIVO,

@@ -32,6 +32,7 @@
                                 <option value="E">Enviado</option>
                                 <option value="V">Enviado c/ Falha</option>
                                 <option value="F">Falha</option>
+                                <option value="L">Limite Atingido</option>
                             </select>
                         </div>
                         <div class="col-md-4 mb-2">

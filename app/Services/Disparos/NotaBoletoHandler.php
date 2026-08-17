@@ -2,21 +2,18 @@
 
 namespace App\Services\Disparos;
 
-use App\Models\BoletoCliente;
+use App\Mail\DisparoAutomaticoMail;
 use App\Models\DisparoEnvio;
 use App\Models\NotaCliente;
-use App\Services\Nota\NotaLayoutData;
-use App\Services\Pdf\ChromePdfService;
-use Helper;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 
 class NotaBoletoHandler implements DisparoHandlerInterface
 {
     public function __construct(
         private NotaCliente $notaModel,
-        private BoletoCliente $boletoModel,
         private DisparoEnvio $envioModel,
-        private ChromePdfService $chromePdf,
+        private NotaBoletoAnexos $anexos,
     ) {}
 
     public function gerarPendentes(object $contexto): void
@@ -35,7 +32,7 @@ class NotaBoletoHandler implements DisparoHandlerInterface
 
         foreach ($notas as $nota) {
             // Sem e-mail cadastrado, criarPendente() ja registra a linha como
-            // 'E'/"Não possui email cadastrado" em vez de pular - fica visivel
+            // 'F'/"Não possui email cadastrado" em vez de pular - fica visivel
             // na tela em vez de sumir silenciosamente.
             $this->criarPendenteDeNota($contexto, $nota);
         }
@@ -51,41 +48,80 @@ class NotaBoletoHandler implements DisparoHandlerInterface
     private function criarPendenteDeNota(object $contexto, object $nota): ?int
     {
         return $this->envioModel->criarPendente([
-            'cd_contexto'   => $contexto->CD_CONTEXTO,
-            'cd_empresa'    => $nota->CD_EMPRESA,
-            'nr_lancamento' => $nota->NR_LANCAMENTO,
-            'cd_serie'      => $nota->CD_SERIE,
-            'tp_nota'       => $nota->TP_NOTA,
-            'cd_pessoa'     => $nota->CD_PESSOA,
-            'nm_pessoa'     => $nota->NM_PESSOA,
-            'ds_emaildest'  => $nota->DS_EMAIL,
-            'ds_emailcopia' => $nota->DS_EMAILCOPIA,
-            'ds_emailrem'   => $nota->DS_EMAILEMPRESA,
-            'ds_assunto'    => 'Nota Fiscal ' . $nota->NR_NOTA . ' - ' . $nota->NM_EMPRESA,
+            'cd_contexto'         => $contexto->CD_CONTEXTO,
+            'cd_empresa'          => $nota->CD_EMPRESA,
+            'nr_lancamento'       => $nota->NR_LANCAMENTO,
+            'cd_serie'            => $nota->CD_SERIE,
+            'tp_nota'             => $nota->TP_NOTA,
+            'cd_pessoa'           => $nota->CD_PESSOA,
+            'nm_pessoa'           => $nota->NM_PESSOA,
+            'ds_emaildest'        => $nota->DS_EMAIL,
+            'ds_emailcopia'       => $nota->DS_EMAILCOPIA,
+            'ds_emailrem'         => $nota->DS_EMAILEMPRESA,
+            'ds_assunto'          => 'Nota Fiscal ' . $nota->NR_NOTA . ' - ' . $nota->NM_EMPRESA,
+            'sem_destino_motivo'  => empty($nota->DS_EMAIL) ? 'Não possui email cadastrado' : null,
         ]);
     }
 
     /**
-     * Monta o e-mail completo (corpo + todos os PDFs ja gerados) - usado pelo
-     * envio de verdade (EnviaDisparoAutomaticoJob), que precisa anexar tudo.
+     * Envia de fato o e-mail (corpo + PDFs) e decide o resultado do envio -
+     * so lanca excecao quando NINGUEM (destinatario nem copia) pode receber,
+     * para o job aplicar o retry/release padrao.
      */
-    public function montarEmail(object $envio): array
+    public function enviar(object $envio): void
     {
-        $itens = $this->estruturaAnexos($envio);
+        // Descobre quem realmente pode receber (destinatário e/ou cópias com
+        // domínio válido) sem bloquear o envio por causa de UM endereço ruim -
+        // só falha de vez (exceção -> retry) se NINGUÉM for conseguir receber.
+        $destinatarioValido = $this->dominioValido($envio->DS_EMAILDEST);
 
-        return [
-            'corpo'  => $this->montarCorpo($envio, $itens),
-            'anexos' => array_map(fn($item) => $this->gerarAnexoPdf($item), $itens),
-        ];
+        $copiasBrutas = $this->extrairEmailsCopia($envio->DS_EMAILCOPIA ?? null, $envio->DS_EMAILDEST);
+        $copiasValidas = array_values(array_filter($copiasBrutas, fn($e) => $this->dominioValido($e)));
+        $copiasInvalidas = array_values(array_diff($copiasBrutas, $copiasValidas));
+
+        if (!$destinatarioValido && empty($copiasValidas)) {
+            throw new \RuntimeException(
+                'Nenhum destinatário válido (destinatário e cópia(s) com domínio inexistente): ' . $envio->DS_EMAILDEST
+            );
+        }
+
+        $itens = $this->anexos->estruturaAnexos($envio);
+        $corpo = $this->montarCorpo($envio, $itens);
+        $anexosGerados = array_map(fn($item) => $this->anexos->gerarAnexoPdf($item), $itens);
+
+        Mail::to($destinatarioValido ? [$envio->DS_EMAILDEST] : [])->cc($copiasValidas)->send(
+            new DisparoAutomaticoMail($envio->DS_ASSUNTO, $corpo, $anexosGerados)
+        );
+
+        foreach ($anexosGerados as $anexo) {
+            $this->envioModel->salvarAnexo($envio->CD_ENVIO, $anexo['titulo'], $anexo['nome']);
+        }
+
+        if (!$destinatarioValido || $copiasInvalidas) {
+            $motivos = [];
+
+            if (!$destinatarioValido) {
+                $motivos[] = "Destinatário com domínio inválido, não recebeu: {$envio->DS_EMAILDEST}";
+            }
+
+            if ($copiasInvalidas) {
+                $motivos[] = 'Cópia(s) com domínio inválido, ignorada(s): ' . implode(', ', $copiasInvalidas);
+            }
+
+            $this->envioModel->marcarEnviadoComFalha($envio->CD_ENVIO, implode(' | ', $motivos));
+        } else {
+            $this->envioModel->marcarEnviado($envio->CD_ENVIO);
+        }
     }
 
     /**
-     * Mesma coisa que montarEmail(), mas sem gerar nenhum PDF - so os titulos/
-     * nomes dos anexos, pra listar na tela de preview sem custar Chromium.
+     * Mesma estrutura de conteudo do envio real, mas sem gerar nenhum PDF - so
+     * titulo/nome de cada anexo, pra listar na tela de preview sem custar
+     * Chromium (o PDF de cada um so e gerado se o usuario clicar nele).
      */
     public function montarPreview(object $envio): array
     {
-        $itens = $this->estruturaAnexos($envio);
+        $itens = $this->anexos->estruturaAnexos($envio);
 
         return [
             'corpo'  => $this->montarCorpo($envio, $itens),
@@ -102,80 +138,13 @@ class NotaBoletoHandler implements DisparoHandlerInterface
      */
     public function gerarAnexo(object $envio, int $indice): array
     {
-        $itens = $this->estruturaAnexos($envio);
+        $itens = $this->anexos->estruturaAnexos($envio);
 
         if (!isset($itens[$indice])) {
             throw new \OutOfRangeException("Anexo {$indice} não encontrado.");
         }
 
-        return $this->gerarAnexoPdf($itens[$indice]);
-    }
-
-    /**
-     * Monta a "receita" de cada anexo (nota + boletos em aberto) com os dados
-     * ja buscados no banco, mas sem renderizar HTML nem gerar PDF - e o que
-     * montarEmail()/montarPreview()/gerarAnexo() compartilham, pra so buscar
-     * os dados uma vez e decidir depois o que efetivamente vira PDF.
-     */
-    private function estruturaAnexos(object $envio): array
-    {
-        $cdPessoa = (string) $envio->CD_PESSOA;
-
-        $data = $this->notaModel->getListNotaCliente($envio->NR_LANCAMENTO, $cdPessoa);
-        $itens = [
-            ['tipo' => 'nota', 'titulo' => 'Nota Fiscal', 'nome' => 'nota.pdf', 'dados' => $data],
-        ];
-
-        $parcelas = array_values(array_filter(
-            $this->boletoModel->BoletoResumo($cdPessoa),
-            fn($b) => (int) $b->NR_LANCTONOTA === (int) $envio->NR_LANCAMENTO
-                && (int) $b->CD_EMPRESA === (int) $envio->CD_EMPRESA
-        ));
-
-        $numero = 0;
-
-        foreach ($parcelas as $parcela) {
-            $boletoData = $this->boletoModel->Boleto($parcela->NR_LANCAMENTO, $parcela->CD_EMPRESA, $parcela->NR_PARC, $cdPessoa);
-
-            if (empty($boletoData)) {
-                continue;
-            }
-
-            $numero++;
-            $itens[] = [
-                'tipo'   => 'boleto',
-                'titulo' => "Boleto {$numero}",
-                'nome'   => "boleto_{$numero}.pdf",
-                'dados'  => $boletoData[0],
-            ];
-        }
-
-        return $itens;
-    }
-
-    /**
-     * Renderiza o HTML do item (nota ou boleto) e gera o PDF via Chromium -
-     * unico ponto que efetivamente custa uma invocacao do Chrome.
-     */
-    private function gerarAnexoPdf(array $item): array
-    {
-        if ($item['tipo'] === 'nota') {
-            $data = $item['dados'];
-            $layout = (new NotaLayoutData())->build($data);
-            $html = view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
-        } else {
-            $boleto = $item['dados'];
-            $codigo_barras = Helper::codigoBarrasHtml($boleto->DS_CODIGOBARRA);
-            $html = view('admin.layouts.layout-boleto-atz', compact('codigo_barras', 'boleto'))->render();
-        }
-
-        return [
-            'titulo'   => $item['titulo'],
-            'nome'     => $item['nome'],
-            // Chromium headless: renderizacao identica ao preview HTML.
-            'conteudo' => $this->chromePdf->fromHtml($html),
-            'html'     => $html,
-        ];
+        return $this->anexos->gerarAnexoPdf($itens[$indice]);
     }
 
     private function montarCorpo(object $envio, array $itens): string
@@ -195,5 +164,38 @@ class NotaBoletoHandler implements DisparoHandlerInterface
             'foneEmpresa'  => $data[0]->NR_FONEEMPRESA,
             'emailEmpresa' => $data[0]->DS_EMAILEMPRESA,
         ])->render();
+    }
+
+    /**
+     * Confere se o domínio do e-mail tem registro DNS (MX ou A) - pega domínio
+     * inexistente/digitado errado (ex.: hotmail.co) sem esperar o bounce
+     * assíncrono do provedor.
+     */
+    private function dominioValido(string $email): bool
+    {
+        $dominio = substr(strrchr($email, '@'), 1);
+
+        return $dominio && (checkdnsrr($dominio, 'MX') || checkdnsrr($dominio, 'A'));
+    }
+
+    /**
+     * DS_EMAILCOPIA guarda varios enderecos separados por ';' (ex.:
+     * "financeiro@x.com.br; fulano@x.com.br") - aqui viram uma lista limpa
+     * para o ->cc() e para a validacao de dominio. Descarta qualquer copia
+     * igual ao destinatario (sem diferenciar maiusculas/minusculas) para nao
+     * mandar o mesmo e-mail duas vezes para a mesma pessoa.
+     */
+    private function extrairEmailsCopia(?string $copias, string $destinatario): array
+    {
+        if (!$copias) {
+            return [];
+        }
+
+        $destinatario = mb_strtolower(trim($destinatario));
+
+        return array_values(array_filter(
+            array_map('trim', explode(';', $copias)),
+            fn($email) => $email !== '' && mb_strtolower($email) !== $destinatario
+        ));
     }
 }

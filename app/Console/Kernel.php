@@ -29,6 +29,14 @@ class Kernel extends ConsoleKernel
         $schedule->command('disparo-automatico:executar')
             ->everyFiveMinutes()
             ->withoutOverlapping();
+
+        // Disparos via WhatsApp: tick proprio e mais frequente, mas cada
+        // execucao so envia (no maximo) um pendente por contexto - o
+        // espacamento anti-ban de verdade vem do gate dentro do comando
+        // (janela de horario, limite diario, intervalo minimo entre envios).
+        $schedule->command('disparo-automatico:executar-whatsapp')
+            ->everyTwoMinutes()
+            ->withoutOverlapping();
     }
 
     /**

@@ -65,6 +65,32 @@ class DisparoAutomaticoController extends Controller
         return response()->json(['success' => 'Horário atualizado com sucesso!']);
     }
 
+    public function updateWhatsAppContexto($id)
+    {
+        $this->request->validate([
+            'nr_limitediario'   => 'required|integer|min:1',
+            'hr_janelainicio'   => 'required|date_format:H:i',
+            'hr_janelafim'      => 'required|date_format:H:i|after:hr_janelainicio',
+        ], [
+            'nr_limitediario.required' => 'Informe o limite diário de envios.',
+            'nr_limitediario.min'      => 'O limite diário deve ser de pelo menos 1.',
+            'hr_janelainicio.required' => 'Informe o início da janela de horário.',
+            'hr_janelainicio.date_format' => 'Horário inválido - use o formato HH:MM.',
+            'hr_janelafim.required'    => 'Informe o fim da janela de horário.',
+            'hr_janelafim.date_format' => 'Horário inválido - use o formato HH:MM.',
+            'hr_janelafim.after'       => 'O fim da janela deve ser depois do início.',
+        ]);
+
+        $this->contexto->updateWhatsApp(
+            $id,
+            (int) $this->request->nr_limitediario,
+            $this->request->hr_janelainicio,
+            $this->request->hr_janelafim
+        );
+
+        return response()->json(['success' => 'Configuração de WhatsApp atualizada com sucesso!']);
+    }
+
     public function listEnvios()
     {
         // Sem nenhum contexto ativo, o disparo automatico proprio nem esta
@@ -93,21 +119,21 @@ class DisparoAutomaticoController extends Controller
         // Antes do inicio do disparo automatico (DT_INICIOENVIO) nao existe envio
         // possivel - toda nota apareceria como "Pendente" sem sentido nenhum, entao
         // a busca e travada e o motivo e avisado ao usuario em vez de rodar a query.
-        $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
-            $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
-        );
+        // $dtInicioEnvio = $this->contexto->dataInicioMaisAntiga(
+        //     $filtros['cd_contexto'] ? (int) $filtros['cd_contexto'] : null
+        // );
 
-        if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
-            return response()->json([
-                'draw'            => (int) $this->request->input('draw'),
-                'recordsTotal'    => 0,
-                'recordsFiltered' => 0,
-                'data'            => [],
-                'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
-                    . '. Antes dessa data não há envios - ajuste o período da busca.',
-                'avisoTitulo'     => 'Período fora do disparo automático',
-            ]);
-        }
+        // if ($dtInicioEnvio && $filtros['inicio_data'] < $dtInicioEnvio) {
+        //     return response()->json([
+        //         'draw'            => (int) $this->request->input('draw'),
+        //         'recordsTotal'    => 0,
+        //         'recordsFiltered' => 0,
+        //         'data'            => [],
+        //         'aviso'           => 'O disparo automático começou em ' . Carbon::parse($dtInicioEnvio)->format('d/m/Y')
+        //             . '. Antes dessa data não há envios - ajuste o período da busca.',
+        //         'avisoTitulo'     => 'Período fora do disparo automático',
+        //     ]);
+        // }
 
         $data = $this->notaCliente->listarNotasEmitidas($filtros);
 
@@ -119,6 +145,7 @@ class DisparoAutomaticoController extends Controller
                     'E' => '<span class="badge badge-success">Enviado</span>',
                     'V' => '<span class="badge badge-info">Enviado c/ Falha</span>',
                     'F' => '<span class="badge badge-danger">Falha</span>',
+                    'L' => '<span class="badge badge-dark">Limite Atingido</span>',
                 ];
                 return $labels[$row->ST_ENVIO] ?? $row->ST_ENVIO;
             })
@@ -135,16 +162,25 @@ class DisparoAutomaticoController extends Controller
                     target="_blank" class="btn btn-xs btn-primary mr-1" title="Pré-visualizar">
                     <i class="fa fa-envelope" aria-hidden="true"></i></a>';
 
-                if (in_array($row->ST_ENVIO, ['F', 'V'])) {
+                if (in_array($row->ST_ENVIO, ['F', 'V', 'L'])) {
                     $btn .= '<button class="btn btn-xs btn-danger mr-1 btn-motivo-falha-disparo" data-motivo="' . e($row->DS_MOTIVO) . '" title="Ver motivo">
                         <i class="fa fa-exclamation-triangle" aria-hidden="true"></i></button>';
                 }
 
-                if (in_array($row->ST_ENVIO, ['F', 'V', 'E'])) {
-                    $btn .= '<button class="btn btn-xs btn-warning mr-1 btn-editar-email-disparo"
-                        data-id="' . $row->CD_ENVIO . '" data-email="' . e($row->DS_EMAILDEST) . '"
-                        data-emailcopia="' . e($row->DS_EMAILCOPIA) . '" title="Editar e-mail do destinatário">
-                        <i class="fa fa-pencil-alt" aria-hidden="true"></i></button>';
+                if (in_array($row->ST_ENVIO, ['F', 'V', 'E', 'L'])) {
+                    // Canal decide o que o botao de editar corrige - e-mail
+                    // (destinatario + copia) ou telefone (WhatsApp).
+                    if ($row->TP_CANAL === 'W') {
+                        $btn .= '<button class="btn btn-xs btn-warning mr-1 btn-editar-telefone-disparo"
+                            data-id="' . $row->CD_ENVIO . '" data-telefone="' . e($row->DS_TELEFONE) . '"
+                            title="Editar telefone do destinatário">
+                            <i class="fa fa-pencil-alt" aria-hidden="true"></i></button>';
+                    } else {
+                        $btn .= '<button class="btn btn-xs btn-warning mr-1 btn-editar-email-disparo"
+                            data-id="' . $row->CD_ENVIO . '" data-email="' . e($row->DS_EMAILDEST) . '"
+                            data-emailcopia="' . e($row->DS_EMAILCOPIA) . '" title="Editar e-mail do destinatário">
+                            <i class="fa fa-pencil-alt" aria-hidden="true"></i></button>';
+                    }
 
                     $btn .= '<button class="btn btn-xs btn-success btn-reenviar-disparo"
                         data-id="' . $row->CD_ENVIO . '" title="Reenviar">
@@ -162,8 +198,10 @@ class DisparoAutomaticoController extends Controller
         $this->envio->reenviar($id);
 
         // Acao manual do usuario e imediata - nao espera o proximo ciclo do
-        // disparo-automatico:executar, que so roda quando o intervalo/horario
-        // configurado do contexto permitir.
+        // disparo automatico (nem o de e-mail, nem o de WhatsApp). Vale
+        // tambem pra 'L' (Limite Atingido): reenviar e o jeito do usuario
+        // dizer "manda mesmo assim, esse aqui e importante" - bypassa o
+        // limite diario de proposito, sem refletir no NR_LIMITEDIARIO.
         $envio = $this->envio->find($id);
         $contexto = $this->contexto->find($envio->CD_CONTEXTO);
         EnviaDisparoAutomaticoJob::dispatch($id, $contexto->CD_HANDLER);
@@ -222,14 +260,29 @@ class DisparoAutomaticoController extends Controller
         return response()->json(['success' => 'E-mail atualizado com sucesso!']);
     }
 
+    public function atualizarTelefoneEnvio(int $id)
+    {
+        $this->request->validate([
+            'ds_telefone' => ['required', 'regex:/^\d{10,11}$/'],
+        ], [
+            'ds_telefone.required' => 'Informe o telefone do destinatário.',
+            'ds_telefone.regex'    => 'Telefone inválido - informe DDD + número, só números (10 ou 11 dígitos).',
+        ]);
+
+        $this->envio->atualizarTelefoneDestino($id, $this->request->ds_telefone);
+
+        return response()->json(['success' => 'Telefone atualizado com sucesso!']);
+    }
+
     public function previewEnvio(int $id, DisparoHandlerRegistry $registry)
     {
         [$envio, $handler] = $this->envioEHandler($id, $registry);
+        $contexto = $this->contexto->find($envio->CD_CONTEXTO);
         // Sem PDF nenhum aqui - so lista titulo/nome dos anexos. Cada PDF so e
         // gerado (Chromium) se o usuario clicar no anexo especifico abaixo.
         $email = $handler->montarPreview($envio);
 
-        return view('admin.follow-up.disparos.preview', compact('envio', 'email'));
+        return view('admin.follow-up.disparos.preview', compact('envio', 'email', 'contexto'));
     }
 
     public function previewAnexo(int $id, int $indice, DisparoHandlerRegistry $registry)

@@ -45,22 +45,38 @@ function renderContextos(contextos) {
     }
 
     const rows = contextos.map(function (c) {
+        const ehWhatsApp = c.TP_CANAL === 'W';
         const ativo = c.ST_ATIVO === 'S';
         const badge = ativo
             ? '<span class="badge badge-success">Ativo</span>'
             : '<span class="badge badge-secondary">Inativo</span>';
+        const badgeCanal = ehWhatsApp
+            ? '<span class="badge badge-success"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</span>'
+            : '<span class="badge badge-primary"><i class="fas fa-envelope mr-1"></i>E-mail</span>';
         const btnToggle = ativo
             ? `<button class="btn btn-xs btn-danger btn-toggle-contexto-disparo" data-id="${c.CD_CONTEXTO}" title="Desativar"><i class="fas fa-pause"></i></button>`
             : `<button class="btn btn-xs btn-success btn-toggle-contexto-disparo" data-id="${c.CD_CONTEXTO}" title="Ativar"><i class="fas fa-play"></i></button>`;
-        const btnEditar = `<button class="btn btn-xs btn-secondary btn-editar-horario-disparo mr-1"
-                data-id="${c.CD_CONTEXTO}" data-ds="${c.DS_CONTEXTO}" data-horario="${(c.HR_EXECUCAO || '').substring(0, 5)}"
-                data-intervalo="${c.NR_INTERVALOHORAS}"
-                title="Editar horário"><i class="fas fa-clock"></i></button>`;
+
+        // Canal decide qual modal o icone de configuracao abre - horario/intervalo
+        // (e-mail) ou limite diario/janela (WhatsApp).
+        const btnEditar = ehWhatsApp
+            ? `<button class="btn btn-xs btn-secondary btn-editar-whatsapp-disparo mr-1"
+                    data-id="${c.CD_CONTEXTO}" data-ds="${c.DS_CONTEXTO}" data-limite="${c.NR_LIMITEDIARIO || ''}"
+                    data-inicio="${(c.HR_JANELAINICIO || '').substring(0, 5)}" data-fim="${(c.HR_JANELAFIM || '').substring(0, 5)}"
+                    title="Configurar WhatsApp"><i class="fas fa-clock"></i></button>`
+            : `<button class="btn btn-xs btn-secondary btn-editar-horario-disparo mr-1"
+                    data-id="${c.CD_CONTEXTO}" data-ds="${c.DS_CONTEXTO}" data-horario="${(c.HR_EXECUCAO || '').substring(0, 5)}"
+                    data-intervalo="${c.NR_INTERVALOHORAS}"
+                    title="Editar horário"><i class="fas fa-clock"></i></button>`;
+
+        const ritmo = ehWhatsApp
+            ? `${(c.HR_JANELAINICIO || '--:--').substring(0, 5)} às ${(c.HR_JANELAFIM || '--:--').substring(0, 5)}<br><span class="text-muted">até ${c.NR_LIMITEDIARIO || 0}/dia</span>`
+            : `${(c.HR_EXECUCAO || '').substring(0, 5)}<br><span class="text-muted">a cada ${c.NR_INTERVALOHORAS}h</span>`;
 
         return `<tr data-id="${c.CD_CONTEXTO}">
             <td>${c.DS_CONTEXTO}</td>
-            <td class="text-center">${(c.HR_EXECUCAO || '').substring(0, 5)}</td>
-            <td class="text-center">${c.NR_INTERVALOHORAS}h</td>
+            <td class="text-center">${badgeCanal}</td>
+            <td class="text-center">${ritmo}</td>
             <td class="text-center">${c.NR_TENTATIVAS}</td>
             <td>${c.DT_ULTIMAEXECUCAO || '<span class="text-muted">—</span>'}</td>
             <td>${c.DT_PROXIMAEXECUCAO || '<span class="text-muted">—</span>'}</td>
@@ -103,6 +119,45 @@ $(document).on('click', '.btn-editar-horario-disparo', function () {
 
 $('#modal-horario-contexto').on('hidden.bs.modal', function () {
     $('#modal-contextos-disparo').modal('show');
+});
+
+// ─── Modal: Configurar WhatsApp (contexto) ────────────────────────────────
+$(document).on('click', '.btn-editar-whatsapp-disparo', function () {
+    $('#modal-contextos-disparo').modal('hide');
+    $('#whatsapp_cd_contexto').val($(this).data('id'));
+    $('#whatsapp_ds_contexto').text($(this).data('ds'));
+    $('#whatsapp_nr_limitediario').val($(this).data('limite'));
+    $('#whatsapp_hr_janelainicio').val($(this).data('inicio'));
+    $('#whatsapp_hr_janelafim').val($(this).data('fim'));
+    $('#modal-whatsapp-contexto').modal('show');
+});
+
+$('#modal-whatsapp-contexto').on('hidden.bs.modal', function () {
+    $('#modal-contextos-disparo').modal('show');
+});
+
+$('#btn-salvar-whatsapp-contexto').on('click', function () {
+    const id = $('#whatsapp_cd_contexto').val();
+
+    $.post(window.routesFollowUp.disparoWhatsAppContexto.replace(':id', id), {
+        _token: $('[name=csrf-token]').attr('content'),
+        nr_limitediario: $('#whatsapp_nr_limitediario').val(),
+        hr_janelainicio: $('#whatsapp_hr_janelainicio').val(),
+        hr_janelafim: $('#whatsapp_hr_janelafim').val(),
+    }).done(function (res) {
+        $('#modal-whatsapp-contexto').modal('hide');
+        Swal.fire({
+            icon: 'success', title: res.success, toast: true, position: 'top-end',
+            showConfirmButton: false, timer: 2000, timerProgressBar: true,
+        });
+        carregarContextos();
+    }).fail(function (xhr) {
+        const errors = xhr.responseJSON?.errors;
+        const msg = errors
+            ? Object.values(errors).flat().join(' ')
+            : (xhr.responseJSON?.message ?? 'Falha ao salvar configuração de WhatsApp.');
+        Swal.fire('Erro', msg, 'error');
+    });
 });
 
 // Horário só é usado como âncora quando o intervalo é 24h ou mais - abaixo
@@ -214,10 +269,18 @@ function initDataTableEnvios() {
         },
         columns: [
             { title: 'Emp.', data: 'CD_EMPRESA' },
-            { title: 'Contexto', data: 'DS_CONTEXTO', width: '18%', visible: false},
+            { title: 'Contexto', data: 'DS_CONTEXTO', width: '18%' },
             { title: 'Cliente', data: 'NM_PESSOA', width: '20%' },
             { title: 'Nota', data: 'NR_NOTA', width: '8%', className: 'text-center' },
-            { title: 'E-mail', data: 'DS_EMAILDEST', width: '18%' },
+            {
+                title: 'Contato', width: '18%',
+                render: function (data, type, row) {
+                    if (row.TP_CANAL === 'W') {
+                        return '<i class="fab fa-whatsapp text-success mr-1" title="WhatsApp"></i>' + (row.DS_TELEFONE || '<span class="text-muted">—</span>');
+                    }
+                    return '<i class="fa fa-envelope text-primary mr-1" title="E-mail"></i>' + (row.DS_EMAILDEST || '<span class="text-muted">—</span>');
+                },
+            },
             {
                 title: 'Cópia', data: 'DS_EMAILCOPIA', width: '6%', className: 'text-center', orderable: false,
                 render: function (data) {
@@ -397,6 +460,40 @@ $('#btn-salvar-email-disparo').on('click', function () {
         const msg = errors
             ? Object.values(errors).flat().join(' ')
             : (xhr.responseJSON?.message ?? 'Falha ao salvar e-mail.');
+        Swal.fire('Erro', msg, 'error');
+    });
+});
+
+// ─── Editar Telefone do Destinatário (WhatsApp) ────────────────────────────
+$(document).on('click', '.btn-editar-telefone-disparo', function () {
+    $('#telefone_disparo_cd_envio').val($(this).data('id'));
+    $('#telefone_disparo_ds_telefone').val($(this).data('telefone'));
+    $('#modal-editar-telefone-disparo').modal('show');
+});
+
+$('#btn-salvar-telefone-disparo').on('click', function () {
+    const id = $('#telefone_disparo_cd_envio').val();
+    const telefone = $('#telefone_disparo_ds_telefone').val();
+
+    $.post(window.routesFollowUp.disparoAtualizarTelefoneEnvio.replace(':id', id), {
+        _token: $('[name=csrf-token]').attr('content'),
+        ds_telefone: telefone,
+    }).done(function (res) {
+        $('#modal-editar-telefone-disparo').modal('hide');
+        // setTimeout: ver comentario equivalente no btn-criar-envio-disparo.
+        tabelaDisparos.ajax.reload(function () {
+            setTimeout(function () {
+                Swal.fire({
+                    icon: 'success', title: res.success, toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 2000, timerProgressBar: true,
+                });
+            }, 0);
+        }, false);
+    }).fail(function (xhr) {
+        const errors = xhr.responseJSON?.errors;
+        const msg = errors
+            ? Object.values(errors).flat().join(' ')
+            : (xhr.responseJSON?.message ?? 'Falha ao salvar telefone.');
         Swal.fire('Erro', msg, 'error');
     });
 });

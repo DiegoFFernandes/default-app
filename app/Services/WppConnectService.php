@@ -261,7 +261,10 @@ class WppConnectService
     {
         try {
             $result = $this->checkNumber($phone);
-            return ($result['numberExists'] ?? false) === true;
+            // O payload de verdade vem aninhado em 'response' (igual
+            // getPhoneNumber()), e numberExists vem como 1/0, nao true/false
+            // literal - por isso cast em vez de comparacao estrita.
+            return (bool) ($result['response']['numberExists'] ?? false);
         } catch (\Throwable) {
             return false;
         }

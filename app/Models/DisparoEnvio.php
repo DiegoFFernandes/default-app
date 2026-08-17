@@ -68,7 +68,7 @@ class DisparoEnvio extends Model
         $row = DB::connection('firebird')->selectOne('
             SELECT
                 CD_ENVIO, CD_CONTEXTO, CD_EMPRESA, NR_LANCAMENTO, CD_SERIE, TP_NOTA,
-                CD_PESSOA, NM_PESSOA, DS_EMAILDEST, DS_EMAILCOPIA, DS_EMAILREM, DS_ASSUNTO,
+                CD_PESSOA, NM_PESSOA, DS_EMAILDEST, DS_EMAILCOPIA, DS_EMAILREM, DS_TELEFONE, DS_ASSUNTO,
                 ST_ENVIO, DS_MOTIVO, NR_TENTATIVAS, DT_REGISTRO, DT_ENVIO
             FROM DISPARO_ENVIO
             WHERE CD_ENVIO = :id
@@ -81,10 +81,10 @@ class DisparoEnvio extends Model
      * Cria a linha de envio pendente ('A'). Retorna null se ja existir para essa
      * nota+contexto (protegido pela constraint UK_DISPARO_ENVIO_NOTA).
      *
-     * Sem DS_EMAILDEST nao ha para quem enviar - em vez de ficar preso em 'A'
-     * esperando um e-mail que nunca vai aparecer, ja nasce 'E' com o motivo
-     * (DS_EMAILCOPIA sozinho nao conta - copia e opcional, so o destinatario
-     * e obrigatorio).
+     * Quem decide se ha destino valido e o handler (e-mail exige DS_EMAILDEST,
+     * WhatsApp exige DS_TELEFONE) - via 'sem_destino_motivo': se vier
+     * preenchido, a linha ja nasce 'F' com o motivo em vez de ficar presa em
+     * 'A' esperando um destino que nunca vai aparecer.
      */
     public function criarPendente(array $dados): ?int
     {
@@ -108,17 +108,25 @@ class DisparoEnvio extends Model
             ->selectOne('SELECT GEN_ID(GEN_DISPARO_ENVIO, 1) AS NEW_ID FROM RDB$DATABASE')
             ->NEW_ID;
 
-        $semEmail = empty($dados['ds_emaildest']);
+        $semDestino = !empty($dados['sem_destino_motivo']);
+        // 'L' so faz sentido quando ha destino valido - sem telefone/email e
+        // sempre 'F', independente da fila estar cheia ou nao.
+        $limiteAtingido = !$semDestino && !empty($dados['limite_atingido']);
+
+        $stEnvio = $semDestino ? 'F' : ($limiteAtingido ? 'L' : 'A');
+        $dsMotivo = $semDestino
+            ? $dados['sem_destino_motivo']
+            : ($limiteAtingido ? 'Limite diário de envios do WhatsApp atingido.' : null);
 
         try {
             DB::connection('firebird')->statement('
                 INSERT INTO DISPARO_ENVIO (
                     CD_ENVIO, CD_CONTEXTO, CD_EMPRESA, NR_LANCAMENTO, CD_SERIE, TP_NOTA,
-                    CD_PESSOA, NM_PESSOA, DS_EMAILDEST, DS_EMAILCOPIA, DS_EMAILREM, DS_ASSUNTO,
+                    CD_PESSOA, NM_PESSOA, DS_EMAILDEST, DS_EMAILCOPIA, DS_EMAILREM, DS_TELEFONE, DS_ASSUNTO,
                     ST_ENVIO, DS_MOTIVO, DT_ENVIO
                 ) VALUES (
                     :id, :cd_contexto, :cd_empresa, :nr_lancamento, :cd_serie, :tp_nota,
-                    :cd_pessoa, :nm_pessoa, :ds_emaildest, :ds_emailcopia, :ds_emailrem, :ds_assunto,
+                    :cd_pessoa, :nm_pessoa, :ds_emaildest, :ds_emailcopia, :ds_emailrem, :ds_telefone, :ds_assunto,
                     :st_envio, :ds_motivo, :dt_envio
                 )
             ', [
@@ -130,13 +138,14 @@ class DisparoEnvio extends Model
                 'tp_nota'       => $dados['tp_nota'],
                 'cd_pessoa'     => $dados['cd_pessoa'],
                 'nm_pessoa'     => Helper::ToIso($dados['nm_pessoa']),
-                'ds_emaildest'  => $dados['ds_emaildest'],
+                'ds_emaildest'  => $dados['ds_emaildest'] ?? null,
                 'ds_emailcopia' => $dados['ds_emailcopia'] ?? null,
-                'ds_emailrem'   => $dados['ds_emailrem'],
+                'ds_emailrem'   => $dados['ds_emailrem'] ?? null,
+                'ds_telefone'   => $dados['ds_telefone'] ?? null,
                 'ds_assunto'    => Helper::ToIso($dados['ds_assunto']),
-                'st_envio'      => $semEmail ? 'F' : 'A',
-                'ds_motivo'     => $semEmail ? Helper::ToIso('Não possui email cadastrado') : null,
-                'dt_envio'      => $semEmail ? now() : null,
+                'st_envio'      => $stEnvio,
+                'ds_motivo'     => $dsMotivo ? Helper::ToIso($dsMotivo) : null,
+                'dt_envio'      => $semDestino ? now() : null,
             ]);
         } catch (\Throwable $e) {
             // Corrida com outra execucao que ja criou esse envio - a constraint UK_DISPARO_ENVIO_NOTA protegeu.
@@ -146,11 +155,68 @@ class DisparoEnvio extends Model
         return $id;
     }
 
+    /**
+     * Tamanho atual da fila ativa (aguardando envio) do contexto - usado pelo
+     * WhatsApp pra saber, na hora de criar o pendente, se ja bateu o
+     * NR_LIMITEDIARIO (fila cheia -> nasce 'L' em vez de 'A').
+     */
+    public function contarNaFila(int $cdContexto): int
+    {
+        $row = DB::connection('firebird')->selectOne("
+            SELECT COUNT(*) AS TOTAL FROM DISPARO_ENVIO WHERE CD_CONTEXTO = :cd_contexto AND ST_ENVIO = 'A'
+        ", ['cd_contexto' => $cdContexto]);
+
+        return (int) ($row->TOTAL ?? 0);
+    }
+
     public function pendentes(int $cdContexto): array
     {
         return Helper::ConvertFormatText(DB::connection('firebird')->select('
             SELECT CD_ENVIO FROM DISPARO_ENVIO WHERE CD_CONTEXTO = :cd_contexto AND ST_ENVIO = \'A\'
         ', ['cd_contexto' => $cdContexto]));
+    }
+
+    /**
+     * Envio pendente mais antigo do contexto - usado pelo ritmo do WhatsApp,
+     * que so processa UM por vez (ver ExecutarDisparosWhatsApp).
+     */
+    public function proximoPendente(int $cdContexto): ?object
+    {
+        $row = DB::connection('firebird')->selectOne('
+            SELECT FIRST 1 CD_ENVIO FROM DISPARO_ENVIO
+            WHERE CD_CONTEXTO = :cd_contexto AND ST_ENVIO = \'A\'
+            ORDER BY DT_REGISTRO ASC
+        ', ['cd_contexto' => $cdContexto]);
+
+        return $row ? Helper::ConvertFormatText([$row])[0] : null;
+    }
+
+    /**
+     * Quantos envios desse contexto ja foram concluidos hoje (sucesso total ou
+     * com ressalva) - usado pelo limite diario do WhatsApp.
+     */
+    public function contarEnviadosHoje(int $cdContexto): int
+    {
+        $row = DB::connection('firebird')->selectOne("
+            SELECT COUNT(*) AS TOTAL FROM DISPARO_ENVIO
+            WHERE CD_CONTEXTO = :cd_contexto AND ST_ENVIO IN ('E', 'V') AND CAST(DT_ENVIO AS DATE) = CURRENT_DATE
+        ", ['cd_contexto' => $cdContexto]);
+
+        return (int) ($row->TOTAL ?? 0);
+    }
+
+    /**
+     * Data/hora do ultimo envio concluido do contexto (sucesso total ou com
+     * ressalva) - usado pelo espacamento minimo entre envios do WhatsApp.
+     */
+    public function ultimoEnvioEm(int $cdContexto): ?string
+    {
+        $row = DB::connection('firebird')->selectOne("
+            SELECT MAX(DT_ENVIO) AS ULTIMO FROM DISPARO_ENVIO
+            WHERE CD_CONTEXTO = :cd_contexto AND ST_ENVIO IN ('E', 'V')
+        ", ['cd_contexto' => $cdContexto]);
+
+        return $row->ULTIMO ?? null;
     }
 
     /**
@@ -176,6 +242,17 @@ class DisparoEnvio extends Model
         ', ['email' => $email, 'emailcopia' => $emailCopia, 'id' => $id]);
     }
 
+    /**
+     * Corrige o telefone de destino de um envio via WhatsApp (ex.: numero
+     * errado que causou a falha). Nao muda ST_ENVIO - use reenviar() para reativar.
+     */
+    public function atualizarTelefoneDestino(int $id, string $telefone): void
+    {
+        DB::connection('firebird')->statement('
+            UPDATE DISPARO_ENVIO SET DS_TELEFONE = :telefone WHERE CD_ENVIO = :id
+        ', ['telefone' => preg_replace('/\D/', '', $telefone), 'id' => $id]);
+    }
+
     public function marcarEnviado(int $id): void
     {
         DB::connection('firebird')->statement('
@@ -196,6 +273,23 @@ class DisparoEnvio extends Model
             UPDATE DISPARO_ENVIO
             SET ST_ENVIO = 'V', DT_ENVIO = CURRENT_TIMESTAMP, DS_MOTIVO = :motivo
             WHERE CD_ENVIO = :id
+        ", [
+            'motivo' => Helper::ToIso(mb_substr($motivo, 0, 500)),
+            'id'     => $id,
+        ]);
+    }
+
+    /**
+     * Marca falha definitiva ('F') direto, sem passar pelo contador de
+     * tentativas - usada quando o motivo nao vai se resolver sozinho numa
+     * proxima tentativa (ex.: telefone invalido, numero sem WhatsApp), entao
+     * insistir automaticamente so gastaria tentativas/chamadas de API a toa.
+     * Usuario corrige o dado e reenvia manualmente se for o caso.
+     */
+    public function marcarFalhaDefinitiva(int $id, string $motivo): void
+    {
+        DB::connection('firebird')->statement("
+            UPDATE DISPARO_ENVIO SET ST_ENVIO = 'F', DS_MOTIVO = :motivo WHERE CD_ENVIO = :id
         ", [
             'motivo' => Helper::ToIso(mb_substr($motivo, 0, 500)),
             'id'     => $id,
