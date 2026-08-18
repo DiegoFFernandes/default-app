@@ -546,15 +546,17 @@ return [
             'text' => 'Notificações',
             'icon' => 'nav-icon fas fas fa-envelope',
             'url' => '#',
-            'can' => ['ver-follow-up'],
+            'can' => ['ver-follow-up', 'ver-wppconnect'],
             'submenu' => [
                 [
                     'text' => 'Follow-Up',
                     'route' => 'search-envio',
+                    'can' => ['ver-follow-up'],
                 ],
                 [
                     'text' => 'Whatsapp',
                     'route' => 'wppconnect.index',
+                    'can' => ['ver-wppconnect'],
                 ]
 
             ]
