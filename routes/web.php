@@ -33,6 +33,14 @@ Route::get('/manifest.json', function () {
     ], 200, ['Content-Type' => 'application/manifest+json']);
 });
 
+Route::get('/politica-privacidade', function () {
+    return view('legal.privacy-policy');
+})->name('legal.privacy-policy');
+
+Route::get('/termos-de-uso', function () {
+    return view('legal.terms-of-service');
+})->name('legal.terms-of-service');
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/clear-cache-all', function () {
         Artisan::call('cache:clear');
