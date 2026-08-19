@@ -41,6 +41,10 @@ Route::get('/termos-de-uso', function () {
     return view('legal.terms-of-service');
 })->name('legal.terms-of-service');
 
+Route::get('/exclusao-de-dados', function () {
+    return view('legal.data-deletion');
+})->name('legal.data-deletion');
+
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/clear-cache-all', function () {
         Artisan::call('cache:clear');
