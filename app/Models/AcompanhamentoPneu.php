@@ -319,14 +319,28 @@ class AcompanhamentoPneu extends Model
         $totalCount = DB::connection('firebird')->select($sqlTotal)[0]->CNT ?? 0;
 
         // 2. Count filtrado + totais por status (recordsFiltered + info-boxes)
+        // Usa o mesmo $stpedidoExpr da listagem/busca, pra respeitar a mesma prioridade
+        // de status (ex.: pedido ATENDIDO de cliente com SCPC não pode contar como BLOQUEADO)
+        $stpedidoExpr = "CASE
+            WHEN PP.STPEDIDO = 'B' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+            WHEN PC.ST_SCPC  = 'S' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
+            WHEN PP.STPEDIDO = 'A'                  THEN 'ATENDIDO'
+            WHEN PC.ST_SCPC  = 'S'                  THEN 'BLOQUEADO'
+            WHEN PP.STPEDIDO = 'C'                  THEN 'CANCELADO'
+            WHEN PP.STPEDIDO = 'T'                  THEN 'EM PRODUCAO'
+            WHEN PP.STPEDIDO = 'N'                  THEN 'AGUARDANDO'
+            WHEN PP.STPEDIDO = 'B'                  THEN 'BLOQUEADO'
+            WHEN PP.STPEDIDO = 'P'                  THEN 'PRODUCAO PARCIAL'
+            ELSE PP.STPEDIDO END";
+
         $sqlTotais = "
             SELECT
                 COUNT(DISTINCT PP.ID) AS TOTAL,
-                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'A' THEN PP.ID END) AS ATENDIDO,
-                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'T' THEN PP.ID END) AS EM_PRODUCAO,
-                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'B' OR PC.ST_SCPC = 'S' THEN PP.ID END) AS BLOQUEADO,
-                COUNT(DISTINCT CASE WHEN PP.STPEDIDO = 'N' THEN PP.ID END) AS AGUARDANDO,
-                COUNT(DISTINCT CASE WHEN (PP.STPEDIDO = 'B' AND TP.ID IN (2)) OR (PC.ST_SCPC = 'S' AND TP.ID IN (2)) THEN PP.ID END) AS GARANTIA
+                COUNT(DISTINCT CASE WHEN $stpedidoExpr = 'ATENDIDO'      THEN PP.ID END) AS ATENDIDO,
+                COUNT(DISTINCT CASE WHEN $stpedidoExpr = 'EM PRODUCAO'   THEN PP.ID END) AS EM_PRODUCAO,
+                COUNT(DISTINCT CASE WHEN $stpedidoExpr = 'BLOQUEADO'     THEN PP.ID END) AS BLOQUEADO,
+                COUNT(DISTINCT CASE WHEN $stpedidoExpr = 'AGUARDANDO'    THEN PP.ID END) AS AGUARDANDO,
+                COUNT(DISTINCT CASE WHEN $stpedidoExpr = 'BLOQ. GARANTIA' THEN PP.ID END) AS GARANTIA
             $joins WHERE $where $whereSearch
         ";
         $totaisRow     = DB::connection('firebird')->select($sqlTotais)[0] ?? null;
@@ -342,18 +356,6 @@ class AcompanhamentoPneu extends Model
         // 3. Query paginada com ROWS (Firebird)
         $from = $start + 1;
         $to   = $start + $length;
-
-        $stpedidoExpr = "CASE
-            WHEN PP.STPEDIDO = 'B' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
-            WHEN PC.ST_SCPC  = 'S' AND TP.ID IN (2) THEN 'BLOQ. GARANTIA'
-            WHEN PP.STPEDIDO = 'A'                  THEN 'ATENDIDO'
-            WHEN PC.ST_SCPC  = 'S'                  THEN 'BLOQUEADO'
-            WHEN PP.STPEDIDO = 'C'                  THEN 'CANCELADO'
-            WHEN PP.STPEDIDO = 'T'                  THEN 'EM PRODUCAO'
-            WHEN PP.STPEDIDO = 'N'                  THEN 'AGUARDANDO'
-            WHEN PP.STPEDIDO = 'B'                  THEN 'BLOQUEADO'
-            WHEN PP.STPEDIDO = 'P'                  THEN 'PRODUCAO PARCIAL'
-            ELSE PP.STPEDIDO END";
 
         $sqlData = "
             SELECT

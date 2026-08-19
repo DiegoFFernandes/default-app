@@ -31,35 +31,35 @@ class BloqueioPedido extends Model
     public function BloqueioPedido($empresa = 0, $cd_supervisor = 0, $cd_pessoa = 0, $cd_vendedor = 0)
     {
         $query = "
-            SELECT (CASE PP.STPEDIDO
-                    WHEN 'B' THEN 'BLOQUEADO'
-                    WHEN 'N' THEN 'LIBERADO'
-                    ELSE PP.STPEDIDO
-                END) STPEDIDO,
+            WITH QTD_COMPRAS_90D AS (
+                SELECT
+                    N.CD_PESSOA,
+                    COUNT(N.NR_NOTAFISCAL) AS QTD_COMPRA
+                FROM NOTA N
+                WHERE N.DT_EMISSAO >= CURRENT_DATE - 90
+                GROUP BY N.CD_PESSOA
+            )
+            SELECT
+                COALESCE(QC.QTD_COMPRA, 0) QTD_COMPRA,
+                CASE PP.STPEDIDO
+                WHEN 'B' THEN 'BLOQUEADO'
+                WHEN 'N' THEN 'LIBERADO'
+                ELSE PP.STPEDIDO
+                END STPEDIDO,
                 PP.IDEMPRESA CD_EMPRESA,
                 PP.DTEMISSAO DATA,
                 PP.ID AS PEDIDO,
                 PP.IDPEDIDOMOVEL AS MOBILE,
                 CAST(PP.IDPESSOA || ' - ' || PE.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) CLIENTE,
-                --PP.TP_BLOQUEIO AS MOTIVO,
-                (
-                CASE 
-                    WHEN PE.ST_SCPC = 'S' THEN 'CADASTRO'
-                    WHEN PP.TP_BLOQUEIO = 'F' THEN 'FINANCEIRO'
-                    WHEN PP.TP_BLOQUEIO = 'C' THEN 'COMERCIAL'
-                    ELSE 'AMBOS'
-                END) MOTIVO,
+                CASE
+                WHEN PE.ST_SCPC = 'S' THEN 'CADASTRO'
+                WHEN PP.TP_BLOQUEIO = 'F' THEN 'FINANCEIRO'
+                WHEN PP.TP_BLOQUEIO = 'C' THEN 'COMERCIAL'
+                ELSE 'AMBOS'
+                END MOTIVO,
                 EP.CD_REGIAOCOMERCIAL,
-                (
-                CASE PE.ST_ATIVA
-                WHEN 'S' THEN 'SIM'
-                WHEN 'N' THEN 'NAO'
-                END) ST_ATIVA,
-                (
-                CASE PE.ST_SCPC
-                WHEN 'S' THEN 'SIM'
-                WHEN 'N' THEN 'NAO'
-                END) ST_SCPC,
+                (CASE PE.ST_ATIVA WHEN 'S' THEN 'SIM' WHEN 'N' THEN 'NAO' END) ST_ATIVA,
+                (CASE PE.ST_SCPC  WHEN 'S' THEN 'SIM' WHEN 'N' THEN 'NAO' END) ST_SCPC,
                 CAST(PP.IDVENDEDOR || ' - ' || PV.NM_PESSOA AS VARCHAR(200) CHARACTER SET UTF8) VENDEDOR,
                 SUPERVISOR.NM_PESSOA NM_SUPERVISOR,
                 AC.CD_AREACOMERCIAL,
@@ -75,7 +75,8 @@ class BloqueioPedido extends Model
             LEFT JOIN REGIAOCOMERCIAL RC ON (RC.CD_VENDEDOR = VE.CD_VENDEDOR
                 AND EP.CD_REGIAOCOMERCIAL = RC.CD_REGIAOCOMERCIAL)
             LEFT JOIN AREACOMERCIAL AC ON (AC.CD_AREACOMERCIAL = RC.CD_AREACOMERCIAL)
-            WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
+            LEFT JOIN QTD_COMPRAS_90D QC ON (QC.CD_PESSOA = PP.IDPESSOA)
+                        WHERE PP.DTEMISSAO BETWEEN CURRENT_DATE - 120 AND CURRENT_DATE
                 AND (PP.STPEDIDO = 'B' OR (PP.STPEDIDO = 'N'
                 AND PE.ST_SCPC = 'S'))
                 " . (($empresa != 0) ? "AND PP.IDEMPRESA IN ($empresa) " : "") . "
