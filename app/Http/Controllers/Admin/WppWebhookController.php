@@ -68,7 +68,7 @@ class WppWebhookController extends Controller
         // número abriria uma conversa diferente da que o usuário iniciou.
         $wpp = $this->wppDaSessao($body['session'] ?? null);
 
-        $resposta = $this->resolverResposta($msg['cmd'], $msg['texto'], $msg['phone'], $msg['phoneSend'], $msg['userId'], $wpp);
+        $resposta = $this->resolverResposta($msg['cmd'], $msg['texto'], $msg['phone'], $msg['phoneSend'], $msg['userId'], $wpp, $body['session'] ?? null);
         if ($resposta !== null) {
             $wpp->sendText($msg['phoneSend'], $resposta, '', null, $msg['userId']);
             return response()->json(['ok' => true]);
@@ -177,8 +177,15 @@ class WppWebhookController extends Controller
     }
 
     // Orquestra o fluxo de resposta: fixas → IA
-    private function resolverResposta(string $cmd, string $textoOriginal, string $phone, string $phoneSend, ?int $userId, WppConnectService $wpp): ?string
+    private function resolverResposta(string $cmd, string $textoOriginal, string $phone, string $phoneSend, ?int $userId, WppConnectService $wpp, ?string $sessionRecebida): ?string
     {
+        // Conversa (saudação/ajuda/IA) só acontece pela sessão padrão (Geral) —
+        // as demais sessões (cobrança, compras, ...) só enviam/recebem as
+        // mensagens específicas do seu módulo, sem entrar nesse fluxo.
+        if ($sessionRecebida !== config('services.wppconnect.session')) {
+            return null;
+        }
+
         $fixa = $this->respostaFixa($cmd);
         if ($fixa !== null) return $fixa;
 
