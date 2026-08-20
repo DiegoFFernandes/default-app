@@ -118,6 +118,7 @@ class NotaBoletoWppHandler implements DisparoHandlerInterface
         }
 
         $itens = $this->anexos->estruturaAnexos($envio);
+        $grupos = $this->agruparParaEnvio($itens);
         $mensagem = $this->montarMensagem($envio, $itens);
 
         $textoEnviado = $this->sucesso($wpp->sendText($telefone, $mensagem));
@@ -125,8 +126,8 @@ class NotaBoletoWppHandler implements DisparoHandlerInterface
         $falhas = [];
         $anexosEnviados = [];
 
-        foreach ($itens as $item) {
-            $anexo = $this->anexos->gerarAnexoPdf($item);
+        foreach ($grupos as $grupo) {
+            $anexo = $this->gerarAnexoDoGrupo($grupo);
 
             $resposta = $wpp->sendFile(
                 $telefone,
@@ -170,25 +171,64 @@ class NotaBoletoWppHandler implements DisparoHandlerInterface
     public function montarPreview(object $envio): array
     {
         $itens = $this->anexos->estruturaAnexos($envio);
+        $grupos = $this->agruparParaEnvio($itens);
 
         return [
             'corpo'  => $this->montarMensagem($envio, $itens),
-            'anexos' => array_map(fn($item) => [
-                'titulo' => $item['titulo'],
-                'nome'   => $item['nome'],
-            ], $itens),
+            'anexos' => array_map(fn($grupo) => [
+                'titulo' => $grupo['titulo'],
+                'nome'   => $grupo['nome'],
+            ], $grupos),
         ];
     }
 
     public function gerarAnexo(object $envio, int $indice): array
     {
         $itens = $this->anexos->estruturaAnexos($envio);
+        $grupos = $this->agruparParaEnvio($itens);
 
-        if (!isset($itens[$indice])) {
+        if (!isset($grupos[$indice])) {
             throw new \OutOfRangeException("Anexo {$indice} não encontrado.");
         }
 
-        return $this->anexos->gerarAnexoPdf($itens[$indice]);
+        return $this->gerarAnexoDoGrupo($grupos[$indice]);
+    }
+
+    /**
+     * Agrupa nota + boletos em no maximo 2 anexos: a API oficial do WhatsApp
+     * (WABA) so aceita 1 documento por template, entao todos os boletos em
+     * aberto viram um unico PDF (paginas separadas por quebra de pagina) -
+     * ver NotaBoletoAnexos::gerarAnexoPdfBoletos(). E-mail nao usa este
+     * metodo, continua recebendo cada boleto como anexo avulso.
+     */
+    private function agruparParaEnvio(array $itens): array
+    {
+        $nrNota = $itens[0]['dados'][0]->NR_NOTA;
+
+        $grupos = [
+            ['tipo' => 'nota', 'titulo' => $itens[0]['titulo'], 'nome' => $itens[0]['nome'], 'item' => $itens[0]],
+        ];
+
+        $itensBoletos = array_values(array_filter($itens, fn($item) => $item['tipo'] === 'boleto'));
+
+        if ($itensBoletos) {
+            $grupos[] = [
+                'tipo'         => 'boletos',
+                'titulo'       => 'Boleto(s) ' . $nrNota,
+                'nome'         => "Boletos_{$nrNota}.pdf",
+                'itensBoletos' => $itensBoletos,
+                'nrNota'       => $nrNota,
+            ];
+        }
+
+        return $grupos;
+    }
+
+    private function gerarAnexoDoGrupo(array $grupo): array
+    {
+        return $grupo['tipo'] === 'nota'
+            ? $this->anexos->gerarAnexoPdf($grupo['item'])
+            : $this->anexos->gerarAnexoPdfBoletos($grupo['itensBoletos'], $grupo['nrNota']);
     }
 
     private function montarMensagem(object $envio, array $itens): string

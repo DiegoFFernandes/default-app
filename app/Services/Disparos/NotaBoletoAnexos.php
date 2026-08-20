@@ -77,15 +77,7 @@ class NotaBoletoAnexos
      */
     public function gerarAnexoPdf(array $item): array
     {
-        if ($item['tipo'] === 'nota') {
-            $data = $item['dados'];
-            $layout = (new NotaLayoutData())->build($data);
-            $html = view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
-        } else {
-            $boleto = $item['dados'];
-            $codigo_barras = Helper::codigoBarrasHtml($boleto->DS_CODIGOBARRA);
-            $html = view('admin.layouts.layout-boleto-atz', compact('codigo_barras', 'boleto'))->render();
-        }
+        $html = $this->renderizarItemHtml($item);
 
         return [
             'titulo'   => $item['titulo'],
@@ -94,5 +86,41 @@ class NotaBoletoAnexos
             'conteudo' => $this->chromePdf->fromHtml($html),
             'html'     => $html,
         ];
+    }
+
+    /**
+     * Junta o HTML de varios boletos (separados por quebra de pagina) e gera
+     * um unico PDF - usado pelo canal WhatsApp, que so aceita 1 anexo por
+     * template na API oficial. E-mail continua mandando cada boleto avulso
+     * (via gerarAnexoPdf por item), esse metodo nao mexe naquele fluxo.
+     */
+    public function gerarAnexoPdfBoletos(array $itensBoletos, string $nrNota): array
+    {
+        $html = implode(
+            '<div class="page-break"></div>',
+            array_map(fn($item) => $this->renderizarItemHtml($item), $itensBoletos)
+        );
+
+        return [
+            'titulo'   => 'Boleto(s) ' . $nrNota,
+            'nome'     => "Boletos_{$nrNota}.pdf",
+            'conteudo' => $this->chromePdf->fromHtml($html),
+            'html'     => $html,
+        ];
+    }
+
+    private function renderizarItemHtml(array $item): string
+    {
+        if ($item['tipo'] === 'nota') {
+            $data = $item['dados'];
+            $layout = (new NotaLayoutData())->build($data);
+
+            return view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
+        }
+
+        $boleto = $item['dados'];
+        $codigo_barras = Helper::codigoBarrasHtml($boleto->DS_CODIGOBARRA);
+
+        return view('admin.layouts.layout-boleto-atz', compact('codigo_barras', 'boleto'))->render();
     }
 }
