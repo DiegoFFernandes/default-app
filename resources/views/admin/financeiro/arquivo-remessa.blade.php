@@ -57,6 +57,7 @@
                 </div>
             </div>
 
+            {{-- Filtros --}}
             <div class="card collapsed-card">
                 <div class="card-header">
                     <h3 class="card-title"><i class="fas fa-filter mr-1 text-muted"></i> Filtros</h3>
@@ -68,21 +69,34 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-3 mb-1">
+                        <div class="col-md-2 mb-1">
+                            <label for="daterange-remessa" class="form-label small"><i
+                                    class="fas fa-calendar-alt mr-1 text-muted"></i>Emissão</label>
                             <input id="daterange-remessa" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Emissão">
                         </div>
-                        <div class="col-md-5 mb-1">
+                        <div class="col-md-2 mb-1">
+                            <label for="filtro-cd-empresa" class="form-label small"><i
+                                    class="fas fa-building mr-1 text-muted"></i>Empresa</label>
+                            <select id="filtro-cd-empresa" class="form-control form-control-sm" style="width:100%;">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-1">
+                            <label for="filtro-cliente" class="form-label small"><i
+                                    class="fas fa-user mr-1 text-muted"></i>Cliente</label>
                             <select id="filtro-cliente" class="form-control form-control-sm" style="width:100%;">
                                 <option value="">Filtrar por Cliente</option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-1">
+                            <label for="filtro-forma-pagto" class="form-label small"><i
+                                    class="fas fa-credit-card mr-1 text-muted"></i>Forma de Pagamento</label>
                             <select id="filtro-forma-pagto" class="form-control form-control-sm">
                                 <option value="">Todas as Formas de Pagamento</option>
                             </select>
                         </div>
-                        <div class="col-md-1 mb-1">
+                        <div class="col-md-1 mb-1 d-flex align-items-end">
                             <button id="btn-search-remessa" class="btn btn-primary btn-sm btn-block">
                                 <i class="fas fa-search"></i>
                             </button>
@@ -285,6 +299,12 @@
             });
         });
 
+        $.get("{{ route('firebird.empresas') }}", function(empresas) {
+            (empresas || []).forEach(function(e) {
+                $('#filtro-cd-empresa').append(new Option(e.text, e.id));
+            });
+        });
+
         tableArquivoRemessa = initTableArquivoRemessa();
 
         $('#btn-search-remessa').on('click', function() {
@@ -312,6 +332,7 @@
                     data: function(d) {
                         d.dt_inicio = dtInicioRemessa;
                         d.dt_fim = dtFimRemessa;
+                        d.cd_empresa = $('#filtro-cd-empresa').val();
                         d.cd_pessoa = $('#filtro-cliente').val();
                         d.cd_formapagto = $('#filtro-forma-pagto').val();
                     },

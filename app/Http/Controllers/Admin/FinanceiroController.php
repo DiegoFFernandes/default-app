@@ -149,6 +149,7 @@ class FinanceiroController extends Controller
         $filtros = [
             'dt_inicio'     => $dtInicio ? \Carbon\Carbon::createFromFormat('d.m.Y', $dtInicio)->format('Y-m-d') : null,
             'dt_fim'        => $dtFim ? \Carbon\Carbon::createFromFormat('d.m.Y', $dtFim)->format('Y-m-d') : null,
+            'cd_empresa'    => $this->request->cd_empresa,
             'cd_pessoa'     => $this->request->cd_pessoa,
             'cd_formapagto' => $this->request->cd_formapagto,
         ];

@@ -111,6 +111,12 @@ class Financeiro extends Model
             $bindings['dt_fim'] = $filtros['dt_fim'];
         }
 
+        $filtroEmpresa = '';
+        if (!empty($filtros['cd_empresa'])) {
+            $filtroEmpresa = 'AND C.CD_EMPRESA = :cd_empresa';
+            $bindings['cd_empresa'] = $filtros['cd_empresa'];
+        }
+
         $filtroPessoa = '';
         if (!empty($filtros['cd_pessoa'])) {
             $filtroPessoa = 'AND C.CD_PESSOA = :cd_pessoa';
@@ -158,6 +164,7 @@ class Financeiro extends Model
                       AND C.ST_CONTAS IN ('P', 'T')
                       AND COALESCE(CB.R_DS_INSTRUCAO, 'Sem Remessa') NOT IN ('Registro Confirmado')
                       {$filtroData}
+                      {$filtroEmpresa}
                       {$filtroPessoa}
                       {$filtroFormaPagto}
                 ORDER BY C.DT_LANCAMENTO DESC, C.NR_PARCELA DESC";

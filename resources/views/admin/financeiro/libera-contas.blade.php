@@ -60,20 +60,28 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-2 mb-1">
+                            <label for="filtro-empresa" class="form-label small"><i
+                                    class="fas fa-building mr-1 text-muted"></i>Empresa</label>
                             <input id="filtro-empresa" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Empresa">
                         </div>
                         <div class="col-md-4 mb-1">
+                            <label for="filtro-nome" class="form-label small"><i
+                                    class="fas fa-user mr-1 text-muted"></i>Pessoa</label>
                             <input id="filtro-nome" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Pessoa">
                         </div>
                         <div class="col-md-2 mb-1">
+                            <label for="filtro-docto" class="form-label small"><i
+                                    class="fas fa-file-alt mr-1 text-muted"></i>Documento</label>
                             <input id="filtro-docto" type="text" class="form-control form-control-sm"
                                 placeholder="Filtrar por Documento">
                         </div>
                         <div class="col-md-2 mb-1">
+                            <label for="filtro-data" class="form-label small"><i
+                                    class="fas fa-calendar-alt mr-1 text-muted"></i>Vencimento</label>
                             <input id="filtro-data" type="text" class="form-control form-control-sm"
-                                placeholder="Filtrar por Vencimento">
+                                placeholder="Filtrar por Vencimento" autocomplete="off">
                         </div>
                     </div>
                     <!-- /.row -->
@@ -355,6 +363,23 @@
     <script type="text/javascript">
         var tableContas;
         var selectedContas = new Map();
+        var filtroDataInicio = null;
+        var filtroDataFim = null;
+
+        $.fn.dataTable.ext.search.push(function(settings, searchData, index, rowData) {
+            if (!['table-contas-bloqueadas-pendentes', 'table-contas-bloqueadas-vistos'].includes(settings.nTable
+                    .id)) {
+                return true;
+            }
+            if (!filtroDataInicio || !filtroDataFim) {
+                return true;
+            }
+            if (!rowData.DT_VENCIMENTO) {
+                return false;
+            }
+            var dtVencimento = moment(rowData.DT_VENCIMENTO.substring(0, 10), 'YYYY-MM-DD');
+            return dtVencimento.isValid() && dtVencimento.isBetween(filtroDataInicio, filtroDataFim, 'day', '[]');
+        });
 
         function updateContasBadge() {
             var count = selectedContas.size;
@@ -514,8 +539,18 @@
         $('#filtro-docto').on('keyup', function() {
             tableContas.column(4).search(this.value).draw();
         });
-        $('#filtro-data').on('keyup', function() {
-            tableContas.column(8).search(this.value).draw();
+        initDateRangePicker('#filtro-data', null, null);
+
+        $('#filtro-data').on('apply.daterangepicker', function(ev, picker) {
+            filtroDataInicio = picker.startDate.clone().startOf('day');
+            filtroDataFim = picker.endDate.clone().endOf('day');
+            tableContas.draw();
+        });
+
+        $('#filtro-data').on('cancel.daterangepicker', function() {
+            filtroDataInicio = null;
+            filtroDataFim = null;
+            tableContas.draw();
         });
 
 
@@ -573,7 +608,9 @@
                         $('#filtro-nome').val('');
                         $('#filtro-docto').val('');
                         $('#filtro-data').val('');
-                        tableContas.columns([2, 3, 4, 8]).search('').draw();
+                        filtroDataInicio = null;
+                        filtroDataFim = null;
+                        tableContas.columns([2, 3, 4]).search('').draw();
                         $('#table-contas-bloqueadas-pendentes').DataTable().ajax.reload();
                         $('#table-contas-bloqueadas-vistos').DataTable().ajax.reload();
                     },
