@@ -12,6 +12,7 @@ function initTabEvents() {
 
         if (href === '#pane-disparos-automaticos' && !enviosDisparoCarregado) {
             enviosDisparoCarregado = true;
+            initFiltroEmpresa();
             initFiltroContexto();
             initPeriodo();
             initDataTableEnvios();
@@ -198,6 +199,17 @@ $('#btn-salvar-horario-contexto').on('click', function () {
     });
 });
 
+// ─── Filtro de Empresa (busca de envios) ──────────────────────────────────────
+function initFiltroEmpresa() {
+    $.get(window.routesFollowUp.disparoListEmpresas).done(function (empresas) {
+        const select = $('#disparo_cd_empresa');
+        (empresas || []).forEach(function (e) {
+            select.append(new Option(e.text, e.id));
+        });
+        select.select2({ theme: 'bootstrap4' });
+    });
+}
+
 // ─── Filtro de Contexto (busca de envios) ─────────────────────────────────────
 function initFiltroContexto() {
     $.get(window.routesFollowUp.disparoListContextos).done(function (contextos) {
@@ -233,6 +245,7 @@ function initDataTableEnvios() {
             data: function (d) {
                 d.inicio_data = datasSelecionadasDisparo.getInicio();
                 d.fim_data = datasSelecionadasDisparo.getFim();
+                d.cd_empresa = $('#disparo_cd_empresa').val();
                 d.cd_contexto = $('#disparo_nr_contexto').val();
                 d.st_envio = $('#disparo_st_envio').val();
                 d.nm_pessoa = $('#disparo_nm_pessoa').val();

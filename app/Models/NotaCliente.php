@@ -257,6 +257,11 @@ class NotaCliente extends Model
             $bindings['nm_pessoa'] = Helper::ToIso($filtros['nm_pessoa']);
         }
 
+        if (!empty($filtros['cd_empresa'])) {
+            $where[] = 'N.CD_EMPRESA = :cd_empresa';
+            $bindings['cd_empresa'] = $filtros['cd_empresa'];
+        }
+
         if (!empty($filtros['cd_contexto'])) {
             $where[] = 'DE.CD_CONTEXTO = :cd_contexto';
             $bindings['cd_contexto'] = $filtros['cd_contexto'];

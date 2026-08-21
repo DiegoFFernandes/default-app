@@ -111,6 +111,7 @@ class DisparoAutomaticoController extends Controller
         $filtros = [
             'inicio_data' => $this->converterData($this->request->inicio_data, $hoje),
             'fim_data'    => $this->converterData($this->request->fim_data, $hoje),
+            'cd_empresa'  => $this->request->cd_empresa,
             'cd_contexto' => $this->request->cd_contexto,
             'st_envio'    => $this->request->st_envio,
             'nm_pessoa'   => $this->request->nm_pessoa,

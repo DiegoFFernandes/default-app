@@ -14,7 +14,15 @@
                 </div>
                 <div class="card-body pt-0">
                     <div class="row">
-                        <div class="col-md-3 mb-2">
+                        <div class="col-md-2 mb-2">
+                            <label for="disparo_cd_empresa" class="form-label small"><i
+                                    class="fas fa-building mr-1 text-muted"></i>Empresa</label>
+                            <select class="form-control form-control-sm" id="disparo_cd_empresa"
+                                style="width:100%;">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-2">
                             <label for="disparo_nr_contexto" class="form-label small"><i
                                     class="fas fa-tag mr-1 text-muted"></i>Contexto</label>
                             <select class="form-control form-control-sm" id="disparo_nr_contexto"
@@ -35,7 +43,7 @@
                                 <option value="L">Limite Atingido</option>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-2">
+                        <div class="col-md-3 mb-2">
                             <label for="disparo_nm_pessoa" class="form-label small"><i
                                     class="fas fa-user mr-1 text-muted"></i>Cliente</label>
                             <input type="text" class="form-control form-control-sm" id="disparo_nm_pessoa"

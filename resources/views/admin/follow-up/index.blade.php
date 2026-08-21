@@ -77,6 +77,7 @@
             getEmailFollow: "{{ route('get-email-follow') }}",
             reenviaFollow: "{{ route('reenvia-follow') }}",
             disparoListContextos: "{{ route('disparo-automatico.contextos') }}",
+            disparoListEmpresas: "{{ route('firebird.empresas') }}",
             disparoToggleContexto: "{{ route('disparo-automatico.contextos.toggle', ['id' => ':id']) }}",
             disparoHorarioContexto: "{{ route('disparo-automatico.contextos.horario', ['id' => ':id']) }}",
             disparoWhatsAppContexto: "{{ route('disparo-automatico.contextos.whatsapp', ['id' => ':id']) }}",
