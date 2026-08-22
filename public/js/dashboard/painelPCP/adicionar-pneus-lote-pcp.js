@@ -109,6 +109,13 @@ $(document).on("submit", "#form-adicionar-pneus-lote-pcp", function (e) {
                     return moment(data).format("DD/MM/YYYY");
                 },
             },
+            {
+                data: "DSTIPOPEDIDO",
+                name: "DSTIPOPEDIDO",
+                title: "Tipo Pedido",
+                className: "no-wrap text-center",
+               
+            },
         ],
         order: [[10, "asc"]],
     });

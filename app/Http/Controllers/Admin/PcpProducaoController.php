@@ -207,7 +207,14 @@ class PcpProducaoController extends Controller
 
                     "</span>";
             })
-            ->rawColumns(['STORDEM'])
+            ->editColumn('DSTIPOPEDIDO', function ($row) {
+                if ($row->IDTIPOPEDIDO == 3) {
+                    return "<span class='badge badge-danger'>" . $row->DSTIPOPEDIDO . "</span>";
+                } else {
+                    return "<span class='badge badge-primary'>" . $row->DSTIPOPEDIDO . "</span>";
+                }
+            })
+            ->rawColumns(['STORDEM', 'DSTIPOPEDIDO'])
             ->make(true);
     }
 
@@ -443,6 +450,14 @@ class PcpProducaoController extends Controller
         $data = $this->lotePcpRecap->listaPneusLoteSemPCP($cd_empresa, $nr_pedido, $nr_ordem);
 
         return DataTables::of($data)
+            ->editColumn('DSTIPOPEDIDO', function ($row) {
+                if ($row->IDTIPOPEDIDO == 3) {
+                    return "<span class='badge badge-danger'>" . $row->DSTIPOPEDIDO . "</span>";
+                } else {
+                    return "<span class='badge badge-primary'>" . $row->DSTIPOPEDIDO . "</span>";
+                }
+            })
+            ->rawColumns(['DSTIPOPEDIDO'])
             ->make(true);
     }
 

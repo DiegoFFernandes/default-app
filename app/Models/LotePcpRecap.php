@@ -298,20 +298,23 @@ class LotePcpRecap extends Model
                 PESSOA.NM_PESSOA,
                 PP.ID NR_PEDIDO,
                 OPR.ID NR_ORDEM,
-                OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                                MAX(IPP2.NRSEQUENCIA)
-                                                            FROM ITEMPEDIDOPNEU IPP2
-                                                            WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
-                SP.ID||'-'||SP.DSSERVICO DS_ITEM
+                OPR.ID || ' - ' || COALESCE(IPP.NRSEQUENCIA, IPP.NRSEQCRIACAO) || '/' ||(SELECT
+                                                                                 MAX(COALESCE(IPP2.NRSEQUENCIA, IPP2.NRSEQCRIACAO))
+                                                                             FROM ITEMPEDIDOPNEU IPP2
+                                                                             WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS ID,
+                SP.ID||'-'||SP.DSSERVICO DS_ITEM,
+                TP.ID IDTIPOPEDIDO,
+                TP.DSTIPOPEDIDO
             FROM ORDEMPRODUCAORECAP OPR
             LEFT JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
             INNER JOIN SERVICOPNEU SP ON (SP.ID = IPP.IDSERVICOPNEU)
             INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+            INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
             INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
             LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
             WHERE IPP.STCANCELADO = 'N'
-                AND IPP.STGARANTIA = 'N'
+                --AND IPP.STGARANTIA = 'N'
                 AND PP.IDEMPRESA IN (:cdEmpresa)
                 AND OPR.STORDEM = 'A'
                 AND PESSOA.ST_ATIVA = 'S'

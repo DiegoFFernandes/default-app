@@ -256,6 +256,13 @@ $(document).on("click", ".btn-ver-pneus-lote", function () {
                 className: "no-wrap text-center",
                
             },
+            {
+                data: "DSTIPOPEDIDO",
+                name: "DSTIPOPEDIDO",
+                title: "Tipo Pedido",
+                className: "no-wrap text-center",
+               
+            },
         ],
         order: [[1, "asc"]],
     });

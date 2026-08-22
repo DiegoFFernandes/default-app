@@ -798,10 +798,10 @@ class Producao extends Model
                     PESSOA.CD_PESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
                     PP.ID NR_PEDIDO,
                     OPR.ID NR_ORDEM,                    
-                    OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
-                                                    MAX(IPP2.NRSEQUENCIA)
+                    OPR.ID || ' - ' || COALESCE(IPP.NRSEQUENCIA, IPP.NRSEQCRIACAO) || '/' ||(SELECT
+                                                    MAX(COALESCE(IPP2.NRSEQUENCIA, IPP2.NRSEQCRIACAO))
                                                 FROM ITEMPEDIDOPNEU IPP2
-                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_OP,
+                                                WHERE IPP2.IDPEDIDOPNEU = IPP.IDPEDIDOPNEU) AS NR_OP,  
                     ITEM.CD_ITEM || '-' || ITEM.DS_ITEM DS_ITEM,
                     OPR.STORDEM,
                     CASE
@@ -814,7 +814,9 @@ class Producao extends Model
                     CASE
                         WHEN EI.ID IS NOT NULL THEN 'S'
                         ELSE 'N'
-                    END ST_EXAMEINICIAL
+                    END ST_EXAMEINICIAL,
+                    TP.ID IDTIPOPEDIDO,
+                    TP.DSTIPOPEDIDO
                 FROM ORDEMPRODUCAORECAP OPR
                 INNER JOIN LOTEPCPORDEMPRODUCAORECAP PCP ON (PCP.IDORDEMPRODUCAO = OPR.ID)
                 INNER JOIN MONTAGEMLOTEPCPRECAP M ON (M.ID = PCP.IDMONTAGEMLOTEPCP
@@ -824,11 +826,12 @@ class Producao extends Model
                 INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
                 INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
+                INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                 INNER JOIN PNEU ON (PNEU.ID = IPP.IDPNEU)
                 INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
                 LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                 WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
+                    --AND IPP.STGARANTIA = 'N'
                     AND PP.IDEMPRESA IN (:cd_empresa)
                     AND M.ID = :lote
                 ORDER BY M.DTPRODUCAO DESC, OPR.ID
