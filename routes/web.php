@@ -60,10 +60,11 @@ Auth::routes();
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
 
 
-Route::get('/home', [HomeController::class, 'index'])->name('home');
-
-
 Route::middleware('auth')->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::post('/home/atalhos-favoritos', [HomeController::class, 'salvarAtalhosFavoritos'])
+        ->name('home.atalhos-favoritos');
+
     Route::prefix('firebird')->group(function () {
         Route::get('empresas',    [EmpresaController::class,   'index'])->name('firebird.empresas');
         Route::get('tipos-conta', [TipoContaController::class, 'index'])->name('firebird.tipos-conta');

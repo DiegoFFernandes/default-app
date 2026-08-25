@@ -104,4 +104,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserConfiguracoesPainel::class, 'id_usuario');
     }
+
+    public function atalhosFavoritos()
+    {
+        return $this->hasMany(UserAtalhoFavorito::class, 'id_usuario')->orderBy('ordem');
+    }
 }
