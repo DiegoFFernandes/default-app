@@ -18,347 +18,97 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">View 2.0</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
+                                data-target="#modalPersonalizarAtalhos">
+                                <i class="fas fa-star mr-1"></i> Personalizar atalhos
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body row">
                         <div class="col-md-12">
-                            @canany(['ver-coleta-empresa', 'ver-pedidos-coletados-acompanhamento',
-                                'ver-pedidos-coletados-acompanhamento-cliente'])
-                                <div class="border-bottom mb-3 pb-1">
-                                    <strong>Comercial</strong>
-                                </div>
-                            @endcanany
-                            <div class="atalhos-container mb-2">
-                                @haspermission('ver-coleta-empresa')
-                                    <a href="{{ route('coleta-empresa-geral') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fas fa-truck fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark justify-content-center">
-                                                    <div class="small font-weight-bold">
-                                                        Coleta Geral
-                                                    </div>                                                    
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endhaspermission
-
-                                @role('admin')
-                                    <a href="{{ route('analise-garantia.index') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fas fa-certificate fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark">
-                                                    <div class="small font-weight-bold">
-                                                        Garantia
-                                                    </div>                                                    
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endrole
-
-                                @haspermission('ver-produzidos-sem-faturar')
-                                    <a href="{{ route('produzidos-sem-faturar') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fa fa-exclamation-circle fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark">
-                                                    <div class="small font-weight-bold">
-                                                        Prontos S/ Faturar
-                                                    </div>                                                   
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endhaspermission
-
-                                @canany(['ver-pedidos-coletados-acompanhamento',
-                                    'ver-pedidos-coletados-acompanhamento-cliente'])
-                                    <a href="{{ route('bloqueio-pedidos') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fas fa-tasks fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark">
-                                                    <div class="small font-weight-bold">
-                                                        Acompanha Pedidos
-                                                    </div>                                                
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endcanany
-                                @haspermission('ver-analise-faturamento')
-                                    <a href="{{ route('analise-faturamento.index') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fas fa-chart-bar fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark">
-                                                    <div class="small font-weight-bold">
-                                                        Análise Faturista
-                                                    </div>
-
-                                                   
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endhaspermission
-                                @haspermission('ver-requisicao-borracharia')
-                                    <a href="{{ route('requisicao-borracharia.index') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fas fa-dolly fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark">
-                                                    <div class="small font-weight-bold">
-                                                        Req. Borracharia
-                                                    </div>
-
-                                                   
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endhaspermission
-                                @haspermission('ver-estoque-carcacas')
-                                    <a href="{{ route('carcaca-casa') }}"
-                                        class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                        <div class="card-body">
-                                            <div class="d-flex align-items-center">
-                                                <div class="card-icon">
-                                                    <i class="fas fa-boxes fa-2x mb-2"></i>
-                                                </div>
-
-                                                <div class="text-dark">
-                                                    <div class="small font-weight-bold">
-                                                        Estoque Carcacas
-                                                    </div>
-
-                                                    
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-                                @endhaspermission
-                            </div>
-                            @canany(['ver-rel-cobranca', 'ver-arquivo-remessa'])
-                                <div class="col-md-12 mt-2">
+                            @forelse ($atalhos as $secao => $itens)
+                                <div class="col-md-12 {{ $loop->first ? '' : 'mt-2' }}">
                                     <div class="border-bottom mb-3 pb-1">
-                                        <strong>Cobrança</strong>
+                                        <strong>{{ $secao }}</strong>
                                     </div>
                                     <div class="atalhos-container mb-2">
-                                        @haspermission('ver-rel-cobranca')
-                                            <a href="{{ route('rel-cliente') }}"
+                                        @foreach ($itens as $item)
+                                            <a href="{{ $item['url'] }}"
                                                 class="card card-outline card-dark dashboard-shortcut mb-0">
 
                                                 <div class="card-body">
                                                     <div class="d-flex align-items-center">
                                                         <div class="card-icon">
-                                                            <i class="fas fa-credit-card fa-2x mb-2"></i>
+                                                            <i class="{{ $item['icone'] }} fa-2x mb-2"></i>
                                                         </div>
 
                                                         <div class="text-dark">
                                                             <div class="small font-weight-bold">
-                                                                Financeiro Cliente
+                                                                {{ $item['label'] }}
                                                             </div>
-
                                                         </div>
                                                     </div>
                                                 </div>
                                             </a>
-                                        @endhaspermission
-                                        @haspermission('ver-arquivo-remessa')
-                                            <a href="{{ route('arquivo-remessa.index') }}"
-                                                class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                                <div class="card-body">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="card-icon">
-                                                            <i class="fas fa-file-invoice-dollar fa-2x mb-2"></i>
-                                                        </div>
-
-                                                        <div class="text-dark">
-                                                            <div class="small font-weight-bold">
-                                                                Arquivo Remessa
-                                                            </div>
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        @endhaspermission
+                                        @endforeach
                                     </div>
                                 </div>
-                            @endcanany
-                            @haspermission('ver-producao')
-                                <div class="col-md-12 mt-2">
-                                    <div class="border-bottom mb-3 pb-1">
-                                        <strong>Produção</strong>
-                                    </div>
-                                    <div class="atalhos-container mb-2">
-                                        <a href="{{ route('executor-etapas.index') }}"
-                                            class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="card-icon">
-                                                        <i class="fas fa-cogs fa-2x mb-2"></i>
-                                                    </div>
-
-                                                    <div class="text-dark">
-                                                        <div class="small font-weight-bold">
-                                                            Executor x Produção
-                                                        </div>
-
-                                                      
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                        <a href="{{ route('pneus-lote-pcp') }}"
-                                            class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="card-icon">
-                                                        <i class="fas fa-layer-group fa-2x mb-2"></i>
-                                                    </div>
-
-                                                    <div class="text-dark">
-                                                        <div class="small font-weight-bold">
-                                                            Painel PCP
-                                                        </div>
-
-                                                        
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
-                            @endhaspermission
-                            @haspermission('ver-nota-devolucao')
-                                <div class="col-md-12 mt-2">
-                                    <div class="border-bottom mb-3 pb-1">
-                                        <strong>Faturamento</strong>
-                                    </div>
-                                    <div class="atalhos-container mb-2">
-                                        <a href="{{ route('nota-devolucao.index') }}"
-                                            class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="card-icon">
-                                                        <i class="fas fa-file-alt fa-2x mb-2"></i>
-                                                    </div>
-
-                                                    <div class="text-dark">
-                                                        <div class="small font-weight-bold">
-                                                            Nota Devolução
-                                                        </div>
-
-                                                     
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
-                            @endhaspermission
-                            @hasrole('cliente|admin')
-                                @haspermission('ver-nota-cliente')
-                                    <div class="col-md-12 mt-2">
-                                        <div class="border-bottom mb-3 pb-1">
-                                            <strong>Faturamento</strong>
-                                        </div>
-                                        <div class="atalhos-container mb-2">
-                                            <a href="{{ route('list-notas-emitidas') }}"
-                                                class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                                <div class="card-body">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="card-icon">
-                                                            <i class="fas fa-receipt fa-2x mb-2"></i>
-                                                        </div>
-
-                                                        <div class="text-dark">
-                                                            <div class="small font-weight-bold">
-                                                                Nota e Boleto
-                                                            </div>
-
-                                                            
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endhaspermission
-                            @endhasrole
-                            @haspermission('ver-quadro-tarefa')
-                                <div class="col-md-12 mt-2">
-                                    <div class="border-bottom mb-3 pb-1">
-                                        <strong>Tarefas</strong>
-                                    </div>
-                                    <div class="atalhos-container mb-2">
-                                        <a href="{{ route('area-trabalho-tarefas') }}"
-                                            class="card card-outline card-dark dashboard-shortcut mb-0">
-
-                                            <div class="card-body">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="card-icon">
-                                                        <i class="fas fa-clipboard-list fa-2x mb-2"></i>
-                                                    </div>
-
-                                                    <div class="text-dark">
-                                                        <div class="small font-weight-bold">
-                                                            Quadro de tarefas
-                                                        </div>
-
-                                                       
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
-                            @endhaspermission
+                            @empty
+                                <p class="text-muted mb-0">
+                                    Nenhum atalho favoritado. Clique em "Personalizar atalhos" para escolher os seus.
+                                </p>
+                            @endforelse
                         </div>
                     </div>
                 </div>
+            </div>
                 <!-- /.row -->
     </section>
+
+    <div class="modal fade" id="modalPersonalizarAtalhos" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Personalizar atalhos</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="formAtalhosFavoritos">
+                    <div class="modal-body">
+                        <p class="text-muted">Marque os atalhos que deseja manter na sua home.</p>
+                        @foreach ($atalhosDisponiveis as $secao => $itens)
+                            <div class="mb-3">
+                                <div class="border-bottom mb-2 pb-1">
+                                    <strong>{{ $secao }}</strong>
+                                </div>
+                                <div class="row">
+                                    @foreach ($itens as $item)
+                                        <div class="col-md-6">
+                                            <div class="custom-control custom-checkbox mb-2">
+                                                <input type="checkbox" class="custom-control-input"
+                                                    id="atalho-{{ $item['chave'] }}" name="atalhos[]"
+                                                    value="{{ $item['chave'] }}"
+                                                    {{ in_array($item['chave'], $chavesFavoritas) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="atalho-{{ $item['chave'] }}">
+                                                    <i class="{{ $item['icone'] }} mr-1"></i> {{ $item['label'] }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @stop
 @section('css')
     <style>
@@ -440,4 +190,42 @@
             }
         }
     </style>
+@stop
+@section('js')
+    <script>
+        $('#formAtalhosFavoritos').on('submit', function(e) {
+            e.preventDefault();
+
+            const atalhos = $(this).find('input[name="atalhos[]"]:checked')
+                .map(function() {
+                    return this.value;
+                }).get();
+
+            $.ajax({
+                method: 'POST',
+                url: "{{ route('home.atalhos-favoritos') }}",
+                data: {
+                    _token: $('[name=csrf-token]').attr('content'),
+                    atalhos: atalhos,
+                },
+                success: function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Atalhos salvos!',
+                        confirmButtonColor: '#dc3545',
+                    }).then(function() {
+                        window.location.reload();
+                    });
+                },
+                error: function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao salvar atalhos',
+                        text: 'Por favor, tente novamente.',
+                        confirmButtonColor: '#dc3545',
+                    });
+                }
+            });
+        });
+    </script>
 @stop
