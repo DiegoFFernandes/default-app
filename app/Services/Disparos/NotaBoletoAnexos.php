@@ -109,6 +109,44 @@ class NotaBoletoAnexos
         ];
     }
 
+    /**
+     * Agrupa nota + boletos em no maximo 2 anexos: nota sozinha, e todos os
+     * boletos em aberto mesclados num unico PDF (page-break entre eles) - a
+     * API oficial do WhatsApp (WABA) so aceita 1 documento por template, e o
+     * WppConnect passou a seguir a mesma estrutura pra manter consistencia
+     * entre os dois canais. E-mail nao usa isto, continua com estruturaAnexos()
+     * puro (cada boleto como anexo avulso).
+     */
+    public function agruparParaEnvio(array $itens): array
+    {
+        $nrNota = $itens[0]['dados'][0]->NR_NOTA;
+
+        $grupos = [
+            ['tipo' => 'nota', 'titulo' => $itens[0]['titulo'], 'nome' => $itens[0]['nome'], 'item' => $itens[0]],
+        ];
+
+        $itensBoletos = array_values(array_filter($itens, fn($item) => $item['tipo'] === 'boleto'));
+
+        if ($itensBoletos) {
+            $grupos[] = [
+                'tipo'         => 'boletos',
+                'titulo'       => 'Boleto(s) ' . $nrNota,
+                'nome'         => "Boletos_{$nrNota}.pdf",
+                'itensBoletos' => $itensBoletos,
+                'nrNota'       => $nrNota,
+            ];
+        }
+
+        return $grupos;
+    }
+
+    public function gerarAnexoDoGrupo(array $grupo): array
+    {
+        return $grupo['tipo'] === 'nota'
+            ? $this->gerarAnexoPdf($grupo['item'])
+            : $this->gerarAnexoPdfBoletos($grupo['itensBoletos'], $grupo['nrNota']);
+    }
+
     private function renderizarItemHtml(array $item): string
     {
         if ($item['tipo'] === 'nota') {

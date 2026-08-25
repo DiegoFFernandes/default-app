@@ -7,8 +7,9 @@ use RuntimeException;
 class DisparoHandlerRegistry
 {
     private const MAP = [
-        'NOTA_BOLETO'     => NotaBoletoHandler::class,
-        'NOTA_BOLETO_WPP' => NotaBoletoWppHandler::class,
+        'NOTA_BOLETO'      => NotaBoletoHandler::class,
+        'NOTA_BOLETO_WPP'  => NotaBoletoWppHandler::class,
+        'NOTA_BOLETO_WABA' => NotaBoletoWabaHandler::class,
     ];
 
     public function resolve(string $cdHandler): DisparoHandlerInterface

@@ -546,7 +546,7 @@ return [
             'text' => 'Notificações',
             'icon' => 'nav-icon fas fas fa-envelope',
             'url' => '#',
-            'can' => ['ver-follow-up', 'ver-wppconnect'],
+            'can' => ['ver-follow-up', 'ver-wppconnect', 'whatsapp-oficial-configurar'],
             'submenu' => [
                 [
                     'text' => 'Follow-Up',
@@ -557,6 +557,11 @@ return [
                     'text' => 'Whatsapp',
                     'route' => 'wppconnect.index',
                     'can' => ['ver-wppconnect'],
+                ],
+                [
+                    'text' => 'Whatsapp (API Oficial)',
+                    'route' => 'whatsapp-oficial.index',
+                    'can' => ['whatsapp-oficial-configurar'],
                 ]
 
             ]

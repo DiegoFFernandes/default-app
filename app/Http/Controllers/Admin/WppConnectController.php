@@ -25,7 +25,7 @@ class WppConnectController extends Controller
     public function index()
     {
         $sessions = WppSessao::paraView();
-        return view('admin.wppconnect.index', compact('sessions'));
+        return view('admin.whatsapp.wppconnect.index', compact('sessions'));
     }
 
     // Resolve o nome da sessão a partir do ?session= — só aceita sessões cadastradas
