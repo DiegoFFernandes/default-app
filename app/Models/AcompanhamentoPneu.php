@@ -170,7 +170,7 @@ class AcompanhamentoPneu extends Model
                         " . (($empresa  != 0) ? "AND PP.IDEMPRESA IN ($empresa)" : "") . "
                         " . (($pedido != "") ? "AND PP.ID IN ($pedido)" : "") . "
                         " . (($pedido_palm != "") ? "AND PPM.IDPEDIDOMOVEL IN ($pedido_palm)" : "") . "
-                        " . (($nm_cliente != "") ? "AND PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "  
+                        " . (($nm_cliente != "") ? "AND PP.IDPESSOA || ' - ' || PC.NM_PESSOA LIKE '%$nm_cliente%'" : "") . "
                         " . (($nm_vendedor != "") ? "AND V.NM_PESSOA LIKE '%$nm_vendedor%'" : "") . "
                         " . (($idvendedor != "") ? "AND PP.IDVENDEDOR IN ($idvendedor)" : "") . "
                         " . (($grupo_item != 0) ? "AND ITEM.CD_GRUPO IN ($grupo_item)" : "") . "
@@ -273,7 +273,7 @@ class AcompanhamentoPneu extends Model
             . (($empresa     != 0)   ? " AND PP.IDEMPRESA IN ($empresa)"                  : '')
             . (($pedido      != '')  ? " AND PP.ID IN ($pedido)"                          : '')
             . (($pedido_palm != '')  ? " AND PPM.IDPEDIDOMOVEL IN ($pedido_palm)"         : '')
-            . (($nm_cliente  != '')  ? " AND PC.NM_PESSOA LIKE '%$nm_cliente%'"           : '')
+            . (($nm_cliente  != '')  ? " AND PP.IDPESSOA || ' - ' || PC.NM_PESSOA LIKE '%$nm_cliente%'"           : '')
             . (($nm_vendedor != '')  ? " AND V.NM_PESSOA LIKE '%$nm_vendedor%'"           : '')
             . (($idvendedor  != '')  ? " AND PP.IDVENDEDOR IN ($idvendedor)"              : '')
             . (($grupo_item  != 0)   ? " AND ITEM.CD_GRUPO IN ($grupo_item)"              : '')

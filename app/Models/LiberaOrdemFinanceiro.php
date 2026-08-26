@@ -13,16 +13,19 @@ class LiberaOrdemFinanceiro extends Model
 
     public function listOrdensBloqueadas($cd_regiao, $pedidos)
     {
+        $caseNome = Empresa::buildCaseNome('PP.IDEMPRESA');
+
         $query = "
                 SELECT
                     PP.IDEMPRESA EMP,
+                    {$caseNome} NM_EMPRESA,
                     PP.DTEMISSAO,
                     PP.ID PEDIDO,
                     PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
                     PP.DTBLOQUEIO,
                     PP.IDPEDIDOMOVEL,
-                    CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET ISO8859_1) PESSOA,                    
+                    CAST(P.NM_PESSOA AS VARCHAR(1000) CHARACTER SET ISO8859_1) PESSOA,
                     PP.DSLIBERACAO,
                     CAST(PV.NM_PESSOA AS VARCHAR(1000) CHARACTER SET UTF8) VENDEDOR,
                     EP.CD_REGIAOCOMERCIAL,
@@ -52,7 +55,7 @@ class LiberaOrdemFinanceiro extends Model
                     AND PP.TP_BLOQUEIO <> 'C'
                     " . (($cd_regiao != "") ? "and ep.cd_regiaocomercial in ($cd_regiao)" : "") . "
                     " . (($pedidos != "") ? "and pp.id in ($pedidos)" : "and pp.id = 0") . "
-                    --and ipb.iditempedidopneu = 466381                    
+                    --and ipb.iditempedidopneu = 466381
                 GROUP BY PP.STPEDIDO,
                     PP.TP_BLOQUEIO,
                     PP.IDEMPRESA,
@@ -98,13 +101,13 @@ class LiberaOrdemFinanceiro extends Model
                 ITP.CD_TABPRECO
             FROM
                 PEDIDOPNEU PP
-            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)            
+            INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
             INNER JOIN ITEM I ON (IPP.IDSERVICOPNEU = I.CD_ITEM)
-            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = 1 
+            LEFT JOIN ITEMTABPRECO ITP ON (ITP.CD_TABPRECO = 1
                                 AND ITP.CD_ITEM = IPP.IDSERVICOPNEU)
             INNER JOIN PESSOA P ON (P.CD_PESSOA = PP.IDPESSOA)
             INNER JOIN PESSOA PV ON (PV.CD_PESSOA = PP.IDVENDEDOR)
-            WHERE                
+            WHERE
                 PP.STPEDIDO IN ('B') AND
                 PP.TP_BLOQUEIO <> ''
                 " . (($id <> 0) ? " and pp.id = '" . $id . "'" : "") . "";
