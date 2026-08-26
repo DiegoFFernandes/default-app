@@ -710,6 +710,16 @@
             $('#bloqueio').trigger('click');
         });
 
+        // Loading dos cards "Pedidos" e "Análise", que são alimentados pela mesma tabela
+        $('#pedido-acompanhar').on('processing.dt', function(e, settings, processing) {
+            var loadingCards = $('#card-pedidos .loading-card, #card-analise .loading-card');
+            if (processing) {
+                loadingCards.removeClass('invisible');
+            } else {
+                loadingCards.addClass('invisible');
+            }
+        });
+
         // Atualiza o card "Pedidos" com os totais por status vindos do backend
         $('#pedido-acompanhar').on('xhr.dt', function(e, settings, json) {
             if (json && json.totais) {
@@ -751,7 +761,20 @@
             var dtInicio = datasSelecionadas.getInicio();
             var dtFim = datasSelecionadas.getFim();
             $('.badge-date').text('Período: ' + dtInicio + ' a ' + dtFim);
-            table.ajax.reload();
+
+            Swal.fire({
+                title: 'Carregando...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            table.ajax.reload(function() {
+                Swal.close();
+            });
         });
 
         function initTableAcompanhar() {

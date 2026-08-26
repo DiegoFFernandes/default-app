@@ -21,7 +21,7 @@
                         <div class="card-tools">
                             <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal"
                                 data-target="#modalPersonalizarAtalhos">
-                                <i class="fas fa-star mr-1"></i> Personalizar atalhos
+                                <i class="fas fa-star mr-1 text-warning"></i> Personalizar atalhos
                             </button>
                         </div>
                     </div>

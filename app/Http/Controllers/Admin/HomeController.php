@@ -49,8 +49,11 @@ class HomeController extends Controller
 
         return view('admin.home', compact(
             'user_auth',
-            'uri', 'title_page',
-            'atalhos', 'atalhosDisponiveis', 'chavesFavoritas'
+            'uri',
+            'title_page',
+            'atalhos',
+            'atalhosDisponiveis',
+            'chavesFavoritas'
         ));
     }
 
