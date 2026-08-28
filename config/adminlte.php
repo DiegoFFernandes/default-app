@@ -622,6 +622,11 @@ return [
                     'can' => 'ver-estoque-carcacas',
                 ],
                 [
+                    'text' => 'Pneus Novos',
+                    'route' => 'pneus-novos.index',
+                    'can' => 'ver-estoque-carcacas',
+                ],
+                [
                     'text' => 'Contagem Estoque',
                     'route' => 'entrada-estoque.index',
                     'can' => 'ver-contagem-estoque',

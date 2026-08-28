@@ -5,6 +5,7 @@ namespace App\Services\Disparos;
 use App\Models\BoletoCliente;
 use App\Models\NotaCliente;
 use App\Services\Nota\NotaLayoutData;
+use App\Services\Nota\NotaLayoutDataNacional;
 use App\Services\Pdf\ChromePdfService;
 use Helper;
 
@@ -30,7 +31,9 @@ class NotaBoletoAnexos
     {
         $cdPessoa = (string) $envio->CD_PESSOA;
 
-        $data = $this->notaModel->getListNotaCliente($envio->NR_LANCAMENTO, $cdPessoa);
+        $data = NotaLayoutData::isNacional($envio->CD_EMPRESA)
+            ? $this->notaModel->getListNotaClienteNacional($envio->NR_LANCAMENTO, $cdPessoa)
+            : $this->notaModel->getListNotaCliente($envio->NR_LANCAMENTO, $cdPessoa);
         // Numero da nota no nome/titulo de todos os anexos (nota + boletos) -
         // ajuda o cliente a identificar o arquivo certo numa busca no WhatsApp.
         $nrNota = $data[0]->NR_NOTA;
@@ -113,9 +116,12 @@ class NotaBoletoAnexos
     {
         if ($item['tipo'] === 'nota') {
             $data = $item['dados'];
-            $layout = (new NotaLayoutData())->build($data);
+            $cdEmpresa = $data[0]->CD_EMPRESA;
+            $layout = NotaLayoutData::isNacional($cdEmpresa)
+                ? (new NotaLayoutDataNacional())->build($data)
+                : (new NotaLayoutData())->build($data);
 
-            return view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
+            return view(NotaLayoutData::viewName($cdEmpresa), $layout)->render();
         }
 
         $boleto = $item['dados'];

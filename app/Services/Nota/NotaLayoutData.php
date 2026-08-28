@@ -133,6 +133,16 @@ class NotaLayoutData
     }
 
     /**
+     * A view nacional (DANFSe) exige um par diferente de query+builder
+     * (NotaCliente::getListNotaClienteNacional + NotaLayoutDataNacional) - os
+     * pontos que montam o PDF/HTML da nota checam isto para decidir qual usar.
+     */
+    public static function isNacional($cdEmpresa): bool
+    {
+        return static::viewName($cdEmpresa) === 'admin.layouts.layout-nota-nacional';
+    }
+
+    /**
      * Gera o código de barras da chave de verificação, como SVG (vetorial,
      * nítido em qualquer resolução).
      *
@@ -146,7 +156,7 @@ class NotaLayoutData
      * Obs.: NÃO usa Helper::codigoBarrasHtml(), que gera Interleaved 2 of 5
      * (simbologia do boleto/FEBRABAN) e não seria lido por um leitor de CODE-128.
      */
-    private function codigoBarras(?string $codigo): string
+    protected function codigoBarras(?string $codigo): string
     {
         $codigo = trim((string) $codigo);
 

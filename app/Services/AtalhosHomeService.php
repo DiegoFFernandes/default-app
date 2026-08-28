@@ -60,6 +60,13 @@ class AtalhosHomeService
                     'visivel' => fn(User $u) => $u->can('ver-estoque-carcacas'),
                 ],
                 [
+                    'chave' => 'estoque-pneus-novos',
+                    'rota' => 'pneus-novos.index',
+                    'icone' => 'fas fa-box-open',
+                    'label' => 'Pneus Novos',
+                    'visivel' => fn(User $u) => $u->can('ver-estoque-carcacas'),
+                ],
+                [
                     'chave' => 'libera-ordem-comissao',
                     'rota' => 'libera-ordem-comissao.index',
                     'icone' => 'fas fa-check-circle',
