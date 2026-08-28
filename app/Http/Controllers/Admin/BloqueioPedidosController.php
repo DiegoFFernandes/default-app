@@ -133,8 +133,6 @@ class BloqueioPedidosController extends Controller
                 $button .= '<button type="button" class="btn btn-info ml-1 btn-xs" data-toggle="popover" title="Detalhes" 
                 data-content="' . $b->DSBLOQUEIO . '"><i class="fas fa-comments"></i></button>';
 
-                $button .= " " . $b->CD_EMPRESA;
-
                 return $button;
             })
             ->addColumn('status_cliente', ' ')
@@ -333,7 +331,7 @@ class BloqueioPedidosController extends Controller
                 ->implode(' ');
 
             $d->actions = '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> '
-                        . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+                        . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ';
 
             $d->QTD_FINALIZADAS = '<span class="badge badge-secondary">'
                                 . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';

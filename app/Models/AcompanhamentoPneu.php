@@ -148,7 +148,7 @@ class AcompanhamentoPneu extends Model
                         PP.DSOBSERVACAO,
                         PP.DSBLOQUEIO,
                         PC.ST_SCPC,
-                        PP.DSLIBERACAOANTERIOR
+                        COALESCE(PP.DSLIBERACAOANTERIOR, '') || ASCII_CHAR(13) || ASCII_CHAR(10) || COALESCE(PP.DSLIBERACAO, '') DSLIBERACAOANTERIOR
                     FROM PEDIDOPNEU PP
                     INNER JOIN TIPOPEDIDOPNEU TP ON (TP.ID = PP.IDTIPOPEDIDO)
                     INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.idpedidopneu = PP.id) 
@@ -203,7 +203,8 @@ class AcompanhamentoPneu extends Model
                         PP.DSBLOQUEIO,
                         PC.ST_SCPC,
                         PP.DHSINCRONIZACAO,
-                        PP.DSLIBERACAOANTERIOR                       
+                        PP.DSLIBERACAOANTERIOR,
+                        PP.DSLIBERACAO                      
 
                     ORDER BY PP.IDEMPRESA  
                 ";
@@ -389,7 +390,7 @@ class AcompanhamentoPneu extends Model
                 PP.DSOBSERVACAO,
                 PP.DSBLOQUEIO,
                 PC.ST_SCPC,
-                PP.DSLIBERACAOANTERIOR
+                COALESCE(PP.DSLIBERACAOANTERIOR, '') || ASCII_CHAR(13) || ASCII_CHAR(10) || COALESCE(PP.DSLIBERACAO, '') DSLIBERACAOANTERIOR
             $joins
             WHERE $where $whereSearch
             GROUP BY
@@ -403,7 +404,7 @@ class AcompanhamentoPneu extends Model
                 TP.DSTIPOPEDIDO, TP.ID,
                 FORMAPAGTO.DS_FORMAPAGTO, CONDPAGTO.DS_CONDPAGTO,
                 PP.DSOBSERVACAO, PP.DSBLOQUEIO,
-                PC.ST_SCPC, PP.DHSINCRONIZACAO, PP.DSLIBERACAOANTERIOR
+                PC.ST_SCPC, PP.DHSINCRONIZACAO, PP.DSLIBERACAOANTERIOR, PP.DSLIBERACAO
             ORDER BY $orderBy $dir
             ROWS $from TO $to
         ";

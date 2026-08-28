@@ -21,7 +21,7 @@
                         <div class="stat-row stat-row-clickable" id="i-producao">
                             <span class="stat-row-label">Em Produção</span>
                             <span class="stat-row-val producao">0</span>
-                        </div>                       
+                        </div>
                         <div class="stat-row stat-row-clickable" id="i-cancelados">
                             <span class="stat-row-label">Cancelados</span>
                             <span class="stat-row-val canceladas">0</span>
@@ -63,7 +63,7 @@
                                 <small class="stat-row-pct bloq-ambos-pct">0%</small>
                             </span>
                         </div>
-                         <div class="stat-row stat-row-clickable" id="i-bloqueado-chao">
+                        <div class="stat-row stat-row-clickable" id="i-bloqueado-chao">
                             <span class="stat-row-label">Bloqueios no Chão de Fábrica</span>
                             <span class="stat-row-val bloqueado-chao">0</span>
                         </div>
@@ -141,14 +141,14 @@
                                                         id="daterange" placeholder="Data Emissão">
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-2 col-6">
                                                 <div class="form-group">
                                                     <label class="small">Pedido Palm</label>
                                                     <input type="number" class="form-control form-control-sm"
                                                         id="pedido_palm" placeholder="Pedido Palm">
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-2 col-6">
                                                 <div class="form-group">
                                                     <label class="small">Pedido</label>
                                                     <input type="number" class="form-control form-control-sm"
@@ -210,14 +210,14 @@
                                                         id="nr_fogo" placeholder="Nr Fogo">
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-2 col-6">
                                                 <div class="form-group">
                                                     <label class="small">Nr Serie</label>
                                                     <input type="text" class="form-control form-control-sm"
                                                         id="nr_serie" placeholder="Nr Serie">
                                                 </div>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-2 col-6">
                                                 <div class="form-group">
                                                     <label class="small">Nr Dot</label>
                                                     <input type="text" class="form-control form-control-sm"
@@ -268,21 +268,21 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Supervisor</label>
+                                                    <label class="small">Supervisor</label>
                                                     <input type="text" class="form-control form-control-sm"
                                                         id="nm_supervisor_bloq" placeholder="Nome Supervisor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Vendedor</label>
+                                                    <label class="small">Vendedor</label>
                                                     <input type="text" class="form-control form-control-sm"
                                                         id="nm_vendedor_bloq" placeholder="Nome Vendedor">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label>Cliente</label>
+                                                    <label class="small">Cliente</label>
                                                     <input type="text" class="form-control form-control-sm"
                                                         id="nm_cliente_bloq" placeholder="Nome Cliente">
                                                 </div>
@@ -325,13 +325,14 @@
     <style>
         .stat-card {
             background: #fff;
-            border: 1px solid rgba(0,0,0,.09);
+            border: 1px solid rgba(0, 0, 0, .09);
             border-left: 4px solid;
             border-radius: 4px;
             padding: 10px 12px;
             height: 100%;
             position: relative;
         }
+
         .stat-card .stat-title {
             font-size: 0.68rem;
             text-transform: uppercase;
@@ -345,17 +346,29 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .stat-card .stat-title i { font-size: 0.7rem; }
-        .stat-card .stat-rows { margin-top: 1px; }
+
+        .stat-card .stat-title i {
+            font-size: 0.7rem;
+        }
+
+        .stat-card .stat-rows {
+            margin-top: 1px;
+        }
+
         .stat-card .stat-row {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
             font-size: 0.85rem;
             padding: 4px 0;
-            border-top: 1px solid rgba(0,0,0,.05);
+            border-top: 1px solid rgba(0, 0, 0, .05);
         }
-        .stat-card .stat-row-label { color: #6c757d; flex-shrink: 0; }
+
+        .stat-card .stat-row-label {
+            color: #6c757d;
+            flex-shrink: 0;
+        }
+
         .stat-card .stat-row-val {
             font-weight: 700;
             text-align: right;
@@ -364,8 +377,15 @@
             text-overflow: ellipsis;
             max-width: 58%;
         }
-        .stat-card .stat-row.stat-row-clickable { cursor: pointer; }
-        .stat-card .stat-row.stat-row-clickable:hover { background-color: rgba(0,0,0,.03); }
+
+        .stat-card .stat-row.stat-row-clickable {
+            cursor: pointer;
+        }
+
+        .stat-card .stat-row.stat-row-clickable:hover {
+            background-color: rgba(0, 0, 0, .03);
+        }
+
         .stat-card .stat-row-pct {
             font-weight: 400;
             color: #6c757d;
@@ -373,18 +393,38 @@
         }
 
         /* Cores */
-        .stat-primary { border-left-color: #007bff; }
-        .stat-primary .stat-title i { color: #007bff; }
+        .stat-primary {
+            border-left-color: #007bff;
+        }
 
-        .stat-danger { border-left-color: #dc3545; }
-        .stat-danger .stat-title i { color: #dc3545; }
+        .stat-primary .stat-title i {
+            color: #007bff;
+        }
 
-        .stat-warning { border-left-color: #e0a800; }
-        .stat-warning .stat-title i { color: #c89100; }
+        .stat-danger {
+            border-left-color: #dc3545;
+        }
+
+        .stat-danger .stat-title i {
+            color: #dc3545;
+        }
+
+        .stat-warning {
+            border-left-color: #e0a800;
+        }
+
+        .stat-warning .stat-title i {
+            color: #c89100;
+        }
 
         @media (max-width: 575px) {
-            .stat-card { padding: 8px 10px; }
-            .stat-card .stat-row { font-size: 0.78rem; }
+            .stat-card {
+                padding: 8px 10px;
+            }
+
+            .stat-card .stat-row {
+                font-size: 0.78rem;
+            }
         }
 
         .text-truncate {
@@ -445,7 +485,6 @@
     </script>
     <script src="{{ asset('js/dashboard/coletaEmpresa/modal-detalhes-pedidos.js') }}?v={{ time() }}"></script>
     <script type="text/javascript">
-
         /*Faz o navbar já abrir collapse*/
         function collapseMenu() {
             $('[data-widget="pushmenu"]').PushMenu('collapse');
@@ -506,7 +545,14 @@
                         data: 'action',
                         name: 'action',
                         "width": "1%",
-                        title: 'Emp'
+                        title: '#'
+                    },
+                    {
+                        data: 'CD_EMPRESA',
+                        name: 'CD_EMPRESA',
+                        "width": "1%",
+                        title: 'Empresa',
+                        className: 'text-center'
                     },
                     {
                         data: 'QTD_COMPRA',
@@ -519,9 +565,10 @@
                                 return data;
                             }
                             var qtd = parseInt(data, 10) || 0;
-                            var badge = (qtd > 3)
-                                ? '<span class="badge badge-success">' + qtd  + ' - Recorrente</span>'
-                                : '<span class="badge badge-secondary">' + qtd  + ' - Novo</span>';
+                            var badge = (qtd > 3) ?
+                                '<span class="badge badge-success">' + qtd +
+                                ' - Recorrente</span>' :
+                                '<span class="badge badge-secondary">' + qtd + ' - Novo</span>';
                             return badge;
                         }
                     },
@@ -530,13 +577,6 @@
                         name: 'CLIENTE',
                         "width": "10%",
                         title: 'Cliente'
-                    },
-                    {
-                        data: 'CD_EMPRESA',
-                        name: 'CD_EMPRESA',
-                        "width": "1%",
-                        title: 'Emp',
-                        visible: false,
                     },
                     {
                         data: 'PEDIDO',
@@ -593,7 +633,7 @@
                         title: 'Supervisor',
                         visible: false
                     }
-                    
+
 
                 ],
                 columnDefs: [{
@@ -820,14 +860,16 @@
                         data: 'actions',
                         name: 'actions',
                         "width": "1%",
-                        title: 'Emp'
+                        title: 'Ações',
+                        orderable: false,
+                        searchable: false,
                     },
                     {
-                        data: 'CD_EMPRESA',
-                        name: 'CD_EMPRESA',
+                        data: 'NM_EMPRESA',
+                        name: 'NM_EMPRESA',
                         "width": "1%",
-                        visible: false,
-                        title: 'Emp'
+                        className: 'text-center',
+                        title: 'Empresa'
                     },
                     {
                         data: 'ID',

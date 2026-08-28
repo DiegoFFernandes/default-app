@@ -126,7 +126,7 @@ class LiberaOrdemFinanceiroController extends Controller
 
         $data = $this->libera->listOrdensBloqueadas("", $this->request->pedido);
 
-        $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' / (Dash - ' . $this->user->name . ') Obs: ' . $this->request->liberacao;
+        $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' (Dash - ' . $this->user->name . ') Obs: ' . $this->request->liberacao;
 
         
 

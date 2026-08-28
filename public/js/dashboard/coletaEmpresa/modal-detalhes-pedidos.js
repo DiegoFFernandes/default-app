@@ -6,7 +6,7 @@ $(document).on("click", ".btn-show-modal", function (e) {
     const dt_sinc = formatDate($(this).data("dt_sincronizacao"));
     const dt_registro_palm = formatDate($(this).data("dt_registro_palm"));
 
-    $("#badge-num-pedido").text("Pedido:" + $(this).data("pedido"));
+    $("#badge-num-pedido").text("Pedido: " + $(this).data("pedido"));
     $("#badge-dt-sinc").text("Sinc: " + dt_sinc);
     $("#badge-dt-registro-palm").text("Reg. Palm: " + dt_registro_palm);
 
@@ -94,11 +94,13 @@ function initTableItemPedido(tableId, data) {
             {
                 data: "DSSERVICO",
                 name: "DSSERVICO",
+                className: "no-wrap",
                 title: "Serviço",
             },
             {
                 data: "VLUNITARIO",
                 name: "VLUNITARIO",
+                className: "no-wrap",
                 title: "Valor",
             },
             {
@@ -110,6 +112,7 @@ function initTableItemPedido(tableId, data) {
                 data: "DTINICIO",
                 name: "DTINICIO",
                 title: "Impressão",
+                className: "no-wrap",
                 render: function (data, type, row) {
                     if (!data) return "";
                     return moment(data).format("DD/MM/YYYY HH:mm");
