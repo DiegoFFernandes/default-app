@@ -204,7 +204,8 @@ class LiberaOrdemComissaoController extends Controller
         $pedido = $this->pedido->verifyIfExists($pedidoId);
 
         $data = $this->libera->listPedidosBloqueadas(0, $pedidoId);
-        $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' / (Dash - ' . $this->user->name . ') Obs: ' . $observacao;
+        $data[0]->DSLIBERACAO = $data[0]->DSLIBERACAO . ' (Dash - ' . $this->user->name . ' - ' . now()->format('d/m/Y H:i') . ') Obs: ' . $observacao;
+
 
         $supervisor = $this->supervisorComercialModel->findSupervisorUser($this->user->id);
         //Verifica se o usuario e supervisor e se o status comercial é G (Gerente)

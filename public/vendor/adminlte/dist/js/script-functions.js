@@ -117,6 +117,8 @@ function initDateRangePicker(
     let inicioSelecionado = start.format("DD.MM.YYYY");
     let fimSelecionado = end.format("DD.MM.YYYY");
 
+    $daterange.val(start.format("DD/MM/YYYY") + " - " + end.format("DD/MM/YYYY"));
+
     // Evita inicialização duplicada
     if ($daterange.data("daterangepicker")) {
         $daterange.data("daterangepicker").remove(); // remove instancia anterior se existir
