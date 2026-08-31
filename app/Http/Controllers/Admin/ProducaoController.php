@@ -59,11 +59,7 @@ class ProducaoController extends Controller
         $user =  $this->user->getData();
         $regiao = $this->regiao->regiaoAll();
 
-        if ($this->user->hasRole('admin|gerente comercial|diretoria')) {
-            $regiao = $this->regiao->regiaoAll();
-            $supervisor = $this->supervisor->SupervisorAll();
-
-        } elseif ($this->user->hasRole('supervisor')) {
+        if ($this->user->hasRole('supervisor')) {
 
             $regiao = $this->regiao->findRegiaoUser($this->user->id);
 
@@ -74,13 +70,15 @@ class ProducaoController extends Controller
             $supervisorObjto->NM_SUPERVISOR = $supervisorData->ds_supervisorcomercial;
 
             $supervisor = [$supervisorObjto];
-
         } elseif ($this->user->hasRole('gerente unidade')) {
             $regiao = $this->regiao->regiaoAll();
             $cd_empresa = $this->gerenteUnidade->findEmpresaGerenteUnidade($this->user->id)
                 ->pluck('cd_empresa')
                 ->implode(',');
             $empresa = $this->empresa->empresa($cd_empresa);
+            $supervisor = $this->supervisor->SupervisorAll();
+        } else {
+            $regiao = $this->regiao->regiaoAll();
             $supervisor = $this->supervisor->SupervisorAll();
         }
 
@@ -103,15 +101,10 @@ class ProducaoController extends Controller
         $supervisor = 0;
         $cd_empresa = 0;
 
-        if ($this->user->hasRole('admin|gerente comercial')) {
-            $cd_regiao = "";
-            $supervisor = 0;
-            $cd_empresa = 0;
-        } elseif ($this->user->hasRole('supervisor')) {
+        if ($this->user->hasRole('supervisor')) {
             $cd_regiao = "";
             $cd_empresa = 0;
             $supervisor = $this->supervisorComercial->getCdSupervisor();
-
         } elseif ($this->user->hasRole('gerente unidade')) {
             $cd_regiao = "";
             $supervisor = 0;
@@ -122,13 +115,17 @@ class ProducaoController extends Controller
             $cd_pessoa = $this->pessoa->findPessoaUser($this->user->id)
                 ->pluck('cd_pessoa')
                 ->implode(',');
+        } else {
+            $cd_regiao = "";
+            $supervisor = 0;
+            $cd_empresa = 0;
         }
 
         if (!empty($this->request->data['regiao'])) {
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
 
-       $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
+        $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
