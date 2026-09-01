@@ -30,7 +30,7 @@ class WppAcaoController extends Controller
         ['disparo' => $disparo, 'erro' => $erro] = $this->buscarDisparo($token);
 
         if ($erro) {
-            return view('admin.wppconnect.acao', compact('erro'));
+            return view('admin.whatsapp.wppconnect.acao', compact('erro'));
         }
 
         $etapa       = $this->etapaAprov->findById($disparo->referencia_id);
@@ -38,7 +38,7 @@ class WppAcaoController extends Controller
         $itens       = $this->solicitacaoItem->getBySolicitacao($etapa->CD_SOLICITACAO);
         $cotacoes    = $this->cotacao->getBySolicitacao($etapa->CD_SOLICITACAO);
 
-        return view('admin.wppconnect.acao', compact(
+        return view('admin.whatsapp.wppconnect.acao', compact(
             'disparo', 'etapa', 'solicitacao', 'itens', 'cotacoes', 'acao', 'token'
         ));
     }
@@ -50,13 +50,13 @@ class WppAcaoController extends Controller
         $motivo = $request->input('motivo', '');
 
         if (!in_array($acao, ['aprovar', 'reprovar'])) {
-            return view('admin.wppconnect.acao', ['erro' => 'Ação inválida.']);
+            return view('admin.whatsapp.wppconnect.acao', ['erro' => 'Ação inválida.']);
         }
 
         ['disparo' => $disparo, 'erro' => $erro] = $this->buscarDisparo($token);
 
         if ($erro) {
-            return view('admin.wppconnect.acao', compact('erro'));
+            return view('admin.whatsapp.wppconnect.acao', compact('erro'));
         }
 
         $result = $acao === 'aprovar'
@@ -65,14 +65,14 @@ class WppAcaoController extends Controller
 
         if (isset($result['errors'])) {
             $erro = $result['errors'];
-            return view('admin.wppconnect.acao', compact('erro'));
+            return view('admin.whatsapp.wppconnect.acao', compact('erro'));
         }
 
         $disparo->update(['token' => null]);
 
         $sucesso = $acao === 'aprovar' ? 'Solicitação aprovada com sucesso!' : 'Solicitação reprovada.';
 
-        return view('admin.wppconnect.acao', compact('sucesso', 'acao'));
+        return view('admin.whatsapp.wppconnect.acao', compact('sucesso', 'acao'));
     }
 
     private function buscarDisparo(?string $token): array

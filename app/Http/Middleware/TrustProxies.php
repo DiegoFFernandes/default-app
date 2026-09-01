@@ -12,7 +12,10 @@ class TrustProxies extends Middleware
      *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    // '*' confia em qualquer proxy na frente (ngrok, etc) - sem isso o Laravel
+    // ignora o X-Forwarded-Proto e gera URLs http:// mesmo com o navegador
+    // acessando via https://, quebrando CSS/JS por mixed content.
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.

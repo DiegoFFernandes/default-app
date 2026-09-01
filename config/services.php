@@ -47,4 +47,13 @@ return [
         'api_key' => env('OPENAI_API_KEY'),
     ],
 
+    'whatsapp_cloud' => [
+        'verify_token'    => env('WHATSAPP_VERIFY_TOKEN'),
+        'app_secret'      => env('WHATSAPP_APP_SECRET'),
+        'access_token'    => env('WHATSAPP_ACCESS_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'waba_id'         => env('WHATSAPP_WABA_ID'),
+        'app_id'          => env('WHATSAPP_APP_ID'),
+    ],
+
 ];
