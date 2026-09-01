@@ -192,7 +192,18 @@ class FinanceiroController extends Controller
 
                 return $badges;
             })
-            ->rawColumns(['status', 'remessa'])
+            ->addColumn('registro', function ($d) {
+                if (empty($d->NR_BOLETO)) {
+                    return '<button type="button" class="btn btn-outline-secondary btn-xs btn-block" disabled '
+                        . 'title="Título sem boleto gerado, não há registro para confirmar">Sem Boleto</button>';
+                }
+
+                return '<button type="button" class="btn btn-outline-success btn-xs btn-block btn-confirmar-registro" '
+                    . 'title="Confirmar registro deste boleto no banco (CONTASBOLETO.ST_REGISTRO)" '
+                    . 'data-cd-empresa="' . $d->CD_EMPRESA . '" data-nr-boleto="' . $d->NR_BOLETO
+                    . '" data-cd-formapagto="' . $d->CD_FORMAPAGTO . '">Confirmar</button>';
+            })
+            ->rawColumns(['status', 'remessa', 'registro'])
             ->make(true)
             ->getData();
 
@@ -228,5 +239,19 @@ class FinanceiroController extends Controller
             'qtd_registro_recusado' => number_format($qtd_registro_recusado),
             'qtd_registrar_remessa' => number_format($qtd_registrar_remessa),
         ]);
+    }
+    public function updateContasBoleto()
+    {
+        $contas = $this->request->contas ?? [];
+
+        foreach ($contas as $c) {
+            $this->financeiro->updateContasBoleto(
+                $c['cd_empresa'],
+                $c['nr_boleto'],
+                $c['cd_formapagto']
+            );
+        }
+
+        return response()->json(['success' => 'Registro confirmado com sucesso!']);
     }
 }

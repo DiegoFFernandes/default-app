@@ -97,7 +97,8 @@
                             </select>
                         </div>
                         <div class="col-md-1 mb-1 d-flex align-items-end">
-                            <button id="btn-search-remessa" class="btn btn-primary btn-sm btn-block">
+                            <button id="btn-search-remessa" class="btn btn-primary btn-sm btn-block"
+                                title="Pesquisar com os filtros selecionados">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
@@ -107,12 +108,14 @@
 
             <div class="card">
                 <div class="card-body">
-                    <div class="mb-2">
+                    <div class="mb-2 d-flex justify-content-between align-items-center flex-wrap">
                         <small class="badge badge-danger badge-date"></small>
                     </div>
                     <table class="table stripe compact" id="table-arquivo-remessa" style="width:100%;">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" class="dt-select-all-contas" title="Selecionar todos"
+                                        style="margin:0;"></th>
                                 <th>Emp</th>
                                 <th>Emissão</th>
                                 <th>Vencimento</th>
@@ -123,10 +126,19 @@
                                 <th>Status</th>
                                 <th>Remessa</th>
                                 <th>Nome Arquivo</th>
+                                <th>Registrado</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
+                <div class="card-footer">                    
+                    <button id="btn-confirmar-selecionados" class="btn btn-success btn-sm"
+                        title="Confirmar o registro no banco de todos os títulos marcados na tabela">
+                        <i class="fas fa-check mr-1"></i>Confirmar Registro Selecionados
+                    </button>
+                    <span class="badge badge-warning registros-count-badge mr-2"
+                        style="display:none; font-size:.85rem;"></span>
                 </div>
             </div>
         </div>
@@ -233,6 +245,28 @@
             color: #dc3545;
         }
 
+        /* --- Coluna checkbox --- */
+        td.text-center:has(.dt-row-checkbox-contas),
+        th:has(.dt-select-all-contas) {
+            width: 30px !important;
+            min-width: 30px !important;
+            max-width: 30px !important;
+            padding: 4px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+
+        .dt-row-checkbox-contas,
+        .dt-select-all-contas {
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        /* --- Coluna Registro --- */
+        #table-arquivo-remessa .btn-xs {
+            font-size: 0.65rem;
+        }
+
         table.dataTable thead tr {
             background-color: #444B53;
             color: #ffffff;
@@ -252,6 +286,88 @@
 @section('js')
     <script type="text/javascript">
         var tableArquivoRemessa;
+        var selectedRegistros = new Map();
+
+        function updateRegistrosBadge() {
+            var count = selectedRegistros.size;
+            var $badge = $('.registros-count-badge');
+            if (count > 0) {
+                $badge.text(count + ' selecionado' + (count > 1 ? 's' : '')).show();
+            } else {
+                $badge.hide();
+            }
+        }
+
+        function confirmarRegistroBoleto(contas) {
+            if (!contas.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nenhum título selecionado',
+                    text: 'Selecione ao menos um título para confirmar o registro.',
+                    confirmButtonText: 'Ok',
+                    customClass: {
+                        confirmButton: 'btn btn-warning',
+                    },
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Confirmar registro no banco?',
+                text: contas.length + ' título(s) selecionado(s).',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, confirmar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    confirmButton: 'btn btn-success mr-2',
+                    cancelButton: 'btn btn-secondary',
+                },
+                buttonsStyling: false,
+            }).then(function(result) {
+                if (!result.isConfirmed) return;
+
+                $.ajax({
+                    method: 'post',
+                    url: "{{ route('contas-boleto.update') }}",
+                    data: {
+                        _token: $("[name=csrf-token]").attr("content"),
+                        contas: contas,
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Processando...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    },
+                    success: function(response) {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'success',
+                            title: response.success,
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                        selectedRegistros.clear();
+                        updateRegistrosBadge();
+                        $('.dt-select-all-contas').prop('checked', false);
+                        tableArquivoRemessa.ajax.reload();
+                    },
+                    error: function() {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Ocorreu um erro ao processar a solicitação.',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
+                });
+            });
+        }
 
         // Obtem o primeiro dia do mes atual
         var dtInicioRemessa = moment().subtract(90, 'days').startOf('day').format('DD.MM.YYYY');
@@ -312,7 +428,83 @@
                 dtInicioRemessa = datasSelecionadasRemessa.getInicio();
                 dtFimRemessa = datasSelecionadasRemessa.getFim();
             }
+            $('.badge-date').text('Período: ' + dtInicioRemessa + ' a ' + dtFimRemessa);
+            selectedRegistros.clear();
+            updateRegistrosBadge();
             tableArquivoRemessa.ajax.reload();
+        });
+
+        $('#btn-confirmar-selecionados').on('click', function() {
+            confirmarRegistroBoleto(Array.from(selectedRegistros.values()));
+        });
+
+        // Confirmação individual (botão na linha)
+        $('tbody').on('click', '.btn-confirmar-registro', function() {
+            var $btn = $(this);
+            confirmarRegistroBoleto([{
+                cd_empresa: $btn.data('cd-empresa'),
+                nr_boleto: $btn.data('nr-boleto'),
+                cd_formapagto: $btn.data('cd-formapagto'),
+            }]);
+        });
+
+        // Quantidade de linhas selecionaveis (com boleto e ainda nao confirmadas) no filtro atual
+        function totalRegistrosSelecionaveis() {
+            return tableArquivoRemessa.rows({ search: 'applied' }).data().toArray().filter(function(row) {
+                return row.ST_REGISTRO !== 'S' && !!row.NR_BOLETO;
+            }).length;
+        }
+
+        // Select all — le os dados direto da API do DataTables (nao do DOM), pra nao depender
+        // dos checkboxes sobreviverem a clonagem do cabecalho feita pelo scrollX/scrollY.
+        $(document).on('click', '.dt-select-all-contas', function(e) {
+            e.stopPropagation();
+            var checked = $(this).is(':checked');
+
+            tableArquivoRemessa.rows({ search: 'applied' }).every(function() {
+                var row = this.data();
+                if (row.ST_REGISTRO === 'S' || !row.NR_BOLETO) return;
+
+                var key = row.CD_EMPRESA + '-' + row.NR_BOLETO + '-' + row.CD_FORMAPAGTO;
+                if (checked) {
+                    selectedRegistros.set(key, {
+                        cd_empresa: row.CD_EMPRESA,
+                        nr_boleto: row.NR_BOLETO,
+                        cd_formapagto: row.CD_FORMAPAGTO,
+                    });
+                } else {
+                    selectedRegistros.delete(key);
+                }
+            });
+
+            // sincroniza visualmente os checkboxes das linhas (tbody nao eh clonado pelo scrollX/scrollY)
+            tableArquivoRemessa.rows({ search: 'applied' }).nodes().to$()
+                .find('.dt-row-checkbox-contas').prop('checked', checked);
+
+            updateRegistrosBadge();
+        });
+
+        // Checkbox individual
+        $(document).on('click', '.dt-row-checkbox-contas', function(e) {
+            e.stopPropagation();
+            var tr = $(this).closest('tr');
+            var row = tableArquivoRemessa.row(tr).data();
+            if (!row) return;
+
+            var key = row.CD_EMPRESA + '-' + row.NR_BOLETO + '-' + row.CD_FORMAPAGTO;
+            if ($(this).is(':checked')) {
+                selectedRegistros.set(key, {
+                    cd_empresa: row.CD_EMPRESA,
+                    nr_boleto: row.NR_BOLETO,
+                    cd_formapagto: row.CD_FORMAPAGTO,
+                });
+            } else {
+                selectedRegistros.delete(key);
+            }
+
+            var total = totalRegistrosSelecionaveis();
+            $('.dt-select-all-contas').prop('checked', total > 0 && selectedRegistros.size === total);
+            updateRegistrosBadge();
         });
 
         function initTableArquivoRemessa() {
@@ -366,6 +558,18 @@
                     }
                 },
                 columns: [{
+                        data: null,
+                        width: '1%',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center',
+                        render: function(data, type, row) {
+                            if (type !== 'display') return '';
+                            if (row.ST_REGISTRO === 'S' || !row.NR_BOLETO) return '';
+                            return '<input type="checkbox" class="dt-row-checkbox-contas" aria-label="Selecionar linha" style="margin:0;">';
+                        }
+                    },
+                    {
                         data: 'CD_EMPRESA',
                         name: 'CD_EMPRESA',
                         width: '1%',
@@ -423,9 +627,15 @@
                         orderable: false,
                         visible: false
                     },
+                    {
+                        data: 'registro',
+                        name: 'registro',
+                        orderable: false,
+                        className: 'text-center',
+                    }
                 ],
                 columnDefs: [{
-                        targets: [1, 2],
+                        targets: [2, 3],
                         render: function(data, type, row) {
                             if (!data) return '';
                             var parts = data.substring(0, 10).split('-');
@@ -434,12 +644,12 @@
                         }
                     },
                     {
-                        targets: [6],
+                        targets: [7],
                         render: $.fn.dataTable.render.number('.', ',', 2),
                     }
                 ],
                 order: [
-                    [3, 'asc']
+                    [4, 'asc']
                 ],
             });
         }

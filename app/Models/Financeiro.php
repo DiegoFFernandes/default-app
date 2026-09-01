@@ -131,7 +131,8 @@ class Financeiro extends Model
 
         $query = "
                 SELECT 
-                COALESCE(CB.R_DS_INSTRUCAO, 'Sem Remessa') DS_REMESSA,
+                    COALESCE(CB.R_ST_REGISTRO, 'N') ST_REGISTRO,
+                    COALESCE(CB.R_DS_INSTRUCAO, 'Sem Remessa') DS_REMESSA,
                     CB.R_DS_OCORRENCIA,
                     CB.R_NR_ARQUIVO,
                     C.NR_BOLETO,
@@ -163,6 +164,7 @@ class Financeiro extends Model
                       AND C.CD_TIPOCONTA IN (2)
                       AND C.ST_CONTAS IN ('P', 'T')
                       AND COALESCE(CB.R_DS_INSTRUCAO, 'Sem Remessa') NOT IN ('Registro Confirmado')
+                      AND COALESCE(CB.R_ST_REGISTRO, 'N') <> 'S'
                       {$filtroData}
                       {$filtroEmpresa}
                       {$filtroPessoa}
@@ -221,5 +223,27 @@ class Financeiro extends Model
 
         $results = DB::connection('firebird')->select($query);
         return $results =  Helper::ConvertFormatText($results);
+    }
+
+    // Faz o update do ST_REGISTRO, coluna criada por nós somente para o usuario atualizar o registro para 'S',
+    // assim ele da sequencia somente dos itens que ainda não validou.
+    public function updateContasBoleto($cd_empresa, $nr_boleto, $cd_formapagto)
+    {
+        return DB::transaction(function () use ($cd_empresa, $nr_boleto, $cd_formapagto) {
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            $query = "
+                UPDATE CONTASBOLETO CB SET CB.ST_REGISTRO = 'S'
+                WHERE CB.CD_EMPRESA = :cd_empresa
+                    AND CB.NR_BOLETO = :nr_boleto
+                    AND CB.CD_FORMAPAGTO = :cd_formapagto";
+
+            return DB::connection('firebird')->select($query, [
+                'cd_empresa'    => $cd_empresa,
+                'nr_boleto'     => $nr_boleto,
+                'cd_formapagto' => $cd_formapagto,
+            ]);
+        });
     }
 }
