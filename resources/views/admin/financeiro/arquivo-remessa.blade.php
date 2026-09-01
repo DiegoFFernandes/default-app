@@ -577,13 +577,13 @@
                     },
                     {
                         data: 'DT_LANCAMENTO',
-                        name: 'DT_LANCAMENTO',
-                        width: '2%',
+                        name: 'DT_LANCAMENTO',   
+                        className: 'text-center'                     
                     },
                     {
                         data: 'DT_VENCIMENTO',
-                        name: 'DT_VENCIMENTO',
-                        width: '2%',
+                        name: 'DT_VENCIMENTO', 
+                        className: 'text-center'                       
                     },
                     {
                         data: null,
@@ -638,6 +638,7 @@
                         targets: [2, 3],
                         render: function(data, type, row) {
                             if (!data) return '';
+                            if (type !== 'display') return data;
                             var parts = data.substring(0, 10).split('-');
                             if (parts.length !== 3) return data;
                             return parts[2] + '/' + parts[1] + '/' + parts[0];
@@ -649,7 +650,7 @@
                     }
                 ],
                 order: [
-                    [4, 'asc']
+                    [2, 'asc']
                 ],
             });
         }
