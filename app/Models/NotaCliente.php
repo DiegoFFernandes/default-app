@@ -11,7 +11,7 @@ class NotaCliente extends Model
 {
     use HasFactory;
 
-    public function getListNotaCliente($nr_lancamento = null, $cd_pessoa = null, $nr_nota = null, $dt_registro_min = null)
+    public function getListNotaCliente($nr_lancamento = null, $cd_pessoa = null, $nr_nota = null, $dt_registro_min = null, $dt_registro_max = null)
     {
         if (empty($cd_pessoa) && empty($nr_nota) && empty($dt_registro_min)) {
             throw new \InvalidArgumentException('Informe cd_pessoa, nr_nota ou dt_registro_min para consultar notas.');
@@ -225,6 +225,7 @@ class NotaCliente extends Model
                     " . ($nr_nota != null ? " AND N.NR_NOTAFISCAL in ($nr_nota)" : "") . "
                     " . ($nr_lancamento != null ? " AND N.NR_LANCAMENTO = " . $nr_lancamento : "") . "
                     " . ($dt_registro_min != null ? " AND N.DT_REGISTRO > '" . $dt_registro_min . "'" : "") . "
+                    " . ($dt_registro_max != null ? " AND N.DT_REGISTRO <= '" . $dt_registro_max . "'" : "") . "
                 ";
 
         if (!empty($nr_lancamento)) {
