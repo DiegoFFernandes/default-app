@@ -95,10 +95,10 @@ if (!empty($cfg['senha'])) {
   </div>
 
   <label>Empresa</label>
-  <input id="empresa" placeholder="ex: Recapadora">
+  <input id="empresa" placeholder="ex: Nome da empresa">
 
   <label>URL do webhook do servidor dela</label>
-  <input id="webhook" placeholder="https://atz.dbytech.com.br/whatsapp-cloud/webhook">
+  <input id="webhook" placeholder="https://empresa.dbytech.com.br/whatsapp-cloud/webhook">
   <small>Para onde as mensagens dessa empresa serao entregues.</small>
 
   <label>Token de verificacao</label>
