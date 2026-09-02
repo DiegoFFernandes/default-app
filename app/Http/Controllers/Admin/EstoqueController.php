@@ -538,4 +538,25 @@ class EstoqueController extends Controller
         }
         return response()->json($data);
     }
+
+
+     public function pneusNovos()
+    {
+        $title_page  = 'Pneus Novos';
+        $user_auth   = $this->user;
+        $uri         = $this->request->route()->uri();
+
+        // Verifica se o usuário tem permissão de edição e enviar a view para bloquear ou liberar as ações
+        $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
+
+        return view(
+            'admin.estoque.pneus-novos.pneu-novo',
+            compact(
+                'uri',
+                'title_page',
+                'user_auth',
+                'canEdit'
+            )
+        );
+    }
 }

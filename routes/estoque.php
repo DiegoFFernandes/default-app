@@ -11,6 +11,9 @@ Route::middleware(['auth', 'permission:ver-estoque-negativo'])->prefix('estoque'
 });
 
 Route::middleware(['auth', 'permission:ver-estoque-carcacas'])->prefix('estoque')->group(function () {
+    //Pneu novos 
+    Route::get('pneus-novos', [EstoqueController::class, 'pneusNovos'])->name('pneus-novos.index');
+
     //Carcaças da casa
     Route::get('carcacas-da-casa', [EstoqueController::class, 'carcacaCasa'])->name('carcaca-casa');
     Route::get('get-carcacas-da-casa', [EstoqueController::class, 'getCarcacaCasa'])->name('get-carcaca-casa');

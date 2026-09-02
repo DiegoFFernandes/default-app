@@ -30,5 +30,6 @@ Route::middleware(['auth', 'permission:ver-arquivo-remessa'])->group(function ()
     Route::prefix('financeiro')->group(function () {
         Route::get('arquivo-remessa', [FinanceiroController::class, 'arquivoRemessa'])->name('arquivo-remessa.index');
         Route::get('get-list-arquivo-remessa', [FinanceiroController::class, 'listArquivoRemessa'])->name('arquivo-remessa.list');
+        Route::post('update-contas-boleto', [FinanceiroController::class, 'updateContasBoleto'])->name('contas-boleto.update');
     });
 });

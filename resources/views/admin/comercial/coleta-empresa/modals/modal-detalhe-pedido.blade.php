@@ -4,13 +4,15 @@
         <div class="modal-content">
             <div class="modal-header py-2">
 
-                <span class="badge badge-danger mr-1" id="badge-num-pedido"></span>
-                <span class="badge badge-warning mr-1" id="badge-dt-registro-palm"></span>
-                <span class="badge badge-info mr-1" id="badge-dt-sinc"></span>
-                <span class="badge badge-secondary mr-1" id="badge-ds-motivo"></span>
-                <span class="badge badge-primary mr-1" id="badge-ds-liberacao-anterior">
-                    <i class="fa fa-exclamation-circle"></i>
-                </span>
+                <div class="d-flex flex-wrap align-items-center">
+                    <span class="badge badge-danger mr-1 mb-1" id="badge-num-pedido"></span>
+                    <span class="badge badge-warning mr-1 mb-1" id="badge-dt-registro-palm"></span>
+                    <span class="badge badge-info mr-1 mb-1" id="badge-dt-sinc"></span>
+                    <span class="badge badge-secondary mr-1 mb-1" id="badge-ds-motivo"></span>
+                    <span class="badge badge-primary mr-1 mb-1" id="badge-ds-liberacao-anterior">
+                        <i class="fa fa-exclamation-circle"></i>
+                    </span>
+                </div>
 
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -90,9 +92,17 @@
                     </table>
                 </div>
             </div>
-            <div class="modal-footer p-2">
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Fechar</button>
+            <div class="modal-footer p-2 justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm btn-block-sm-down" data-dismiss="modal">Fechar</button>
             </div>
+            <style>
+                @media (max-width: 575.98px) {
+                    .btn-block-sm-down {
+                        display: block;
+                        width: 100%;
+                    }
+                }
+            </style>
         </div>
     </div>
 </div>

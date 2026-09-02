@@ -13,6 +13,7 @@ use App\Models\Producao;
 use App\Models\RegiaoComercial;
 use App\Models\User;
 use App\Services\Nota\NotaLayoutData;
+use App\Services\Nota\NotaLayoutDataNacional;
 use App\Services\Pdf\ChromePdfService;
 use App\Services\SupervisorAuthService;
 use Helper;
@@ -94,12 +95,21 @@ class AcessoClienteController extends Controller
             ->implode(',');
 
         $data = $this->nota->getListNotaCliente($id, $cd_pessoa);
-        $layout = (new NotaLayoutData())->build($data);
+        $cdEmpresa = $data[0]->CD_EMPRESA;
+
+        // CD_EMPRESA só é conhecido depois da 1ª busca (não vem em $id/$cd_pessoa) -
+        // empresa nacional exige reconsultar com as colunas de IBS/CBS/etc.
+        if (NotaLayoutData::isNacional($cdEmpresa)) {
+            $data = $this->nota->getListNotaClienteNacional($id, $cd_pessoa);
+            $layout = (new NotaLayoutDataNacional())->build($data);
+        } else {
+            $layout = (new NotaLayoutData())->build($data);
+        }
 
         // Chromium headless (mesmo motor do disparo): renderização idêntica ao
         // preview HTML e quebra de página confiável. As margens vêm do
         // @page{margin} do CSS do layout, que o Chromium respeita.
-        $html = view(NotaLayoutData::viewName($data[0]->CD_EMPRESA), $layout)->render();
+        $html = view(NotaLayoutData::viewName($cdEmpresa), $layout)->render();
         $pdf  = $chromePdf->fromHtml($html);
 
         return response($pdf, 200, [

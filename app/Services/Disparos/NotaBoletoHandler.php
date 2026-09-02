@@ -23,11 +23,22 @@ class NotaBoletoHandler implements DisparoHandlerInterface
         $dtMin = Carbon::parse($contexto->DT_ULTIMAEXECUCAO ?: $contexto->DT_INICIOENVIO)
             ->format('Y-m-d H:i:s');
 
+        // Carência: só notas com pelo menos N minutos de idade - da tempo
+        // habil de cancelar a nota antes do envio automatico pro cliente. A
+        // marca d'agua avança até esse mesmo corte (ver DisparoContexto::
+        // marcarExecutado()), nunca até "agora" puro, senao uma nota mais
+        // nova que a carência ficaria pra trás da marca d'água e nunca mais
+        // seria reconsiderada.
+        $dtMax = Carbon::parse($contexto->DT_AGORA)
+            ->subMinutes((int) config('disparo-automatico.carencia_minutos'))
+            ->format('Y-m-d H:i:s');
+
         $notas = $this->notaModel->getListNotaCliente(
             null,
             null,
             null,
-            $dtMin
+            $dtMin,
+            $dtMax
         );
 
         foreach ($notas as $nota) {

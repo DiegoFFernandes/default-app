@@ -1,4 +1,4 @@
-<div class="tab-pane fade" id="painel-pneus-novos" role="tabpanel"
+<div class="tab-pane fade {{ ($ativo ?? false) ? 'show active' : '' }}" id="painel-pneus-novos" role="tabpanel"
     aria-labelledby="tab-pneus-novos">
     <div class="card-body p-2">
         <div class="row">

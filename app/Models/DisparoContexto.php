@@ -98,9 +98,18 @@ class DisparoContexto extends Model
      */
     public function marcarUltimaExecucao(int $id, string $dtAgora): void
     {
+        // A marca d'agua avança so até "agora - carência" (config
+        // disparo-automatico.carencia_minutos), nao até "agora" puro - senao
+        // uma nota registrada a menos tempo que a carência ficaria pra trás
+        // da marca d'água e nunca mais seria reconsiderada pelo
+        // gerarPendentes() (ver NotaBoletoWppHandler).
+        $dtMarcaDagua = Carbon::parse($dtAgora)
+            ->subMinutes((int) config('disparo-automatico.carencia_minutos'))
+            ->format('Y-m-d H:i:s');
+
         DB::connection('firebird')->statement("
             UPDATE DISPARO_CONTEXTO SET DT_ULTIMAEXECUCAO = :dt WHERE CD_CONTEXTO = :id
-        ", ['dt' => $dtAgora, 'id' => $id]);
+        ", ['dt' => $dtMarcaDagua, 'id' => $id]);
     }
 
     /**
@@ -120,10 +129,19 @@ class DisparoContexto extends Model
             ? $this->proximaExecucaoAncorada($dtAgora, $horaExecucao, $intervaloHoras)
             : Carbon::parse($dtAgora)->addHours($intervaloHoras);
 
+        // A marca d'agua (usada como limite inferior por gerarPendentes())
+        // avança so até "agora - carência", nao até "agora" puro - mesmo
+        // motivo do marcarUltimaExecucao() do WhatsApp. DT_PROXIMAEXECUCAO
+        // (acima) continua calculado a partir do "agora" real - e sobre
+        // quando o AGENDAMENTO roda de novo, nao sobre a carência da nota.
+        $dtMarcaDagua = Carbon::parse($dtAgora)
+            ->subMinutes((int) config('disparo-automatico.carencia_minutos'))
+            ->format('Y-m-d H:i:s');
+
         DB::connection('firebird')->statement("
             UPDATE DISPARO_CONTEXTO SET DT_ULTIMAEXECUCAO = :dt, DT_PROXIMAEXECUCAO = :dt_proxima WHERE CD_CONTEXTO = :id
         ", [
-            'dt'         => $dtAgora,
+            'dt'         => $dtMarcaDagua,
             'dt_proxima' => $dtProxima->format('Y-m-d H:i:s'),
             'id'         => $id,
         ]);
