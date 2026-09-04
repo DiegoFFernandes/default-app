@@ -105,21 +105,10 @@
                     // Para o spinner das tabelas ativas
                     $($.fn.dataTable.tables(true)).DataTable().processing(false);
 
-                    // 401 → sessão expirada
-                    if (xhr.status === 401) {
-                        sessionStorage.setItem('redirect_url', window.location.href);
-                        Swal.fire({
-                            title: 'Sessão Expirada!',
-                            text: 'Sua sessão expirou. Você será redirecionado para o login.',
-                            icon: 'warning',
-                            confirmButtonColor: '#D43343',
-                            confirmButtonText: 'OK',
-                            allowOutsideClick: false,
-                        }).then(function() {
-                            window.location.href = '/login';
-                        });
-                        return;
-                    }
+                    // 401 → sessão expirada: tratado pelo handler global de
+                    // $(document).ajaxError() logo abaixo (cobre esta e qualquer
+                    // outra requisição AJAX do site, não só DataTables).
+                    if (xhr.status === 401) return;
 
                     // 200 com qualquer textStatus = dado carregou ou problema de formato não crítico → ignorar
                     if (xhr.status === 200) return;
@@ -151,6 +140,28 @@
                     });
                 }
             }
+        });
+
+        // Sessão/CSRF expirados - cobre QUALQUER requisição AJAX do site (nao só
+        // DataTables), pra nao depender de cada tela tratar isso na mao. Sem
+        // isso, um 401/302-por-token-vencido em um $.post()/$.get() qualquer
+        // era interpretado como sucesso (o browser seguia o redirect de login
+        // e o .done() disparava com a pagina de login no lugar da resposta).
+        var sessaoExpiradaExibida = false;
+        $(document).ajaxError(function(event, jqXHR) {
+            if (jqXHR.status !== 401 || sessaoExpiradaExibida) return;
+
+            sessaoExpiradaExibida = true;
+            Swal.fire({
+                title: 'Sessão Expirada!',
+                text: 'Sua sessão expirou. Você será redirecionado para o login.',
+                icon: 'warning',
+                confirmButtonColor: '#D43343',
+                confirmButtonText: 'OK',
+                allowOutsideClick: false,
+            }).then(function() {
+                window.location.href = '/login';
+            });
         });
 
         document.addEventListener("DOMContentLoaded", function() {

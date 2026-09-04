@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -34,6 +36,33 @@ class EnviaDisparoAutomaticoJob implements ShouldQueue, ShouldBeUnique
     public function uniqueId(): string
     {
         return (string) $this->cdEnvio;
+    }
+
+    /**
+     * Lock do ShouldBeUnique via Redis, nao o cache padrao da aplicacao
+     * (CACHE_DRIVER=file) - lock em arquivo no Windows nao libera de forma
+     * confiavel, deixando o job "preso" pro mesmo CD_ENVIO: todo reenvio
+     * manual esbarrava nesse lock antigo e so saia na proxima rodada do
+     * cron, que eventualmente conseguia. Redis ja é usado pela fila e da
+     * lock atomico de verdade.
+     */
+    public function uniqueVia(): CacheRepository
+    {
+        return Cache::store('redis');
+    }
+
+    /**
+     * Prazo maximo do lock, em segundos - sem isso (padrao 0) o lock nunca
+     * expira sozinho: se o job for morto abruptamente (o --timeout do worker
+     * mata a forca um job que passar do tempo, sem chance de liberar o lock
+     * no fim do handle()), o CD_ENVIO fica travado pra sempre, e todo reenvio
+     * futuro e silenciosamente ignorado (Bus::dispatch nao lanca erro, so nao
+     * enfileira). 900s cobre --timeout=240 x tries=2 + o release(5min) de
+     * retry, com folga.
+     */
+    public function uniqueFor(): int
+    {
+        return 900;
     }
 
     /**

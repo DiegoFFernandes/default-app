@@ -68,7 +68,15 @@ class Handler extends ExceptionHandler
             return redirect()->route('home')->with(['error' => 'Você não tem permissão para acessar esta página.']);
         }
 
-        // Redireciona em caso de erro de CSRF
+        // Erro de CSRF (token expirado/invalido) - mesma checagem de expectsJson()
+        // do bloco de AuthenticationException acima. Sem isso, uma chamada AJAX
+        // recebia um redirect (302) pro login em vez de um erro JSON: o browser
+        // seguia o redirect (GET), o jQuery recebia a pagina de login como se
+        // fosse sucesso, e o Swal.fire acabava aparecendo com "success" vazio.
+        if ($request->expectsJson() && $exception instanceof \Illuminate\Session\TokenMismatchException) {
+            return response()->json(['message' => 'Sessão expirada.'], 401);
+        }
+
         if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
             return redirect()->guest(route('login'))->withErrors([
                 'Sessão expirada. Faça login novamente.',
