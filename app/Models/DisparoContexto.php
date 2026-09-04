@@ -87,7 +87,7 @@ class DisparoContexto extends Model
                    CURRENT_TIMESTAMP AS DT_AGORA
             FROM DISPARO_CONTEXTO
             WHERE ST_ATIVO = 'S'
-                AND TP_CANAL = 'W'
+                AND TP_CANAL IN ('W', 'O')
         "));
     }
 

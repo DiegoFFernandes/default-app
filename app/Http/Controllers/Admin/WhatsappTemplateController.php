@@ -23,10 +23,8 @@ class WhatsappTemplateController extends Controller
     {
         $dados = $request->validate($this->regrasValidacao($request));
 
-        if ($dados['header_tipo'] === 'DOCUMENT' && !$request->hasFile('header_arquivo')) {
-            return response()->json(['errors' => 'Envie um PDF de amostra para o cabeçalho do tipo Documento.'], 422);
-        }
-
+        // Cabecalho tipo Documento nao exige upload: sem arquivo proprio,
+        // o envio usa a amostra padrao (ver conteudoAmostraDocumento).
         $template = WhatsappTemplate::create([
             'nome'        => $dados['nome'],
             'categoria'   => $dados['categoria'],
@@ -51,12 +49,6 @@ class WhatsappTemplateController extends Controller
         }
 
         $dados = $request->validate($this->regrasValidacao($request, $template));
-
-        $temArquivo = $request->hasFile('header_arquivo') || $template->header_documento_path;
-
-        if ($dados['header_tipo'] === 'DOCUMENT' && !$temArquivo) {
-            return response()->json(['errors' => 'Envie um PDF de amostra para o cabeçalho do tipo Documento.'], 422);
-        }
 
         $caminhoArquivo = $template->header_documento_path;
 
@@ -88,6 +80,23 @@ class WhatsappTemplateController extends Controller
     private function salvarArquivoHeader(Request $request, WhatsappTemplate $template): string
     {
         return $request->file('header_arquivo')->storeAs('whatsapp-templates', $template->id . '.pdf');
+    }
+
+    /**
+     * PDF de amostra exigido pelo cabecalho tipo Documento. Usa o arquivo que
+     * o usuario subiu; sem ele, cai no exemplo versionado no projeto - a Meta
+     * so quer entender o formato do anexo, nao o conteudo. Evita ter que subir
+     * um arquivo em cada instalacao nova so pra submeter os modelos padrao.
+     */
+    private function conteudoAmostraDocumento(WhatsappTemplate $template): ?string
+    {
+        if ($template->header_documento_path && Storage::exists($template->header_documento_path)) {
+            return Storage::get($template->header_documento_path);
+        }
+
+        $padrao = resource_path('views/whatsapp/amostras/amostra-documento.pdf');
+
+        return is_file($padrao) ? file_get_contents($padrao) : null;
     }
 
     private function regrasValidacao(Request $request, ?WhatsappTemplate $template = null): array
@@ -158,13 +167,15 @@ class WhatsappTemplateController extends Controller
         );
 
         if ($indiceHeaderDocumento !== false) {
-            if (!$template->header_documento_path || !Storage::exists($template->header_documento_path)) {
+            $amostra = $this->conteudoAmostraDocumento($template);
+
+            if ($amostra === null) {
                 return response()->json(['errors' => 'Falta o PDF de amostra do cabeçalho - edite o template e envie um arquivo.'], 422);
             }
 
             // Gerado na hora (nao guardado) porque o handle da Meta expira -
             // reaproveitar um handle antigo falharia num reenvio mais tarde.
-            $handle = $this->waba->obterHandleDocumento(Storage::get($template->header_documento_path));
+            $handle = $this->waba->obterHandleDocumento($amostra);
 
             if (!$handle) {
                 return response()->json(['errors' => 'Falha ao enviar o PDF de amostra para a Meta.'], 422);

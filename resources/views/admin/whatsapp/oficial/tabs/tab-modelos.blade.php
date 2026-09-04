@@ -108,7 +108,7 @@
                     <label>PDF de amostra do cabeçalho</label>
                     <input type="file" class="form-control-file" name="header_arquivo" id="input-header-arquivo" accept="application/pdf">
                     <small class="text-muted" id="texto-arquivo-atual"></small>
-                    <br><small class="text-muted">Obrigatório — a Meta exige um exemplo do documento pra aprovar o template.</small>
+                    <br><small class="text-muted">Opcional — sem arquivo, o envio usa uma amostra padrão. A Meta só precisa identificar o formato do anexo.</small>
                 </div>
 
                 <div class="form-group">

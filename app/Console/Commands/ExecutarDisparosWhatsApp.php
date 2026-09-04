@@ -15,7 +15,7 @@ class ExecutarDisparosWhatsApp extends Command
 {
     protected $signature = 'disparo-automatico:executar-whatsapp';
 
-    protected $description = 'Verifica os contextos de disparo automatico via WhatsApp ativos e envia, no maximo, um pendente por contexto a cada execucao (ritmo anti-ban)';
+    protected $description = 'Verifica os contextos de disparo automatico via WhatsApp ativos e envia, no maximo, um pendente por contexto a cada execucao (ritmo controlado)';
 
     public function handle(
         DisparoContexto $contextoModel,
@@ -60,8 +60,10 @@ class ExecutarDisparosWhatsApp extends Command
             $ultimoEnvio = $envioModel->ultimoEnvioEm($contexto->CD_CONTEXTO);
 
             // Espacamento variavel (2 a 5 min) entre envios do MESMO contexto -
-            // sorteado a cada tick, nao fixado no momento do envio anterior. Como
-            // o schedule roda a cada poucos minutos, isso ja produz um intervalo
+            // sorteado a cada tick, nao fixado no momento do envio anterior. Serve
+            // pra nao sobrecarregar a geracao de PDF/anexos e dar visibilidade
+            // operacional entre um envio e outro (nao e mais por anti-ban da Meta).
+            // Como o schedule roda a cada poucos minutos, isso ja produz um intervalo
             // efetivo variavel sem precisar guardar o "proximo horario permitido".
             if ($ultimoEnvio && Carbon::parse($contexto->DT_AGORA)->diffInSeconds(Carbon::parse($ultimoEnvio)) < rand(120, 300)) {
                 $this->info("{$contexto->DS_CONTEXTO}: aguardando intervalo mínimo entre envios.");
