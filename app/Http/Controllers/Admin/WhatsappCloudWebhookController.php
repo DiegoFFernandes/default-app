@@ -13,8 +13,13 @@ class WhatsappCloudWebhookController extends Controller
     // Handshake de verificação exigido pela Meta ao salvar a Callback URL
     public function verify(Request $request)
     {
-        if ($request->query('hub_mode') === 'subscribe'
-            && hash_equals(config('services.whatsapp_cloud.verify_token'), (string) $request->query('hub_verify_token'))
+        // Sem token configurado no .env, recusa em vez de estourar: hash_equals()
+        // nao aceita null e derrubaria o handshake da Meta com um 500 opaco.
+        $tokenConfigurado = (string) config('services.whatsapp_cloud.verify_token');
+
+        if ($tokenConfigurado !== ''
+            && $request->query('hub_mode') === 'subscribe'
+            && hash_equals($tokenConfigurado, (string) $request->query('hub_verify_token'))
         ) {
             return response($request->query('hub_challenge'), 200)
                 ->header('Content-Type', 'text/plain');
