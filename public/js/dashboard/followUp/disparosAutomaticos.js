@@ -46,14 +46,16 @@ function renderContextos(contextos) {
     }
 
     const rows = contextos.map(function (c) {
-        const ehWhatsApp = c.TP_CANAL === 'W';
+        const ehWhatsApp = ['W', 'O'].includes(c.TP_CANAL); // W = WppConnect, O = API Oficial
         const ativo = c.ST_ATIVO === 'S';
         const badge = ativo
             ? '<span class="badge badge-success">Ativo</span>'
             : '<span class="badge badge-secondary">Inativo</span>';
-        const badgeCanal = ehWhatsApp
-            ? '<span class="badge badge-success"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</span>'
-            : '<span class="badge badge-primary"><i class="fas fa-envelope mr-1"></i>E-mail</span>';
+        const badgeCanal = c.TP_CANAL === 'O'
+            ? '<span class="badge badge-primary"><i class="fab fa-whatsapp mr-1"></i>WhatsApp Oficial</span>'
+            : ehWhatsApp
+                ? '<span class="badge badge-success"><i class="fab fa-whatsapp mr-1"></i>WhatsApp</span>'
+                : '<span class="badge badge-primary"><i class="fas fa-envelope mr-1"></i>E-mail</span>';
         const btnToggle = ativo
             ? `<button class="btn btn-xs btn-danger btn-toggle-contexto-disparo" data-id="${c.CD_CONTEXTO}" title="Desativar"><i class="fas fa-pause"></i></button>`
             : `<button class="btn btn-xs btn-success btn-toggle-contexto-disparo" data-id="${c.CD_CONTEXTO}" title="Ativar"><i class="fas fa-play"></i></button>`;
@@ -288,6 +290,9 @@ function initDataTableEnvios() {
             {
                 title: 'Contato', width: '18%',
                 render: function (data, type, row) {
+                    if (row.TP_CANAL === 'O') {
+                        return '<i class="fab fa-whatsapp text-primary mr-1" title="WhatsApp Oficial"></i>' + (row.DS_TELEFONE || '<span class="text-muted">—</span>');
+                    }
                     if (row.TP_CANAL === 'W') {
                         return '<i class="fab fa-whatsapp text-success mr-1" title="WhatsApp"></i>' + (row.DS_TELEFONE || '<span class="text-muted">—</span>');
                     }

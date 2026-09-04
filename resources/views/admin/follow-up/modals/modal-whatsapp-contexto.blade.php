@@ -13,8 +13,8 @@
                     <label for="whatsapp_nr_limitediario">Limite de envios por dia</label>
                     <input type="number" min="1" class="form-control form-control-sm" id="whatsapp_nr_limitediario"
                         placeholder="Ex.: 25">
-                    <small class="form-text text-muted">Aumente aos poucos enquanto o número está esquentando -
-                        comece entre 20 e 30.</small>
+                    <small class="form-text text-muted">Cada envio tem custo real cobrado pela Meta - comece com um
+                        valor baixo pra medir o gasto antes de liberar mais.</small>
                 </div>
                 <div class="row">
                     <div class="col-md-6">

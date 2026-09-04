@@ -10,6 +10,7 @@ use App\Models\WppLidPendente;
 use App\Models\WppParametro;
 use App\Models\WppSessao;
 use App\Services\IAService;
+use App\Services\WhatsappCloudService;
 use App\Services\WppConnectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,12 +21,26 @@ use Illuminate\Support\Facades\Log;
 
 class WppConnectController extends Controller
 {
-    public function __construct(private WppConnectService $wpp) {}
+    public function __construct(
+        private WppConnectService $wpp,
+        private WhatsappCloudService $waba,
+    ) {}
 
     public function index()
     {
         $sessions = WppSessao::paraView();
         return view('admin.whatsapp.wppconnect.index', compact('sessions'));
+    }
+
+    // Card informativo da aba "Canal Oficial" - so leitura, sem estado de
+    // sessao (a conexao acontece fora do ERP, em conecta.dbytech.com.br).
+    public function canalOficial(): JsonResponse
+    {
+        $numero = $this->waba->numeroConectado();
+
+        return $numero
+            ? response()->json(['conectado' => true, 'numero' => $numero])
+            : response()->json(['conectado' => false]);
     }
 
     // Resolve o nome da sessão a partir do ?session= — só aceita sessões cadastradas

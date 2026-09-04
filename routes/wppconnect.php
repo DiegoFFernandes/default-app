@@ -31,6 +31,7 @@ Route::middleware(['auth', 'permission:ver-wppconnect'])->group(function () {
         Route::get('qrcode',                  [WppConnectController::class, 'qrCode'])->name('wppconnect.qrcode');
         Route::get('disparos',                [WppConnectController::class, 'disparos'])->name('wppconnect.disparos');
         Route::post('disparos/{id}/reenviar', [WppConnectController::class, 'reenviar'])->name('wppconnect.disparos.reenviar');
+        Route::get('canal-oficial',           [WppConnectController::class, 'canalOficial'])->name('wppconnect.canal-oficial');
     });
 });
 

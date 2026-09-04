@@ -84,6 +84,18 @@ class WhatsappCloudService
         return $resposta->json() ?? [];
     }
 
+    // Dados do numero conectado na WABA configurada - alimenta o card
+    // informativo do "Canal Oficial" (so 1 numero por instalacao).
+    public function numeroConectado(): ?array
+    {
+        $resposta = Http::withToken($this->token)
+            ->get("https://graph.facebook.com/v26.0/{$this->wabaId}/phone_numbers", [
+                'fields' => 'display_phone_number,verified_name,quality_rating,name_status,messaging_limit_tier',
+            ]);
+
+        return $resposta->json('data.0');
+    }
+
     // Upload resumivel (API do App, nao do numero) - gera o "handle" exigido
     // como amostra de documento no header de um template. O handle expira,
     // entao isso deve ser chamado na hora de submeter, nao ao salvar o rascunho.

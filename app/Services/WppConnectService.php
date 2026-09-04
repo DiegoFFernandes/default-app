@@ -30,9 +30,8 @@ class WppConnectService
      * `session_modulo_<chave>` em wpp_parametros; o valor é o rótulo na tela.
      */
     public const MODULOS = [
-        'compras'  => 'Compras — aprovações e notificações',
-        'cobranca' => 'Cobrança — notas fiscais e boletos',
-        'ia'       => 'IA via WhatsApp — respostas automáticas',
+        'compras' => 'Compras — aprovações e notificações',
+        'ia'      => 'IA via WhatsApp — respostas automáticas',
     ];
 
     /**

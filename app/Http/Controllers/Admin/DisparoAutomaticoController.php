@@ -170,8 +170,8 @@ class DisparoAutomaticoController extends Controller
 
                 if (in_array($row->ST_ENVIO, ['F', 'V', 'E', 'L'])) {
                     // Canal decide o que o botao de editar corrige - e-mail
-                    // (destinatario + copia) ou telefone (WhatsApp).
-                    if ($row->TP_CANAL === 'W') {
+                    // (destinatario + copia) ou telefone (WhatsApp, oficial 'O' ou nao 'W').
+                    if (in_array($row->TP_CANAL, ['W', 'O'])) {
                         $btn .= '<button class="btn btn-xs btn-warning mr-1 btn-editar-telefone-disparo"
                             data-id="' . $row->CD_ENVIO . '" data-telefone="' . e($row->DS_TELEFONE) . '"
                             title="Editar telefone do destinatário">

@@ -16,6 +16,9 @@
                         <h3 class="card-title">
                             Envio #{{ $envio->CD_ENVIO }}
                             @php
+                                // 'W' (WppConnect) e 'O' (API Oficial) sao os dois canais WhatsApp -
+                                // so muda o handler por baixo, a pre-visualizacao e igual pros dois.
+                                $ehWhatsApp = in_array($contexto->TP_CANAL, ['W', 'O']);
                                 $labelsStatus = [
                                     'A' => '<span class="badge badge-warning">Aguardando</span>',
                                     'E' => '<span class="badge badge-success">Enviado</span>',
@@ -31,7 +34,7 @@
                             <dt class="col-sm-2">Cliente</dt>
                             <dd class="col-sm-10">{{ $envio->CD_PESSOA }} - {{ $envio->NM_PESSOA }}</dd>
 
-                            @if ($contexto->TP_CANAL === 'W')
+                            @if ($ehWhatsApp)
                                 <dt class="col-sm-2">Telefone</dt>
                                 <dd class="col-sm-10">{{ $envio->DS_TELEFONE }}</dd>
                             @else
@@ -56,10 +59,12 @@
 
                 <div class="card card-outline card-info">
                     <div class="card-header">
-                        <h3 class="card-title">{{ $contexto->TP_CANAL === 'W' ? 'Mensagem (WhatsApp)' : 'Corpo do E-mail' }}</h3>
+                        <h3 class="card-title">
+                            {{ $contexto->TP_CANAL === 'O' ? 'Mensagem (WhatsApp Oficial)' : ($ehWhatsApp ? 'Mensagem (WhatsApp)' : 'Corpo do E-mail') }}
+                        </h3>
                     </div>
                     <div class="card-body p-0">
-                        @if ($contexto->TP_CANAL === 'W')
+                        @if ($ehWhatsApp)
                             <pre class="p-3 mb-0" style="white-space:pre-wrap; font-family:inherit;">{{ $email['corpo'] }}</pre>
                         @else
                             <iframe srcdoc="{{ $email['corpo'] }}" style="width:100%; height:420px; border:0;"></iframe>
