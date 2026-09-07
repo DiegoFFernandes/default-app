@@ -175,10 +175,11 @@ class WhatsappTemplateController extends Controller
 
             // Gerado na hora (nao guardado) porque o handle da Meta expira -
             // reaproveitar um handle antigo falharia num reenvio mais tarde.
-            $handle = $this->waba->obterHandleDocumento($amostra);
+            $resultadoHandle = $this->waba->obterHandleDocumento($amostra);
+            $handle = $resultadoHandle['handle'];
 
             if (!$handle) {
-                return response()->json(['errors' => 'Falha ao enviar o PDF de amostra para a Meta.'], 422);
+                return response()->json(['errors' => 'Falha ao enviar o PDF de amostra para a Meta: ' . $resultadoHandle['error']], 422);
             }
 
             $componentes[$indiceHeaderDocumento]['example'] = ['header_handle' => [$handle]];

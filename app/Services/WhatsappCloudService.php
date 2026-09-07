@@ -106,7 +106,10 @@ class WhatsappCloudService
     // Upload resumivel (API do App, nao do numero) - gera o "handle" exigido
     // como amostra de documento no header de um template. O handle expira,
     // entao isso deve ser chamado na hora de submeter, nao ao salvar o rascunho.
-    public function obterHandleDocumento(string $conteudo, string $mimeType = 'application/pdf'): ?string
+    // Devolve ['handle' => ?string, 'error' => ?string] - o motivo real (ex:
+    // cURL/DNS, ou erro da propria Meta) precisa chegar ate quem exibe pro
+    // usuario, em vez de virar so uma mensagem fixa igual pra qualquer falha.
+    public function obterHandleDocumento(string $conteudo, string $mimeType = 'application/pdf'): array
     {
         $sessao = $this->chamar(fn() => Http::withToken($this->token)
             ->post("https://graph.facebook.com/v26.0/{$this->appId}/uploads", [
@@ -118,7 +121,7 @@ class WhatsappCloudService
 
         if (!$sessaoId) {
             Log::warning('WhatsApp Cloud: falha ao iniciar sessão de upload', ['resposta' => $sessao]);
-            return null;
+            return ['handle' => null, 'error' => $this->mensagemErro($sessao)];
         }
 
         $upload = $this->chamar(fn() => Http::withHeaders([
@@ -130,9 +133,21 @@ class WhatsappCloudService
 
         if (!isset($upload['h'])) {
             Log::warning('WhatsApp Cloud: falha ao enviar arquivo de amostra', ['resposta' => $upload]);
+            return ['handle' => null, 'error' => $this->mensagemErro($upload)];
         }
 
-        return $upload['h'] ?? null;
+        return ['handle' => $upload['h'], 'error' => null];
+    }
+
+    // 'message' sozinho da Meta costuma ser generico ("Server Error") demais
+    // pra entender a causa real - error_user_msg/error_data.details, quando
+    // existem, sao mais uteis. Reaproveitado tambem pro erro sintetico pelo
+    // chamar() (falha de conexao/HTTP), que so preenche 'message' mesmo.
+    private function mensagemErro(array $resposta): string
+    {
+        $erro = $resposta['error'] ?? [];
+
+        return $erro['error_user_msg'] ?? $erro['error_data']['details'] ?? $erro['message'] ?? 'erro desconhecido';
     }
 
     // Edita um template que ja existe na Meta (ex: corrigir e reenviar um
