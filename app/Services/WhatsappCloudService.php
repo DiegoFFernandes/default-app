@@ -55,45 +55,52 @@ class WhatsappCloudService
     // usado no header de um template do tipo documento.
     public function enviarMidia(string $conteudo, string $nomeArquivo, string $mimeType = 'application/pdf'): ?string
     {
-        $resposta = Http::withToken($this->token)
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
             ->attach('file', $conteudo, $nomeArquivo, ['Content-Type' => $mimeType])
             ->post("https://graph.facebook.com/v25.0/{$this->phoneNumberId}/media", [
                 'messaging_product' => 'whatsapp',
                 'type'              => $mimeType,
-            ]);
+            ]), 'upload de mídia');
 
-        Log::info('WhatsApp Cloud upload de mídia', ['nome' => $nomeArquivo, 'resposta' => $resposta->json()]);
+        Log::info('WhatsApp Cloud upload de mídia', ['nome' => $nomeArquivo, 'resposta' => $resposta]);
 
-        return $resposta->json('id');
+        return $resposta['id'] ?? null;
     }
 
     // Cria (submete pra analise) um template novo na conta (WABA) configurada.
     // $definicao: ['nome' => ..., 'categoria' => ..., 'idioma' => ..., 'componentes' => [...]]
     public function criarTemplate(array $definicao): array
     {
-        $resposta = Http::withToken($this->token)
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
             ->post("https://graph.facebook.com/v26.0/{$this->wabaId}/message_templates", [
                 'name'       => $definicao['nome'],
                 'category'   => $definicao['categoria'],
                 'language'   => $definicao['idioma'],
                 'components' => $definicao['componentes'],
-            ]);
+            ]), 'criação de template');
 
-        Log::info('WhatsApp Cloud criação de template', ['definicao' => $definicao, 'resposta' => $resposta->json()]);
+        Log::info('WhatsApp Cloud criação de template', ['definicao' => $definicao, 'resposta' => $resposta]);
 
-        return $resposta->json() ?? [];
+        return $resposta;
     }
 
     // Dados do numero conectado na WABA configurada - alimenta o card
-    // informativo do "Canal Oficial" (so 1 numero por instalacao).
-    public function numeroConectado(): ?array
+    // informativo do "Canal Oficial" (so 1 numero por instalacao). Devolve o
+    // ['error' => ...] cru quando a chamada falha, pra quem exibe pro usuario
+    // conseguir diferenciar "sem numero conectado" de "nao deu pra consultar".
+    public function numeroConectado(): array
     {
-        $resposta = Http::withToken($this->token)
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
             ->get("https://graph.facebook.com/v26.0/{$this->wabaId}/phone_numbers", [
                 'fields' => 'display_phone_number,verified_name,quality_rating,name_status,messaging_limit_tier',
-            ]);
+            ]), 'número conectado');
 
-        return $resposta->json('data.0');
+        if (isset($resposta['error'])) {
+            Log::warning('WhatsApp Cloud: falha ao consultar número conectado', ['resposta' => $resposta]);
+            return $resposta;
+        }
+
+        return ['numero' => $resposta['data'][0] ?? null];
     }
 
     // Upload resumivel (API do App, nao do numero) - gera o "handle" exigido
@@ -101,31 +108,31 @@ class WhatsappCloudService
     // entao isso deve ser chamado na hora de submeter, nao ao salvar o rascunho.
     public function obterHandleDocumento(string $conteudo, string $mimeType = 'application/pdf'): ?string
     {
-        $sessao = Http::withToken($this->token)
+        $sessao = $this->chamar(fn() => Http::withToken($this->token)
             ->post("https://graph.facebook.com/v26.0/{$this->appId}/uploads", [
                 'file_length' => strlen($conteudo),
                 'file_type'   => $mimeType,
-            ]);
+            ]), 'início de sessão de upload');
 
-        $sessaoId = $sessao->json('id');
+        $sessaoId = $sessao['id'] ?? null;
 
         if (!$sessaoId) {
-            Log::warning('WhatsApp Cloud: falha ao iniciar sessão de upload', ['resposta' => $sessao->json()]);
+            Log::warning('WhatsApp Cloud: falha ao iniciar sessão de upload', ['resposta' => $sessao]);
             return null;
         }
 
-        $upload = Http::withHeaders([
+        $upload = $this->chamar(fn() => Http::withHeaders([
                 'Authorization' => 'OAuth ' . $this->token,
                 'file_offset'   => '0',
             ])
             ->withBody($conteudo, 'application/octet-stream')
-            ->post("https://graph.facebook.com/v26.0/{$sessaoId}");
+            ->post("https://graph.facebook.com/v26.0/{$sessaoId}"), 'envio de arquivo de amostra');
 
-        if (!$upload->json('h')) {
-            Log::warning('WhatsApp Cloud: falha ao enviar arquivo de amostra', ['resposta' => $upload->json()]);
+        if (!isset($upload['h'])) {
+            Log::warning('WhatsApp Cloud: falha ao enviar arquivo de amostra', ['resposta' => $upload]);
         }
 
-        return $upload->json('h');
+        return $upload['h'] ?? null;
     }
 
     // Edita um template que ja existe na Meta (ex: corrigir e reenviar um
@@ -134,45 +141,83 @@ class WhatsappCloudService
     // idioma nao mudam por aqui, so categoria/componentes.
     public function editarTemplateRemoto(string $metaTemplateId, array $definicao): array
     {
-        $resposta = Http::withToken($this->token)
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
             ->post("https://graph.facebook.com/v26.0/{$metaTemplateId}", [
                 'category'   => $definicao['categoria'],
                 'components' => $definicao['componentes'],
-            ]);
+            ]), 'edição de template');
 
-        Log::info('WhatsApp Cloud edição de template', ['definicao' => $definicao, 'resposta' => $resposta->json()]);
+        Log::info('WhatsApp Cloud edição de template', ['definicao' => $definicao, 'resposta' => $resposta]);
 
-        return $resposta->json() ?? [];
+        return $resposta;
     }
 
     // Lista os templates cadastrados de fato na conta (WABA) - usado pra
     // sincronizar o status real (aprovado/rejeitado/em analise) com o MySQL.
     public function listarTemplatesRemoto(): array
     {
-        $resposta = Http::withToken($this->token)
-            ->get("https://graph.facebook.com/v26.0/{$this->wabaId}/message_templates", ['limit' => 100]);
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
+            ->get("https://graph.facebook.com/v26.0/{$this->wabaId}/message_templates", ['limit' => 100]), 'listagem de templates');
 
-        return $resposta->json('data') ?? [];
+        if (isset($resposta['error'])) {
+            Log::warning('WhatsApp Cloud: falha ao listar templates', ['resposta' => $resposta]);
+            return [];
+        }
+
+        return $resposta['data'] ?? [];
     }
 
     public function apagarTemplateRemoto(string $nome): array
     {
-        $resposta = Http::withToken($this->token)
-            ->delete("https://graph.facebook.com/v26.0/{$this->wabaId}/message_templates", ['name' => $nome]);
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
+            ->delete("https://graph.facebook.com/v26.0/{$this->wabaId}/message_templates", ['name' => $nome]), 'exclusão de template');
 
-        Log::info('WhatsApp Cloud exclusão de template', ['nome' => $nome, 'resposta' => $resposta->json()]);
+        Log::info('WhatsApp Cloud exclusão de template', ['nome' => $nome, 'resposta' => $resposta]);
 
-        return $resposta->json() ?? [];
+        return $resposta;
     }
 
     private function enviar(array $payload): array
     {
-        $resposta = Http::withToken($this->token)
-            ->post("https://graph.facebook.com/v25.0/{$this->phoneNumberId}/messages", $payload);
+        $resposta = $this->chamar(fn() => Http::withToken($this->token)
+            ->post("https://graph.facebook.com/v25.0/{$this->phoneNumberId}/messages", $payload), 'envio de mensagem');
 
-        Log::info('WhatsApp Cloud envio', ['payload' => $payload, 'resposta' => $resposta->json()]);
+        Log::info('WhatsApp Cloud envio', ['payload' => $payload, 'resposta' => $resposta]);
 
-        return $resposta->json() ?? [];
+        return $resposta;
+    }
+
+    /**
+     * Executa a chamada HTTP e normaliza qualquer falha (conexão recusada,
+     * timeout, TLS, resposta que não é JSON) no mesmo formato de erro que a
+     * própria Meta usa (['error' => ['message' => ...]]) - assim quem chama
+     * (controllers, handlers) so precisa checar isset($resposta['error']) em
+     * um lugar so, sem depender de exception nao tratada virar "Server Error"
+     * generico pro usuario (ex: firewall/proxy bloqueando graph.facebook.com
+     * em producao).
+     */
+    private function chamar(\Closure $requisicao, string $contexto): array
+    {
+        try {
+            $resposta = $requisicao();
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error("WhatsApp Cloud: falha de conexão ({$contexto})", ['erro' => $e->getMessage()]);
+
+            return ['error' => ['message' => "Falha de conexão com a API do WhatsApp ({$contexto}): {$e->getMessage()}"]];
+        }
+
+        $dados = $resposta->json();
+
+        if ($resposta->failed() && !isset($dados['error'])) {
+            Log::error("WhatsApp Cloud: resposta inesperada ({$contexto})", [
+                'status' => $resposta->status(),
+                'corpo'  => $resposta->body(),
+            ]);
+
+            return ['error' => ['message' => "Resposta inesperada da API do WhatsApp ({$contexto}): HTTP {$resposta->status()}"]];
+        }
+
+        return $dados ?? [];
     }
 
     // Mesma convencao do WppConnectService::formatPhone() - numero sem DDI

@@ -36,10 +36,14 @@ class WppConnectController extends Controller
     // sessao (a conexao acontece fora do ERP, em conecta.dbytech.com.br).
     public function canalOficial(): JsonResponse
     {
-        $numero = $this->waba->numeroConectado();
+        $resposta = $this->waba->numeroConectado();
 
-        return $numero
-            ? response()->json(['conectado' => true, 'numero' => $numero])
+        if (isset($resposta['error'])) {
+            return response()->json(['conectado' => false, 'erro' => $resposta['error']['message']], 502);
+        }
+
+        return $resposta['numero']
+            ? response()->json(['conectado' => true, 'numero' => $resposta['numero']])
             : response()->json(['conectado' => false]);
     }
 

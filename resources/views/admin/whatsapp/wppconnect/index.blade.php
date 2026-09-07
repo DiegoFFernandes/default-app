@@ -1227,11 +1227,12 @@
                             '<small class="text-muted d-block mt-2">Modo: coexistência com o WhatsApp Business do celular</small>'
                         );
                     })
-                    .fail(function() {
+                    .fail(function(jqXHR) {
                         canalOficialCarregado = false;
+                        var motivo = (jqXHR.responseJSON && jqXHR.responseJSON.erro) || 'Não foi possível consultar a Meta agora.';
                         $('#corpo-canal-oficial').html(
                             '<i class="fas fa-exclamation-triangle text-warning" style="font-size:40px;"></i>' +
-                            '<p class="mt-3 mb-0 text-muted">Não foi possível consultar a Meta agora.</p>'
+                            '<p class="mt-3 mb-0 text-muted">' + motivo + '</p>'
                         );
                     });
             }
