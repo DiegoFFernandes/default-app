@@ -241,7 +241,7 @@ class EstoqueController extends Controller
             $nivel1Key = $item->{$nivel1};
 
             // local
-            $local = $item->{$nivel1} ?? 'Sem Local';
+            $local = mb_strtoupper($item->{$nivel1} ?? 'Sem Local');
             if (!isset($result[$nivel1Key])) {
                 $result[$nivel1Key] = [
                     'local'  => $local,

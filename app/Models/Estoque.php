@@ -413,7 +413,7 @@ class Estoque extends Model
                     M.DS_MARCA DS_MEDIDA,
                     I.CD_SECAO,
                     SECAO.DS_SECAO DS_DESENHO,
-                    CASE WHEN IL.CD_LOCAL = 1 THEN '{$nomeLocal}' ELSE L.DS_LOCAL END LOCAL_ESTOQUE,
+                    UPPER(CASE WHEN IL.CD_LOCAL = 1 THEN '{$nomeLocal}' ELSE L.DS_LOCAL END) LOCAL_ESTOQUE,
                     NULL DS_MODELO,
                     NULL DS_TIPO,
                     R.O_QT_SALDO QTD,
