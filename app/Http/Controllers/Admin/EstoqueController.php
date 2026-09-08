@@ -72,9 +72,19 @@ class EstoqueController extends Controller
         $title_page  = 'Carcaças da Casa';
         $user_auth   = $this->user;
         $uri         = $this->request->route()->uri();
+        $empresas = $this->empresa->empresa();
 
         // Verifica se o usuário tem permissão de edição e enviar a view para bloquear ou liberar as ações
         $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
+
+        // Quem não pode editar recebe a empresa fictícia "Reposição"
+        if (!$canEdit) {
+            $empresas[] = (object) [
+                'CD_EMPRESA' => '99',
+                'NM_EMPRESA' => 'Reposição',
+                'CD_PESSOA'  => '99',
+            ];
+        }
 
         return view(
             'admin.estoque.carcaca-casa.carcaca-casa',
@@ -82,7 +92,8 @@ class EstoqueController extends Controller
                 'uri',
                 'title_page',
                 'user_auth',
-                'canEdit'
+                'canEdit',
+                'empresas'
             )
         );
     }
@@ -332,7 +343,7 @@ class EstoqueController extends Controller
             'dot'       => 'string|required',
             'valor'     => 'numeric|required',
             'tipo'      => 'integer|required|in:1,2,3',
-            'local'     => 'integer|required|in:1,3,5,6',
+            'local'     => 'integer|required|in:' . implode(',', $this->locaisPermitidos()),
         ];
 
         if ($editOrCreate === 'edit') {
@@ -358,6 +369,21 @@ class EstoqueController extends Controller
         ];
 
         return Validator::make($this->request->all(), $rules, $messages);
+    }
+
+    /**
+     * Locais de estoque aceitos na validação: as empresas do admin e,
+     * para quem não pode editar, também a empresa fictícia "Reposição" (99).
+     */
+    private function locaisPermitidos(): array
+    {
+        $locais = config('empresas.admin_ids');
+
+        if (!$this->user->hasRole('vendedor|supervisor|gerente comercial')) {
+            $locais[] = 99;
+        }
+
+        return $locais;
     }
 
     public function deleteCarcaca()
@@ -389,7 +415,7 @@ class EstoqueController extends Controller
     {
         $input = Validator::make($this->request->all(), [
             'ids' => 'array|required',
-            'local' => 'integer|required|in:1,3,5,6',
+            'local' => 'integer|required|in:' . implode(',', $this->locaisPermitidos()),
         ], [
             'ids.integer' => 'ID inválido.',
             'ids.required' => 'ID é obrigatório.',

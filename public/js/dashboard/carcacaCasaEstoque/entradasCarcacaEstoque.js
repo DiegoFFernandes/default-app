@@ -16,7 +16,9 @@ initSelect2Pessoa("#pessoa", window.routes.searchPessoa, "#modal-criar-pedido");
 
 $("#btn-add-carcaca").on("click", function () {
     $("#modal-add-carcaca").modal("show");
-    $("#modal-add-carcaca .modal-title").text("Adicionar Carcaça");
+    $("#modal-add-carcaca .modal-title").html(
+        '<i class="fas fa-plus mr-1"></i> Adicionar Carcaça',
+    );
     $("#cd_medida").val(null).trigger("change");
     $("#cd_modelo").val(null).trigger("change");
     $("#nr_fogo").val("");
@@ -89,15 +91,21 @@ function initTableCarcaca() {
     let columns = [
         {
             data: null,
-            width: "1%",
             orderable: false,
             searchable: false,
-            render: function(data, type, row) {
-                if (type === 'display') {
-                    var checked = selectedIds.has(row.ID) ? ' checked' : '';
-                    return '<input type="checkbox" class="dt-row-checkbox" data-id="' + row.ID + '" aria-label="Selecionar linha"' + checked + '>';
+            className: "pl-3 pr-1",
+            render: function (data, type, row) {
+                if (type === "display") {
+                    var checked = selectedIds.has(row.ID) ? " checked" : "";
+                    return (
+                        '<input type="checkbox" class="dt-row-checkbox" data-id="' +
+                        row.ID +
+                        '" aria-label="Selecionar linha"' +
+                        checked +
+                        ">"
+                    );
                 }
-                return '';
+                return "";
             },
         },
     ];
@@ -176,7 +184,7 @@ function initTableCarcaca() {
         responsive: false,
         paging: false,
         scrollX: true,
-        scrollY: '400px',
+        scrollY: "400px",
         scrollCollapse: true,
         language: {
             url: window.routes.languageDatatables,
@@ -186,9 +194,11 @@ function initTableCarcaca() {
             beforeSend: function () {
                 window._swalCarcacaTimer = setTimeout(function () {
                     Swal.fire({
-                        title: 'Carregando carcaças...',
+                        title: "Carregando carcaças...",
                         allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
+                        didOpen: () => {
+                            Swal.showLoading();
+                        },
                     });
                 }, 400);
             },
@@ -213,7 +223,7 @@ function initTableCarcaca() {
             },
         },
         columns: columns,
-        order: [[0, "desc"]],
+        order: [[2, "desc"]],
     });
 }
 
@@ -565,7 +575,7 @@ $(document).on("click", "#btn-transferir-carcaca", function () {
 });
 
 var _medidasServicoReplicado = new Set();
-var _medidasValorReplicado   = new Set();
+var _medidasValorReplicado = new Set();
 
 $(document).on("hidden.bs.modal", "#modal-criar-pedido", function () {
     _medidasServicoReplicado.clear();
@@ -577,34 +587,49 @@ $(document).on("select2:select", "#itens-pedido select", function () {
     if (_medidasServicoReplicado.has(medidaAtual)) return;
     _medidasServicoReplicado.add(medidaAtual);
 
-    var $select      = $(this);
+    var $select = $(this);
     var selectedData = $select.select2("data")[0];
-    var $itemAtual   = $select.closest(".item-pedido");
+    var $itemAtual = $select.closest(".item-pedido");
 
     Swal.fire({
         icon: "question",
         title: "Replicar serviço?",
-        text: "Deseja aplicar \"" + selectedData.text + "\" para todos os itens com a mesma medida?",
+        text:
+            'Deseja aplicar "' +
+            selectedData.text +
+            '" para todos os itens com a mesma medida?',
         showCancelButton: true,
         confirmButtonText: "Sim, replicar",
         cancelButtonText: "Não",
     }).then(function (result) {
         if (!result.isConfirmed) return;
 
-        $("#itens-pedido .item-pedido").not($itemAtual).each(function () {
-            if ($(this).data("medida-pneu") !== medidaAtual) return;
+        $("#itens-pedido .item-pedido")
+            .not($itemAtual)
+            .each(function () {
+                if ($(this).data("medida-pneu") !== medidaAtual) return;
 
-            var $destSelect = $(this).find("select");
-            if ($destSelect.find("option[value='" + selectedData.id + "']").length === 0) {
-                $destSelect.append(new Option(selectedData.text, selectedData.id, true, true));
-            }
-            $destSelect.val(selectedData.id).trigger("change");
-        });
+                var $destSelect = $(this).find("select");
+                if (
+                    $destSelect.find("option[value='" + selectedData.id + "']")
+                        .length === 0
+                ) {
+                    $destSelect.append(
+                        new Option(
+                            selectedData.text,
+                            selectedData.id,
+                            true,
+                            true,
+                        ),
+                    );
+                }
+                $destSelect.val(selectedData.id).trigger("change");
+            });
     });
 });
 
 $(document).on("change", "#itens-pedido .input-venda", function () {
-    var $itemAtual  = $(this).closest(".item-pedido");
+    var $itemAtual = $(this).closest(".item-pedido");
     var medidaAtual = $itemAtual.data("medida-pneu");
     if (_medidasValorReplicado.has(medidaAtual)) return;
     _medidasValorReplicado.add(medidaAtual);
@@ -614,17 +639,22 @@ $(document).on("change", "#itens-pedido .input-venda", function () {
     Swal.fire({
         icon: "question",
         title: "Replicar valor?",
-        text: "Deseja aplicar o valor \"" + valor + "\" para todos os itens com a mesma medida?",
+        text:
+            'Deseja aplicar o valor "' +
+            valor +
+            '" para todos os itens com a mesma medida?',
         showCancelButton: true,
         confirmButtonText: "Sim, replicar",
         cancelButtonText: "Não",
     }).then(function (result) {
         if (!result.isConfirmed) return;
 
-        $("#itens-pedido .item-pedido").not($itemAtual).each(function () {
-            if ($(this).data("medida-pneu") !== medidaAtual) return;
-            $(this).find(".input-venda").val(valor);
-        });
+        $("#itens-pedido .item-pedido")
+            .not($itemAtual)
+            .each(function () {
+                if ($(this).data("medida-pneu") !== medidaAtual) return;
+                $(this).find(".input-venda").val(valor);
+            });
     });
 });
 
@@ -693,7 +723,10 @@ $(document).on("click", "#btn-criar-pedido", function () {
         $("#itens-pedido").append(itemHtml);
 
         inicializaSelect2Lista({
-            route: window.routes.servicoPneu + "?idMedidaPneu=" + rowData.IDMEDIDAPNEU,
+            route:
+                window.routes.servicoPneu +
+                "?idMedidaPneu=" +
+                rowData.IDMEDIDAPNEU,
             selectId: `.servico-item-${rowData.ID}`,
             placeholder: "Selecione o Serviço",
             modalParent: ".item-pedido",
@@ -729,7 +762,9 @@ $(document).on("click", "#btn-confirmar-pedido", function () {
     $(".item-pedido").each(function () {
         let itemId = $(this).data("item-id");
         let servico = $(this).find("select").val();
-        let valor = $(this).find("input.input-venda").val()
+        let valor = $(this)
+            .find("input.input-venda")
+            .val()
             .replace(/\./g, "")
             .replace(",", ".");
 

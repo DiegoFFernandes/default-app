@@ -7,7 +7,7 @@
                 <i class="fas fa-3x fa-sync-alt fa-spin"></i>
             </div>
             <div class="modal-header">
-                <h6 class="modal-title">Criar Pedido</h6>
+                <h6 class="modal-title"><i class="fas fa-plus mr-1"></i> Criar Pedido</h6>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -19,10 +19,10 @@
                             <label for="nm_pessoa" class="form-label small">Empresa</label>
                             <select name='cd_empresa' class="form-control form-control-sm" id="cd_empresa"
                                 style="width: 100%">
-                                <option value="1" selected="selected">Cambé</option>
-                                <option value="3">Osvaldo Cruz</option>
-                                <option value="5">Ponta Grossa</option>
-                                <option value="6">Cantanduva</option>
+                                @foreach ($empresas as $empresa)
+                                    @continue($empresa->CD_EMPRESA == 99)
+                                    <option value="{{ $empresa->CD_EMPRESA }}" @if ($loop->first) selected="selected" @endif>{{ $empresa->NM_EMPRESA }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

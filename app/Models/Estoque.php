@@ -76,6 +76,26 @@ class Estoque extends Model
         return Helper::ConvertFormatText($data);
     }
 
+    /**
+     * Monta um "CASE <coluna> WHEN ... END <alias>" com os IDs/apelidos das
+     * empresas vindos de config/empresas.php, mais a empresa fictícia
+     * "Reposição" (99). Evita hardcode de nomes espalhado pelas queries.
+     */
+    private function caseNomeEmpresa($coluna, $alias)
+    {
+        $apelidos = config('empresas.apelidos', []);
+        $ids = array_merge(config('empresas.admin_ids', []), [99]);
+
+        $whens = '';
+        foreach ($ids as $id) {
+            $nome = $id == 99 ? 'REPOSICAO' : ($apelidos[$id] ?? $id);
+            $nome = str_replace("'", "''", mb_strtoupper($nome));
+            $whens .= " WHEN {$id} THEN '{$nome}'";
+        }
+
+        return "CASE {$coluna}{$whens} END {$alias}";
+    }
+
     public function getCarcacasDaCasa($idPneuCarcaca = null, $stCarcaca = 'A')
     {
         $query = "
@@ -97,13 +117,8 @@ class Estoque extends Model
                     WHEN 2 THEN 'SEGUNDA'
                     WHEN 3 THEN 'TERCEIRA'
                     END DS_TIPO,
-                    PC.CD_LOCAL,
-                    CASE PC.CD_LOCAL
-                    WHEN 1 THEN 'CAMBE'
-                    WHEN 3 THEN 'OSVALDO'
-                    WHEN 5 THEN 'PONTA GROSSA'
-                    WHEN 6 THEN 'CATANDUVA'
-                    END LOCAL_ESTOQUE,
+                    PC.CD_LOCAL,                    
+                    " . $this->caseNomeEmpresa('PC.CD_LOCAL', 'LOCAL_ESTOQUE') . ",
                     PC.DT_REGISTRO,
                     PC.ST_CARCACA,
                     PP.ID PEDIDO,
@@ -111,12 +126,7 @@ class Estoque extends Model
                         WHEN 'A' THEN 'AUTOMATICA'
                         WHEN 'M' THEN 'MANUAL'
                     END ST_BAIXA,                    
-                    CASE PP.IDEMPRESA
-                        WHEN 1 THEN 'CAMBE'
-                        WHEN 3 THEN 'OSVALDO'
-                        WHEN 5 THEN 'PONTA GROSSA'
-                        WHEN 6 THEN 'CATANDUVA'
-                    END EMPRESA_BAIXA,
+                    " . $this->caseNomeEmpresa('PP.IDEMPRESA', 'EMPRESA_BAIXA') . ",
                     PC.DT_ATUALIZACAO DT_BAIXA,
                     1 QTD
                 FROM PNEUCARCACA PC
