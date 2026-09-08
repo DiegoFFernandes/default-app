@@ -104,6 +104,12 @@ class EstoqueController extends Controller
 
         $canEdit = $this->user->hasRole('vendedor|supervisor|gerente comercial');
 
+        // Quem pode editar não enxerga as carcaças no local "Reposição" (99)
+        if ($canEdit) {
+            $data = array_values(array_filter($data, function ($row) {
+                return (int) $row->CD_LOCAL !== 99;
+            }));
+        }
 
         $datatable = Datatables()
             ->of($data)
