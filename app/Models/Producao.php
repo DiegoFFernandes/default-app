@@ -25,7 +25,7 @@ class Producao extends Model
         $inicioData = $data['dt_inicial'];
         $fimData = $data['dt_final'];
         $supervisor = $data['supervisor'] == 0 ? $supervisor : $data['supervisor'];
-        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];        
+        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];
 
         $query = "
             SELECT DISTINCT
@@ -320,8 +320,7 @@ class Producao extends Model
         INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
         LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
-            IPP.STCANCELADO = 'N'
-            AND IPP.STGARANTIA = 'N'
+            IPP.STCANCELADO = 'N'            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -388,8 +387,7 @@ class Producao extends Model
         LEFT JOIN PREPARACAOBANDAPNEU PBP ON (PBP.IDORDEMPRODUCAORECAP = OPR.ID)
         LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
-            IPP.STCANCELADO = 'N'
-            AND IPP.STGARANTIA = 'N'
+            IPP.STCANCELADO = 'N'            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -453,7 +451,6 @@ class Producao extends Model
         LEFT JOIN LIMPEZAMANCHAO LM ON (LM.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
             IPP.STCANCELADO = 'N'
-            AND IPP.STGARANTIA = 'N'
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -524,7 +521,7 @@ class Producao extends Model
         LEFT JOIN EMBORRACHAMENTO EB ON (EB.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
             IPP.STCANCELADO = 'N'
-            AND IPP.STGARANTIA = 'N'
+            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -590,7 +587,7 @@ class Producao extends Model
         LEFT JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
             IPP.STCANCELADO = 'N'
-            AND IPP.STGARANTIA = 'N'
+            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -654,7 +651,7 @@ class Producao extends Model
         LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
             IPP.STCANCELADO = 'N'
-            AND IPP.STGARANTIA = 'N'
+            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -716,7 +713,7 @@ class Producao extends Model
                 LEFT JOIN ORDEMPRODUCAORECAP OPR ON (OPR.ID = PCP.IDORDEMPRODUCAO)
                 LEFT JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU
                     AND IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N')
+                    )
                 LEFT JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU
                     AND PP.IDEMPRESA IN ($cd_empresa))
 
@@ -744,7 +741,7 @@ class Producao extends Model
                 INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.ID = OPR.IDITEMPEDIDOPNEU)
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
+                    
                     AND PP.IDEMPRESA IN ($cd_empresa)
                     AND M.STLOTE IN ('P', 'L')
                     AND OPR.STORDEM = 'A'
@@ -771,7 +768,7 @@ class Producao extends Model
                 INNER JOIN PEDIDOPNEU PP ON (PP.ID = IPP.IDPEDIDOPNEU)
                 LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                 WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
+                    
                     AND PP.IDEMPRESA IN ($cd_empresa)
                     AND M.STLOTE IN ('P', 'L')
                     AND OPR.STORDEM = 'A'
@@ -831,7 +828,7 @@ class Producao extends Model
                 INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
                 LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                 WHERE IPP.STCANCELADO = 'N'
-                    --AND IPP.STGARANTIA = 'N'
+                    
                     AND PP.IDEMPRESA IN (:cd_empresa)
                     AND M.ID = :lote
                 ORDER BY M.DTPRODUCAO DESC, OPR.ID
@@ -885,7 +882,7 @@ class Producao extends Model
                 LEFT JOIN RETORNA_SALDOESTOQUE(PP.IDEMPRESA, COALESCE(PRE.IDITEM, 1), $tipolocalestoque, $localestoque, CURRENT_DATE, NULL) S ON (1 = 1)
 
                 WHERE IPP.STCANCELADO = 'N'
-                    AND IPP.STGARANTIA = 'N'
+                    
                     AND OPR.STORDEM = 'A'
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                     AND PBP.ST_ETAPA IS NULL
@@ -945,7 +942,7 @@ class Producao extends Model
             LEFT JOIN ITEM MATPRIMA ON (MATPRIMA.CD_ITEM = PRE.IDITEM)
 
             WHERE IPP.STCANCELADO = 'N'
-                AND IPP.STGARANTIA = 'N'
+                
                 AND OPR.STORDEM = 'A'
                 AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                 and BP.IDITEM IS NULL                

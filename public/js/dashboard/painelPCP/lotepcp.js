@@ -76,10 +76,10 @@ $(document).on("shown.bs.tab", 'a[href="#painel-lotesPCP"]', function () {
             {
                 data: "QTDE_SEMEXAME",
                 name: "QTDE_SEMEXAME",
-                title: "Sem Exame",
+                title: "S/ Exame",
                 className: "no-wrap text-center",
                 width: "10%",
-                visible: false,
+                visible: true,
             },
         ],
         order: [[2, "asc"]],
