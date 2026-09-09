@@ -586,8 +586,7 @@ class Producao extends Model
         LEFT JOIN MONTAGEMRECAP MO ON (MO.IDORDEMPRODUCAORECAP = OPR.ID)
         LEFT JOIN VULCANIZACAO VP ON (VP.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
-            IPP.STCANCELADO = 'N'
-            
+            IPP.STCANCELADO = 'N'            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -650,8 +649,7 @@ class Producao extends Model
         LEFT JOIN DESENVELOPAMENTO DE ON (DE.IDORDEMPRODUCAORECAP = OPR.ID)
         LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
         WHERE
-            IPP.STCANCELADO = 'N'
-            
+            IPP.STCANCELADO = 'N'            
             AND PP.IDEMPRESA IN ($cd_empresa)
             AND M.STLOTE IN ('P', 'L', 'A')
             AND OPR.STORDEM = 'A'
@@ -828,7 +826,7 @@ class Producao extends Model
                 INNER JOIN PESSOA ON (PESSOA.CD_PESSOA = PP.IDPESSOA)
                 LEFT JOIN EXAMEINICIAL EI ON (EI.IDORDEMPRODUCAORECAP = OPR.ID)
                 WHERE IPP.STCANCELADO = 'N'
-                    
+                    --AND IPP.STGARANTIA = 'N'
                     AND PP.IDEMPRESA IN (:cd_empresa)
                     AND M.ID = :lote
                 ORDER BY M.DTPRODUCAO DESC, OPR.ID
@@ -882,7 +880,7 @@ class Producao extends Model
                 LEFT JOIN RETORNA_SALDOESTOQUE(PP.IDEMPRESA, COALESCE(PRE.IDITEM, 1), $tipolocalestoque, $localestoque, CURRENT_DATE, NULL) S ON (1 = 1)
 
                 WHERE IPP.STCANCELADO = 'N'
-                    
+                    AND IPP.STGARANTIA = 'N'
                     AND OPR.STORDEM = 'A'
                     AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                     AND PBP.ST_ETAPA IS NULL
@@ -942,7 +940,7 @@ class Producao extends Model
             LEFT JOIN ITEM MATPRIMA ON (MATPRIMA.CD_ITEM = PRE.IDITEM)
 
             WHERE IPP.STCANCELADO = 'N'
-                
+                AND IPP.STGARANTIA = 'N'
                 AND OPR.STORDEM = 'A'
                 AND ITEM.CD_SUBGRUPO NOT IN ($subgrupo)
                 and BP.IDITEM IS NULL                
