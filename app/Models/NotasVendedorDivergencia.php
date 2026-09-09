@@ -137,4 +137,94 @@ class NotasVendedorDivergencia extends Model
             return !empty($resultado) ? $resultado[0] : null;
         });
     }
+
+    public function updateManterVendedorNota(array $notas)
+    {
+        return DB::transaction(function () use ($notas) {
+            // Firebird nao faz rollback nesta conexao: processa nota a nota e
+            // devolve separadamente o que foi gravado e o que falhou, para o
+            // usuario conseguir tratar os lancamentos que ficaram pendentes.
+            $sucesso = [];
+            $erros = [];
+
+            DB::connection('firebird')->select("EXECUTE PROCEDURE GERA_SESSAO");
+
+            // Do navegador so aceitamos as chaves (empresa + lancamento). O
+            // vendedor de destino e derivado aqui, direto de ITEMNOTAVENDEDOR
+            // (comissao, CD_TIPO = 1), e o EXISTS repete a regra de divergencia
+            // da tela para que apenas notas realmente divergentes sejam tocadas.
+            $unique = collect($notas)
+                ->unique(fn($n) => $n['CD_EMPRESA'] . '_' . $n['NR_LANCAMENTO'])
+                ->values();
+
+            $query = "
+                UPDATE NOTA
+                SET CD_VENDEDOR = (
+                    SELECT MIN(INV.CD_VENDEDOR)
+                    FROM ITEMNOTAVENDEDOR INV
+                    WHERE INV.NR_LANCAMENTO = NOTA.NR_LANCAMENTO
+                        AND INV.CD_SERIE = NOTA.CD_SERIE
+                        AND INV.TP_NOTA = NOTA.TP_NOTA
+                        AND INV.CD_EMPRESA = NOTA.CD_EMPRESA
+                        AND INV.CD_TIPO = 1
+                )
+                WHERE NOTA.NR_LANCAMENTO = :nr_lancamento
+                    AND NOTA.CD_EMPRESA = :cd_empresa
+                    AND NOTA.TP_NOTA = 'S'
+                    AND NOTA.ST_NOTA NOT IN ('C', 'E', 'B')
+                    AND EXISTS (
+                        SELECT 1
+                        FROM ITEMNOTAVENDEDOR INV
+                        INNER JOIN ITEMNOTA I ON (I.NR_LANCAMENTO = INV.NR_LANCAMENTO
+                            AND I.CD_SERIE = INV.CD_SERIE
+                            AND I.TP_NOTA = INV.TP_NOTA
+                            AND I.CD_EMPRESA = INV.CD_EMPRESA
+                            AND I.CD_ITEM = INV.CD_ITEM)
+                        INNER JOIN ENDERECOPESSOA EP ON (EP.CD_PESSOA = NOTA.CD_PESSOA
+                            AND EP.CD_ENDERECO = NOTA.CD_ENDERECO)
+                        WHERE INV.NR_LANCAMENTO = NOTA.NR_LANCAMENTO
+                            AND INV.CD_SERIE = NOTA.CD_SERIE
+                            AND INV.TP_NOTA = NOTA.TP_NOTA
+                            AND INV.CD_EMPRESA = NOTA.CD_EMPRESA
+                            AND INV.CD_TIPO = 1
+                            AND INV.CD_VENDEDOR <> COALESCE(NOTA.CD_VENDEDOR, EP.CD_VENDEDOR)
+                            AND I.CD_MOVIMENTACAO NOT IN (75)
+                    )
+                RETURNING
+                    NOTA.CD_EMPRESA,
+                    NOTA.NR_LANCAMENTO,
+                    NOTA.NR_NOTAFISCAL,
+                    NOTA.CD_VENDEDOR
+            ";
+
+            foreach ($unique as $nota) {
+                try {
+                    $resultado = DB::connection('firebird')->select($query, [
+                        'nr_lancamento' => $nota['NR_LANCAMENTO'],
+                        'cd_empresa'    => $nota['CD_EMPRESA'],
+                    ]);
+
+                    if (!empty($resultado)) {
+                        $sucesso[] = $resultado[0];
+                    } else {
+                        // Nenhuma linha afetada: nota nao esta mais divergente,
+                        // esta cancelada/exportada ou o lancamento nao existe.
+                        $erros[] = (object) [
+                            'CD_EMPRESA'    => $nota['CD_EMPRESA'],
+                            'NR_LANCAMENTO' => $nota['NR_LANCAMENTO'],
+                            'MENSAGEM'      => 'Nota nao esta divergente ou nao pode ser alterada.',
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    $erros[] = (object) [
+                        'CD_EMPRESA'    => $nota['CD_EMPRESA'],
+                        'NR_LANCAMENTO' => $nota['NR_LANCAMENTO'],
+                        'MENSAGEM'      => $e->getMessage(),
+                    ];
+                }
+            }
+
+            return ['sucesso' => $sucesso, 'erros' => $erros];
+        });
+    }
 }

@@ -32,14 +32,16 @@ class NotaVendedorDivergenteController extends Controller
 
         return DataTables::of($dados)
             ->addColumn('actions', function ($row) {
-                return '<button class="btn btn-success editar-vendedor-nota p-0" 
+                return '<button 
+                            title="Editar o vendedor da nota"
+                            class="btn btn-success btn-xs editar-vendedor-nota" 
                             data-cd_empresa="' . $row->CD_EMPRESA . '" 
                             data-nr_lancamento="' . $row->NR_LANCAMENTO . '" 
                             data-nr_nota="' . $row->NR_NOTAFISCAL . '" 
                             data-nm_vendedor_nota="' . $row->NM_VEND_NOTA . '"
                             data-nm_pessoa="' . $row->NM_PESSOA . '"
-                            style="width: 20px; font-size: 12px;">
-                                <i class="fa fa-edit"></i>
+                            style="font-size: 10px;">
+                                <i class="fa fa-edit"></i> Editar
                         </button>';
             })
             ->rawColumns(['actions'])
@@ -54,9 +56,9 @@ class NotaVendedorDivergenteController extends Controller
         ];
 
         $messages = [
-            'notas.required' => 'Nenhuma nota selecionada. Por favor, selecione pelo menos uma nota para manter o vendedor.',
+            'notas.required' => 'Nenhuma nota selecionada. Por favor, selecione pelo menos uma nota para substituir o vendedor.',
             'notas.array' => 'Formato de dados inválido.',
-            'notas.min' => 'Selecione pelo menos uma nota para manter o vendedor.'
+            'notas.min' => 'Selecione pelo menos uma nota para substituir o vendedor.'
         ];
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -80,7 +82,45 @@ class NotaVendedorDivergenteController extends Controller
         }
     }
 
-    public function updateAlterarVendedorNota(){
+    public function manterVendedorNota(Request $request)
+    {
+        $rules = [
+            'notas' => 'required|array|min:1'
+        ];
+
+        $messages = [
+            'notas.required' => 'Nenhuma nota selecionada. Por favor, selecione pelo menos uma nota para manter o vendedor.',
+            'notas.array' => 'Formato de dados inválido.',
+            'notas.min' => 'Selecione pelo menos uma nota para manter o vendedor.'
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()], 422);
+        }
+
+        try {
+
+            $effect = $this->notasVendedorDivergencia->updateManterVendedorNota($validator->validated()['notas']);
+
+            $sucesso = collect($effect['sucesso'])->pluck('NR_NOTAFISCAL')->values();
+            $erros = collect($effect['erros'])->pluck('NR_LANCAMENTO')->values();
+
+            $message = 'Vendedor da nota igualado ao da comissão nas notas: ' . $sucesso->implode(', ');
+
+            if ($erros->isNotEmpty()) {
+                $message .= '. Não foi possível alterar os lançamentos: ' . $erros->implode(', ') . '. Verifique se ainda estão divergentes e tente novamente.';
+            }
+
+            return response()->json(['success' => $sucesso->isNotEmpty(), 'message' => $message]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function updateAlterarVendedorNota()
+    {
         $rules = [
             'cd_empresa' => 'required|integer',
             'nr_lancamento' => 'required|integer',
@@ -115,11 +155,9 @@ class NotaVendedorDivergenteController extends Controller
             } else {
                 return response()->json(['success' => false, 'message' => 'Nenhuma alteração realizada. Verifique os dados e tente novamente.']);
             }
-
         } catch (\Exception $e) {
 
             return response()->json(['success' => false, 'message' => $e->getMessage()]);
-
         }
     }
 }

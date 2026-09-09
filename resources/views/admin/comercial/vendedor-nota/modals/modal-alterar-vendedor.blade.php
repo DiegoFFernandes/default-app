@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title">Alterar Vendedor Nota</h6>
+                <h6 class="modal-title"><i class="fas fa-exchange-alt mr-1"></i> Alterar Vendedor Nota</h6>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -40,14 +40,14 @@
                     </div>  
                     <div class="col-md-12">
                         <div class="form-group form-group-sm">
-                            <label class="small">Vendedor Atual</label>
+                            <label class="small">Vendedor da Nota Atual</label>
                             <input type="text" class="form-control form-control-sm" id="vendedor_atual" style="width: 100%"
                                 readonly>
                         </div>
                     </div>  
                     <div class="col-md-12">
                         <div class="form-group form-group-sm">
-                            <label class="small">Vendedor Novo</label>
+                            <label class="small">Vendedor da Nota Novo</label>
                             <select name="vendedor_novo" id="cd_vendedor_novo" class="form-control form-control-sm">                               
                             </select>
                         </div>

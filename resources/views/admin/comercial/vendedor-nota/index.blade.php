@@ -47,6 +47,7 @@
             substituirItemVendedorNota: "{{ route('substituir-item-vendedor-nota') }}",
             searchVendedor: "{{ route('get-search-vendedor') }}",
             updateVendedorNota: "{{ route('update-alterar-vendedor-nota') }}",
+            manterVendedorNota: "{{ route('manter-vendedor-nota') }}",
             token: "{{ csrf_token() }}"
         };
 
@@ -140,6 +141,70 @@
                 });
                 return;
             }
+
+            // Verifica se alguma nota selecionada nao possui vendedor de comissao associado (CD_VEND_INV vazio)
+            const temNotaSemVendedorComissao = selectedData.some(nota => nota.CD_VEND_INV === "");
+
+            if (temNotaSemVendedorComissao) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Nota sem vendedor de comissão associado',
+                    text: 'Uma ou mais notas não possuem um vendedor de comissão associado. Por favor, verifique as notas selecionadas e tente novamente.',
+                });
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: window.routes.manterVendedorNota,
+                data: {
+                    // O backend deriva o vendedor de destino sozinho; enviamos apenas as chaves.
+                    notas: selectedData.map(nota => ({
+                        CD_EMPRESA: nota.CD_EMPRESA,
+                        NR_LANCAMENTO: nota.NR_LANCAMENTO
+                    })),
+                    _token: window.routes.token
+                },
+                beforeSend: function() {
+                    Swal.fire({
+                        title: 'Processando...',
+                        text: 'Ao manter o vendedor da comissão, ' +
+                            'caso precise fazer alguma alteração anote o numero de lancamento que será apresentado no fim do processo, Aguarde enquanto processamos as notas selecionadas',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            text: response.message,
+                        }).then(function() {
+                            $(tableNotasVendedorDivergentes.table().container()).find(
+                                '.dt-row-checkbox-vendedor, .dt-select-all-vendedor').prop(
+                                'checked', false);
+                            updateVendedorNotaBadge(0);
+                            tableNotasVendedorDivergentes.ajax.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro ao manter vendedor',
+                            text: response.message ||
+                                'Ocorreu um erro ao tentar manter o vendedor das notas selecionadas.',
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro na requisição',
+                        text: 'Ocorreu um erro ao enviar a requisição. Por favor, tente novamente.',
+                    });
+                }
+            });
 
         });
 
@@ -243,9 +308,6 @@
                 Swal.close();
             });
 
-
-
-
         function updateVendedorNotaBadge(count) {
             var $badge = $('#vendedor-nota-count-badge');
             if (count > 0) {
@@ -331,12 +393,16 @@
                     {
                         data: 'actions',
                         name: 'actions',
-                        width: "50px",
                         title: 'Ações',
-                        className: 'text-center',
+                        className: 'text-center text-nowrap',
                         orderable: false
                     },
-
+                    {
+                        data: 'CD_EMPRESA',
+                        name: 'CD_EMPRESA',
+                        title: 'Emp.',
+                        className: 'text-center'
+                    },
                     {
                         data: 'DT_EMISSAO',
                         name: 'emissao',
@@ -345,12 +411,6 @@
                         render: function(data, type, row) {
                             return moment(data).format('DD/MM/YYYY');
                         }
-                    },
-                    {
-                        data: 'CD_EMPRESA',
-                        name: 'CD_EMPRESA',
-                        title: 'Emp.',
-                        className: 'text-center'
                     },
                     {
                         data: 'NR_LANCAMENTO',
@@ -368,6 +428,7 @@
                         data: 'NM_PESSOA',
                         name: 'NM_PESSOA',
                         title: 'Cliente',
+                        width: '20%',
                         className: 'texto-curto'
                     },
                     {
@@ -381,23 +442,26 @@
                         data: 'DS_ITEM',
                         name: 'DS_ITEM',
                         title: 'Item',
+                        width: '20%',
                         className: 'texto-curto'
                     },
                     {
                         data: 'NM_VEND_NOTA',
                         name: 'NM_VEND_NOTA',
-                        title: 'Vendedor Nota',
+                        title: 'Vendedor da Nota',
+                        width: '20%',
                         className: 'texto-curto'
                     },
                     {
                         data: 'NM_VENDEDOR_INV',
                         name: 'NM_VENDEDOR_INV',
-                        title: 'Vendedor Comissão',
+                        title: 'Vendedor da Comissão',
+                        width: '20%',
                         className: 'texto-curto'
 
                     },
                 ],
-                "order": [2, 'desc'],
+                "order": [3, 'desc'],
                 drawCallback: function(settings) {
                     let grupoAtual = null;
                     let alternador = false;

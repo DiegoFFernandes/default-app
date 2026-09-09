@@ -2,7 +2,7 @@
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link active" id="tab-inserir" data-toggle="tab" href="#pedidos-bloqueados"
-                role="tab">Divergentes Endereço x Nota</a>
+                role="tab">Divergentes Nota x Comissão</a>
         </li>        
     </ul>
 </div>

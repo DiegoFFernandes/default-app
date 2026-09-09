@@ -21,5 +21,7 @@ Route::middleware(['auth', 'permission:ver-notas-vendedor-divergente'])->group(f
         Route::get('get-nota-vendedor-divergentes', [NotaVendedorDivergenteController::class, 'getNotasVendedorDivergentes'])->name('get-nota-vendedor-divergentes');
         Route::post('substituir-item-vendedor-nota', [NotaVendedorDivergenteController::class, 'substituirItemVendedorNota'])->name('substituir-item-vendedor-nota');
         Route::post('update-alterar-vendedor-nota', [NotaVendedorDivergenteController::class, 'updateAlterarVendedorNota'])->name('update-alterar-vendedor-nota');
+
+        Route::post('manter-vendedor-nota', [NotaVendedorDivergenteController::class, 'manterVendedorNota'])->name('manter-vendedor-nota');
     });
 });
