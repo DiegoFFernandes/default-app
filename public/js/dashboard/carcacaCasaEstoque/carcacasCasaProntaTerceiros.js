@@ -8,6 +8,14 @@ $(document).on("click", "#tab-carcaca-pronta-terceiros", function () {
         processing: false,
         serverSide: false,
         scrollX: true,
+        scrollY: "400px",
+        scrollCollapse: true,
+        pageLength: -1,
+        lengthMenu: [
+            [-1, 25, 50, 100],
+            ["Todos", 25, 50, 100],
+        ],
+        pagingType: "simple",
         select: {
             style: "multi",
             selector: "td.select-checkbox",
@@ -15,7 +23,6 @@ $(document).on("click", "#tab-carcaca-pronta-terceiros", function () {
         language: {
             url: window.routes.languageDatatables,
         },
-        pagingType: "simple",
         ajax: {
             url: window.routes.getCarcacaCasaProntasTerceiros,
             beforeSend: function () {

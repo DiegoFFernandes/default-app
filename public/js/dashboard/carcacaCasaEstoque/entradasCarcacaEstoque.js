@@ -182,10 +182,14 @@ function initTableCarcaca() {
         processing: false,
         serverSide: false,
         responsive: false,
-        paging: false,
-        scrollX: true,
         scrollY: "400px",
         scrollCollapse: true,
+        pageLength: -1,
+        lengthMenu: [
+            [-1, 25, 50, 100],
+            ["Todos", 25, 50, 100],
+        ],
+        pagingType: "simple",
         language: {
             url: window.routes.languageDatatables,
         },

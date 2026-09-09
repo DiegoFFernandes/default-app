@@ -9,6 +9,8 @@
                     <button type="button" class="btn btn-warning btn-xs btn-sm-phone" id="btn-cancelar-reserva-carcaca" title="Cancelar reserva dos selecionados">
                         <i class="fas fa-bookmark mr-1"></i> Cancelar Reserva
                     </button>
+                    <span class="badge badge-warning carcacas-prontas-count-badge ml-1"
+                        style="display:none; font-size:0.8rem;"></span>
                 </div>
                 <div class="card-body pb-0">
                     <table class="table table-bordered compact table-font-small" id="table-carcacas-prontas" style="width: 100%">

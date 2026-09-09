@@ -1,20 +1,58 @@
 var tableCarcacaPronta;
 var itensCarcacaProntaTable = [];
+var selectedProntasIds = new Set();
+
+function updateProntasBadge() {
+    var count = selectedProntasIds.size;
+    var $badge = $(".carcacas-prontas-count-badge");
+    if (count > 0) {
+        $badge.text(count + " selecionada" + (count > 1 ? "s" : "")).show();
+    } else {
+        $badge.hide();
+    }
+}
+
+// Mantem o "selecionar todos" do cabecalho coerente com o que esta marcado
+// nas linhas atualmente visiveis (respeitando filtro).
+function syncSelectAllProntas() {
+    if (!tableCarcacaPronta) return;
+    var rows = tableCarcacaPronta.rows({ search: "applied" }).data();
+    var total = rows.length;
+    var allSelected = total > 0;
+    rows.each(function (row) {
+        if (!selectedProntasIds.has(String(row.NR_ORDEM))) {
+            allSelected = false;
+        }
+    });
+    $(".dt-select-all-prontas").prop("checked", allSelected);
+}
+
+function getSelectedProntasRows() {
+    return itensCarcacaProntaTable.filter(function (row) {
+        return selectedProntasIds.has(String(row.NR_ORDEM));
+    });
+}
 
 $(document).on("click", "#tab-carcaca-pronta", function () {
     $("#table-carcacas-prontas").DataTable().destroy();
+    selectedProntasIds.clear();
+    updateProntasBadge();
 
     tableCarcacaPronta = $("#table-carcacas-prontas").DataTable({
         processing: false,
         serverSide: false,
         scrollX: true,
-        select: {
-            style: "multi",
-        },
+        scrollY: "400px",
+        scrollCollapse: true,
+        pageLength: -1,
+        lengthMenu: [
+            [-1, 25, 50, 100],
+            ["Todos", 25, 50, 100],
+        ],
+        pagingType: "simple",
         language: {
             url: window.routes.languageDatatables,
         },
-        pagingType: "simple",
         ajax: {
             url: window.routes.getCarcacaCasaProntas,
             beforeSend: function () {
@@ -52,14 +90,25 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
             {
                 data: null,
                 width: "1%",
-                render: function(data, type, row, meta) {
-                    if (type === 'display') {
-                        var checked = meta && meta.settings.aoData[meta.row] && meta.settings.aoData[meta.row]._select_selected ? ' checked' : '';
-                        return '<input type="checkbox" class="dt-select-checkbox" aria-label="Selecionar linha"' + checked + '>';
-                    }
-                    return '';
-                },
                 orderable: false,
+                searchable: false,
+                className: "text-center",
+                title: '<input type="checkbox" class="dt-select-all-prontas" aria-label="Selecionar todos">',
+                render: function (data, type, row) {
+                    if (type === "display") {
+                        var checked = selectedProntasIds.has(String(row.NR_ORDEM))
+                            ? " checked"
+                            : "";
+                        return (
+                            '<input type="checkbox" class="dt-row-checkbox-prontas" data-id="' +
+                            row.NR_ORDEM +
+                            '" aria-label="Selecionar linha"' +
+                            checked +
+                            ">"
+                        );
+                    }
+                    return "";
+                },
             },
             {
                 data: "action",
@@ -122,25 +171,54 @@ $(document).on("click", "#tab-carcaca-pronta", function () {
             },
         ],
     });
+
+    tableCarcacaPronta.on("draw", syncSelectAllProntas);
+});
+
+// Selecionar todos — opera apenas nas linhas visiveis (filtro ativo)
+$(document).on("click", ".dt-select-all-prontas", function (e) {
+    e.stopPropagation();
+    var checked = this.checked;
+    var rows = tableCarcacaPronta.rows({ search: "applied" });
+    rows.data().each(function (row) {
+        var id = String(row.NR_ORDEM);
+        if (checked) {
+            selectedProntasIds.add(id);
+        } else {
+            selectedProntasIds.delete(id);
+        }
+    });
+    rows.nodes().to$().find(".dt-row-checkbox-prontas").prop("checked", checked);
+    updateProntasBadge();
+});
+
+// Checkbox individual
+$(document).on("click", ".dt-row-checkbox-prontas", function (e) {
+    e.stopPropagation();
+    var id = String($(this).data("id"));
+    if (this.checked) {
+        selectedProntasIds.add(id);
+    } else {
+        selectedProntasIds.delete(id);
+    }
+    updateProntasBadge();
+    syncSelectAllProntas();
 });
 
 $(document).on("click", "#btn-reservar-carcaca", function () {
-    let selectedRows = tableCarcacaPronta.rows({ selected: true }).data();
     let config = {
-        swalText:
-            "Por favor, selecione pelo menos uma carcaça para reservar.",
+        swalText: "Por favor, selecione pelo menos uma carcaça para reservar.",
     };
 
-    reservarCarcacaPronta(selectedRows, "S", config);
+    reservarCarcacaPronta(getSelectedProntasRows(), "S", config);
 });
 
 $(document).on("click", "#btn-cancelar-reserva-carcaca", function () {
-    let selectedRows = tableCarcacaPronta.rows({ selected: true }).data();
     let config = {
         swalText:
             "Por favor, selecione pelo menos uma carcaça para cancelar a reservar.",
     };
-    reservarCarcacaPronta(selectedRows, "N", config);
+    reservarCarcacaPronta(getSelectedProntasRows(), "N", config);
 });
 
 function reservarCarcacaPronta(selectedRows, st_Reserva, config) {
@@ -153,10 +231,8 @@ function reservarCarcacaPronta(selectedRows, st_Reserva, config) {
         return;
     }
 
-    let NrOrdens = [];
-
-    selectedRows.each(function (rowData) {
-        NrOrdens.push(rowData.NR_ORDEM);
+    let NrOrdens = selectedRows.map(function (rowData) {
+        return rowData.NR_ORDEM;
     });
 
     $.ajax({
@@ -179,6 +255,9 @@ function reservarCarcacaPronta(selectedRows, st_Reserva, config) {
                     showConfirmButton: true,
                     confirmButtonText: "Ok",
                 });
+                selectedProntasIds.clear();
+                updateProntasBadge();
+                $(".dt-select-all-prontas").prop("checked", false);
                 tableCarcacaPronta.ajax.reload();
             } else {
                 Swal.fire({
