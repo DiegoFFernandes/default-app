@@ -113,6 +113,9 @@
                 languageDataTable: "{{ asset('vendor/datatables/pt-BR.json') }}"
             };
 
+            window.podeVerValorProduzidos =
+                {{ auth()->user()->hasRole('admin|supervisor|gerente unidade|gerente comercial') ? 'true' : 'false' }};
+
             $('#grupo_item').select2({
                 placeholder: 'Selecione o grupo',
                 theme: 'bootstrap4',
@@ -215,6 +218,101 @@
                 });
             });
 
+            $(document).on('click', '.btn-enviar-whatsapp', function() {
+                var row = table.row($(this).closest('tr')).data();
+                var $icon = $(this).find('i');
+
+                // Abre a aba já no clique para não esbarrar no bloqueador de pop-up;
+                // o endereço só é definido depois que os detalhes chegam.
+                var win = window.open('', '_blank');
+
+                $icon.removeClass('fab fa-whatsapp').addClass('fas fa-spinner fa-spin');
+
+                $.get(window.routes.getPneusProduzidosSemFaturarDetails, {
+                    pedido: row.NR_COLETA,
+                    nr_embarque: row.NR_EMBARQUE,
+                    expedicionado: row.EXPEDICIONADO
+                }).done(function(resp) {
+                    var itens = (resp && resp.data) ? resp.data : [];
+
+                    if (!itens.length) {
+                        if (win) win.close();
+                        Swal.fire('Sem itens', 'Nenhum pneu encontrado para este pedido.', 'info');
+                        return;
+                    }
+
+                    var msg = montaMensagemWhatsapp(row, itens);
+                    var url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
+
+                    if (win) {
+                        win.location = url;
+                    } else {
+                        window.open(url, '_blank');
+                    }
+                }).fail(function() {
+                    if (win) win.close();
+                    Swal.fire('Erro', 'Não foi possível carregar os detalhes do pedido.', 'error');
+                }).always(function() {
+                    $icon.removeClass('fas fa-spinner fa-spin').addClass('fab fa-whatsapp');
+                });
+            });
+
+            function formataMoeda(valor) {
+                return (Number(valor) || 0).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function montaMensagemWhatsapp(row, itens) {
+                var podeVerValor = window.podeVerValorProduzidos;
+                var grupos = {};
+                var totalPneus = itens.length;
+                var totalValor = 0;
+
+                itens.forEach(function(item) {
+                    var unit = parseFloat(item.VALOR) || 0;
+                    var chave = podeVerValor ? item.DS_ITEM + '|' + unit : item.DS_ITEM;
+
+                    grupos[chave] = grupos[chave] || {
+                        ds_item: item.DS_ITEM,
+                        unit: unit,
+                        qtd: 0,
+                        total: 0
+                    };
+                    grupos[chave].qtd += 1;
+                    grupos[chave].total += unit;
+                    totalValor += unit;
+                });
+
+                var embarque = (row.NR_EMBARQUE && row.NR_EMBARQUE !== 'SEM EMBARQUE') ?
+                    'Embarque ' + row.NR_EMBARQUE :
+                    'Sem embarque';
+
+                var linhas = [];
+                linhas.push('*Produzidos sem Faturar - Pedido ' + row.NR_COLETA + '*');
+                linhas.push('Cliente: ' + row.NM_PESSOA);
+                linhas.push(embarque + ' | Vendedor: ' + (row.NM_VENDEDOR || '-') +
+                    ' | Expedicao: ' + row.EXPEDICIONADO + ' | ' + totalPneus + ' pneus');
+                linhas.push('');
+
+                Object.keys(grupos).forEach(function(chave) {
+                    var g = grupos[chave];
+                    var linha = '- ' + g.ds_item + ' | Qtd ' + g.qtd;
+                    if (podeVerValor) {
+                        linha += ' | Unit R$ ' + formataMoeda(g.unit) +
+                            ' | Total R$ ' + formataMoeda(g.total);
+                    }
+                    linhas.push(linha);
+                });
+
+                linhas.push('');
+                linhas.push('Total: ' + totalPneus + ' pneus' +
+                    (podeVerValor ? ' | R$ ' + formataMoeda(totalValor) : ''));
+
+                return linhas.join('\n');
+            }
+
             document.querySelectorAll('.nav-link').forEach(tab => {
                 tab.addEventListener('click', function() {
 
@@ -303,6 +401,14 @@
                             "data": "EXPEDICIONADO",
                             title: "Expedição",
                             className: "text-center",
+                            render: function(data, type) {
+                                if (type !== 'display') {
+                                    return data;
+                                }
+                                var sim = data === 'SIM';
+                                return '<span class="badge badge-' + (sim ? 'success' : 'danger') +
+                                    '">' + (sim ? 'SIM' : 'NÃO') + '</span>';
+                            }
                         },
                         {
                             "data": "DTFIM",
@@ -374,12 +480,15 @@
                         $(api.column(5).footer()).html(totalPneus.toLocaleString('pt-BR'));
 
 
-                        $('.pneusTotal').html(QtdPneus);
-                        $('#valorTotal').html('R$ ' + valorTotal.toFixed(2).replace('.', ',').replace(
-                            /\B(?=(\d{3})+(?!\d))/g, '.'));
-                        $('#expedicionado').html('Sim: ' + expedicionadoSim + ' | Não: ' +
-                            expedicionadoNao);
-                        $('#embarque').html('Sim: ' + embarqueSim + ' | Não: ' + embarqueNao);
+                        $('.pneusTotal').html(QtdPneus.toLocaleString('pt-BR'));
+                        $('#valorTotal').html('R$ ' + valorTotal.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }));
+                        $('#expedicionadoSim').html(expedicionadoSim.toLocaleString('pt-BR'));
+                        $('#expedicionadoNao').html(expedicionadoNao.toLocaleString('pt-BR'));
+                        $('#embarqueSim').html(embarqueSim.toLocaleString('pt-BR'));
+                        $('#embarqueNao').html(embarqueNao.toLocaleString('pt-BR'));
 
                     },
 
@@ -411,11 +520,13 @@
                         },
                         columns: [{
                                 data: "EXPEDICIONADO",
-                                title: "Expedicionado"
+                                title: "Expedicionado",
+                                className: 'text-center'
                             },
                             {
                                 data: "NRORDEMPRODUCAO",
-                                title: "Nr Ordem"
+                                title: "Nr Ordem",
+                                className: 'text-center'
                             },
                             {
                                 data: "DS_ITEM",
@@ -424,11 +535,31 @@
                             @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                                 {
                                     "data": "VALOR",
-                                    title: "Valor"
+                                    title: "Valor",
+                                    className: 'text-center',
+                                    render: function(data) {
+                                        if (data === null || data === undefined || data === '') {
+                                            return '';
+                                        }
+                                        var valor = parseFloat(data);
+                                        if (isNaN(valor)) {
+                                            return data;
+                                        }
+                                        return valor.toLocaleString('pt-BR', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                                    },
+                                    createdCell: function(td, cellData) {
+                                        if ((parseFloat(cellData) || 0) === 0) {
+                                            $(td).css('background-color', '#f8d7da');
+                                        }
+                                    }
                                 },
                             @endhasrole {
                                 data: "DTFIM",
                                 title: "Data",
+                                className: 'text-center',
                                 render: function(data) {
                                     return moment(data).format('DD/MM/YYYY HH:mm');
                                 }

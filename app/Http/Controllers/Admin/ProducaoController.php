@@ -15,10 +15,13 @@ use App\Services\SupervisorAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
+use App\Services\ServiceFiltroGrupoSubgrupo;
 
 class ProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, $supervisorComercial, $gerenteUnidade, $pessoa, $area, $supervisor;
+    public $request, $regiao, $empresa, $user, $producao, 
+    $supervisorComercial, $gerenteUnidade, $pessoa, 
+    $area, $supervisor, $serviceFiltroGrupoSubgrupo;
 
     public function __construct(
         Request $request,
@@ -30,7 +33,8 @@ class ProducaoController extends Controller
         GerenteUnidade $gerenteUnidade,
         SupervisorComercial $supervisor,
         Pessoa $pessoa,
-        AreaComercial $area
+        AreaComercial $area,
+        ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
     ) {
         $this->request = $request;
         $this->regiao = $regiao;
@@ -42,6 +46,7 @@ class ProducaoController extends Controller
         $this->gerenteUnidade = $gerenteUnidade;
         $this->pessoa = $pessoa;
         $this->supervisor = $supervisor;
+        $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
         $this->middleware(function ($request, $next) {
             $this->user = Auth::user();
             return $next($request);
@@ -125,7 +130,10 @@ class ProducaoController extends Controller
             $cd_regiao = implode(',', $this->request->data['regiao']);
         }
 
-        $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0);
+        //Retorna os subgrupos recusados
+        $subgrupoRecusa = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
+        $data = $this->producao->getPneusProduzidosFaturar($cd_empresa, $cd_regiao, $supervisor, $this->request->data, $cd_pessoa ?? 0, $subgrupoRecusa['data']);
 
         // Busca no mysql as regiões de gerente comercial vinculadas as Gerente Comercial
         $regioes_mysql = $this->area->GerenteSupervisorAll()->keyBy('cd_areacomercial');
@@ -157,9 +165,11 @@ class ProducaoController extends Controller
         $datatables = DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('actions', function ($row) {
-                $btn = '';
-                $btn .= '<span class="right m-0 p-0 btn-detalhes"><i class="fas fa-plus-circle"></i></span> ';
-                $btn .= '<span class="btn-observacao-embarque p-0 m-0"><i class="fas fa-comment-dots"></i></span>';
+                $btn  = '<div class="d-flex align-items-center justify-content-center" style="gap:14px">';
+                $btn .= '<span class="btn-detalhes" title="Carregar detalhes" style="cursor:pointer"><i class="fas fa-plus-circle"></i></span>';
+                $btn .= '<span class="btn-observacao-embarque" title="Ver comentarios Faturamento" style="cursor:pointer"><i class="fas fa-comment-dots"></i></span>';
+                $btn .= '<span class="btn-enviar-whatsapp" title="Enviar por WhatsApp" style="cursor:pointer;color:#25D366"><i class="fab fa-whatsapp"></i></span>';
+                $btn .= '</div>';
                 return $btn;
             })
             ->addColumn('NM_PESSOA', function ($row) {
@@ -197,7 +207,10 @@ class ProducaoController extends Controller
             $nr_embarque = 0;
         }
 
-        $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque, $expedicionado);
+        //Retorna os subgrupos recusados
+        $subgrupoRecusa = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
+
+        $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque, $expedicionado, $subgrupoRecusa['data']);
 
         return DataTables::of($data)->make(true);
     }

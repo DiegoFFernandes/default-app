@@ -13,7 +13,7 @@ class Producao extends Model
 {
     use HasFactory;
 
-    public function getPneusProduzidosFaturar($Dtempresa = 0, $cd_regiao = "", $supervisor = 0, $data, $cd_pessoa = 0)
+    public function getPneusProduzidosFaturar($Dtempresa = 0, $cd_regiao = "", $supervisor = 0, $data, $cd_pessoa = 0, $subgrupoRecusa)
     {
 
         $empresa = $data['cd_empresa'] == 0  ? $Dtempresa : $data['cd_empresa'];
@@ -25,7 +25,7 @@ class Producao extends Model
         $inicioData = $data['dt_inicial'];
         $fimData = $data['dt_final'];
         $supervisor = $data['supervisor'] == 0 ? $supervisor : $data['supervisor'];
-        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];
+        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];       
 
         $query = "
             SELECT DISTINCT
@@ -39,7 +39,7 @@ class Producao extends Model
                 PP.IDEMPRESA AS CD_EMPRESA,
                 PP.IDPESSOA AS CD_PESSOA,
                 PP.IDPESSOA || '-' || PESSOA.NM_PESSOA AS NM_PESSOA,
-                CAST(SUM(IPP.VLUNITARIO) AS NUMERIC(18,5)) AS VALOR,
+                CAST(SUM(IIF(ITEM.CD_SUBGRUPO =  $subgrupoRecusa, 0, IPP.VLUNITARIO)) AS NUMERIC(18,2)) AS VALOR,
                 CASE
                 WHEN OPRX.IDEXPEDICAOLOTEPNEU IS NULL THEN 'NAO'
                 ELSE 'SIM'
@@ -56,6 +56,7 @@ class Producao extends Model
             INNER JOIN VENDEDOR ON (VENDEDOR.CD_VENDEDOR = PP.IDVENDEDOR)
             LEFT JOIN PEDIDOPNEUMOVEL PPM ON (PPM.ID = PP.ID)
             INNER JOIN ITEMPEDIDOPNEU IPP ON (IPP.IDPEDIDOPNEU = PP.ID)
+            INNER JOIN ITEM ON (ITEM.CD_ITEM = IPP.IDSERVICOPNEU)
             INNER JOIN ORDEMPRODUCAORECAP OPR ON (OPR.IDITEMPEDIDOPNEU = IPP.ID)
             INNER JOIN PNEU P ON (P.ID = IPP.IDPNEU)
             LEFT JOIN EXAMEFINALPNEU EF ON (EF.IDORDEMPRODUCAORECAP = OPR.ID)
@@ -130,7 +131,7 @@ class Producao extends Model
             return Helper::ConvertFormatText($data);
         });
     }
-    public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE, $EXPEDICIONADO)
+    public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE, $EXPEDICIONADO, $subgrupoRecusa)
     {
         $query = "
             SELECT DISTINCT
@@ -141,6 +142,7 @@ class Producao extends Model
                 PP.IDPESSOA || '-' || PESSOA.NM_PESSOA NM_PESSOA,
                 IPP.ID IDITEMPEDIDOPNEU,
                 IPP.VLUNITARIO VALOR,
+                CAST(IIF(ITEM.CD_SUBGRUPO =  $subgrupoRecusa, 0, IPP.VLUNITARIO) AS NUMERIC(18,2)) AS VALOR,
                 OPR.DTFECHAMENTO,
                 PP.DTENTREGA,
                 CASE
