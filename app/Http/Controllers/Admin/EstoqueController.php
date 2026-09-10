@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Empresa;
 use App\Models\Estoque;
-use App\Models\MedidaPneu;
 use App\Models\ModeloPneu;
 use App\Models\User;
 use App\Services\ServiceEstoqueNegativo;
@@ -22,7 +21,6 @@ class EstoqueController extends Controller
     protected Request $request;
     protected User $user;
     protected Estoque $estoque;
-    protected MedidaPneu $medidapneu;
     protected ModeloPneu $modelopneu;
     protected ServiceEstoqueNegativo $serviceEstoqueNegativo;
     protected ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo;
@@ -32,7 +30,6 @@ class EstoqueController extends Controller
         Request $request,
         User $user,
         Estoque $estoque,
-        MedidaPneu $medidapneu,
         ModeloPneu $modelopneu,
         ServiceEstoqueNegativo $serviceEstoqueNegativo,
         ServiceFiltroGrupoSubgrupo $serviceFiltroGrupoSubgrupo
@@ -41,7 +38,6 @@ class EstoqueController extends Controller
         $this->request = $request;
         $this->user = $user;
         $this->estoque = $estoque;
-        $this->medidapneu = $medidapneu;
         $this->modelopneu = $modelopneu;
         $this->serviceEstoqueNegativo = $serviceEstoqueNegativo;
         $this->serviceFiltroGrupoSubgrupo = $serviceFiltroGrupoSubgrupo;
@@ -547,18 +543,6 @@ class EstoqueController extends Controller
     }
 
     //Ajustar esses dois métodos abaixo para um service específico de pneus
-    public function searchMedidasPneu()
-    {
-        // Helper::searchCliente($this->user_auth->conexao)
-        $data = [];
-
-        if ($this->request->has('q')) {
-            $search = $this->request->q;
-            $data = $this->medidapneu->searchMedidasPneusCasa($search);
-        }
-        return response()->json($data);
-    }
-
     public function searchModeloPneu()
     {
         // Helper::searchCliente($this->user_auth->conexao)

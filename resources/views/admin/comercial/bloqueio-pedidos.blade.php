@@ -219,6 +219,13 @@
                                             </div>
                                             <div class="col-md-2 col-6">
                                                 <div class="form-group">
+                                                    <label class="small">Medida</label>
+                                                    <select name="cd_medida" id="cd_medida">
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 col-6">
+                                                <div class="form-group">
                                                     <label class="small">Nr Dot</label>
                                                     <input type="text" class="form-control form-control-sm"
                                                         id="nr_dot" placeholder="Nr Dot">
@@ -499,7 +506,8 @@
 
         window.routes = {
             languageDatatables: "{{ asset('vendor/datatables/pt-br.json') }}",
-            getItemPedidoAcompanhar: "{{ route('get-item-pedido-acompanhar') }}"
+            getItemPedidoAcompanhar: "{{ route('get-item-pedido-acompanhar') }}",
+            searchMedidas: "{{ route('search-medidas') }}",
         }
 
         var template = Handlebars.compile($("#details-template").html());
@@ -520,10 +528,38 @@
 
         $('#grupo_item').select2({
             theme: 'bootstrap4',
+            language: 'pt-BR',
             width: '100%',
         });
+
         $('#cd_regiaocomercial').select2({
             theme: 'bootstrap4',
+            language: 'pt-BR',
+        });
+
+        $("#cd_medida").select2({
+            placeholder: "Selecione a Medida",
+            theme: "bootstrap4",
+            language: 'pt-BR',
+            width: "100%",
+            allowClear: true,
+            minimumInputLength: 2,
+            ajax: {
+                url: window.routes.searchMedidas,
+                dataType: "json",
+                delay: 250,
+                processResults: function(data) {
+                    return {
+                        results: $.map(data, function(item) {
+                            return {
+                                text: item.DS_MEDIDA,
+                                id: item.ID,
+                            };
+                        }),
+                    };
+                },
+                cache: false,
+            },
         });
 
         $('#bloqueio').click(function() {
@@ -743,6 +779,7 @@
                     $('#card-bloqueados .loading-card').addClass('invisible');
                 });
         }
+
         loadBloqueioTotais();
 
         $('.stat-row[data-motivo]').on('click', function() {
@@ -847,6 +884,7 @@
                         d.nr_fogo = $('#nr_fogo').val();
                         d.nr_serie = $('#nr_serie').val();
                         d.nr_dot = $('#nr_dot').val();
+                        d.cd_medida = $('#cd_medida').val();
                     },
                     error: function(xhr) {
                         Swal.fire({
@@ -1049,7 +1087,6 @@
                 tr_item.next().find('td').addClass('no-padding');
             }
         });
-
 
         // Ativar popover após cada renderização
         $('#bloqueio-pedidos').on('draw.dt', function() {

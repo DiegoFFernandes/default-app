@@ -37,8 +37,7 @@ Route::middleware(['auth', 'permission:ver-estoque-carcacas'])->prefix('estoque'
     //Reservar carcaca pronta
     Route::get('reservar-carcaca-pronta', [EstoqueController::class, 'reservarCarcacaCasaPronta'])->name('reservar-carcaca-casa-pronta');
 
-    //Medidas de pneus
-    Route::get('search-medidas-pneu', [EstoqueController::class, 'searchMedidasPneu'])->name('search-medidas-pneus');
+    //Modelos de pneus
     Route::get('search-modelo-pneu', [EstoqueController::class, 'searchModeloPneu'])->name('search-modelo-pneus');
 });
 

@@ -14,7 +14,6 @@ use App\Models\RegiaoComercial;
 use App\Models\SupervisorComercial;
 use App\Models\Vendedor;
 use App\Services\SupervisorAuthService;
-use App\Services\UserRoleFilterService;
 use Helper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +22,10 @@ use Yajra\DataTables\Facades\DataTables;
 
 class BloqueioPedidosController extends Controller
 {
-    public $request, $bloqueio, $regiao, $area, $acompanha, $user, $item, $empresa, $supervisor, $supervisorComercial, $gerenteUnidade, $pessoa, $vendedorComercial;
+    public $request, $bloqueio, $regiao, $area,
+        $acompanha, $user, $item, $empresa, $supervisor,
+        $supervisorComercial, $gerenteUnidade, $pessoa, 
+        $vendedorComercial;
 
     public function __construct(
         Request $request,
@@ -37,7 +39,8 @@ class BloqueioPedidosController extends Controller
         GerenteUnidade $gerenteUnidade,
         Pessoa $pessoa,
         Item $item,
-        Empresa $empresa
+        Empresa $empresa,
+
     ) {
         $this->request = $request;
         $this->bloqueio = $bloqueio;
@@ -204,10 +207,10 @@ class BloqueioPedidosController extends Controller
                 ->implode(' ');
 
             $d->actions = '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> '
-                        . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
+                . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ' . $d->CD_EMPRESA;
 
             $d->QTD_FINALIZADAS = '<span class="badge badge-secondary">'
-                                . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
+                . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
 
             $stpedido = trim($d->STPEDIDO ?? '');
             if ($stpedido === 'ATENDIDO') {
@@ -286,16 +289,26 @@ class BloqueioPedidosController extends Controller
             'nr_fogo'     => $this->request->input('nr_fogo', ''),
             'nr_serie'    => $this->request->input('nr_serie', ''),
             'nr_dot'      => $this->request->input('nr_dot', ''),
+            'cd_medida'   => $this->request->input('cd_medida', ''),
         ];
+        
 
         // Supervisor: força empresa = 0 (vê todas)
         $empresaFinal    = $supervisor ? 0      : $empresa;
         $supervisorFinal = $supervisor ?? 0;
 
         $result = $this->acompanha->ListPedidoPneuPaginated(
-            $empresaFinal, $cd_regiao, $supervisorFinal, $dados,
-            $cd_pessoa, $cd_vendedor,
-            $start, $length, $orderBy, $dir, $search
+            $empresaFinal,
+            $cd_regiao,
+            $supervisorFinal,
+            $dados,
+            $cd_pessoa,
+            $cd_vendedor,
+            $start,
+            $length,
+            $orderBy,
+            $dir,
+            $search            
         );
 
         // ── Transformação das linhas (substitui Yajra addColumn / setRowClass)
@@ -331,10 +344,10 @@ class BloqueioPedidosController extends Controller
                 ->implode(' ');
 
             $d->actions = '<span class="btn-detalhes btn-show-modal right mr-1" ' . $dataString . '><i class="fas fa-eye"></i></span> '
-                        . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ';
+                . '<span class="btn-detalhes details-control mr-1"><i class="fas fa-plus-circle"></i></span> ';
 
             $d->QTD_FINALIZADAS = '<span class="badge badge-secondary">'
-                                . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
+                . $d->QTDPNEUS . ' / ' . $d->QTD_FINALIZADAS . '</span>';
 
             $stpedido = trim($d->STPEDIDO ?? '');
             if ($stpedido === 'ATENDIDO') {
@@ -432,7 +445,7 @@ class BloqueioPedidosController extends Controller
             'empresa'
         ));
     }
-    
+
     public function getColetaGeralRegiao()
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();
@@ -471,7 +484,7 @@ class BloqueioPedidosController extends Controller
             ->rawColumns(['actions'])
             ->make();
     }
-    
+
     public function getQtdColeta()
     {
         $supervisor = $this->supervisorComercial->getCdSupervisor();

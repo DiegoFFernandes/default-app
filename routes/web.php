@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\FormaPagmentoController;
 use App\Http\Controllers\Admin\HistoricoController;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\ItemController;
+use App\Http\Controllers\Admin\MedidaPneuController;
 use App\Http\Controllers\Admin\PedidoPneuController;
 use App\Http\Controllers\Admin\TipoContaController;
 use App\Http\Controllers\Auth\LoginController;
@@ -79,6 +80,11 @@ Route::middleware('auth')->group(function () {
     Route::prefix('produto')->group(function () {
         Route::get('get-servico-pneu-medida', [ItemController::class, 'servicoPneu'])->name('get-servico-pneu-medida');
         Route::get('search-produto', [ItemController::class, 'searchProduto'])->name('search-product');
+    });
+
+    Route::prefix('medida')->group(function () {
+        Route::get('search-medidas-pneu', [MedidaPneuController::class, 'searchMedidasPneu'])->name('search-medidas-pneus');
+        Route::get('search-medidas', [MedidaPneuController::class, 'searchMedidas'])->name('search-medidas');
     });
 
     Route::get('search-pessoas', [PessoaController::class, 'searchPessoas'])->name('pessoa.search');

@@ -231,7 +231,7 @@ class AcompanhamentoPneu extends Model
     ) {
         if (is_null($data)) {
             $pedido = $pedido_palm = $nm_cliente = $nm_vendedor = $idvendedor = '';
-            $nr_fogo = $nr_serie = $nr_dot = '';
+            $nr_fogo = $nr_serie = $nr_dot = $cd_medida = '';
             $grupo_item = 0;
             $inicioData = $fimData = 0;
         } else {
@@ -246,6 +246,7 @@ class AcompanhamentoPneu extends Model
             $nr_fogo     = $data['nr_fogo']     ?? '';
             $nr_serie    = $data['nr_serie']    ?? '';
             $nr_dot      = $data['nr_dot']      ?? '';
+            $cd_medida   = $data['cd_medida']   ?? '';
             $grupo_arr   = array_filter((array)($data['grupo_item'] ?? []), fn($g) => intval($g) > 0);
             $grupo_item  = !empty($grupo_arr) ? implode(',', $grupo_arr) : 0;
         }
@@ -284,6 +285,7 @@ class AcompanhamentoPneu extends Model
             . (($nr_fogo     != '')  ? " AND PNEU.NRFOGO = '$nr_fogo'"                   : '')
             . (($nr_serie    != '')  ? " AND PNEU.NRSERIE = '$nr_serie'"                 : '')
             . (($nr_dot      != '')  ? " AND PNEU.NRDOT = '$nr_dot'"                     : '')
+            . (($cd_medida   != '')  ? " AND PNEU.IDMEDIDAPNEU IN ($cd_medida)"          : '')
             . " AND PP.STPEDIDO <> 'C'";
 
         $whereSearch = '';
