@@ -87,7 +87,7 @@
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge badge-danger">{{ NM_PESSOA }}</span>
-            <table class="table stripe row-border no-padding table-left" id="pedido-{{ NR_COLETA }}-{{ EXPEDICIONADO }}-{{ NR_EMBARQUE }}" style="width:80%">
+            <table class="table stripe row-border no-padding table-left" id="{{ DETAIL_ID }}" style="width:80%">
                 <thead style="background-color: #434A51;">
                     <tr>
                         <th>Expedicinado</th>
@@ -178,12 +178,17 @@
                 initTablePneus(dados);
             });
 
+            function buildDetailId(d) {
+                return ('pedido-' + d.NR_COLETA + '-' + d.EXPEDICIONADO + '-' + d.NR_EMBARQUE)
+                    .replace(/[^A-Za-z0-9_-]+/g, '_'); // "SEM EMBARQUE" -> "SEM_EMBARQUE"
+            }
+
             $(document).on('click', '.btn-detalhes', function() {
 
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
-                var tableId = 'pedido-' + row.data().NR_COLETA + '-' + row.data().EXPEDICIONADO + '-' + row
-                    .data().NR_EMBARQUE;
+                var d = row.data();
+                var tableId = buildDetailId(d);
 
                 if (row.child.isShown()) {
                     // This row is already open - close it
@@ -192,8 +197,8 @@
                     $(this).find('i').removeClass('fa-minus-circle').addClass('fa-plus-circle');
                 } else {
                     // Open this row
-                    row.child(template(row.data())).show();
-                    initTable(tableId, row.data());
+                    row.child(template($.extend({}, d, { DETAIL_ID: tableId }))).show();
+                    initTable(tableId, d);
                     tr.addClass('shown');
                     $(this).find('i').removeClass('fa-plus-circle').addClass('fa-minus-circle');
                     // tr.next().find('td').addClass('no-padding');
@@ -514,7 +519,7 @@
                             "method": "GET",
                             "data": {
                                 'pedido': data.NR_COLETA,
-                                'nr_embarque': data.NR_EMBARQUE,
+                                'nr_embarque': data.NR_EMBARQUE === 'SEM EMBARQUE' ? 0 : data.NR_EMBARQUE,
                                 'expedicionado': data.EXPEDICIONADO
                             }
                         },
@@ -711,9 +716,7 @@
                     legendId: 'legend-container-supervisor'
                 });
                 
-            }
-
-            
+            }            
 
             function montarGrafico({
                 valores,
