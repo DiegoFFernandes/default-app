@@ -2,7 +2,7 @@
      <div class="col-md-12">
          <div class="card collapsed-card">
              <div class="card-header">
-                 <h3 class="card-title">Filtros:</h3>
+                 <h3 class="card-title"><i class="fas fa-filter mr-1 text-muted"></i> Filtros</h3>
                  <div class="card-tools">
                      <button type="button" class="btn btn-tool" data-card-widget="collapse">
                          <i class="fas fa-plus"></i> <!-- Ícone "plus" porque está colapsado -->
@@ -13,7 +13,7 @@
                  <div class="row">
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Empresa</label>
+                             <label class="form-label small" for="cd_empresa"><i class="fas fa-building mr-1 text-muted"></i>Empresa</label>
                              <select name="cd_empresa" id="cd_empresa" class="form-control form-control-sm"
                                  style="width: 100%;">
                                  <option value="0" selected>Todas</option>
@@ -26,28 +26,28 @@
                      </div>
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Dt Emissão</label>
+                             <label class="form-label small" for="daterange"><i class="fas fa-calendar-alt mr-1 text-muted"></i>Dt Emissão</label>
                              <input type="text" class="form-control form-control-sm" id="daterange"
                                  placeholder="Data Emissão">
                          </div>
                      </div>
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Pedido Palm</label>
+                             <label class="form-label small" for="pedido_palm"><i class="fas fa-mobile-alt mr-1 text-muted"></i>Pedido Palm</label>
                              <input type="number" class="form-control form-control-sm" id="pedido_palm"
                                  placeholder="Pedido Palm">
                          </div>
                      </div>
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Pedido</label>
+                             <label class="form-label small" for="pedido"><i class="fas fa-hashtag mr-1 text-muted"></i>Pedido</label>
                              <input type="number" class="form-control form-control-sm" id="pedido"
                                  placeholder="Pedido">
                          </div>
                      </div>
                      <div class="col-md-4">
                          <div class="form-group">
-                             <label class="small">Grupo Item</label>
+                             <label class="form-label small" for="grupo_item"><i class="fas fa-layer-group mr-1 text-muted"></i>Grupo Item</label>
                              <select name="grupo_item" id="grupo_item" class="form-control form-control-sm"
                                  style="width: 100%;">
                                  <option value="0">Todos</option>
@@ -62,14 +62,14 @@
                  <div class="row">
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Vendedor</label>
+                             <label class="form-label small" for="nm_vendedor"><i class="fas fa-user-tag mr-1 text-muted"></i>Vendedor</label>
                              <input type="text" class="form-control form-control-sm" id="nm_vendedor"
                                  placeholder="Nome Vendedor">
                          </div>
                      </div>
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Supervisor</label>
+                             <label class="form-label small" for="supervisor"><i class="fas fa-user-shield mr-1 text-muted"></i>Supervisor</label>
                              <select name="supervisor" id="supervisor" class="form-control form-control-sm">
                                     <option value="0">Todos</option>
                                  @foreach ($supervisor as $s)
@@ -81,14 +81,14 @@
                      </div>
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Cliente</label>
+                             <label class="form-label small" for="nm_cliente"><i class="fas fa-user mr-1 text-muted"></i>Cliente</label>
                              <input type="text" class="form-control form-control-sm" id="nm_cliente"
                                  placeholder="Nome Cliente">
                          </div>
                      </div>
                      <div class="col-md-2">
                          <div class="form-group">
-                             <label class="small">Status Embarque</label>
+                             <label class="form-label small" for="st_embarque"><i class="fas fa-truck mr-1 text-muted"></i>Status Embarque</label>
                              <select name="st_embarque" id="st_embarque" class="form-control form-control-sm"
                                  style="width: 100%;">
                                  <option value="0">Todos</option>
@@ -99,7 +99,7 @@
                      </div>
                      <div class="col-md-4">
                          <div class="form-group">
-                             <label class="small">Região</label>
+                             <label class="form-label small" for="cd_regiaocomercial"><i class="fas fa-map-marked-alt mr-1 text-muted"></i>Região</label>
                              <select name="cd_regiaocomercial[]" class="form-control form-control-sm"
                                  id="cd_regiaocomercial" style="width: 100%;" multiple>
                                  @foreach ($regiao as $r)
@@ -115,7 +115,7 @@
                      <div class="row">
                          <div class="col-md-12">
                              <button type="button" class="btn btn-primary btn-xs float-right mr-2"
-                                 id="search">Filtrar</button>
+                                 id="search"><i class="fas fa-search mr-1"></i>Filtrar</button>
                          </div>
                          <!-- /.row -->
                      </div>

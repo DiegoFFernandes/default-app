@@ -16,6 +16,10 @@
                 <div class="card card-primary">
                     <div class="card-body">
                         <span class="badge badge-danger periodo"></span>
+                        <button type="button" id="limparSelecaoGraficos"
+                            class="btn btn-xs btn-outline-secondary ml-2" style="display:none">
+                            <i class="fas fa-times"></i> Limpar seleção (<span class="qtd-sel">0</span>)
+                        </button>
                         <table id="produzidosTable" class="table table-bordered table-font-small compact">
                             <tfoot>
                                 <tr>
@@ -66,6 +70,16 @@
             white-space: nowrap;
         }
 
+        /* Cross-highlight: seleção de linha para filtrar/enfatizar os gráficos */
+        #produzidosTable tbody tr {
+            cursor: pointer;
+        }
+
+        #produzidosTable tbody tr.linha-selecionada > td {
+            background-color: #fff3cd !important;
+            box-shadow: inset 3px 0 0 #e0a800;
+        }
+
         @media (max-width: 768px) {
             .table-left {
                 margin-left: 0 !important;
@@ -84,6 +98,8 @@
     <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.bootstrap4.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.1.2/js/buttons.html5.min.js"></script>
     <script src="{{ asset('vendor/adminlte/dist/js/handlebars.min.js') }}"></script>
+    <script src="{{ asset('js/dashboard/cross-filter.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/dashboard/chart-focus-bar.js') }}?v={{ time() }}"></script>
     <script id="details-template" type="text/x-handlebars-template">
         @verbatim
             <span class="badge badge-danger">{{ NM_PESSOA }}</span>
@@ -105,7 +121,6 @@
             var fimData = moment().subtract(0, 'days').format('DD.MM.YYYY');
             var dados;
             var table;
-            const charts = {};
 
             window.routes = {
                 getPneusProduzidosSemFaturar: "{{ route('get-pneus-produzidos-sem-faturar') }}",
@@ -115,6 +130,33 @@
 
             window.podeVerValorProduzidos =
                 {{ auth()->user()->hasRole('admin|supervisor|gerente unidade|gerente comercial') ? 'true' : 'false' }};
+
+            // Estado de cross-highlight dos graficos (cross-filter.js) - precisa existir
+            // antes do primeiro initTablePneus(), que ja usa cf.rowCallback/attachTable.
+            var baseRows = [];
+
+            var COR = {
+                qtdFoco: 'rgba(60, 145, 230, 0.85)',
+                vlrFoco: 'rgba(220, 53, 69, 0.85)',
+                mesFoco: 'rgba(73, 80, 87, 0.85)'
+            };
+
+            function rowKey(d) {
+                return [d.NR_COLETA, d.EXPEDICIONADO, d.NR_EMBARQUE, d.NR_LOTEEXP].join('|');
+            }
+
+            var cf = crossFilter({
+                dims: ['mes', 'gerente', 'cliente', 'supervisor', 'linhas'],
+                campo: {
+                    mes: function(r) { return r.MES_ANO; },
+                    gerente: function(r) { return r.NM_GERENTE; },
+                    cliente: function(r) { return String(r.CD_PESSOA); },
+                    supervisor: function(r) { return r.NM_SUPERVISOR; },
+                    linhas: rowKey
+                }
+            });
+            // Selecao de linha e so enfase visual - nao filtra a tabela.
+            cf.attachTable('produzidosTable', { ignorarDims: ['linhas'] });
 
             $('#grupo_item').select2({
                 placeholder: 'Selecione o grupo',
@@ -156,6 +198,9 @@
             $('#search').click(function() {
                 $('#produzidosTable').DataTable().destroy();
 
+                // Nova consulta = contexto novo: zera as selecoes de cross-highlight.
+                cf.clear();
+
                 $('.periodo').text('Período: ' + datasSelecionadas.getInicio() + ' - ' + datasSelecionadas
                     .getFim());
 
@@ -179,7 +224,7 @@
             });
 
             function buildDetailId(d) {
-                return ('pedido-' + d.NR_COLETA + '-' + d.EXPEDICIONADO + '-' + d.NR_EMBARQUE)
+                return ('pedido-' + d.NR_COLETA + '-' + d.EXPEDICIONADO + '-' + d.NR_EMBARQUE + '-' + d.NR_LOTEEXP)
                     .replace(/[^A-Za-z0-9_-]+/g, '_'); // "SEM EMBARQUE" -> "SEM_EMBARQUE"
             }
 
@@ -236,7 +281,8 @@
                 $.get(window.routes.getPneusProduzidosSemFaturarDetails, {
                     pedido: row.NR_COLETA,
                     nr_embarque: row.NR_EMBARQUE,
-                    expedicionado: row.EXPEDICIONADO
+                    expedicionado: row.EXPEDICIONADO,
+                    nr_loteexp: row.NR_LOTEEXP
                 }).done(function(resp) {
                     var itens = (resp && resp.data) ? resp.data : [];
 
@@ -334,7 +380,9 @@
                         url: window.routes.languageDataTable,
                     },
                     scrollY: '400px',
+                    paging: false,
                     pageLength: -1,
+                    searchDelay: 300,
                     lengthMenu: [
                         [10, 25, 50, -1],
                         [10, 25, 50, "Todos"],
@@ -344,6 +392,8 @@
                             buttons: [
                                 {
                                     extend: "excelHtml5",
+                                    text: '<i class="fas fa-file-excel"></i> Excel',
+                                    className: 'btn btn-xs btn-success',
                                     title: 'Pneus Produzidos Sem Faturar',
                                     footer: false,
                                 }
@@ -360,8 +410,9 @@
                         },
                         dataSrc: function(json) {
                             $(".loading-card").addClass('invisible');
-                            carregaDados(json.datatables.data);
-
+                            // Universo dos graficos = retorno do backend. Busca/clique
+                            // sao camadas de cross-highlight tratadas em setBase/renderCharts.
+                            setBase(json.datatables.data);
                             return json.datatables.data;
                         }
                     },
@@ -417,8 +468,13 @@
                         },
                         {
                             "data": "DTFIM",
-                            render: function(data) {
-                                return moment(data).format('DD/MM/YYYY HH:mm');
+                            name: "DTFIM",
+                            render: function(data, type) {
+                                if (type === 'display' || type === 'filter') {
+                                    return data ? moment(data).format('DD/MM/YYYY HH:mm') : '';
+                                }
+                                // sort/type: valor cru "YYYY-MM-DD HH:mm:ss" ordena cronologicamente
+                                return data || '';
                             },
                             title: "Data",
                             className: "text-center",
@@ -437,7 +493,9 @@
                         @hasrole('admin|supervisor|gerente unidade|gerente comercial')
                             {
                                 "data": "VALOR",
-                                title: "Valor"
+                                name: "VALOR",
+                                title: "Valor",
+                                className: "text-right"
                             },
                         @endhasrole {
                             "data": "NM_SUPERVISOR",
@@ -450,46 +508,60 @@
                         "className": "text-center",
                     }],
 
+                    order: [
+                        ['DTFIM:name', 'asc']
+                    ],
+
+                    // Mantem a enfase da linha selecionada apos redraw (busca/ordenacao).
+                    rowCallback: cf.rowCallback,
+
                     footerCallback: function(row, data, start, end, display) {
                         var api = new $.fn.dataTable.Api(this);
 
-                        let QtdPneus = 0;
-                        let valorTotal = 0;
-                        let expedicionadoSim = 0;
-                        let expedicionadoNao = 0;
-                        let embarqueSim = 0;
-                        let embarqueNao = 0;
+                        var QtdPneus = 0;
+                        var valorTotal = 0;
+                        var expedicionadoSim = 0;
+                        var expedicionadoNao = 0;
+                        var embarqueSim = 0;
+                        var embarqueNao = 0;
 
-                        data.forEach(function(item) {
-                            QtdPneus += Number(item.PNEUS);
-                            valorTotal += parseFloat(item.VALOR.replace(/\./g, '').replace(',',
-                                '.'));
-                            if (item.EXPEDICIONADO == 'SIM') {
-                                expedicionadoSim += Number(item.PNEUS);
+                        // Agrega sobre as linhas visiveis (respeita o filtro/busca),
+                        // igual ao total de pneus no rodape.
+                        api.rows({ search: 'applied' }).data().each(function(item) {
+                            var pneus = Number(item.PNEUS) || 0;
+                            QtdPneus += pneus;
+                            valorTotal += parseFloat(
+                                String(item.VALOR).replace(/\./g, '').replace(',', '.')
+                            ) || 0;
+
+                            if (item.EXPEDICIONADO === 'SIM') {
+                                expedicionadoSim += pneus;
                             } else {
-                                expedicionadoNao += Number(item.PNEUS);
+                                expedicionadoNao += pneus;
                             }
-                            if (item.ST_EMBARQUE != 'SEM EMBARQUE') {
-                                embarqueSim += Number(item.PNEUS);
+                            if (item.ST_EMBARQUE !== 'SEM EMBARQUE') {
+                                embarqueSim += pneus;
                             } else {
-                                embarqueNao += Number(item.PNEUS);
+                                embarqueNao += pneus;
                             }
                         });
 
-                        const totalPneus = api
-                            .column(5, { search: 'applied' })
-                            .data()
-                            .toArray()
-                            .reduce(function(a, b) { return a + (Number(b) || 0); }, 0);
-
-                        $(api.column(5).footer()).html(totalPneus.toLocaleString('pt-BR'));
-
-
-                        $('.pneusTotal').html(QtdPneus.toLocaleString('pt-BR'));
-                        $('#valorTotal').html('R$ ' + valorTotal.toLocaleString('pt-BR', {
+                        var valorFmt = 'R$ ' + valorTotal.toLocaleString('pt-BR', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                        }));
+                        });
+
+                        // Rodape: total de pneus
+                        $(api.column(5).footer()).html(QtdPneus.toLocaleString('pt-BR'));
+
+                        // Rodape: total do valor (coluna so existe com permissao)
+                        var colValor = api.column('VALOR:name');
+                        if (colValor.length && colValor.footer()) {
+                            $(colValor.footer()).addClass('text-right').html(valorFmt);
+                        }
+
+                        $('.pneusTotal').html(QtdPneus.toLocaleString('pt-BR'));
+                        $('#valorTotal').html(valorFmt);
                         $('#expedicionadoSim').html(expedicionadoSim.toLocaleString('pt-BR'));
                         $('#expedicionadoNao').html(expedicionadoNao.toLocaleString('pt-BR'));
                         $('#embarqueSim').html(embarqueSim.toLocaleString('pt-BR'));
@@ -497,6 +569,20 @@
 
                     },
 
+                });
+
+                // A busca nativa da tabela redefine o universo dos graficos. O render
+                // inicial e o do botao "#search" ja acontecem no dataSrc; comeca em ''
+                // para nao renderizar de novo no primeiro draw. Ordenacao nao altera o
+                // conjunto, entao e ignorada.
+                var ultimoFiltroGraficos = '';
+                table.on('draw.dt', function() {
+                    var filtroAtual = table.search();
+                    if (filtroAtual === ultimoFiltroGraficos) {
+                        return;
+                    }
+                    ultimoFiltroGraficos = filtroAtual;
+                    setBase(table.rows({ search: 'applied' }).data().toArray());
                 });
             }
 
@@ -520,7 +606,8 @@
                             "data": {
                                 'pedido': data.NR_COLETA,
                                 'nr_embarque': data.NR_EMBARQUE === 'SEM EMBARQUE' ? 0 : data.NR_EMBARQUE,
-                                'expedicionado': data.EXPEDICIONADO
+                                'expedicionado': data.EXPEDICIONADO,
+                                'nr_loteexp': data.NR_LOTEEXP
                             }
                         },
                         columns: [{
@@ -576,429 +663,187 @@
                     });
             }
 
-            function carregaDados(data, chartId) {
-                const acumuladorMeses = {};
-                const acumuladorGerentes = {};
-                const qtdMes = {};
-                const qtdGerente = {};
-                const vlrGerente = {};
+            // ============================================================
+            //  Graficos com cross-highlight (multi-selecao), estilo Power BI.
+            //  Estado/selecao: cross-filter.js (var cf, no topo deste script).
+            //  Render dos graficos: chart-focus-bar.js (focusBarChart /
+            //  focusDualBarChart). Aqui fica so o que e especifico desta tela:
+            //  mapeamento de campos, agregacao e as cores/ids de cada grafico.
+            // ============================================================
+            function toNumeroBR(v) {
+                return parseFloat(String(v).replace(/\./g, '').replace(',', '.')) || 0;
+            }
 
-                const acumuladorClientes = {};
-                const acumuladorNomeCliente = {};
-                const qtdClientes = {};
-                const vlrClientes = {};
+            function agrupar(rows) {
+                var g = {
+                    mesQtd: {},
+                    gerQtd: {}, gerVlr: {},
+                    cliQtd: {}, cliVlr: {}, cliNome: {},
+                    supQtd: {}, supVlr: {}
+                };
+                rows.forEach(function(r) {
+                    var q = Number(r.PNEUS) || 0;
+                    var v = toNumeroBR(r.VALOR);
+                    var cli = String(r.CD_PESSOA);
 
-                const acumuladorSupervisores = {};
-                const qtdSupervisores = {};
-                const vlrSupervisores = {};
+                    g.mesQtd[r.MES_ANO] = (g.mesQtd[r.MES_ANO] || 0) + q;
+                    g.gerQtd[r.NM_GERENTE] = (g.gerQtd[r.NM_GERENTE] || 0) + q;
+                    g.gerVlr[r.NM_GERENTE] = (g.gerVlr[r.NM_GERENTE] || 0) + v;
+                    g.cliQtd[cli] = (g.cliQtd[cli] || 0) + q;
+                    g.cliVlr[cli] = (g.cliVlr[cli] || 0) + v;
+                    if (g.cliNome[cli] === undefined) g.cliNome[cli] = r.NM_PESSOA || cli;
+                    g.supQtd[r.NM_SUPERVISOR] = (g.supQtd[r.NM_SUPERVISOR] || 0) + q;
+                    g.supVlr[r.NM_SUPERVISOR] = (g.supVlr[r.NM_SUPERVISOR] || 0) + v;
+                });
+                return g;
+            }
 
-                data.forEach(({
-                    MES_ANO,
-                    NM_GERENTE,
-                    NM_SUPERVISOR,
-                    CD_PESSOA,
-                    NM_PESSOA,
-                    PNEUS,
-                    VALOR
-                }) => {
-                    const qtde = Number(PNEUS);
-                    const valor = parseFloat(VALOR.replace(/\./g, '').replace(',', '.'));
+            // "MM-YYYY" -> ordena cronologicamente; chaves invalidas vao pro fim
+            function ordenaMesAno(a, b) {
+                var pa = String(a).split('-'),
+                    pb = String(b).split('-');
+                if (pa.length < 2 || isNaN(pa[1])) return 1;
+                if (pb.length < 2 || isNaN(pb[1])) return -1;
+                return (pa[1] - pb[1]) || (pa[0] - pb[0]);
+            }
 
-                    acumuladorMeses[MES_ANO] ??= {};
-                    acumuladorMeses[MES_ANO][NM_GERENTE] ??= 0;
-                    acumuladorGerentes[NM_GERENTE] ??= 0;
+            function setBase(rows) {
+                baseRows = rows || [];
+                renderCharts();
+                cf.aplicarEnfase(table);
+            }
 
-                    qtdMes[MES_ANO] ??= 0;
-                    qtdGerente[NM_GERENTE] ??= 0;
-                    vlrGerente[NM_GERENTE] ??= 0;
+            function renderCharts() {
+                var total = agrupar(baseRows);
+                var foco = agrupar(baseRows.filter(function(r) { return cf.isFocused(r); }));
+                var temSelecao = cf.hasSelection();
 
-                    acumuladorMeses[MES_ANO][NM_GERENTE] += qtde;
-                    qtdMes[MES_ANO] += qtde;
-                    qtdGerente[NM_GERENTE] += qtde;
-                    vlrGerente[NM_GERENTE] += valor;
+                // ----- Meses (somente quantidade) -----
+                var meses = Object.keys(total.mesQtd).sort(ordenaMesAno);
+                var mFoco = meses.map(function(m) { return foco.mesQtd[m] || 0; });
+                var mTot = meses.map(function(m) { return total.mesQtd[m] || 0; });
+                var mResto = meses.map(function(m, i) { return mTot[i] - mFoco[i]; });
 
-                    acumuladorClientes[CD_PESSOA] ??= 0;
-                    acumuladorNomeCliente[CD_PESSOA] ??= NM_PESSOA;
-                    qtdClientes[CD_PESSOA] ??= 0;
-                    vlrClientes[CD_PESSOA] ??= 0;
-                    qtdClientes[CD_PESSOA] += qtde;
-                    vlrClientes[CD_PESSOA] += valor;
-
-                    acumuladorSupervisores[NM_SUPERVISOR] ??= 0;
-                    qtdSupervisores[NM_SUPERVISOR] ??=
-                        0; // Inicializa a quantidade para o supervisor se ainda não existir
-                    vlrSupervisores[NM_SUPERVISOR] ??=
-                        0; // Inicializa o valor para o supervisor se ainda não existir
-                    qtdSupervisores[NM_SUPERVISOR] += qtde;
-                    vlrSupervisores[NM_SUPERVISOR] += valor;
-
+                focusBarChart('chartPneusMesAno', {
+                    labels: meses,
+                    chaves: meses,
+                    foco: mFoco,
+                    resto: mResto,
+                    total: mTot,
+                    cor: COR.mesFoco,
+                    temSelecao: temSelecao,
+                    onClick: function(chave) { onSegmentoClick('mes', chave); }
                 });
 
-                const meses = Object.keys(acumuladorMeses);
-                const qtdPneusMes = Object.values(qtdMes);
+                atualizaPercentual(mTot);
 
-                const datasetsMeses = [{
-                    data: qtdPneusMes,
-                    backgroundColor: 'rgba(206,212,218)',
-                    borderColor: 'rgba(206,212,218, 1)',
-                    borderWidth: 1
-                }];
+                // ----- Gerente / Cliente / Supervisor (quantidade + valor) -----
+                renderDimensao('chartPneusGerente', 'legend-container-gerente', 'gerente',
+                    total.gerQtd, total.gerVlr, foco.gerQtd, foco.gerVlr,
+                    function(k) { return k; }, temSelecao);
 
-                // Renderiza o gráfico de meses
-                renderChartJs(
-                    meses,
-                    datasetsMeses,
-                    'chartPneusMesAno',
-                    'bar',
-                    'Meses');
+                renderDimensao('chartPneusCliente', 'legend-container-cliente', 'cliente',
+                    total.cliQtd, total.cliVlr, foco.cliQtd, foco.cliVlr,
+                    function(k) { return String(total.cliNome[k] || k).split(' ')[0]; }, temSelecao);
 
-                //Verifico se teve aumento no ultimo mês em relação ao penúltimo mês
-                const [penultimoMes, ultimoMes, MesAtual] = qtdPneusMes.slice(-3);
+                renderDimensao('chartPneusSupervisor', 'legend-container-supervisor', 'supervisor',
+                    total.supQtd, total.supVlr, foco.supQtd, foco.supVlr,
+                    function(k) { return k; }, temSelecao);
 
-                const percentual = ((ultimoMes - penultimoMes) / penultimoMes) * 100;
+                atualizarBotaoLimpar();
+            }
 
-                $('.calc-percentual').html(`
-                    <span class="${percentual >= 0 ? 'text-success' : 'text-danger'}">
-                        <i class="fas fa-arrow-${percentual >= 0 ? 'up' : 'down'}"></i> ${percentual.toFixed(2)}%
-                    </span>
-                    <span class="text-muted">${percentual >= 0 ? 'Aumento do ultimo Mês' : 'Queda do ultimo Mês'}</span>
-                `);
-
-
-                // Renderiza o gráfico de gerentes
-                montarGrafico({
-                    valores: vlrGerente,
-                    quantidades: qtdGerente,
-                    campoLabel: 'nomeGerente',
-
-                    transformarItem: (gerente) => ({
-                        nomeGerente: gerente,
-                        valor: vlrGerente[gerente],
-                        quantidade: qtdGerente[gerente]
-                    }),
-
-                    chartId: 'chartPneusGerente',
-                    titulo: 'Meses',
-                    legendId: 'legend-container-gerente'
+            function renderDimensao(chartId, legendId, dim, totQ, totV, focQ, focV, nomeFn, temSelecao) {
+                var s = montarSeries(totQ, totV, focQ, focV, nomeFn);
+                focusDualBarChart(chartId, legendId, {
+                    labels: s.labels,
+                    chaves: s.chaves,
+                    temSelecao: temSelecao,
+                    scrollAcimaDe: 6,
+                    larguraPorItem: 90,
+                    metrics: [
+                        { foco: s.focoQ, resto: s.restoQ, total: s.totQ, cor: COR.qtdFoco, legenda: 'Quantidade', eixo: 'y' },
+                        { foco: s.focoV, resto: s.restoV, total: s.totV, cor: COR.vlrFoco, legenda: 'Valor', eixo: 'y1', moeda: true }
+                    ],
+                    onClick: function(chave) { onSegmentoClick(dim, chave); }
                 });
+            }
 
-                // Renderiza o gráfico de clientes
-                montarGrafico({
-                    valores: vlrClientes,
-                    quantidades: qtdClientes,
-                    campoLabel: 'nomeCliente',
-
-                    transformarItem: (cliente) => ({
-                        nomeCliente: acumuladorNomeCliente[cliente].split(' ')[0],
-                        valor: vlrClientes[cliente],
-                        quantidade: qtdClientes[cliente]
-                    }),
-
-                    chartId: 'chartPneusCliente',
-                    titulo: 'Meses',
-                    legendId: 'legend-container-cliente'
+            // Ordena as categorias por valor total desc e devolve os arrays alinhados
+            function montarSeries(totQ, totV, focQ, focV, nomeFn) {
+                var chaves = Object.keys(totQ).sort(function(a, b) {
+                    return (totV[b] || 0) - (totV[a] || 0);
                 });
+                return {
+                    chaves: chaves,
+                    labels: chaves.map(nomeFn),
+                    focoQ: chaves.map(function(k) { return focQ[k] || 0; }),
+                    restoQ: chaves.map(function(k) { return (totQ[k] || 0) - (focQ[k] || 0); }),
+                    totQ: chaves.map(function(k) { return totQ[k] || 0; }),
+                    focoV: chaves.map(function(k) { return focV[k] || 0; }),
+                    restoV: chaves.map(function(k) { return (totV[k] || 0) - (focV[k] || 0); }),
+                    totV: chaves.map(function(k) { return totV[k] || 0; })
+                };
+            }
 
-                // Renderiza o gráfico de supervisores
-                montarGrafico({
-                    valores: vlrSupervisores,
-                    quantidades: qtdSupervisores,
-                    campoLabel: 'nomeSupervisor',
+            function atualizaPercentual(qtdPorMes) {
+                var ult = qtdPorMes.slice(-3);
+                var pen = ult[ult.length - 2];
+                var atu = ult[ult.length - 1];
+                var pct = ((atu - pen) / pen) * 100;
 
-                    transformarItem: (supervisor) => ({
-                        nomeSupervisor: supervisor,
-                        valor: vlrSupervisores[supervisor],
-                        quantidade: qtdSupervisores[supervisor]
-                    }),
-
-                    chartId: 'chartPneusSupervisor',
-                    titulo: 'Meses',
-                    legendId: 'legend-container-supervisor'
-                });
-                
-            }            
-
-            function montarGrafico({
-                valores,
-                quantidades,
-                campoLabel,
-                transformarItem,
-                chartId,
-                titulo,
-                legendId
-            }) {
-
-                const array = Object.keys(valores).map(chave =>
-                    transformarItem(chave)
-                );
-
-                array.sort((a, b) => b.valor - a.valor);
-
-                const labels = array.map(item => item[campoLabel]);
-                const qtd = array.map(item => item.quantidade);
-                const vlr = array.map(item => item.valor);
-
-                const datasets = loadDatasets(qtd, vlr);
-
-                renderChartJsDualAxis(
-                    labels,
-                    datasets,
-                    chartId,
-                    titulo,
-                    legendId
+                if (!isFinite(pct)) {
+                    $('.calc-percentual').empty();
+                    return;
+                }
+                $('.calc-percentual').html(
+                    '<span class="' + (pct >= 0 ? 'text-success' : 'text-danger') + '">' +
+                    '<i class="fas fa-arrow-' + (pct >= 0 ? 'up' : 'down') + '"></i> ' +
+                    pct.toFixed(2) + '%</span>' +
+                    '<span class="text-muted">' +
+                    (pct >= 0 ? 'Aumento do ultimo Mês' : 'Queda do ultimo Mês') +
+                    '</span>'
                 );
             }
 
-            function renderChartJsDualAxis(labels, datasets, chartId, labelChart, legendContainerId) {
+            // ----- Interacao: clique num segmento alterna o chip da dimensao -----
+            function onSegmentoClick(dim, chave) {
+                if (!dim || chave === undefined || chave === null) return;
+                cf.toggle(dim, chave);
+                renderCharts();
+                if (table) table.draw(); // reaplica o filtro global -> tabela so com o foco
+                cf.aplicarEnfase(table);
+            }
 
-                const larguraPorItem = 80; // px por barra
-                const total = labels.length;
+            function atualizarBotaoLimpar() {
+                var n = cf.count();
+                $('#limparSelecaoGraficos').toggle(n > 0);
+                $('#limparSelecaoGraficos .qtd-sel').text(n);
+            }
 
-                const larguraTotal = total * larguraPorItem;
+            function limparSelecao() {
+                cf.clear();
+                $('#produzidosTable tbody tr').removeClass('linha-selecionada');
+                renderCharts();
+                if (table) table.draw(); // remove o filtro global -> tabela volta ao universo
+            }
 
-                const ctx = document.getElementById(chartId).getContext('2d');
-                if (chartId === 'chartPneusCliente') {
-                    ctx.canvas.parentElement.style.width = larguraTotal + 'px';
+            $('#limparSelecaoGraficos').on('click', limparSelecao);
+
+            // Clique numa linha da tabela alterna a selecao daquela linha
+            $('#produzidosTable').on('click', '> tbody > tr', function(e) {
+                if ($(e.target).closest('.btn-detalhes, .btn-observacao-embarque, .btn-enviar-whatsapp, button, a').length) {
+                    return;
                 }
+                var d = table.row(this).data();
+                if (!d) return; // linha de detalhe (child row)
+                cf.toggle('linhas', rowKey(d));
+                renderCharts();
+                if (table) table.draw(); // se veio de outra dimensao, remove o filtro dela
+                cf.aplicarEnfase(table);
+            });
 
 
-                if (charts[chartId]) {
-                    charts[chartId].destroy();
-                }
-
-                charts[chartId] = new Chart(ctx, {
-                    data: {
-                        labels: labels,
-                        datasets: datasets
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-                        resposive: true,
-                        onClick: function(evt) {
-
-                            const points = this.getElementsAtEventForMode(
-                                evt,
-                                'nearest', {
-                                    intersect: true
-                                },
-                                true
-                            );
-
-                            if (!points.length) return;
-
-                            const point = points[0];
-
-                            const label = this.data.labels[point.index];
-                            const value = this.data.datasets[point.datasetIndex].data[point.index];
-
-                            onChartClick(label, value, chartId);
-                        },
-
-                        plugins: {
-                            legend: {
-                                display: false,
-                                position: 'top'
-                            },
-                            datalabels: {
-                                anchor: 'end',
-                                align: 'center', // 'top', 'bottom', 'center'
-                                color: '#000',
-                                font: {
-                                    weight: 'bold',
-                                    size: 12
-                                },
-                                formatter: function(value, context) {
-
-                                    // Se for o dataset de VALOR
-                                    if (context.dataset.label.includes('Valor')) {
-                                        return value.toLocaleString('pt-BR', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        });
-                                    }
-
-                                    // Se for quantidade
-                                    return value;
-                                }
-                            },
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            },
-                            y: {
-                                type: 'linear',
-                                position: 'left',
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            },
-                            y1: {
-                                type: 'linear',
-                                position: 'right',
-                                grid: {
-                                    drawOnChartArea: false
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        return 'R$ ' + value.toLocaleString('pt-BR');
-                                    }
-                                }
-                            }
-                        },
-                    },
-                    plugins: [ChartDataLabels]
-                });
-
-                gerarLegenda(charts[chartId], legendContainerId);
-
-            }
-
-            function renderChartJs(labels, datasets, chartId, typeChart, labelChart) {
-
-                const ctx = document.getElementById(chartId).getContext('2d');
-
-                if (charts[chartId]) {
-                    charts[chartId].destroy();
-                }
-
-                charts[chartId] = new Chart(ctx, {
-                    type: typeChart,
-                    data: {
-                        labels: labels,
-                        datasets: datasets
-                    },
-                    options: {
-                        maintainAspectRatio: false,
-
-                        onClick: function(evt) {
-
-                            const points = this.getElementsAtEventForMode(
-                                evt,
-                                'nearest', {
-                                    intersect: true
-                                },
-                                true
-                            );
-
-                            if (!points.length) return;
-
-                            const point = points[0];
-
-                            const label = this.data.labels[point.index];
-                            const value = this.data.datasets[point.datasetIndex].data[point.index];
-
-                            onChartClick(label, value, chartId);
-                        },
-
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            datalabels: {
-                                anchor: 'end',
-                                align: 'center', // 'top', 'bottom', 'center'
-                                color: '#000',
-                                font: {
-                                    weight: 'bold',
-                                    size: 12
-                                },
-                                formatter: function(value, context) {
-                                    return value;
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            },
-                            y: {
-                                grid: {
-                                    drawOnChartArea: false
-                                }
-                            }
-                        }
-                    },
-                    plugins: [ChartDataLabels]
-                });
-            }
-
-            function onChartClick(label, value, chartId) {
-                table.search(label).draw();
-            }
-
-            function loadDatasets(qtd = [], vlr = []) {
-
-                return [{
-                        label: "Quantidade",
-                        type: 'bar',
-                        data: qtd,
-                        backgroundColor: 'rgba(60, 145, 230, 0.5)',
-                        borderColor: 'rgba(60, 145, 230, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y',
-                    },
-                    {
-                        type: 'bar',
-                        label: 'Valor (R$)',
-                        data: vlr,
-                        backgroundColor: 'rgba(220, 53, 69, 0.5)',
-                        borderColor: 'rgba(220, 53, 69, 1)',
-                        borderWidth: 1,
-                        yAxisID: 'y1'
-                    }
-                ];
-            }
-
-            function gerarLegenda(chart, containerId) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = '';
-
-                chart.data.datasets.forEach((dataset, index) => {
-
-                    const item = document.createElement('span');
-                    item.style.marginRight = '10px';
-                    item.style.cursor = 'pointer';
-                    item.style.display = 'inline-flex';
-                    item.style.alignItems = 'center';
-                    item.style.padding = '4px 8px';
-                    item.style.borderRadius = '6px';
-                    item.style.background = '#f4f6f9';
-
-                    const colorBox = document.createElement('span');
-                    colorBox.style.width = '12px';
-                    colorBox.style.height = '12px';
-                    colorBox.style.background = dataset.borderColor;
-                    colorBox.style.marginRight = '5px';
-                    colorBox.style.borderRadius = '2px';
-
-                    const label = document.createElement('span');
-                    label.textContent = dataset.label;
-
-                    item.appendChild(colorBox);
-                    item.appendChild(label);
-
-
-                    item.addEventListener('click', () => {
-                        const meta = chart.getDatasetMeta(index);
-
-                        // alterna visibilidade
-                        meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden :
-                            null;
-
-                        chart.update();
-
-                        // efeito visual (apagado quando desativado)
-                        item.style.opacity = meta.hidden ? '0.3' : '1';
-                    });
-
-                    container.appendChild(item);
-                });
-            }
 
         });
 

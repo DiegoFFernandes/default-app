@@ -25,7 +25,8 @@ class Producao extends Model
         $inicioData = $data['dt_inicial'];
         $fimData = $data['dt_final'];
         $supervisor = $data['supervisor'] == 0 ? $supervisor : $data['supervisor'];
-        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];       
+        $st_embarque = $data['st_embarque'] == 0 ? 0 : $data['st_embarque'];   
+             
 
         $query = "
             SELECT DISTINCT
@@ -44,6 +45,7 @@ class Producao extends Model
                 WHEN OPRX.IDEXPEDICAOLOTEPNEU IS NULL THEN 'NAO'
                 ELSE 'SIM'
                 END AS EXPEDICIONADO,
+                COALESCE(OPRX.IDEXPEDICAOLOTEPNEU, 0) AS NR_LOTEEXP,
                 MAX(EF.DTFIM) AS DTFIM,
                RIGHT(0|| EXTRACT(MONTH FROM MAX(EF.DTFIM)), 2) || '-' || EXTRACT(YEAR FROM MAX(EF.DTFIM)) MES_ANO,
                 PP.DTENTREGA,
@@ -98,6 +100,7 @@ class Producao extends Model
                                                     WHEN OCP.NR_EMBARQUE IS NULL THEN 2 
                                                     ELSE 1
                                                 END = $st_embarque" : "") . "
+                                                
                 AND OPR.STEXAMEFINAL <> 'T'
                 AND COALESCE(PD.ST_PEDIDO, 'N') <> 'C'
                 AND RCH.O_NR_LANCAMENTO IS NULL
@@ -122,16 +125,11 @@ class Producao extends Model
                 ";
 
         $data = DB::connection('firebird')->select($query);
-        return Helper::ConvertFormatText($data);
 
-        $key = "produzidos-para-faturar" . Auth::user()->id;
-
-        return Cache::remember($key, now()->addMinutes(15), function () use ($query) {
-            $data = DB::connection('firebird')->select($query);
-            return Helper::ConvertFormatText($data);
-        });
+        return Helper::ConvertFormatText($data);        
     }
-    public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE, $EXPEDICIONADO, $subgrupoRecusa)
+    
+    public function getPneusProduzidosFaturarDetails($NR_COLETA, $NR_EMBARQUE, $EXPEDICIONADO, $subgrupoRecusa, $nr_loteExp)
     {
         $query = "
             SELECT DISTINCT
@@ -149,7 +147,7 @@ class Producao extends Model
                 WHEN OPRX.IDEXPEDICAOLOTEPNEU IS NULL THEN 'NAO'
                 ELSE 'SIM'
                 END AS EXPEDICIONADO,
-                OPRX.IDEXPEDICAOLOTEPNEU AS NR_LOTEEXP,
+                COALESCE(OPRX.IDEXPEDICAOLOTEPNEU, 0) AS NR_LOTEEXP,
                 OPR.ID NR_ORDEM, OPR.ID || ' - ' || IPP.NRSEQUENCIA || '/' ||(SELECT
                                                             MAX(IPP2.NRSEQUENCIA)
                                                         FROM ITEMPEDIDOPNEU IPP2
@@ -192,7 +190,7 @@ class Producao extends Model
                         ELSE 'SIM'
                     END = '$EXPEDICIONADO'
                 " . (($NR_EMBARQUE != 0) ? "AND OCP.NR_EMBARQUE = $NR_EMBARQUE" : "") . "
-
+                " . (($nr_loteExp != 0) ? "AND OPRX.IDEXPEDICAOLOTEPNEU = $nr_loteExp" : "") . "
 
                 ";
 

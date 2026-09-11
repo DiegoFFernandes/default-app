@@ -19,9 +19,9 @@ use App\Services\ServiceFiltroGrupoSubgrupo;
 
 class ProducaoController extends Controller
 {
-    public $request, $regiao, $empresa, $user, $producao, 
-    $supervisorComercial, $gerenteUnidade, $pessoa, 
-    $area, $supervisor, $serviceFiltroGrupoSubgrupo;
+    public $request, $regiao, $empresa, $user, $producao,
+        $supervisorComercial, $gerenteUnidade, $pessoa,
+        $area, $supervisor, $serviceFiltroGrupoSubgrupo;
 
     public function __construct(
         Request $request,
@@ -202,6 +202,7 @@ class ProducaoController extends Controller
         $nr_embarque = $this->request->get('nr_embarque');
         $pedido = $this->request->get('pedido');
         $expedicionado = $this->request->get('expedicionado');
+        $nr_loteExp = $this->request->get('nr_loteexp');
 
         if ($nr_embarque == 'SEM EMBARQUE') {
             $nr_embarque = 0;
@@ -210,7 +211,13 @@ class ProducaoController extends Controller
         //Retorna os subgrupos recusados
         $subgrupoRecusa = $this->serviceFiltroGrupoSubgrupo->obterSubgruposValidos(9);
 
-        $data = $this->producao->getPneusProduzidosFaturarDetails($pedido, $nr_embarque, $expedicionado, $subgrupoRecusa['data']);
+        $data = $this->producao->getPneusProduzidosFaturarDetails(
+            $pedido,
+            $nr_embarque,
+            $expedicionado,
+            $subgrupoRecusa['data'],
+            $nr_loteExp
+        );
 
         return DataTables::of($data)->make(true);
     }
